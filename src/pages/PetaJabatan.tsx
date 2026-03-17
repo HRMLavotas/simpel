@@ -392,19 +392,12 @@ export default function PetaJabatan() {
                     <TableRow>
                       <TableHead className="w-12">No</TableHead>
                       <TableHead>Jabatan Sesuai Kepmen 202/2024</TableHead>
-                      <TableHead className="w-20 text-center">Grade</TableHead>
+                      <TableHead className="w-16 text-center">Grade</TableHead>
                       <TableHead className="w-16 text-center">ABK</TableHead>
-                      <TableHead className="w-20 text-center">Existing</TableHead>
+                      <TableHead className="w-16 text-center">Existing</TableHead>
                       <TableHead>Nama Pemangku</TableHead>
-                      <TableHead>Kriteria ASN</TableHead>
-                      <TableHead>NIP</TableHead>
-                      <TableHead>Pangkat</TableHead>
-                      <TableHead>Pendidikan</TableHead>
-                      <TableHead className="w-16">JK</TableHead>
-                      <TableHead>Ket. Formasi</TableHead>
-                      <TableHead>Ket. Penempatan</TableHead>
-                      <TableHead>Ket. Penugasan</TableHead>
-                      <TableHead>Ket. Perubahan</TableHead>
+                      <TableHead className="w-20 text-center">Kriteria ASN</TableHead>
+                      <TableHead className="w-20">Status</TableHead>
                       <TableHead className="w-20">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -432,48 +425,39 @@ export default function PetaJabatan() {
                         : '-';
 
                       return (
-                        <TableRow key={`pos-${idx}`} className={cn(!emp && 'text-muted-foreground')}>
+                        <TableRow key={`pos-${idx}`} className={cn(!emp && 'bg-muted/30')}>
                           {row.isFirst && (
                             <>
-                              <TableCell rowSpan={row.rowSpan} className="text-center align-top border-r">
+                              <TableCell rowSpan={row.rowSpan} className="text-center align-top font-medium">
                                 {positionNo}
                               </TableCell>
-                              <TableCell rowSpan={row.rowSpan} className="font-medium align-top border-r">
+                              <TableCell rowSpan={row.rowSpan} className="font-medium align-top">
                                 {pos.position_name}
                               </TableCell>
-                              <TableCell rowSpan={row.rowSpan} className="text-center align-top border-r">
+                              <TableCell rowSpan={row.rowSpan} className="text-center align-top">
                                 {pos.grade || '-'}
                               </TableCell>
-                              <TableCell rowSpan={row.rowSpan} className="text-center align-top border-r">
+                              <TableCell rowSpan={row.rowSpan} className="text-center align-top">
                                 {pos.abk_count}
                               </TableCell>
-                              <TableCell rowSpan={row.rowSpan} className="text-center align-top border-r">
+                              <TableCell rowSpan={row.rowSpan} className="text-center align-top">
                                 {existing}
                               </TableCell>
                             </>
                           )}
-                          <TableCell>{fullName}</TableCell>
-                          <TableCell>{emp?.asn_status || '-'}</TableCell>
-                          <TableCell className="font-mono text-xs">{emp?.nip || '-'}</TableCell>
-                          <TableCell className="text-xs">{emp?.rank_group || '-'}</TableCell>
-                          <TableCell className="text-xs">{emp ? getEmployeeEducation(emp.id) : '-'}</TableCell>
-                          <TableCell>{emp?.gender ? (emp.gender === 'Laki-laki' ? 'L' : 'P') : '-'}</TableCell>
+                          <TableCell className="text-sm">{fullName}</TableCell>
+                          <TableCell className="text-center text-sm">{emp?.asn_status || '-'}</TableCell>
                           {row.isFirst && (
-                            <>
-                              <TableCell rowSpan={row.rowSpan} className="align-top border-l text-xs">
-                                {ketFormasi > 0
-                                  ? <span className="text-orange-500">Kurang {ketFormasi}</span>
-                                  : ketFormasi < 0
-                                  ? <span className="text-blue-500">Lebih {Math.abs(ketFormasi)}</span>
-                                  : <span className="text-green-500">Sesuai</span>}
-                              </TableCell>
-                            </>
+                            <TableCell rowSpan={row.rowSpan} className="align-top text-xs">
+                              {ketFormasi > 0
+                                ? <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Kurang {ketFormasi}</span>
+                                : ketFormasi < 0
+                                ? <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Lebih {Math.abs(ketFormasi)}</span>
+                                : <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Sesuai</span>}
+                            </TableCell>
                           )}
-                          <TableCell className="text-xs">{emp?.keterangan_penempatan || '-'}</TableCell>
-                          <TableCell className="text-xs">{emp?.keterangan_penugasan || '-'}</TableCell>
-                          <TableCell className="text-xs">{emp?.keterangan_perubahan || '-'}</TableCell>
                           {row.isFirst && (
-                            <TableCell rowSpan={row.rowSpan} className="align-top border-l">
+                            <TableCell rowSpan={row.rowSpan} className="align-top">
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>
                                   <Pencil className="h-3.5 w-3.5" />
