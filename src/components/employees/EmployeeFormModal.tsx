@@ -21,9 +21,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
+import {
+  EmployeeHistoryForm,
+  type HistoryEntry,
+  MUTATION_FIELDS,
+  POSITION_HISTORY_FIELDS,
+  RANK_HISTORY_FIELDS,
+  COMPETENCY_TEST_FIELDS,
+  TRAINING_FIELDS,
+} from './EmployeeHistoryForm';
 
 const employeeSchema = z.object({
   nip: z.string().max(18, 'NIP maksimal 18 digit').optional().or(z.literal('')),
@@ -44,10 +54,19 @@ const employeeSchema = z.object({
   tmt_cpns: z.string().optional().or(z.literal('')),
   tmt_pns: z.string().optional().or(z.literal('')),
   tmt_pensiun: z.string().optional().or(z.literal('')),
+  keterangan_formasi: z.string().optional().or(z.literal('')),
+  keterangan_penempatan: z.string().optional().or(z.literal('')),
+  keterangan_penugasan: z.string().optional().or(z.literal('')),
+  keterangan_perubahan: z.string().optional().or(z.literal('')),
 });
 
 export type EmployeeFormData = z.infer<typeof employeeSchema> & {
   education_history?: EducationEntry[];
+  mutation_history?: HistoryEntry[];
+  position_history?: HistoryEntry[];
+  rank_history?: HistoryEntry[];
+  competency_test_history?: HistoryEntry[];
+  training_history?: HistoryEntry[];
 };
 
 interface Employee {
@@ -70,6 +89,10 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  keterangan_formasi?: string | null;
+  keterangan_penempatan?: string | null;
+  keterangan_penugasan?: string | null;
+  keterangan_perubahan?: string | null;
 }
 
 interface EmployeeFormModalProps {
@@ -79,6 +102,11 @@ interface EmployeeFormModalProps {
   onSubmit: (data: EmployeeFormData) => Promise<void>;
   isLoading?: boolean;
   initialEducation?: EducationEntry[];
+  initialMutationHistory?: HistoryEntry[];
+  initialPositionHistory?: HistoryEntry[];
+  initialRankHistory?: HistoryEntry[];
+  initialCompetencyTestHistory?: HistoryEntry[];
+  initialTrainingHistory?: HistoryEntry[];
 }
 
 export function EmployeeFormModal({
@@ -88,10 +116,20 @@ export function EmployeeFormModal({
   onSubmit,
   isLoading,
   initialEducation,
+  initialMutationHistory,
+  initialPositionHistory,
+  initialRankHistory,
+  initialCompetencyTestHistory,
+  initialTrainingHistory,
 }: EmployeeFormModalProps) {
   const { profile, isAdminPusat } = useAuth();
   const isEditing = !!employee;
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
+  const [mutationEntries, setMutationEntries] = useState<HistoryEntry[]>([]);
+  const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [rankHistoryEntries, setRankHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [competencyEntries, setCompetencyEntries] = useState<HistoryEntry[]>([]);
+  const [trainingEntries, setTrainingEntries] = useState<HistoryEntry[]>([]);
 
   const form = useForm<z.infer<typeof employeeSchema>>({
     resolver: zodResolver(employeeSchema),
@@ -101,6 +139,8 @@ export function EmployeeFormModal({
       old_position: '', position_type: '', position_name: '',
       asn_status: '', rank_group: '', department: profile?.department || '',
       join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+      keterangan_formasi: '', keterangan_penempatan: '',
+      keterangan_penugasan: '', keterangan_perubahan: '',
     },
   });
 
@@ -116,8 +156,17 @@ export function EmployeeFormModal({
         rank_group: employee.rank_group || '', department: employee.department,
         join_date: employee.join_date || '', tmt_cpns: employee.tmt_cpns || '',
         tmt_pns: employee.tmt_pns || '', tmt_pensiun: employee.tmt_pensiun || '',
+        keterangan_formasi: employee.keterangan_formasi || '',
+        keterangan_penempatan: employee.keterangan_penempatan || '',
+        keterangan_penugasan: employee.keterangan_penugasan || '',
+        keterangan_perubahan: employee.keterangan_perubahan || '',
       });
       setEducationEntries(initialEducation || []);
+      setMutationEntries(initialMutationHistory || []);
+      setPositionHistoryEntries(initialPositionHistory || []);
+      setRankHistoryEntries(initialRankHistory || []);
+      setCompetencyEntries(initialCompetencyTestHistory || []);
+      setTrainingEntries(initialTrainingHistory || []);
     } else {
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
@@ -125,13 +174,28 @@ export function EmployeeFormModal({
         old_position: '', position_type: '', position_name: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
         join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+        keterangan_formasi: '', keterangan_penempatan: '',
+        keterangan_penugasan: '', keterangan_perubahan: '',
       });
       setEducationEntries([]);
+      setMutationEntries([]);
+      setPositionHistoryEntries([]);
+      setRankHistoryEntries([]);
+      setCompetencyEntries([]);
+      setTrainingEntries([]);
     }
-  }, [employee, profile, form, initialEducation]);
+  }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory]);
 
   const handleSubmit = async (data: z.infer<typeof employeeSchema>) => {
-    await onSubmit({ ...data, education_history: educationEntries });
+    await onSubmit({
+      ...data,
+      education_history: educationEntries,
+      mutation_history: mutationEntries,
+      position_history: positionHistoryEntries,
+      rank_history: rankHistoryEntries,
+      competency_test_history: competencyEntries,
+      training_history: trainingEntries,
+    });
   };
 
   const renderSelectField = (
@@ -262,6 +326,31 @@ export function EmployeeFormModal({
 
           <Separator />
 
+          {/* Keterangan Section */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Keterangan</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="keterangan_formasi">Keterangan Formasi</Label>
+                <Input id="keterangan_formasi" placeholder="Keterangan formasi (ABK-Existing)" {...form.register('keterangan_formasi')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="keterangan_penempatan">Keterangan Penempatan</Label>
+                <Input id="keterangan_penempatan" placeholder="Keterangan penempatan" {...form.register('keterangan_penempatan')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="keterangan_penugasan">Keterangan Penugasan Tambahan</Label>
+                <Input id="keterangan_penugasan" placeholder="Keterangan penugasan tambahan" {...form.register('keterangan_penugasan')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="keterangan_perubahan">Keterangan Perubahan</Label>
+                <Input id="keterangan_perubahan" placeholder="Keterangan perubahan" {...form.register('keterangan_perubahan')} />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Dates Section */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tanggal Penting</h3>
@@ -289,6 +378,56 @@ export function EmployeeFormModal({
 
           {/* Education Section */}
           <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
+
+          <Separator />
+
+          {/* Mutation History */}
+          <EmployeeHistoryForm
+            title="Riwayat Mutasi"
+            fields={MUTATION_FIELDS}
+            entries={mutationEntries}
+            onChange={setMutationEntries}
+          />
+
+          <Separator />
+
+          {/* Position History */}
+          <EmployeeHistoryForm
+            title="Riwayat Jabatan"
+            fields={POSITION_HISTORY_FIELDS}
+            entries={positionHistoryEntries}
+            onChange={setPositionHistoryEntries}
+          />
+
+          <Separator />
+
+          {/* Rank History */}
+          <EmployeeHistoryForm
+            title="Riwayat Kenaikan Pangkat"
+            fields={RANK_HISTORY_FIELDS}
+            entries={rankHistoryEntries}
+            onChange={setRankHistoryEntries}
+          />
+
+          <Separator />
+
+          {/* Competency Test History */}
+          <EmployeeHistoryForm
+            title="Riwayat Uji Kompetensi"
+            fields={COMPETENCY_TEST_FIELDS}
+            entries={competencyEntries}
+            onChange={setCompetencyEntries}
+          />
+
+          <Separator />
+
+          {/* Training History */}
+          <EmployeeHistoryForm
+            title="Riwayat Diklat"
+            fields={TRAINING_FIELDS}
+            entries={trainingEntries}
+            onChange={setTrainingEntries}
+          />
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
