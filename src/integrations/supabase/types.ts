@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      competency_test_history: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          hasil: string | null
+          id: string
+          jenis_uji: string | null
+          keterangan: string | null
+          tanggal: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          hasil?: string | null
+          id?: string
+          jenis_uji?: string | null
+          keterangan?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          hasil?: string | null
+          id?: string
+          jenis_uji?: string | null
+          keterangan?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competency_test_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string | null
@@ -196,6 +237,94 @@ export type Database = {
         }
         Relationships: []
       }
+      mutation_history: {
+        Row: {
+          created_at: string | null
+          dari_unit: string | null
+          employee_id: string
+          id: string
+          ke_unit: string | null
+          keterangan: string | null
+          nomor_sk: string | null
+          tanggal: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dari_unit?: string | null
+          employee_id: string
+          id?: string
+          ke_unit?: string | null
+          keterangan?: string | null
+          nomor_sk?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dari_unit?: string | null
+          employee_id?: string
+          id?: string
+          ke_unit?: string | null
+          keterangan?: string | null
+          nomor_sk?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mutation_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      position_history: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          jabatan_baru: string | null
+          jabatan_lama: string | null
+          keterangan: string | null
+          nomor_sk: string | null
+          tanggal: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          jabatan_baru?: string | null
+          jabatan_lama?: string | null
+          keterangan?: string | null
+          nomor_sk?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          jabatan_baru?: string | null
+          jabatan_lama?: string | null
+          keterangan?: string | null
+          nomor_sk?: string | null
+          tanggal?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       position_references: {
         Row: {
           abk_count: number | null
@@ -258,6 +387,100 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      rank_history: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          keterangan: string | null
+          nomor_sk: string | null
+          pangkat_baru: string | null
+          pangkat_lama: string | null
+          tanggal: string | null
+          tmt: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          keterangan?: string | null
+          nomor_sk?: string | null
+          pangkat_baru?: string | null
+          pangkat_lama?: string | null
+          tanggal?: string | null
+          tmt?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          keterangan?: string | null
+          nomor_sk?: string | null
+          pangkat_baru?: string | null
+          pangkat_lama?: string | null
+          tanggal?: string | null
+          tmt?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rank_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_history: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          keterangan: string | null
+          nama_diklat: string | null
+          penyelenggara: string | null
+          sertifikat: string | null
+          tanggal_mulai: string | null
+          tanggal_selesai: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          keterangan?: string | null
+          nama_diklat?: string | null
+          penyelenggara?: string | null
+          sertifikat?: string | null
+          tanggal_mulai?: string | null
+          tanggal_selesai?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          keterangan?: string | null
+          nama_diklat?: string | null
+          penyelenggara?: string | null
+          sertifikat?: string | null
+          tanggal_mulai?: string | null
+          tanggal_selesai?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
