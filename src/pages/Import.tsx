@@ -138,6 +138,9 @@ export default function Import() {
           rowType = 'position_reference';
         }
 
+        const rawPositionType = row['Jenis Jabatan'] || '';
+        const normalizedPositionType = normalizeImportValue(rawPositionType, POSITION_TYPE_ALIASES, POSITION_TYPES);
+
         const parsedRow: ParsedRow = {
           no: row['No'] || '',
           position_name: positionName,
@@ -156,7 +159,7 @@ export default function Import() {
           keterangan_penempatan: row['Keternangan Penempatan'] || row['Keterangan Penempatan'] || '',
           keterangan_penugasan: row['Keterangan Penugasan Tambahan'] || row['Keterangan Penugasan'] || '',
           keterangan_perubahan: row['Keterangan Perubahan'] || '',
-          position_type: row['Jenis Jabatan'] || '',
+          position_type: normalizedPositionType,
           row_type: rowType,
         };
 
@@ -211,6 +214,8 @@ export default function Import() {
         const jumlahAbk = values[headers.indexOf('jumlah abk')] || '';
         const name = values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '';
         const nipValue = values[headers.indexOf('nip')] || '';
+        const rawPositionType = values[headers.indexOf('jenis jabatan')] || '';
+        const normalizedPositionType = normalizeImportValue(rawPositionType, POSITION_TYPE_ALIASES, POSITION_TYPES);
 
         // Determine row type based on presence of employee name
         // If no name but has position name → position_reference
@@ -241,7 +246,7 @@ export default function Import() {
           keterangan_penempatan: values[headers.indexOf('keternangan penempatan')] || values[headers.indexOf('keterangan penempatan')] || '',
           keterangan_penugasan: values[headers.indexOf('keterangan penugasan tambahan')] || '',
           keterangan_perubahan: values[headers.indexOf('keterangan perubahan')] || '',
-          position_type: values[headers.indexOf('jenis jabatan')] || '',
+          position_type: normalizedPositionType,
           row_type: rowType,
         };
 
@@ -330,6 +335,12 @@ export default function Import() {
           }
         } else if (row.row_type === 'position_reference') {
           // Save to position_references table
+          // Determine position category - use provided type or default to Struktural
+          let positionCategory = 'Struktural';
+          if (row.position_type && ['Struktural', 'Fungsional', 'Pelaksana'].includes(row.position_type)) {
+            positionCategory = row.position_type;
+          }
+
           const { error } = await supabase
             .from('position_references')
             .insert({
@@ -337,7 +348,7 @@ export default function Import() {
               grade: row.grade_kelas ? parseInt(row.grade_kelas, 10) : null,
               abk_count: row.jumlah_abk ? parseInt(row.jumlah_abk, 10) : 0,
               department: row.department,
-              position_category: row.position_type || 'Umum',
+              position_category: positionCategory,
               position_order: 0,
             });
 

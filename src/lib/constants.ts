@@ -68,7 +68,7 @@ export const DEPARTMENT_ALIASES: Record<string, Department> = {
 };
 
 // ASN Status options
-export const ASN_STATUS_OPTIONS = ['PNS', 'PPPK', 'Non ASN'] as const;
+export const ASN_STATUS_OPTIONS = ['PNS', 'CPNS', 'PPPK', 'Non ASN'] as const;
 export type AsnStatus = typeof ASN_STATUS_OPTIONS[number];
 
 // Gender options
