@@ -129,12 +129,12 @@ export default function Import() {
         const name = row['Nama Pemangku'] || row['Nama Lengkap'] || row['name'] || row['Nama'] || '';
         const nipValue = row['NIP'] || row['nip'] || '';
 
-        // Determine row type: if has position data but missing employee data, treat as position_reference
-        const hasPositionData = positionName && gradeKelas && jumlahAbk;
-        const hasEmployeeData = name && nipValue;
+        // Determine row type based on presence of employee name
+        // If no name but has position data (jabatan, grade, abk) → position_reference
+        // If has name → employee (NIP is optional for Non ASN)
         let rowType: 'employee' | 'position_reference' = 'employee';
 
-        if (hasPositionData && !hasEmployeeData) {
+        if (!name && positionName && gradeKelas && jumlahAbk) {
           rowType = 'position_reference';
         }
 
@@ -216,12 +216,12 @@ export default function Import() {
         const name = values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '';
         const nipValue = values[headers.indexOf('nip')] || '';
 
-        // Determine row type: if has position data but missing employee data, treat as position_reference
-        const hasPositionData = positionName && gradeKelas && jumlahAbk;
-        const hasEmployeeData = name && nipValue;
+        // Determine row type based on presence of employee name
+        // If no name but has position data (jabatan, grade, abk) → position_reference
+        // If has name → employee (NIP is optional for Non ASN)
         let rowType: 'employee' | 'position_reference' = 'employee';
 
-        if (hasPositionData && !hasEmployeeData) {
+        if (!name && positionName && gradeKelas && jumlahAbk) {
           rowType = 'position_reference';
         }
 
