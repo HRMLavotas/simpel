@@ -492,6 +492,7 @@ export default function Employees() {
         onConfirm={handleConfirmDelete}
         isLoading={isSubmitting}
         employeeName={selectedEmployee ? formatDisplayName(selectedEmployee) : ''}
+        department={selectedEmployee?.department || ''}
       />
     </AppLayout>
   );
