@@ -130,11 +130,11 @@ export default function Import() {
         const nipValue = row['NIP'] || row['nip'] || '';
 
         // Determine row type based on presence of employee name
-        // If no name but has position data (jabatan, grade, abk) → position_reference
+        // If no name but has position name → position_reference
         // If has name → employee (NIP is optional for Non ASN)
         let rowType: 'employee' | 'position_reference' = 'employee';
 
-        if (!name && positionName && gradeKelas && jumlahAbk) {
+        if (!name && positionName) {
           rowType = 'position_reference';
         }
 
@@ -174,10 +174,6 @@ export default function Import() {
         } else if (rowType === 'position_reference') {
           if (!parsedRow.position_name) {
             parsedRow.error = 'Jabatan wajib diisi';
-          } else if (!parsedRow.grade_kelas) {
-            parsedRow.error = 'Grade/Kelas Jabatan wajib diisi';
-          } else if (!parsedRow.jumlah_abk) {
-            parsedRow.error = 'Jumlah ABK wajib diisi';
           } else if (isAdminPusat && !parsedRow.department) {
             parsedRow.error = 'Unit kerja wajib diisi';
           } else if (isAdminPusat && !DEPARTMENTS.includes(parsedRow.department as Department)) {
@@ -217,11 +213,11 @@ export default function Import() {
         const nipValue = values[headers.indexOf('nip')] || '';
 
         // Determine row type based on presence of employee name
-        // If no name but has position data (jabatan, grade, abk) → position_reference
+        // If no name but has position name → position_reference
         // If has name → employee (NIP is optional for Non ASN)
         let rowType: 'employee' | 'position_reference' = 'employee';
 
-        if (!name && positionName && gradeKelas && jumlahAbk) {
+        if (!name && positionName) {
           rowType = 'position_reference';
         }
 
@@ -263,10 +259,6 @@ export default function Import() {
         } else if (rowType === 'position_reference') {
           if (!row.position_name) {
             row.error = 'Jabatan wajib diisi';
-          } else if (!row.grade_kelas) {
-            row.error = 'Grade/Kelas Jabatan wajib diisi';
-          } else if (!row.jumlah_abk) {
-            row.error = 'Jumlah ABK wajib diisi';
           } else if (isAdminPusat && !row.department) {
             row.error = 'Unit kerja wajib diisi';
           } else if (isAdminPusat && !DEPARTMENTS.includes(row.department as any)) {
