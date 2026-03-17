@@ -49,6 +49,7 @@ interface ParsedRow {
   keterangan_perubahan: string;
   position_type: string;
   department: string;
+  row_type: 'employee' | 'position_reference'; // Type of data row
   error?: string;
 }
 
@@ -116,21 +117,39 @@ export default function Import() {
       const parsed: ParsedRow[] = jsonData.map((row) => {
         const rawRankGroup = row['Pangkat\nGolongan'] || row['Pangkat Golongan'] || row['Golongan'] || row['rank_group'] || '';
         const rawDepartment = row['Unit Kerja'] || row['department'] || '';
-        
+
         const normalizedRankGroup = normalizeImportValue(rawRankGroup, RANK_GROUP_ALIASES, RANK_GROUPS);
-        const normalizedDepartment = isAdminPusat 
+        const normalizedDepartment = isAdminPusat
           ? normalizeImportValue(rawDepartment, DEPARTMENT_ALIASES, DEPARTMENTS)
           : (profile?.department || '');
 
+        const positionName = row['Jabatan Sesuai Kepmen 202 Tahun 2024'] || row['Nama Jabatan'] || row['position_name'] || '';
+        const gradeKelas = row['Grade/\nKelas Jabatan'] || row['Grade/ Kelas Jabatan'] || row['Grade/Kelas Jabatan'] || '';
+        const jumlahAbk = row['Jumlah ABK'] || '';
+        const name = row['Nama Pemangku'] || row['Nama Lengkap'] || row['name'] || row['Nama'] || '';
+        const nipValue = row['NIP'] || row['nip'] || '';
+
+        // Determine row type based on presence of employee name
+        // If no name but has position name → position_reference
+        // If has name → employee (NIP is optional for Non ASN)
+        let rowType: 'employee' | 'position_reference' = 'employee';
+
+        if (!name && positionName) {
+          rowType = 'position_reference';
+        }
+
+        const rawPositionType = row['Jenis Jabatan'] || '';
+        const normalizedPositionType = normalizeImportValue(rawPositionType, POSITION_TYPE_ALIASES, POSITION_TYPES);
+
         const parsedRow: ParsedRow = {
           no: row['No'] || '',
-          position_name: row['Jabatan Sesuai Kepmen 202 Tahun 2024'] || row['Nama Jabatan'] || row['position_name'] || '',
-          grade_kelas: row['Grade/\nKelas Jabatan'] || row['Grade/ Kelas Jabatan'] || row['Grade/Kelas Jabatan'] || '',
-          jumlah_abk: row['Jumlah ABK'] || '',
+          position_name: positionName,
+          grade_kelas: gradeKelas,
+          jumlah_abk: jumlahAbk,
           jumlah_existing: row['Jumlah Existing'] || '',
-          name: row['Nama Pemangku'] || row['Nama Lengkap'] || row['name'] || row['Nama'] || '',
+          name: name,
           asn_status: row['Kriteria ASN'] || row['Status ASN'] || row['asn_status'] || '',
-          nip: row['NIP'] || row['nip'] || '',
+          nip: nipValue,
           rank_group: normalizedRankGroup,
           tmt: row['TMT'] || '',
           education_level: row['Pendidikan Terakhir'] || '',
@@ -140,18 +159,29 @@ export default function Import() {
           keterangan_penempatan: row['Keternangan Penempatan'] || row['Keterangan Penempatan'] || '',
           keterangan_penugasan: row['Keterangan Penugasan Tambahan'] || row['Keterangan Penugasan'] || '',
           keterangan_perubahan: row['Keterangan Perubahan'] || '',
-          position_type: row['Jenis Jabatan'] || '',
+          position_type: normalizedPositionType,
+          row_type: rowType,
         };
 
-        // Validate
-        if (!parsedRow.name) {
-          parsedRow.error = 'Nama wajib diisi';
-        } else if (!parsedRow.asn_status) {
-          parsedRow.error = 'Kriteria ASN wajib diisi';
-        } else if (isAdminPusat && !parsedRow.department) {
-          parsedRow.error = 'Unit kerja wajib diisi';
-        } else if (isAdminPusat && !DEPARTMENTS.includes(parsedRow.department as Department)) {
-          parsedRow.error = `Unit kerja "${rawDepartment}" tidak valid`;
+        // Validate based on row type
+        if (rowType === 'employee') {
+          if (!parsedRow.name) {
+            parsedRow.error = 'Nama wajib diisi';
+          } else if (!parsedRow.asn_status) {
+            parsedRow.error = 'Kriteria ASN wajib diisi';
+          } else if (isAdminPusat && !parsedRow.department) {
+            parsedRow.error = 'Unit kerja wajib diisi';
+          } else if (isAdminPusat && !DEPARTMENTS.includes(parsedRow.department as Department)) {
+            parsedRow.error = `Unit kerja "${rawDepartment}" tidak valid`;
+          }
+        } else if (rowType === 'position_reference') {
+          if (!parsedRow.position_name) {
+            parsedRow.error = 'Jabatan wajib diisi';
+          } else if (isAdminPusat && !parsedRow.department) {
+            parsedRow.error = 'Unit kerja wajib diisi';
+          } else if (isAdminPusat && !DEPARTMENTS.includes(parsedRow.department as Department)) {
+            parsedRow.error = `Unit kerja "${rawDepartment}" tidak valid`;
+          }
         }
 
         return parsedRow;
@@ -178,38 +208,67 @@ export default function Import() {
 
       const parsed: ParsedRow[] = dataRows.map((line) => {
         const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-        
+
+        const positionName = values[headers.indexOf('jabatan sesuai kepmen 202 tahun 2024')] || values[headers.indexOf('position_name')] || '';
+        const gradeKelas = values[headers.indexOf('grade/\nkelas jabatan')] || values[headers.indexOf('grade/ kelas jabatan')] || values[headers.indexOf('grade/kelas jabatan')] || '';
+        const jumlahAbk = values[headers.indexOf('jumlah abk')] || '';
+        const name = values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '';
+        const nipValue = values[headers.indexOf('nip')] || '';
+        const rawPositionType = values[headers.indexOf('jenis jabatan')] || '';
+        const normalizedPositionType = normalizeImportValue(rawPositionType, POSITION_TYPE_ALIASES, POSITION_TYPES);
+
+        // Determine row type based on presence of employee name
+        // If no name but has position name → position_reference
+        // If has name → employee (NIP is optional for Non ASN)
+        let rowType: 'employee' | 'position_reference' = 'employee';
+
+        if (!name && positionName) {
+          rowType = 'position_reference';
+        }
+
         const row: ParsedRow = {
           no: values[headers.indexOf('no')] || '',
-          position_name: values[headers.indexOf('jabatan sesuai kepmen 202 tahun 2024')] || values[headers.indexOf('position_name')] || '',
-          grade_kelas: values[headers.indexOf('grade/\nkelas jabatan')] || values[headers.indexOf('grade/ kelas jabatan')] || values[headers.indexOf('grade/kelas jabatan')] || '',
-          jumlah_abk: values[headers.indexOf('jumlah abk')] || '',
+          position_name: positionName,
+          grade_kelas: gradeKelas,
+          jumlah_abk: jumlahAbk,
           jumlah_existing: values[headers.indexOf('jumlah existing')] || '',
-          name: values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '',
+          name: name,
           asn_status: values[headers.indexOf('kriteria asn')] || values[headers.indexOf('asn_status')] || '',
-          nip: values[headers.indexOf('nip')] || '',
+          nip: nipValue,
           rank_group: values[headers.indexOf('pangkat\ngolongan')] || values[headers.indexOf('pangkat golongan')] || values[headers.indexOf('rank_group')] || '',
           tmt: values[headers.indexOf('tmt')] || '',
           education_level: values[headers.indexOf('pendidikan terakhir')] || '',
           gender: values[headers.indexOf('jenis kelamin')] || '',
-          department: isAdminPusat 
+          department: isAdminPusat
             ? values[headers.indexOf('unit kerja')] || values[headers.indexOf('department')] || ''
             : profile?.department || '',
           keterangan_formasi: values[headers.indexOf('keterangan formasi (abk-existing)')] || values[headers.indexOf('keterangan formasi')] || '',
           keterangan_penempatan: values[headers.indexOf('keternangan penempatan')] || values[headers.indexOf('keterangan penempatan')] || '',
           keterangan_penugasan: values[headers.indexOf('keterangan penugasan tambahan')] || '',
           keterangan_perubahan: values[headers.indexOf('keterangan perubahan')] || '',
-          position_type: values[headers.indexOf('jenis jabatan')] || '',
+          position_type: normalizedPositionType,
+          row_type: rowType,
         };
 
-        if (!row.name) {
-          row.error = 'Nama wajib diisi';
-        } else if (!row.asn_status) {
-          row.error = 'Kriteria ASN wajib diisi';
-        } else if (isAdminPusat && !row.department) {
-          row.error = 'Unit kerja wajib diisi';
-        } else if (isAdminPusat && !DEPARTMENTS.includes(row.department as any)) {
-          row.error = `Unit kerja "${row.department}" tidak valid`;
+        // Validate based on row type
+        if (rowType === 'employee') {
+          if (!row.name) {
+            row.error = 'Nama wajib diisi';
+          } else if (!row.asn_status) {
+            row.error = 'Kriteria ASN wajib diisi';
+          } else if (isAdminPusat && !row.department) {
+            row.error = 'Unit kerja wajib diisi';
+          } else if (isAdminPusat && !DEPARTMENTS.includes(row.department as any)) {
+            row.error = `Unit kerja "${row.department}" tidak valid`;
+          }
+        } else if (rowType === 'position_reference') {
+          if (!row.position_name) {
+            row.error = 'Jabatan wajib diisi';
+          } else if (isAdminPusat && !row.department) {
+            row.error = 'Unit kerja wajib diisi';
+          } else if (isAdminPusat && !DEPARTMENTS.includes(row.department as any)) {
+            row.error = `Unit kerja "${row.department}" tidak valid`;
+          }
         }
 
         return row;
@@ -222,7 +281,7 @@ export default function Import() {
 
   const handleImport = async () => {
     if (parsedData.length === 0) return;
-    
+
     setIsProcessing(true);
     setProgress(0);
 
@@ -231,47 +290,74 @@ export default function Import() {
 
     for (let i = 0; i < validRows.length; i++) {
       const row = validRows[i];
-      
+
       try {
-        // Normalize gender
-        let gender = row.gender;
-        if (gender === 'L') gender = 'Laki-laki';
-        if (gender === 'P') gender = 'Perempuan';
+        if (row.row_type === 'employee') {
+          // Normalize gender
+          let gender = row.gender;
+          if (gender === 'L') gender = 'Laki-laki';
+          if (gender === 'P') gender = 'Perempuan';
 
-        const { data: inserted, error } = await supabase
-          .from('employees')
-          .insert({
-            nip: row.nip || null,
-            name: row.name,
-            position_name: row.position_name || null,
-            asn_status: row.asn_status,
-            rank_group: row.rank_group || null,
-            department: row.department,
-            gender: gender || null,
-            keterangan_formasi: row.keterangan_formasi || null,
-            keterangan_penempatan: row.keterangan_penempatan || null,
-            keterangan_penugasan: row.keterangan_penugasan || null,
-            keterangan_perubahan: row.keterangan_perubahan || null,
-          })
-          .select('id')
-          .single();
+          const { data: inserted, error } = await supabase
+            .from('employees')
+            .insert({
+              nip: row.nip || null,
+              name: row.name,
+              position_name: row.position_name || null,
+              asn_status: row.asn_status,
+              rank_group: row.rank_group || null,
+              department: row.department,
+              gender: gender || null,
+              keterangan_formasi: row.keterangan_formasi || null,
+              keterangan_penempatan: row.keterangan_penempatan || null,
+              keterangan_penugasan: row.keterangan_penugasan || null,
+              keterangan_perubahan: row.keterangan_perubahan || null,
+            })
+            .select('id')
+            .single();
 
-        if (error) {
-          if (error.code === '23505') {
-            result.errors.push({ row: i + 2, error: `NIP ${row.nip} sudah terdaftar` });
+          if (error) {
+            if (error.code === '23505') {
+              result.errors.push({ row: i + 2, error: `NIP ${row.nip} sudah terdaftar` });
+            } else {
+              result.errors.push({ row: i + 2, error: error.message });
+            }
+            result.failed++;
           } else {
-            result.errors.push({ row: i + 2, error: error.message });
+            // If education level provided, insert education history
+            if (row.education_level && inserted) {
+              await supabase.from('education_history').insert({
+                employee_id: inserted.id,
+                level: row.education_level,
+              });
+            }
+            result.success++;
           }
-          result.failed++;
-        } else {
-          // If education level provided, insert education history
-          if (row.education_level && inserted) {
-            await supabase.from('education_history').insert({
-              employee_id: inserted.id,
-              level: row.education_level,
+        } else if (row.row_type === 'position_reference') {
+          // Save to position_references table
+          // Determine position category - use provided type or default to Struktural
+          let positionCategory = 'Struktural';
+          if (row.position_type && ['Struktural', 'Fungsional', 'Pelaksana'].includes(row.position_type)) {
+            positionCategory = row.position_type;
+          }
+
+          const { error } = await supabase
+            .from('position_references')
+            .insert({
+              position_name: row.position_name,
+              grade: row.grade_kelas ? parseInt(row.grade_kelas, 10) : null,
+              abk_count: row.jumlah_abk ? parseInt(row.jumlah_abk, 10) : 0,
+              department: row.department,
+              position_category: positionCategory,
+              position_order: 0,
             });
+
+          if (error) {
+            result.errors.push({ row: i + 2, error: error.message });
+            result.failed++;
+          } else {
+            result.success++;
           }
-          result.success++;
         }
       } catch (err: any) {
         result.errors.push({ row: i + 2, error: err.message });
@@ -475,7 +561,9 @@ export default function Import() {
     XLSX.writeFile(wb, 'template-import-pegawai.xlsx');
   };
 
-  const validCount = parsedData.filter(r => !r.error).length;
+  const validEmployeeCount = parsedData.filter(r => !r.error && r.row_type === 'employee').length;
+  const validPositionCount = parsedData.filter(r => !r.error && r.row_type === 'position_reference').length;
+  const validCount = validEmployeeCount + validPositionCount;
   const invalidCount = parsedData.filter(r => r.error).length;
 
   return (
@@ -543,10 +631,18 @@ export default function Import() {
 
               {parsedData.length > 0 && (
                 <>
-                  <div className="flex gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-success" />
-                      <span>{validCount} data valid</span>
+                  <div className="flex flex-col gap-3 text-sm">
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-success" />
+                        <span>{validEmployeeCount} data pegawai</span>
+                      </div>
+                      {validPositionCount > 0 && (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-blue-500" />
+                          <span>{validPositionCount} data peta jabatan</span>
+                        </div>
+                      )}
                     </div>
                     {invalidCount > 0 && (
                       <div className="flex items-center gap-2">
@@ -590,13 +686,13 @@ export default function Import() {
                   )}
 
                   <div className="flex gap-2">
-                    <Button 
-                      onClick={handleImport} 
+                    <Button
+                      onClick={handleImport}
                       disabled={validCount === 0 || isProcessing}
                       className="flex-1"
                     >
                       <Upload className="mr-2 h-4 w-4" />
-                      Import {validCount} Data
+                      Import {validEmployeeCount > 0 ? `${validEmployeeCount} Pegawai` : ''}{validEmployeeCount > 0 && validPositionCount > 0 ? ' + ' : ''}{validPositionCount > 0 ? `${validPositionCount} Peta Jabatan` : ''}
                     </Button>
                     <Button variant="outline" onClick={handleReset}>
                       Reset
@@ -649,19 +745,20 @@ export default function Import() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Preview Data (5 baris pertama)</CardTitle>
+              <CardDescription>Kolom yang ditampilkan sesuai dengan tipe data (Pegawai atau Peta Jabatan)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Tipe</TableHead>
                       <TableHead>Jabatan</TableHead>
+                      <TableHead>Grade</TableHead>
+                      <TableHead>ABK</TableHead>
                       <TableHead>Nama</TableHead>
                       <TableHead>Kriteria ASN</TableHead>
                       <TableHead>NIP</TableHead>
-                      <TableHead>Golongan</TableHead>
-                      <TableHead>Pendidikan</TableHead>
-                      <TableHead>JK</TableHead>
                       <TableHead>Unit Kerja</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -669,13 +766,19 @@ export default function Import() {
                   <TableBody>
                     {parsedData.slice(0, 5).map((row, idx) => (
                       <TableRow key={idx} className={cn(row.error && 'bg-destructive/5')}>
+                        <TableCell className="text-xs font-medium">
+                          {row.row_type === 'position_reference' ? (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">Peta Jabatan</span>
+                          ) : (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Pegawai</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm">{row.position_name || '-'}</TableCell>
-                        <TableCell>{row.name || '-'}</TableCell>
-                        <TableCell>{row.asn_status || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.grade_kelas || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.jumlah_abk || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.name || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.asn_status || '-'}</TableCell>
                         <TableCell className="font-mono text-sm">{row.nip || '-'}</TableCell>
-                        <TableCell className="text-sm">{row.rank_group || '-'}</TableCell>
-                        <TableCell>{row.education_level || '-'}</TableCell>
-                        <TableCell>{row.gender || '-'}</TableCell>
                         <TableCell className="text-sm">{row.department}</TableCell>
                         <TableCell>
                           {row.error ? (
