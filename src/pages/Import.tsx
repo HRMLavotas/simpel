@@ -31,19 +31,24 @@ import {
 import { cn } from '@/lib/utils';
 
 interface ParsedRow {
+  no: string;
   position_name: string;
-  position_type: string;
+  grade_kelas: string;
+  jumlah_abk: string;
+  jumlah_existing: string;
   name: string;
   asn_status: string;
   nip: string;
   rank_group: string;
+  tmt: string;
+  education_level: string;
   gender: string;
-  department: string;
   keterangan_formasi: string;
   keterangan_penempatan: string;
   keterangan_penugasan: string;
   keterangan_perubahan: string;
-  education_level: string;
+  position_type: string;
+  department: string;
   error?: string;
 }
 
@@ -109,7 +114,7 @@ export default function Import() {
       }
 
       const parsed: ParsedRow[] = jsonData.map((row) => {
-        const rawRankGroup = row['Pangkat Golongan'] || row['Golongan'] || row['rank_group'] || '';
+        const rawRankGroup = row['Pangkat\nGolongan'] || row['Pangkat Golongan'] || row['Golongan'] || row['rank_group'] || '';
         const rawDepartment = row['Unit Kerja'] || row['department'] || '';
         
         const normalizedRankGroup = normalizeImportValue(rawRankGroup, RANK_GROUP_ALIASES, RANK_GROUPS);
@@ -118,19 +123,24 @@ export default function Import() {
           : (profile?.department || '');
 
         const parsedRow: ParsedRow = {
+          no: row['No'] || '',
           position_name: row['Jabatan Sesuai Kepmen 202 Tahun 2024'] || row['Nama Jabatan'] || row['position_name'] || '',
-          position_type: '',
+          grade_kelas: row['Grade/\nKelas Jabatan'] || row['Grade/ Kelas Jabatan'] || row['Grade/Kelas Jabatan'] || '',
+          jumlah_abk: row['Jumlah ABK'] || '',
+          jumlah_existing: row['Jumlah Existing'] || '',
           name: row['Nama Pemangku'] || row['Nama Lengkap'] || row['name'] || row['Nama'] || '',
           asn_status: row['Kriteria ASN'] || row['Status ASN'] || row['asn_status'] || '',
           nip: row['NIP'] || row['nip'] || '',
           rank_group: normalizedRankGroup,
+          tmt: row['TMT'] || '',
+          education_level: row['Pendidikan Terakhir'] || '',
           gender: row['Jenis Kelamin'] || row['gender'] || '',
           department: normalizedDepartment,
-          keterangan_formasi: row['Keterangan Formasi'] || row['Keterangan Formasi (ABK-Existing)'] || '',
-          keterangan_penempatan: row['Keterangan Penempatan'] || '',
+          keterangan_formasi: row['Keterangan Formasi (ABK-Existing)'] || row['Keterangan Formasi'] || '',
+          keterangan_penempatan: row['Keternangan Penempatan'] || row['Keterangan Penempatan'] || '',
           keterangan_penugasan: row['Keterangan Penugasan Tambahan'] || row['Keterangan Penugasan'] || '',
           keterangan_perubahan: row['Keterangan Perubahan'] || '',
-          education_level: row['Pendidikan Terakhir'] || '',
+          position_type: row['Jenis Jabatan'] || '',
         };
 
         // Validate
@@ -170,21 +180,26 @@ export default function Import() {
         const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
         
         const row: ParsedRow = {
+          no: values[headers.indexOf('no')] || '',
           position_name: values[headers.indexOf('jabatan sesuai kepmen 202 tahun 2024')] || values[headers.indexOf('position_name')] || '',
-          position_type: '',
+          grade_kelas: values[headers.indexOf('grade/\nkelas jabatan')] || values[headers.indexOf('grade/ kelas jabatan')] || values[headers.indexOf('grade/kelas jabatan')] || '',
+          jumlah_abk: values[headers.indexOf('jumlah abk')] || '',
+          jumlah_existing: values[headers.indexOf('jumlah existing')] || '',
           name: values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '',
           asn_status: values[headers.indexOf('kriteria asn')] || values[headers.indexOf('asn_status')] || '',
           nip: values[headers.indexOf('nip')] || '',
-          rank_group: values[headers.indexOf('pangkat golongan')] || values[headers.indexOf('rank_group')] || '',
+          rank_group: values[headers.indexOf('pangkat\ngolongan')] || values[headers.indexOf('pangkat golongan')] || values[headers.indexOf('rank_group')] || '',
+          tmt: values[headers.indexOf('tmt')] || '',
+          education_level: values[headers.indexOf('pendidikan terakhir')] || '',
           gender: values[headers.indexOf('jenis kelamin')] || '',
           department: isAdminPusat 
             ? values[headers.indexOf('unit kerja')] || values[headers.indexOf('department')] || ''
             : profile?.department || '',
-          keterangan_formasi: values[headers.indexOf('keterangan formasi')] || '',
-          keterangan_penempatan: values[headers.indexOf('keterangan penempatan')] || '',
+          keterangan_formasi: values[headers.indexOf('keterangan formasi (abk-existing)')] || values[headers.indexOf('keterangan formasi')] || '',
+          keterangan_penempatan: values[headers.indexOf('keternangan penempatan')] || values[headers.indexOf('keterangan penempatan')] || '',
           keterangan_penugasan: values[headers.indexOf('keterangan penugasan tambahan')] || '',
           keterangan_perubahan: values[headers.indexOf('keterangan perubahan')] || '',
-          education_level: values[headers.indexOf('pendidikan terakhir')] || '',
+          position_type: values[headers.indexOf('jenis jabatan')] || '',
         };
 
         if (!row.name) {
@@ -307,62 +322,86 @@ export default function Import() {
     const dept = isAdminPusat ? 'BBPVP Bekasi' : profile?.department;
     const sampleData = [
       {
+        'No': 1,
         'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Analis Kepegawaian Ahli Muda',
+        'Grade/\nKelas Jabatan': '8',
+        'Jumlah ABK': 2,
+        'Jumlah Existing': 1,
         'Nama Pemangku': 'Budi Santoso',
         'Kriteria ASN': 'PNS',
         'NIP': '199001012020121001',
-        'Pangkat Golongan': 'Penata Muda Tk I (III/b)',
+        'Pangkat\nGolongan': 'Penata Muda Tk I (III/b)',
+        'TMT': '01/03/2020',
         'Pendidikan Terakhir': 'S1',
         'Jenis Kelamin': 'Laki-laki',
-        'Keterangan Formasi': '',
-        'Keterangan Penempatan': '',
+        'Keterangan Formasi (ABK-Existing)': '',
+        'Keternangan Penempatan': '',
         'Keterangan Penugasan Tambahan': '',
         'Keterangan Perubahan': '',
+        'Jenis Jabatan': 'Fungsional',
         'Unit Kerja': dept,
       },
       {
+        'No': 2,
         'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Kepala Sub Bagian',
+        'Grade/\nKelas Jabatan': '10',
+        'Jumlah ABK': 1,
+        'Jumlah Existing': 1,
         'Nama Pemangku': 'Siti Nurhaliza',
         'Kriteria ASN': 'PNS',
         'NIP': '199203052021012002',
-        'Pangkat Golongan': 'Penata Tk I (III/d)',
+        'Pangkat\nGolongan': 'Penata Tk I (III/d)',
+        'TMT': '01/04/2021',
         'Pendidikan Terakhir': 'S2',
         'Jenis Kelamin': 'Perempuan',
-        'Keterangan Formasi': '',
-        'Keterangan Penempatan': '',
+        'Keterangan Formasi (ABK-Existing)': '',
+        'Keternangan Penempatan': '',
         'Keterangan Penugasan Tambahan': '',
         'Keterangan Perubahan': '',
+        'Jenis Jabatan': 'Struktural',
         'Unit Kerja': isAdminPusat ? 'Setditjen Binalavotas' : dept,
       },
       {
+        'No': 3,
         'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Tenaga Administrasi',
+        'Grade/\nKelas Jabatan': '6',
+        'Jumlah ABK': 3,
+        'Jumlah Existing': 2,
         'Nama Pemangku': 'Ahmad Fauzi',
         'Kriteria ASN': 'PPPK',
         'NIP': '',
-        'Pangkat Golongan': 'IX',
+        'Pangkat\nGolongan': 'IX',
+        'TMT': '01/01/2023',
         'Pendidikan Terakhir': 'SMA/SMK',
         'Jenis Kelamin': 'Laki-laki',
-        'Keterangan Formasi': '',
-        'Keterangan Penempatan': '',
+        'Keterangan Formasi (ABK-Existing)': '',
+        'Keternangan Penempatan': '',
         'Keterangan Penugasan Tambahan': '',
         'Keterangan Perubahan': '',
+        'Jenis Jabatan': 'Pelaksana',
         'Unit Kerja': isAdminPusat ? 'BPVP Surakarta' : dept,
       },
     ];
 
     const ws = XLSX.utils.json_to_sheet(sampleData);
     ws['!cols'] = [
+      { wch: 6 },   // No
       { wch: 40 },  // Jabatan
+      { wch: 12 },  // Grade/Kelas Jabatan
+      { wch: 12 },  // Jumlah ABK
+      { wch: 14 },  // Jumlah Existing
       { wch: 25 },  // Nama Pemangku
       { wch: 12 },  // Kriteria ASN
       { wch: 20 },  // NIP
       { wch: 25 },  // Pangkat Golongan
+      { wch: 14 },  // TMT
       { wch: 18 },  // Pendidikan Terakhir
       { wch: 14 },  // Jenis Kelamin
-      { wch: 20 },  // Ket Formasi
-      { wch: 20 },  // Ket Penempatan
-      { wch: 25 },  // Ket Penugasan
-      { wch: 20 },  // Ket Perubahan
+      { wch: 25 },  // Ket Formasi
+      { wch: 25 },  // Ket Penempatan
+      { wch: 28 },  // Ket Penugasan
+      { wch: 22 },  // Ket Perubahan
+      { wch: 16 },  // Jenis Jabatan
       { wch: 25 },  // Unit Kerja
     ];
 
@@ -401,17 +440,22 @@ export default function Import() {
       { 'Panduan Pengisian Template Import Pegawai': '=== KETERANGAN KOLOM ===' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': 'Jabatan Sesuai Kepmen 202 Tahun 2024: Nama jabatan pegawai' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Grade/Kelas Jabatan: Grade atau kelas jabatan (angka)' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Jumlah ABK: Jumlah Analisis Beban Kerja' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Jumlah Existing: Jumlah pegawai yang ada saat ini' },
       { 'Panduan Pengisian Template Import Pegawai': 'Nama Pemangku: WAJIB diisi (nama lengkap tanpa gelar)' },
       { 'Panduan Pengisian Template Import Pegawai': 'Kriteria ASN: WAJIB (PNS / PPPK / Non ASN)' },
       { 'Panduan Pengisian Template Import Pegawai': 'NIP: 18 digit (opsional untuk Non ASN)' },
       { 'Panduan Pengisian Template Import Pegawai': 'Pangkat Golongan PNS: Format lengkap, contoh "Penata Muda Tk I (III/b)"' },
       { 'Panduan Pengisian Template Import Pegawai': 'Pangkat Golongan PPPK: I sampai XVII' },
+      { 'Panduan Pengisian Template Import Pegawai': 'TMT: Tanggal Mulai Tugas (format: DD/MM/YYYY)' },
       { 'Panduan Pengisian Template Import Pegawai': 'Pendidikan Terakhir: SD/SMP/SMA-SMK/D1/D2/D3/D4/S1/S2/S3' },
       { 'Panduan Pengisian Template Import Pegawai': 'Jenis Kelamin: Laki-laki / Perempuan (atau L/P)' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Formasi: Keterangan ABK-Existing' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Penempatan: Info penempatan' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Formasi (ABK-Existing): Keterangan ABK vs Existing' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keternangan Penempatan: Info penempatan' },
       { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Penugasan Tambahan: Info penugasan tambahan' },
       { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Perubahan: Info perubahan' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Jenis Jabatan: Struktural / Fungsional / Pelaksana' },
       { 'Panduan Pengisian Template Import Pegawai': isAdminPusat 
         ? 'Unit Kerja: WAJIB, harus sesuai daftar di sheet Referensi' 
         : `Unit Kerja: Otomatis terisi "${profile?.department}"` },
@@ -571,17 +615,23 @@ export default function Import() {
               <div className="space-y-2 text-sm">
                 <p className="font-medium">Format kolom Excel:</p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>No</li>
                   <li>Jabatan Sesuai Kepmen 202 Tahun 2024</li>
+                  <li>Grade/Kelas Jabatan</li>
+                  <li>Jumlah ABK</li>
+                  <li>Jumlah Existing</li>
                   <li>Nama Pemangku (wajib)</li>
-                  <li>Kriteria ASN (wajib: PNS/PPPK/Non ASN)</li>
+                  <li>Kriteria ASN (wajib)</li>
                   <li>NIP (opsional, 18 digit)</li>
                   <li>Pangkat Golongan</li>
+                  <li>TMT</li>
                   <li>Pendidikan Terakhir</li>
                   <li>Jenis Kelamin</li>
-                  <li>Keterangan Formasi</li>
-                  <li>Keterangan Penempatan</li>
+                  <li>Keterangan Formasi (ABK-Existing)</li>
+                  <li>Keternangan Penempatan</li>
                   <li>Keterangan Penugasan Tambahan</li>
                   <li>Keterangan Perubahan</li>
+                  <li>Jenis Jabatan</li>
                   <li>Unit Kerja {isAdminPusat ? '(wajib)' : '(diabaikan)'}</li>
                 </ul>
               </div>
