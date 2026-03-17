@@ -27,18 +27,23 @@ import {
   RANK_GROUP_ALIASES,
   normalizeImportValue,
   type Department,
-  type PositionType,
 } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+
 interface ParsedRow {
-  nip: string;
-  name: string;
-  position_type: string;
   position_name: string;
+  position_type: string;
+  name: string;
   asn_status: string;
+  nip: string;
   rank_group: string;
+  gender: string;
   department: string;
-  join_date: string;
+  keterangan_formasi: string;
+  keterangan_penempatan: string;
+  keterangan_penugasan: string;
+  keterangan_perubahan: string;
+  education_level: string;
   error?: string;
 }
 
@@ -93,58 +98,46 @@ export default function Import() {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       
-      // Convert to JSON with header row
       const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, { 
         raw: false,
         defval: '' 
       });
 
       if (jsonData.length === 0) {
-        toast({
-          variant: 'destructive',
-          title: 'File kosong',
-          description: 'File Excel tidak memiliki data',
-        });
+        toast({ variant: 'destructive', title: 'File kosong', description: 'File Excel tidak memiliki data' });
         return;
       }
 
       const parsed: ParsedRow[] = jsonData.map((row) => {
-        // Get raw values
-        const rawPositionType = row['Jenis Jabatan'] || row['position_type'] || '';
-        const rawRankGroup = row['Golongan'] || row['rank_group'] || '';
+        const rawRankGroup = row['Pangkat Golongan'] || row['Golongan'] || row['rank_group'] || '';
         const rawDepartment = row['Unit Kerja'] || row['department'] || '';
         
-        // Normalize values using aliases
-        const normalizedPositionType = normalizeImportValue(
-          rawPositionType, 
-          POSITION_TYPE_ALIASES, 
-          POSITION_TYPES
-        );
-        const normalizedRankGroup = normalizeImportValue(
-          rawRankGroup, 
-          RANK_GROUP_ALIASES, 
-          RANK_GROUPS
-        );
+        const normalizedRankGroup = normalizeImportValue(rawRankGroup, RANK_GROUP_ALIASES, RANK_GROUPS);
         const normalizedDepartment = isAdminPusat 
           ? normalizeImportValue(rawDepartment, DEPARTMENT_ALIASES, DEPARTMENTS)
           : (profile?.department || '');
 
         const parsedRow: ParsedRow = {
+          position_name: row['Jabatan Sesuai Kepmen 202 Tahun 2024'] || row['Nama Jabatan'] || row['position_name'] || '',
+          position_type: '',
+          name: row['Nama Pemangku'] || row['Nama Lengkap'] || row['name'] || row['Nama'] || '',
+          asn_status: row['Kriteria ASN'] || row['Status ASN'] || row['asn_status'] || '',
           nip: row['NIP'] || row['nip'] || '',
-          name: row['Nama Lengkap'] || row['name'] || row['Nama'] || '',
-          position_type: normalizedPositionType,
-          position_name: row['Nama Jabatan'] || row['position_name'] || '',
-          asn_status: row['Status ASN'] || row['asn_status'] || '',
           rank_group: normalizedRankGroup,
+          gender: row['Jenis Kelamin'] || row['gender'] || '',
           department: normalizedDepartment,
-          join_date: row['Tanggal Masuk'] || row['join_date'] || '',
+          keterangan_formasi: row['Keterangan Formasi'] || row['Keterangan Formasi (ABK-Existing)'] || '',
+          keterangan_penempatan: row['Keterangan Penempatan'] || '',
+          keterangan_penugasan: row['Keterangan Penugasan Tambahan'] || row['Keterangan Penugasan'] || '',
+          keterangan_perubahan: row['Keterangan Perubahan'] || '',
+          education_level: row['Pendidikan Terakhir'] || '',
         };
 
         // Validate
         if (!parsedRow.name) {
           parsedRow.error = 'Nama wajib diisi';
         } else if (!parsedRow.asn_status) {
-          parsedRow.error = 'Status ASN wajib diisi';
+          parsedRow.error = 'Kriteria ASN wajib diisi';
         } else if (isAdminPusat && !parsedRow.department) {
           parsedRow.error = 'Unit kerja wajib diisi';
         } else if (isAdminPusat && !DEPARTMENTS.includes(parsedRow.department as Department)) {
@@ -166,38 +159,38 @@ export default function Import() {
       const lines = text.split('\n').filter(line => line.trim());
       
       if (lines.length < 2) {
-        toast({
-          variant: 'destructive',
-          title: 'File kosong',
-          description: 'File CSV tidak memiliki data',
-        });
+        toast({ variant: 'destructive', title: 'File kosong', description: 'File CSV tidak memiliki data' });
         return;
       }
 
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
       const dataRows = lines.slice(1);
 
-      const parsed: ParsedRow[] = dataRows.map((line, idx) => {
+      const parsed: ParsedRow[] = dataRows.map((line) => {
         const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
         
         const row: ParsedRow = {
+          position_name: values[headers.indexOf('jabatan sesuai kepmen 202 tahun 2024')] || values[headers.indexOf('position_name')] || '',
+          position_type: '',
+          name: values[headers.indexOf('nama pemangku')] || values[headers.indexOf('name')] || '',
+          asn_status: values[headers.indexOf('kriteria asn')] || values[headers.indexOf('asn_status')] || '',
           nip: values[headers.indexOf('nip')] || '',
-          name: values[headers.indexOf('name')] || '',
-          position_type: values[headers.indexOf('position_type')] || '',
-          position_name: values[headers.indexOf('position_name')] || '',
-          asn_status: values[headers.indexOf('asn_status')] || '',
-          rank_group: values[headers.indexOf('rank_group')] || '',
+          rank_group: values[headers.indexOf('pangkat golongan')] || values[headers.indexOf('rank_group')] || '',
+          gender: values[headers.indexOf('jenis kelamin')] || '',
           department: isAdminPusat 
-            ? values[headers.indexOf('department')] || ''
+            ? values[headers.indexOf('unit kerja')] || values[headers.indexOf('department')] || ''
             : profile?.department || '',
-          join_date: values[headers.indexOf('join_date')] || '',
+          keterangan_formasi: values[headers.indexOf('keterangan formasi')] || '',
+          keterangan_penempatan: values[headers.indexOf('keterangan penempatan')] || '',
+          keterangan_penugasan: values[headers.indexOf('keterangan penugasan tambahan')] || '',
+          keterangan_perubahan: values[headers.indexOf('keterangan perubahan')] || '',
+          education_level: values[headers.indexOf('pendidikan terakhir')] || '',
         };
 
-        // Validate
         if (!row.name) {
           row.error = 'Nama wajib diisi';
         } else if (!row.asn_status) {
-          row.error = 'Status ASN wajib diisi';
+          row.error = 'Kriteria ASN wajib diisi';
         } else if (isAdminPusat && !row.department) {
           row.error = 'Unit kerja wajib diisi';
         } else if (isAdminPusat && !DEPARTMENTS.includes(row.department as any)) {
@@ -225,18 +218,28 @@ export default function Import() {
       const row = validRows[i];
       
       try {
-        const { error } = await supabase
+        // Normalize gender
+        let gender = row.gender;
+        if (gender === 'L') gender = 'Laki-laki';
+        if (gender === 'P') gender = 'Perempuan';
+
+        const { data: inserted, error } = await supabase
           .from('employees')
           .insert({
             nip: row.nip || null,
             name: row.name,
-            position_type: row.position_type || null,
             position_name: row.position_name || null,
             asn_status: row.asn_status,
             rank_group: row.rank_group || null,
             department: row.department,
-            join_date: row.join_date || null,
-          });
+            gender: gender || null,
+            keterangan_formasi: row.keterangan_formasi || null,
+            keterangan_penempatan: row.keterangan_penempatan || null,
+            keterangan_penugasan: row.keterangan_penugasan || null,
+            keterangan_perubahan: row.keterangan_perubahan || null,
+          })
+          .select('id')
+          .single();
 
         if (error) {
           if (error.code === '23505') {
@@ -246,6 +249,13 @@ export default function Import() {
           }
           result.failed++;
         } else {
+          // If education level provided, insert education history
+          if (row.education_level && inserted) {
+            await supabase.from('education_history').insert({
+              employee_id: inserted.id,
+              level: row.education_level,
+            });
+          }
           result.success++;
         }
       } catch (err: any) {
@@ -292,61 +302,73 @@ export default function Import() {
   };
 
   const downloadTemplate = () => {
-    // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
     
-    // Sample data with Indonesian headers - using full rank format
+    const dept = isAdminPusat ? 'BBPVP Bekasi' : profile?.department;
     const sampleData = [
       {
+        'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Analis Kepegawaian Ahli Muda',
+        'Nama Pemangku': 'Budi Santoso',
+        'Kriteria ASN': 'PNS',
         'NIP': '199001012020121001',
-        'Nama Lengkap': 'Budi Santoso',
-        'Jenis Jabatan': 'Fungsional',
-        'Nama Jabatan': 'Analis Kepegawaian Ahli Muda',
-        'Status ASN': 'PNS',
-        'Golongan': 'Penata Muda Tk I (III/b)',
-        'Unit Kerja': isAdminPusat ? 'BBPVP Bekasi' : profile?.department,
-        'Tanggal Masuk': '2020-01-15',
+        'Pangkat Golongan': 'Penata Muda Tk I (III/b)',
+        'Pendidikan Terakhir': 'S1',
+        'Jenis Kelamin': 'Laki-laki',
+        'Keterangan Formasi': '',
+        'Keterangan Penempatan': '',
+        'Keterangan Penugasan Tambahan': '',
+        'Keterangan Perubahan': '',
+        'Unit Kerja': dept,
       },
       {
+        'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Kepala Sub Bagian',
+        'Nama Pemangku': 'Siti Nurhaliza',
+        'Kriteria ASN': 'PNS',
         'NIP': '199203052021012002',
-        'Nama Lengkap': 'Siti Nurhaliza',
-        'Jenis Jabatan': 'Struktural',
-        'Nama Jabatan': 'Kepala Sub Bagian',
-        'Status ASN': 'PNS',
-        'Golongan': 'Penata Tk I (III/d)',
-        'Unit Kerja': isAdminPusat ? 'Setditjen Binalavotas' : profile?.department,
-        'Tanggal Masuk': '2021-02-01',
+        'Pangkat Golongan': 'Penata Tk I (III/d)',
+        'Pendidikan Terakhir': 'S2',
+        'Jenis Kelamin': 'Perempuan',
+        'Keterangan Formasi': '',
+        'Keterangan Penempatan': '',
+        'Keterangan Penugasan Tambahan': '',
+        'Keterangan Perubahan': '',
+        'Unit Kerja': isAdminPusat ? 'Setditjen Binalavotas' : dept,
       },
       {
+        'Jabatan Sesuai Kepmen 202 Tahun 2024': 'Tenaga Administrasi',
+        'Nama Pemangku': 'Ahmad Fauzi',
+        'Kriteria ASN': 'PPPK',
         'NIP': '',
-        'Nama Lengkap': 'Ahmad Fauzi',
-        'Jenis Jabatan': 'Pelaksana',
-        'Nama Jabatan': 'Tenaga Administrasi',
-        'Status ASN': 'PPPK',
-        'Golongan': 'IX',
-        'Unit Kerja': isAdminPusat ? 'BPVP Surakarta' : profile?.department,
-        'Tanggal Masuk': '2023-03-10',
+        'Pangkat Golongan': 'IX',
+        'Pendidikan Terakhir': 'SMA/SMK',
+        'Jenis Kelamin': 'Laki-laki',
+        'Keterangan Formasi': '',
+        'Keterangan Penempatan': '',
+        'Keterangan Penugasan Tambahan': '',
+        'Keterangan Perubahan': '',
+        'Unit Kerja': isAdminPusat ? 'BPVP Surakarta' : dept,
       },
     ];
 
-    // Create main data worksheet
     const ws = XLSX.utils.json_to_sheet(sampleData);
-    
-    // Set column widths for better readability
     ws['!cols'] = [
+      { wch: 40 },  // Jabatan
+      { wch: 25 },  // Nama Pemangku
+      { wch: 12 },  // Kriteria ASN
       { wch: 20 },  // NIP
-      { wch: 25 },  // Nama Lengkap
-      { wch: 15 },  // Jenis Jabatan
-      { wch: 30 },  // Nama Jabatan
-      { wch: 12 },  // Status ASN
-      { wch: 10 },  // Golongan
+      { wch: 25 },  // Pangkat Golongan
+      { wch: 18 },  // Pendidikan Terakhir
+      { wch: 14 },  // Jenis Kelamin
+      { wch: 20 },  // Ket Formasi
+      { wch: 20 },  // Ket Penempatan
+      { wch: 25 },  // Ket Penugasan
+      { wch: 20 },  // Ket Perubahan
       { wch: 25 },  // Unit Kerja
-      { wch: 15 },  // Tanggal Masuk
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, 'Data Pegawai');
 
-    // Create reference sheet for dropdown values
+    // Reference sheet
     const refData = [];
     const maxRows = Math.max(
       ASN_STATUS_OPTIONS.length,
@@ -358,24 +380,17 @@ export default function Import() {
     for (let i = 0; i < maxRows; i++) {
       refData.push({
         'Status ASN (Pilihan)': ASN_STATUS_OPTIONS[i] || '',
-        'Jenis Jabatan (Pilihan)': POSITION_TYPES[i] || '',
         'Golongan (Pilihan)': RANK_GROUPS[i] || '',
         'Unit Kerja (Pilihan)': isAdminPusat ? (DEPARTMENTS[i] || '') : (i === 0 ? profile?.department : ''),
       });
     }
 
     const wsRef = XLSX.utils.json_to_sheet(refData);
-    wsRef['!cols'] = [
-      { wch: 20 },
-      { wch: 25 },
-      { wch: 20 },
-      { wch: 30 },
-    ];
+    wsRef['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 30 }];
     XLSX.utils.book_append_sheet(wb, wsRef, 'Referensi');
 
-    // Create instructions sheet
+    // Instructions
     const instructions = [
-      { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': '=== PETUNJUK PENGGUNAAN ===' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
@@ -385,32 +400,34 @@ export default function Import() {
       { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': '=== KETERANGAN KOLOM ===' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Jabatan Sesuai Kepmen 202 Tahun 2024: Nama jabatan pegawai' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Nama Pemangku: WAJIB diisi (nama lengkap tanpa gelar)' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Kriteria ASN: WAJIB (PNS / PPPK / Non ASN)' },
       { 'Panduan Pengisian Template Import Pegawai': 'NIP: 18 digit (opsional untuk Non ASN)' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Nama Lengkap: WAJIB diisi' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Jenis Jabatan: Struktural / Fungsional / Pelaksana' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Nama Jabatan: Nama jabatan pegawai' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Status ASN: WAJIB (PNS / PPPK / Non ASN)' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Golongan PNS: Format lengkap, contoh "Penata Muda Tk I (III/b)"' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Golongan PPPK: I sampai XVII' },
-      { 'Panduan Pengisian Template Import Pegawai': 'Golongan Non ASN: Kosongkan atau isi "Tidak Ada"' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Pangkat Golongan PNS: Format lengkap, contoh "Penata Muda Tk I (III/b)"' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Pangkat Golongan PPPK: I sampai XVII' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Pendidikan Terakhir: SD/SMP/SMA-SMK/D1/D2/D3/D4/S1/S2/S3' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Jenis Kelamin: Laki-laki / Perempuan (atau L/P)' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Formasi: Keterangan ABK-Existing' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Penempatan: Info penempatan' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Penugasan Tambahan: Info penugasan tambahan' },
+      { 'Panduan Pengisian Template Import Pegawai': 'Keterangan Perubahan: Info perubahan' },
       { 'Panduan Pengisian Template Import Pegawai': isAdminPusat 
         ? 'Unit Kerja: WAJIB, harus sesuai daftar di sheet Referensi' 
         : `Unit Kerja: Otomatis terisi "${profile?.department}"` },
-      { 'Panduan Pengisian Template Import Pegawai': 'Tanggal Masuk: Format YYYY-MM-DD (contoh: 2020-01-15)' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': '=== KONVERSI OTOMATIS ===' },
       { 'Panduan Pengisian Template Import Pegawai': '' },
       { 'Panduan Pengisian Template Import Pegawai': 'Sistem akan otomatis mengkonversi:' },
-      { 'Panduan Pengisian Template Import Pegawai': '- "Jabatan Fungsional" → "Fungsional"' },
-      { 'Panduan Pengisian Template Import Pegawai': '- "Balai Besar Pelatihan Vokasi dan Produktivitas Bandung" → "BBPVP Bandung"' },
+      { 'Panduan Pengisian Template Import Pegawai': '- Nama unit kerja panjang → singkatan (BBPVP, BPVP)' },
       { 'Panduan Pengisian Template Import Pegawai': '- "III/b" → "Penata Muda Tk I (III/b)"' },
+      { 'Panduan Pengisian Template Import Pegawai': '- "L" → "Laki-laki", "P" → "Perempuan"' },
     ];
 
     const wsInstructions = XLSX.utils.json_to_sheet(instructions, { skipHeader: true });
     wsInstructions['!cols'] = [{ wch: 60 }];
     XLSX.utils.book_append_sheet(wb, wsInstructions, 'Panduan');
 
-    // Generate and download
     XLSX.writeFile(wb, 'template-import-pegawai.xlsx');
   };
 
@@ -423,19 +440,18 @@ export default function Import() {
         <div className="page-header">
           <h1 className="page-title">Import Data Pegawai</h1>
           <p className="page-description">
-            Import data pegawai dari file CSV
+            Import data pegawai dari file Excel atau CSV
             {!isAdminPusat && ` ke ${profile?.department}`}
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Upload Section */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-lg">Upload File CSV</CardTitle>
+              <CardTitle className="text-lg">Upload File</CardTitle>
               <CardDescription>
                 {isAdminPusat 
-                  ? 'Pastikan kolom department terisi dengan unit kerja yang valid'
+                  ? 'Pastikan kolom Unit Kerja terisi dengan unit kerja yang valid'
                   : `Semua data akan diimport ke unit kerja ${profile?.department}`}
               </CardDescription>
             </CardHeader>
@@ -547,23 +563,26 @@ export default function Import() {
             </CardContent>
           </Card>
 
-          {/* Instructions */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Panduan Import</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm">
-                <p className="font-medium">Format kolom CSV:</p>
+                <p className="font-medium">Format kolom Excel:</p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>nip (opsional, 18 digit)</li>
-                  <li>name (wajib)</li>
-                  <li>position_type</li>
-                  <li>position_name</li>
-                  <li>asn_status (wajib: PNS/PPPK/Non ASN)</li>
-                  <li>rank_group</li>
-                  <li>department {isAdminPusat ? '(wajib)' : '(diabaikan)'}</li>
-                  <li>join_date (format: YYYY-MM-DD)</li>
+                  <li>Jabatan Sesuai Kepmen 202 Tahun 2024</li>
+                  <li>Nama Pemangku (wajib)</li>
+                  <li>Kriteria ASN (wajib: PNS/PPPK/Non ASN)</li>
+                  <li>NIP (opsional, 18 digit)</li>
+                  <li>Pangkat Golongan</li>
+                  <li>Pendidikan Terakhir</li>
+                  <li>Jenis Kelamin</li>
+                  <li>Keterangan Formasi</li>
+                  <li>Keterangan Penempatan</li>
+                  <li>Keterangan Penugasan Tambahan</li>
+                  <li>Keterangan Perubahan</li>
+                  <li>Unit Kerja {isAdminPusat ? '(wajib)' : '(diabaikan)'}</li>
                 </ul>
               </div>
 
@@ -582,14 +601,17 @@ export default function Import() {
               <CardTitle className="text-lg">Preview Data (5 baris pertama)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border overflow-hidden">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>NIP</TableHead>
+                      <TableHead>Jabatan</TableHead>
                       <TableHead>Nama</TableHead>
-                      <TableHead>Status ASN</TableHead>
+                      <TableHead>Kriteria ASN</TableHead>
+                      <TableHead>NIP</TableHead>
                       <TableHead>Golongan</TableHead>
+                      <TableHead>Pendidikan</TableHead>
+                      <TableHead>JK</TableHead>
                       <TableHead>Unit Kerja</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -597,10 +619,13 @@ export default function Import() {
                   <TableBody>
                     {parsedData.slice(0, 5).map((row, idx) => (
                       <TableRow key={idx} className={cn(row.error && 'bg-destructive/5')}>
-                        <TableCell className="font-mono text-sm">{row.nip || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.position_name || '-'}</TableCell>
                         <TableCell>{row.name || '-'}</TableCell>
                         <TableCell>{row.asn_status || '-'}</TableCell>
-                        <TableCell>{row.rank_group || '-'}</TableCell>
+                        <TableCell className="font-mono text-sm">{row.nip || '-'}</TableCell>
+                        <TableCell className="text-sm">{row.rank_group || '-'}</TableCell>
+                        <TableCell>{row.education_level || '-'}</TableCell>
+                        <TableCell>{row.gender || '-'}</TableCell>
                         <TableCell className="text-sm">{row.department}</TableCell>
                         <TableCell>
                           {row.error ? (

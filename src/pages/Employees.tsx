@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeFormModal, type EmployeeFormData } from '@/components/employees/EmployeeFormModal';
 import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
+import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,6 +52,10 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  keterangan_formasi: string | null;
+  keterangan_penempatan: string | null;
+  keterangan_penugasan: string | null;
+  keterangan_perubahan: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +85,11 @@ export default function Employees() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<EducationEntry[]>([]);
+  const [selectedMutationHistory, setSelectedMutationHistory] = useState<HistoryEntry[]>([]);
+  const [selectedPositionHistory, setSelectedPositionHistory] = useState<HistoryEntry[]>([]);
+  const [selectedRankHistory, setSelectedRankHistory] = useState<HistoryEntry[]>([]);
+  const [selectedCompetencyHistory, setSelectedCompetencyHistory] = useState<HistoryEntry[]>([]);
+  const [selectedTrainingHistory, setSelectedTrainingHistory] = useState<HistoryEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -128,35 +138,76 @@ export default function Employees() {
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
     setSelectedEducation([]);
+    setSelectedMutationHistory([]);
+    setSelectedPositionHistory([]);
+    setSelectedRankHistory([]);
+    setSelectedCompetencyHistory([]);
+    setSelectedTrainingHistory([]);
     setFormModalOpen(true);
+  };
+
+  const mapHistoryRows = (data: any[], fields: string[]): HistoryEntry[] => {
+    return (data || []).map((d: any) => {
+      const entry: HistoryEntry = { id: d.id };
+      fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
+      return entry;
+    });
   };
 
   const handleEditEmployee = async (employee: Employee) => {
     setSelectedEmployee(employee);
-    // Fetch education history
-    const { data } = await supabase
-      .from('education_history')
-      .select('*')
-      .eq('employee_id', employee.id)
-      .order('graduation_year', { ascending: true });
     
+    // Fetch all history data in parallel
+    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes] = await Promise.all([
+      supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
+      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
+      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
+      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
+      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true }),
+    ]);
+
     setSelectedEducation(
-      (data || []).map((d: any) => ({
-        id: d.id,
-        level: d.level || '',
-        institution_name: d.institution_name || '',
-        major: d.major || '',
-        graduation_year: d.graduation_year?.toString() || '',
-        front_title: d.front_title || '',
-        back_title: d.back_title || '',
+      (eduRes.data || []).map((d: any) => ({
+        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+        front_title: d.front_title || '', back_title: d.back_title || '',
       }))
     );
+    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']));
+    setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']));
+    setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+    setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+    setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+    
     setFormModalOpen(true);
   };
 
   const handleDeleteEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
     setDeleteDialogOpen(true);
+  };
+
+  const saveHistoryEntries = async (
+    tableName: string,
+    employeeId: string,
+    entries: HistoryEntry[] | undefined,
+    fieldKeys: string[]
+  ) => {
+    if (!entries) return;
+    await supabase.from(tableName as any).delete().eq('employee_id', employeeId);
+    const rows = entries
+      .filter(e => fieldKeys.some(k => e[k]))
+      .map(e => {
+        const row: any = { employee_id: employeeId };
+        fieldKeys.forEach(k => {
+          row[k] = e[k] || null;
+        });
+        return row;
+      });
+    if (rows.length > 0) {
+      await supabase.from(tableName as any).insert(rows);
+    }
   };
 
   const handleFormSubmit = async (data: EmployeeFormData) => {
@@ -183,6 +234,10 @@ export default function Employees() {
         tmt_cpns: data.tmt_cpns || null,
         tmt_pns: data.tmt_pns || null,
         tmt_pensiun: data.tmt_pensiun || null,
+        keterangan_formasi: data.keterangan_formasi || null,
+        keterangan_penempatan: data.keterangan_penempatan || null,
+        keterangan_penugasan: data.keterangan_penugasan || null,
+        keterangan_perubahan: data.keterangan_perubahan || null,
       };
 
       let employeeId: string;
@@ -211,31 +266,31 @@ export default function Employees() {
 
       // Handle education history
       if (data.education_history) {
-        // Delete existing education for this employee
         await supabase.from('education_history').delete().eq('employee_id', employeeId);
-        
-        // Insert new entries
-        if (data.education_history.length > 0) {
-          const eduRows = data.education_history
-            .filter(e => e.level)
-            .map(e => ({
-              employee_id: employeeId,
-              level: e.level,
-              institution_name: e.institution_name || null,
-              major: e.major || null,
-              graduation_year: e.graduation_year ? parseInt(e.graduation_year) : null,
-              front_title: e.front_title || null,
-              back_title: e.back_title || null,
-            }));
-          
-          if (eduRows.length > 0) {
-            const { error: eduError } = await supabase
-              .from('education_history')
-              .insert(eduRows);
-            if (eduError) console.error('Error saving education:', eduError);
-          }
+        const eduRows = data.education_history
+          .filter(e => e.level)
+          .map(e => ({
+            employee_id: employeeId,
+            level: e.level,
+            institution_name: e.institution_name || null,
+            major: e.major || null,
+            graduation_year: e.graduation_year ? parseInt(e.graduation_year) : null,
+            front_title: e.front_title || null,
+            back_title: e.back_title || null,
+          }));
+        if (eduRows.length > 0) {
+          await supabase.from('education_history').insert(eduRows);
         }
       }
+
+      // Save all other history types
+      await Promise.all([
+        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']),
+        saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']),
+        saveHistoryEntries('rank_history', employeeId, data.rank_history, ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
+        saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
+        saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
+      ]);
 
       setFormModalOpen(false);
       fetchEmployees();
@@ -263,13 +318,15 @@ export default function Employees() {
   };
 
   const handleExport = () => {
-    const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk'];
+    const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk', 'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan'];
     const csvContent = [
       headers.join(','),
       ...filteredEmployees.map(emp => [
         emp.nip || '', emp.front_title || '', `"${emp.name}"`, emp.back_title || '',
         emp.position_type || '', `"${emp.position_name || ''}"`, emp.asn_status || '',
         emp.rank_group || '', `"${emp.department}"`, emp.join_date || '',
+        `"${emp.keterangan_formasi || ''}"`, `"${emp.keterangan_penempatan || ''}"`,
+        `"${emp.keterangan_penugasan || ''}"`, `"${emp.keterangan_perubahan || ''}"`,
       ].join(','))
     ].join('\n');
 
@@ -422,15 +479,19 @@ export default function Employees() {
         onSubmit={handleFormSubmit}
         isLoading={isSubmitting}
         initialEducation={selectedEducation}
+        initialMutationHistory={selectedMutationHistory}
+        initialPositionHistory={selectedPositionHistory}
+        initialRankHistory={selectedRankHistory}
+        initialCompetencyTestHistory={selectedCompetencyHistory}
+        initialTrainingHistory={selectedTrainingHistory}
       />
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        employeeName={selectedEmployee?.name || ''}
-        department={selectedEmployee?.department || ''}
         onConfirm={handleConfirmDelete}
         isLoading={isSubmitting}
+        employeeName={selectedEmployee ? formatDisplayName(selectedEmployee) : ''}
       />
     </AppLayout>
   );

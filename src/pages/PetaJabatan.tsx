@@ -39,6 +39,15 @@ interface EmployeeMatch {
   rank_group: string | null;
   gender: string | null;
   position_name: string | null;
+  keterangan_formasi: string | null;
+  keterangan_penempatan: string | null;
+  keterangan_penugasan: string | null;
+  keterangan_perubahan: string | null;
+}
+
+interface EducationInfo {
+  employee_id: string;
+  level: string;
 }
 
 const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
@@ -52,6 +61,7 @@ export default function PetaJabatan() {
   );
   const [positions, setPositions] = useState<PositionReference[]>([]);
   const [employees, setEmployees] = useState<EmployeeMatch[]>([]);
+  const [educationData, setEducationData] = useState<EducationInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionReference | null>(null);
@@ -87,7 +97,7 @@ export default function PetaJabatan() {
           .order('position_order'),
         supabase
           .from('employees')
-          .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name')
+          .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
           .eq('department', selectedDepartment),
       ]);
 
@@ -96,11 +106,36 @@ export default function PetaJabatan() {
 
       setPositions(posRes.data || []);
       setEmployees(empRes.data || []);
+
+      // Fetch latest education for each employee
+      if (empRes.data && empRes.data.length > 0) {
+        const empIds = empRes.data.map(e => e.id);
+        const { data: eduData } = await supabase
+          .from('education_history')
+          .select('employee_id, level')
+          .in('employee_id', empIds)
+          .order('graduation_year', { ascending: false });
+        
+        // Get latest education per employee
+        const latestEdu: Record<string, string> = {};
+        (eduData || []).forEach(e => {
+          if (!latestEdu[e.employee_id]) {
+            latestEdu[e.employee_id] = e.level;
+          }
+        });
+        setEducationData(Object.entries(latestEdu).map(([employee_id, level]) => ({ employee_id, level })));
+      } else {
+        setEducationData([]);
+      }
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getEmployeeEducation = (employeeId: string) => {
+    return educationData.find(e => e.employee_id === employeeId)?.level || '-';
   };
 
   // Group positions by category
@@ -118,7 +153,6 @@ export default function PetaJabatan() {
     return groups;
   }, [positions]);
 
-  // Match employees to positions
   const getMatchingEmployees = (positionName: string) => {
     return employees.filter(e => e.position_name === positionName);
   };
@@ -196,8 +230,15 @@ export default function PetaJabatan() {
     let no = 1;
 
     POSITION_CATEGORIES.forEach(category => {
-      // Category header row
-      rows.push({ 'No': '', 'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(), 'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '', 'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '', 'Pangkat Golongan': '', 'Jenis Kelamin': '', 'Keterangan Formasi': '' });
+      rows.push({
+        'No': '',
+        'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
+        'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
+        'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
+        'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
+        'Keterangan Formasi': '', 'Keterangan Penempatan': '',
+        'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
+      });
 
       const catPositions = groupedPositions[category] || [];
       catPositions.forEach(pos => {
@@ -216,8 +257,12 @@ export default function PetaJabatan() {
             'Kriteria ASN': '-',
             'NIP': '-',
             'Pangkat Golongan': '-',
+            'Pendidikan Terakhir': '-',
             'Jenis Kelamin': '-',
             'Keterangan Formasi': ketFormasi > 0 ? `Kurang ${ketFormasi}` : 'Sesuai',
+            'Keterangan Penempatan': '-',
+            'Keterangan Penugasan Tambahan': '-',
+            'Keterangan Perubahan': '-',
           });
         } else {
           matched.forEach((emp, idx) => {
@@ -232,8 +277,12 @@ export default function PetaJabatan() {
               'Kriteria ASN': emp.asn_status || '-',
               'NIP': emp.nip || '-',
               'Pangkat Golongan': emp.rank_group || '-',
+              'Pendidikan Terakhir': getEmployeeEducation(emp.id),
               'Jenis Kelamin': emp.gender || '-',
               'Keterangan Formasi': idx === 0 ? (ketFormasi > 0 ? `Kurang ${ketFormasi}` : (ketFormasi < 0 ? `Lebih ${Math.abs(ketFormasi)}` : 'Sesuai')) : '',
+              'Keterangan Penempatan': emp.keterangan_penempatan || '-',
+              'Keterangan Penugasan Tambahan': emp.keterangan_penugasan || '-',
+              'Keterangan Perubahan': emp.keterangan_perubahan || '-',
             });
           });
         }
@@ -244,7 +293,8 @@ export default function PetaJabatan() {
     const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [
       { wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 12 }, { wch: 14 },
-      { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 14 }, { wch: 18 },
+      { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 },
+      { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Peta Jabatan');
     XLSX.writeFile(wb, `Peta_Jabatan_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
@@ -349,8 +399,12 @@ export default function PetaJabatan() {
                       <TableHead>Kriteria ASN</TableHead>
                       <TableHead>NIP</TableHead>
                       <TableHead>Pangkat</TableHead>
+                      <TableHead>Pendidikan</TableHead>
                       <TableHead className="w-16">JK</TableHead>
                       <TableHead>Ket. Formasi</TableHead>
+                      <TableHead>Ket. Penempatan</TableHead>
+                      <TableHead>Ket. Penugasan</TableHead>
+                      <TableHead>Ket. Perubahan</TableHead>
                       <TableHead className="w-20">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -359,7 +413,7 @@ export default function PetaJabatan() {
                       if (row.type === 'category') {
                         return (
                           <TableRow key={`cat-${row.category}`} className="bg-muted/60">
-                            <TableCell colSpan={12} className="font-semibold text-sm py-2">
+                            <TableCell colSpan={16} className="font-semibold text-sm py-2">
                               {row.category}
                             </TableCell>
                           </TableRow>
@@ -402,6 +456,7 @@ export default function PetaJabatan() {
                           <TableCell>{emp?.asn_status || '-'}</TableCell>
                           <TableCell className="font-mono text-xs">{emp?.nip || '-'}</TableCell>
                           <TableCell className="text-xs">{emp?.rank_group || '-'}</TableCell>
+                          <TableCell className="text-xs">{emp ? getEmployeeEducation(emp.id) : '-'}</TableCell>
                           <TableCell>{emp?.gender ? (emp.gender === 'Laki-laki' ? 'L' : 'P') : '-'}</TableCell>
                           {row.isFirst && (
                             <>
@@ -412,24 +467,29 @@ export default function PetaJabatan() {
                                   ? <span className="text-blue-500">Lebih {Math.abs(ketFormasi)}</span>
                                   : <span className="text-green-500">Sesuai</span>}
                               </TableCell>
-                              <TableCell rowSpan={row.rowSpan} className="align-top border-l">
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(pos.id)}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </TableCell>
                             </>
+                          )}
+                          <TableCell className="text-xs">{emp?.keterangan_penempatan || '-'}</TableCell>
+                          <TableCell className="text-xs">{emp?.keterangan_penugasan || '-'}</TableCell>
+                          <TableCell className="text-xs">{emp?.keterangan_perubahan || '-'}</TableCell>
+                          {row.isFirst && (
+                            <TableCell rowSpan={row.rowSpan} className="align-top border-l">
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(pos.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
                           )}
                         </TableRow>
                       );
                     })}
                     {positions.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">
                           Belum ada data jabatan. Klik "Tambah Jabatan" untuk menambahkan.
                         </TableCell>
                       </TableRow>
