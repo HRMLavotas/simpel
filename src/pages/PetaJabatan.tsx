@@ -154,7 +154,8 @@ export default function PetaJabatan() {
   }, [positions]);
 
   const getMatchingEmployees = (positionName: string) => {
-    return employees.filter(e => e.position_name === positionName);
+    const norm = positionName.trim().toLowerCase();
+    return employees.filter(e => e.position_name?.trim().toLowerCase() === norm);
   };
 
   const openAddModal = () => {
