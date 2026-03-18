@@ -138,7 +138,7 @@ export default function Auth() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-background min-h-screen lg:min-h-0">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
             <div className="lg:hidden flex items-center justify-center gap-3 mb-8">

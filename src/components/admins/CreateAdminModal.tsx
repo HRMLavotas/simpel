@@ -126,7 +126,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="w-[95vw] sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Tambah Admin Baru</DialogTitle>
           <DialogDescription>

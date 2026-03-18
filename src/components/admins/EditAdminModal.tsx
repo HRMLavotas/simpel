@@ -145,7 +145,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="w-[95vw] sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Edit Admin</DialogTitle>
           <DialogDescription>

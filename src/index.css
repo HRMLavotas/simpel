@@ -154,7 +154,7 @@
 @layer components {
   /* Stat Card Styles */
   .stat-card {
-    @apply relative overflow-hidden rounded-xl border bg-card p-6 transition-all duration-200;
+    @apply relative overflow-hidden rounded-xl border bg-card p-4 sm:p-6 transition-all duration-200;
     box-shadow: var(--shadow-card);
   }
   
@@ -222,7 +222,7 @@
   }
 
   .page-title {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-xl sm:text-2xl font-bold tracking-tight;
   }
 
   .page-description {

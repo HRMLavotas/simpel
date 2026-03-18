@@ -66,13 +66,13 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-32 rounded-xl" />
             ))}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Pegawai"
               value={stats.total}
@@ -105,14 +105,14 @@ export default function Dashboard() {
 
         {/* Charts */}
         {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             <Skeleton className="h-80 rounded-xl" />
             <Skeleton className="h-80 rounded-xl" />
             <Skeleton className="h-80 rounded-xl" />
             <Skeleton className="h-80 rounded-xl" />
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             <AsnPieChart data={asnChartData} />
             <RankBarChart data={rankData} />
             {positionTypeData.length > 0 && (

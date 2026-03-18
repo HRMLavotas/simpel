@@ -348,10 +348,10 @@ export default function PetaJabatan() {
             <h1 className="page-title">Peta Jabatan</h1>
             <p className="page-description">Jabatan Sesuai Kepmen 202 Tahun 2024</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isAdminPusat && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-[240px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Pilih Unit Kerja" />
                 </SelectTrigger>
                 <SelectContent>
@@ -361,13 +361,13 @@ export default function PetaJabatan() {
                 </SelectContent>
               </Select>
             )}
-            <Button variant="outline" onClick={handleExport} disabled={positions.length === 0}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
+            <Button variant="outline" onClick={handleExport} disabled={positions.length === 0} className="text-xs sm:text-sm">
+              <Download className="mr-1 sm:mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
             </Button>
-            <Button onClick={openAddModal}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Jabatan
+            <Button onClick={openAddModal} className="text-xs sm:text-sm">
+              <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
             </Button>
           </div>
         </div>
@@ -489,7 +489,7 @@ export default function PetaJabatan() {
 
       {/* Add/Edit Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>{editingPosition ? 'Edit Jabatan' : 'Tambah Jabatan'}</DialogTitle>
           </DialogHeader>
@@ -509,7 +509,7 @@ export default function PetaJabatan() {
               <Label>Nama Jabatan (Kepmen 202/2024)</Label>
               <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Contoh: Direktur Jenderal" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Grade/Kelas</Label>
                 <Input type="number" value={formGrade} onChange={e => setFormGrade(e.target.value)} placeholder="0" />

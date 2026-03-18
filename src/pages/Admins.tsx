@@ -171,13 +171,14 @@ export default function Admins() {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nama</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Unit Kerja</TableHead>
+                <TableHead className="hidden sm:table-cell">Email</TableHead>
+                <TableHead className="hidden md:table-cell">Unit Kerja</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead className="hidden lg:table-cell">Terdaftar</TableHead>
                 <TableHead className="w-[70px]">Aksi</TableHead>
@@ -188,8 +189,8 @@ export default function Admins() {
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
@@ -206,9 +207,12 @@ export default function Admins() {
               ) : (
                 filteredAdmins.map((admin) => (
                   <TableRow key={admin.id} className="animate-fade-in">
-                    <TableCell className="font-medium">{admin.full_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{admin.email}</TableCell>
-                    <TableCell className="text-sm">{admin.department}</TableCell>
+                    <TableCell className="font-medium">
+                      <div>{admin.full_name}</div>
+                      <div className="sm:hidden text-xs text-muted-foreground mt-0.5">{admin.email}</div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">{admin.email}</TableCell>
+                    <TableCell className="hidden md:table-cell text-sm">{admin.department}</TableCell>
                     <TableCell>
                       <Badge variant={admin.role === 'admin_pusat' ? 'default' : 'secondary'}>
                         {admin.role === 'admin_pusat' ? 'Admin Pusat' : 'Admin Unit'}
@@ -254,6 +258,7 @@ export default function Admins() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
 
         {/* Create Admin Modal */}

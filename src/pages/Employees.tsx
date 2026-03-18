@@ -356,12 +356,12 @@ export default function Employees() {
               Kelola data nominatif pegawai {!isAdminPusat && profile?.department}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0}>
-              <Download className="mr-2 h-4 w-4" />Export CSV
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
+              <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
-            <Button onClick={handleAddEmployee}>
-              <Plus className="mr-2 h-4 w-4" />Tambah Pegawai
+            <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
+              <Plus className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Tambah Pegawai</span><span className="sm:hidden">Tambah</span>
             </Button>
           </div>
         </div>
@@ -389,7 +389,8 @@ export default function Employees() {
           )}
         </div>
 
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -452,11 +453,12 @@ export default function Employees() {
               )}
             </TableBody>
           </Table>
+          </div>
 
           {!isLoading && filteredEmployees.length > 0 && (
-            <div className="flex items-center justify-between border-t px-4 py-3">
-              <p className="text-sm text-muted-foreground">
-                Menampilkan {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredEmployees.length)} dari {filteredEmployees.length} data
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t px-4 py-3">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                Menampilkan {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredEmployees.length)} dari {filteredEmployees.length} data
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>

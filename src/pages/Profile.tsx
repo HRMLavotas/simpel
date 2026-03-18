@@ -68,7 +68,7 @@ export default function Profile() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6 w-full max-w-2xl">
         <div className="page-header">
           <h1 className="page-title">Profil Saya</h1>
           <p className="page-description">Lihat dan kelola informasi akun Anda</p>

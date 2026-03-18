@@ -488,14 +488,14 @@ export default function Import() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-2 max-w-md text-xs sm:text-sm">
             <TabsTrigger value="pegawai">Import Data Pegawai</TabsTrigger>
             <TabsTrigger value="jabatan">Import Peta Jabatan</TabsTrigger>
           </TabsList>
 
           {/* ===== TAB: PEGAWAI ===== */}
           <TabsContent value="pegawai">
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-lg">Upload Data Pegawai</CardTitle>
@@ -602,7 +602,7 @@ export default function Import() {
 
           {/* ===== TAB: PETA JABATAN ===== */}
           <TabsContent value="jabatan">
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-lg">Upload Peta Jabatan</CardTitle>
