@@ -405,6 +405,11 @@ export default function Employees() {
         saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
       ]);
 
+      // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
+      if (changes.length > 0) {
+        await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
+      }
+
       setFormModalOpen(false);
       setChangeLogOpen(false);
       setPendingFormData(null);
