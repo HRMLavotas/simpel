@@ -362,11 +362,6 @@ export default function Employees() {
         if (error) throw error;
         employeeId = selectedEmployee.id;
 
-        // Auto-create history records for detected changes
-        if (changes.length > 0) {
-          await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
-        }
-
         toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
       } else {
         const { data: inserted, error } = await supabase
