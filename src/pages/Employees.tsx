@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeFormModal, type EmployeeFormData } from '@/components/employees/EmployeeFormModal';
 import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog';
+import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,6 +71,64 @@ const formatDisplayName = (emp: Employee) => {
   return parts.join(' ');
 };
 
+/** Detect meaningful field changes between old employee and new form data */
+function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedChange[] {
+  const changes: DetectedChange[] = [];
+  const norm = (v: string | null | undefined) => (v || '').trim();
+
+  if (norm(oldEmp.rank_group) !== norm(newData.rank_group)) {
+    changes.push({
+      field: 'rank_group', label: 'Pangkat/Golongan',
+      oldValue: norm(oldEmp.rank_group), newValue: norm(newData.rank_group),
+      historyType: 'rank',
+    });
+  }
+  if (norm(oldEmp.position_name) !== norm(newData.position_name)) {
+    changes.push({
+      field: 'position_name', label: 'Nama Jabatan',
+      oldValue: norm(oldEmp.position_name), newValue: norm(newData.position_name),
+      historyType: 'position',
+    });
+  }
+  if (norm(oldEmp.position_type) !== norm(newData.position_type)) {
+    changes.push({
+      field: 'position_type', label: 'Jenis Jabatan',
+      oldValue: norm(oldEmp.position_type), newValue: norm(newData.position_type),
+      historyType: 'position',
+    });
+  }
+  if (norm(oldEmp.department) !== norm(newData.department)) {
+    changes.push({
+      field: 'department', label: 'Unit Kerja (Mutasi)',
+      oldValue: norm(oldEmp.department), newValue: norm(newData.department),
+      historyType: 'mutation',
+    });
+  }
+  if (norm(oldEmp.front_title) !== norm(newData.front_title)) {
+    changes.push({
+      field: 'front_title', label: 'Gelar Depan',
+      oldValue: norm(oldEmp.front_title), newValue: norm(newData.front_title),
+      historyType: 'title',
+    });
+  }
+  if (norm(oldEmp.back_title) !== norm(newData.back_title)) {
+    changes.push({
+      field: 'back_title', label: 'Gelar Belakang',
+      oldValue: norm(oldEmp.back_title), newValue: norm(newData.back_title),
+      historyType: 'title',
+    });
+  }
+  if (norm(oldEmp.asn_status) !== norm(newData.asn_status)) {
+    changes.push({
+      field: 'asn_status', label: 'Status ASN',
+      oldValue: norm(oldEmp.asn_status), newValue: norm(newData.asn_status),
+      historyType: 'general',
+    });
+  }
+
+  return changes;
+}
+
 export default function Employees() {
   const { profile, isAdminPusat, user } = useAuth();
   const { toast } = useToast();
@@ -91,6 +150,11 @@ export default function Employees() {
   const [selectedCompetencyHistory, setSelectedCompetencyHistory] = useState<HistoryEntry[]>([]);
   const [selectedTrainingHistory, setSelectedTrainingHistory] = useState<HistoryEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Change log dialog state
+  const [changeLogOpen, setChangeLogOpen] = useState(false);
+  const [detectedChanges, setDetectedChanges] = useState<DetectedChange[]>([]);
+  const [pendingFormData, setPendingFormData] = useState<EmployeeFormData | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -157,7 +221,6 @@ export default function Employees() {
   const handleEditEmployee = async (employee: Employee) => {
     setSelectedEmployee(employee);
     
-    // Fetch all history data in parallel
     const [eduRes, mutRes, posRes, rankRes, compRes, trainRes] = await Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
       supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
@@ -210,7 +273,56 @@ export default function Employees() {
     }
   };
 
-  const handleFormSubmit = async (data: EmployeeFormData) => {
+  /** Auto-create history records based on detected changes */
+  const createAutoHistoryRecords = async (
+    employeeId: string,
+    changes: DetectedChange[],
+    notes: string,
+    link: string,
+    effectiveDate: string
+  ) => {
+    const keterangan = [notes, link].filter(Boolean).join('\nLampiran: ');
+
+    for (const change of changes) {
+      switch (change.historyType) {
+        case 'rank':
+          await supabase.from('rank_history').insert({
+            employee_id: employeeId,
+            tanggal: effectiveDate,
+            pangkat_lama: change.oldValue || null,
+            pangkat_baru: change.newValue || null,
+            keterangan: keterangan || null,
+            tmt: effectiveDate,
+          });
+          break;
+
+        case 'position':
+          if (change.field === 'position_name') {
+            await supabase.from('position_history').insert({
+              employee_id: employeeId,
+              tanggal: effectiveDate,
+              jabatan_lama: change.oldValue || null,
+              jabatan_baru: change.newValue || null,
+              keterangan: keterangan || null,
+            });
+          }
+          break;
+
+        case 'mutation':
+          await supabase.from('mutation_history').insert({
+            employee_id: employeeId,
+            tanggal: effectiveDate,
+            dari_unit: change.oldValue || null,
+            ke_unit: change.newValue || null,
+            keterangan: keterangan || null,
+          });
+          break;
+      }
+    }
+  };
+
+  /** Core save logic shared by both "with notes" and "without notes" paths */
+  const executeSave = async (data: EmployeeFormData, changes: DetectedChange[], notes: string, link: string, effectiveDate: string) => {
     if (!user) return;
     setIsSubmitting(true);
 
@@ -249,6 +361,12 @@ export default function Employees() {
           .eq('id', selectedEmployee.id);
         if (error) throw error;
         employeeId = selectedEmployee.id;
+
+        // Auto-create history records for detected changes
+        if (changes.length > 0) {
+          await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
+        }
+
         toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
       } else {
         const { data: inserted, error } = await supabase
@@ -283,7 +401,7 @@ export default function Employees() {
         }
       }
 
-      // Save all other history types
+      // Save all other history types (manual entries from form)
       await Promise.all([
         saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']),
         saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']),
@@ -293,12 +411,42 @@ export default function Employees() {
       ]);
 
       setFormModalOpen(false);
+      setChangeLogOpen(false);
+      setPendingFormData(null);
+      setDetectedChanges([]);
       fetchEmployees();
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message || 'Gagal menyimpan data pegawai' });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleFormSubmit = async (data: EmployeeFormData) => {
+    // If editing, detect changes and show dialog
+    if (selectedEmployee) {
+      const changes = detectChanges(selectedEmployee, data);
+      if (changes.length > 0) {
+        setDetectedChanges(changes);
+        setPendingFormData(data);
+        setFormModalOpen(false);
+        setChangeLogOpen(true);
+        return;
+      }
+    }
+
+    // No tracked changes or new employee — save directly
+    await executeSave(data, [], '', '', new Date().toISOString().split('T')[0]);
+  };
+
+  const handleChangeLogConfirm = async (notes: string, link: string, date: string) => {
+    if (!pendingFormData) return;
+    await executeSave(pendingFormData, detectedChanges, notes, link, date);
+  };
+
+  const handleChangeLogSkip = async () => {
+    if (!pendingFormData) return;
+    await executeSave(pendingFormData, detectedChanges, '', '', new Date().toISOString().split('T')[0]);
   };
 
   const handleConfirmDelete = async () => {
@@ -486,6 +634,22 @@ export default function Employees() {
         initialRankHistory={selectedRankHistory}
         initialCompetencyTestHistory={selectedCompetencyHistory}
         initialTrainingHistory={selectedTrainingHistory}
+      />
+
+      <ChangeLogDialog
+        open={changeLogOpen}
+        onOpenChange={(open) => {
+          setChangeLogOpen(open);
+          if (!open) {
+            // If user closes dialog, reopen form so they don't lose data
+            setFormModalOpen(true);
+          }
+        }}
+        changes={detectedChanges}
+        employeeName={selectedEmployee ? formatDisplayName(selectedEmployee) : ''}
+        onConfirm={handleChangeLogConfirm}
+        onSkip={handleChangeLogSkip}
+        isLoading={isSubmitting}
       />
 
       <DeleteConfirmDialog
