@@ -95,6 +95,18 @@ export default function PetaJabatan() {
     }
   }, [selectedDepartment]);
 
+  // Auto-refresh every 30 seconds to catch updates from other users
+  useEffect(() => {
+    if (!selectedDepartment) return;
+    
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing Peta Jabatan data...');
+      fetchData();
+    }, 30000); // 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [selectedDepartment]);
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
