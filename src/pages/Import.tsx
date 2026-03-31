@@ -73,10 +73,107 @@ const parseEducation = (eduStr: string | null): { level: string; major: string }
   return null;
 };
 
+// Parse NIP (18 digit) to extract birth date, TMT CPNS, and gender
+// Format: YYYYMMDD YYYYMM G NNN
+// Example: 19770601 200312 1 002
+const parseNIP = (nip: string | null): {
+  birth_date: string | null;
+  tmt_cpns: string | null;
+  gender: string | null;
+} | null => {
+  if (!nip) return null;
+  
+  // Remove spaces and validate length
+  const cleanNIP = nip.replace(/\s/g, '');
+  if (cleanNIP.length !== 18) return null;
+  
+  try {
+    // Extract parts
+    const birthDateStr = cleanNIP.substring(0, 8); // YYYYMMDD
+    const tmtCpnsStr = cleanNIP.substring(8, 14);  // YYYYMM
+    const genderCode = cleanNIP.substring(14, 15); // 1 or 2
+    
+    // Parse birth date: YYYYMMDD -> YYYY-MM-DD
+    const birthYear = birthDateStr.substring(0, 4);
+    const birthMonth = birthDateStr.substring(4, 6);
+    const birthDay = birthDateStr.substring(6, 8);
+    const birth_date = `${birthYear}-${birthMonth}-${birthDay}`;
+    
+    // Parse TMT CPNS: YYYYMM -> YYYY-MM-01 (assume first day of month)
+    const tmtYear = tmtCpnsStr.substring(0, 4);
+    const tmtMonth = tmtCpnsStr.substring(4, 6);
+    const tmt_cpns = `${tmtYear}-${tmtMonth}-01`;
+    
+    // Parse gender: 1 = Laki-laki, 2 = Perempuan
+    const gender = genderCode === '1' ? 'Laki-laki' : genderCode === '2' ? 'Perempuan' : null;
+    
+    // Validate dates
+    const birthDateObj = new Date(birth_date);
+    const tmtCpnsObj = new Date(tmt_cpns);
+    
+    if (isNaN(birthDateObj.getTime()) || isNaN(tmtCpnsObj.getTime())) {
+      return null;
+    }
+    
+    return { birth_date, tmt_cpns, gender };
+  } catch (error) {
+    console.error('Error parsing NIP:', error);
+    return null;
+  }
+};
+
+// Parse nama lengkap untuk ekstrak gelar depan dan belakang
+// Example: "Dr. Ir. Abdullah Qiqi Asmara, S.T., M.Si., IPU"
+// Result: { front_title: "Dr. Ir.", name: "Abdullah Qiqi Asmara", back_title: "S.T., M.Si., IPU" }
+const parseName = (fullName: string | null): {
+  front_title: string;
+  name: string;
+  back_title: string;
+} => {
+  if (!fullName) return { front_title: '', name: '', back_title: '' };
+  
+  const trimmed = fullName.trim();
+  
+  // Daftar gelar depan yang umum
+  const frontTitles = [
+    'Dr\\.?', 'dr\\.?', 'Prof\\.?', 'Ir\\.?', 'Drs\\.?', 'Dra\\.?', 
+    'H\\.?', 'Hj\\.?', 'KH\\.?', 'Tn\\.?', 'Ny\\.?', 'Sdr\\.?', 'Sdri\\.?'
+  ];
+  
+  // Regex untuk mendeteksi gelar depan (di awal string)
+  const frontTitleRegex = new RegExp(`^((?:${frontTitles.join('|')})\\s*)+`, 'i');
+  const frontMatch = trimmed.match(frontTitleRegex);
+  
+  let front_title = '';
+  let remaining = trimmed;
+  
+  if (frontMatch) {
+    front_title = frontMatch[0].trim();
+    remaining = trimmed.substring(frontMatch[0].length).trim();
+  }
+  
+  // Regex untuk mendeteksi gelar belakang (setelah koma atau di akhir)
+  // Gelar belakang biasanya dipisah dengan koma: S.T., M.Si., IPU
+  const backTitleRegex = /,\s*(.+)$/;
+  const backMatch = remaining.match(backTitleRegex);
+  
+  let back_title = '';
+  let name = remaining;
+  
+  if (backMatch) {
+    back_title = backMatch[1].trim();
+    name = remaining.substring(0, backMatch.index).trim();
+  }
+  
+  return { front_title, name, back_title };
+};
+
 // ============ EMPLOYEE IMPORT ============
 
 interface ParsedEmployee {
   name: string;
+  front_title: string;
+  back_title: string;
   nip: string;
   asn_status: string;
   position_sk: string; // Jabatan Sesuai SK
@@ -85,6 +182,9 @@ interface ParsedEmployee {
   rank_group: string;
   education_level: string;
   gender: string;
+  birth_date: string;
+  tmt_cpns: string;
+  religion: string;
   department: string;
   keterangan_formasi: string;
   keterangan_penempatan: string;
@@ -245,6 +345,12 @@ export default function Import() {
         const jabatanSK = findCol(row, 'Jabatan Sesuai SK', 'Jabatan SK').trim();
         const jabatanKepmen = findCol(row, 'Jabatan Sesuai Kepmen 202 Tahun 2024', 'Nama Jabatan', 'Jabatan', 'position_name').trim();
 
+        // Parse nama untuk ekstrak gelar depan dan belakang
+        const parsedName = parseName(name);
+        const cleanName = parsedName.name || name; // Fallback ke nama asli jika parsing gagal
+        const frontTitle = parsedName.front_title;
+        const backTitle = parsedName.back_title;
+
         // Get position info - prioritas Kepmen untuk lastPosition, fallback ke SK
         // Ini untuk tracking multi-row employees dan position reference
         const currentPosition = jabatanKepmen || jabatanSK;
@@ -379,9 +485,37 @@ export default function Import() {
 
         const rawRank = findCol(row, 'Pangkat Golongan', 'Pangkat\nGolongan', 'Pangkat\n Golongan', 'rank_group', 'Golongan');
         const nip = findCol(row, 'NIP', 'nip').replace(/\s/g, '').trim();
+        
+        // Parse NIP to get birth_date, tmt_cpns, and gender
+        const nipData = parseNIP(nip || null);
+        
+        // Get data from Excel columns
+        const excelGender = findCol(row, 'Jenis Kelamin', 'gender');
+        const excelBirthDate = findCol(row, 'Tanggal Lahir', 'birth_date');
+        const excelTmtCpns = findCol(row, 'TMT CPNS', 'tmt_cpns');
+        const excelReligion = findCol(row, 'Agama', 'religion');
+        
+        // Normalize gender (handle case variations)
+        let genderValue = excelGender || nipData?.gender || '';
+        if (genderValue) {
+          const genderLower = genderValue.toLowerCase().trim();
+          if (genderLower === 'l' || genderLower === 'laki-laki' || genderLower === 'laki laki') {
+            genderValue = 'Laki-laki';
+          } else if (genderLower === 'p' || genderLower === 'perempuan') {
+            genderValue = 'Perempuan';
+          }
+        }
+        
+        // Use NIP data as fallback if Excel columns are empty
+        const gender = genderValue;
+        const birth_date = excelBirthDate || nipData?.birth_date || '';
+        const tmt_cpns = excelTmtCpns || nipData?.tmt_cpns || '';
+        const religion = excelReligion || '';
 
         const employee: ParsedEmployee = {
-          name,
+          name: cleanName,
+          front_title: frontTitle,
+          back_title: backTitle,
           nip: nip && nip !== '-' ? nip : '',
           asn_status: findCol(row, 'Kriteria ASN', 'Status ASN', 'asn_status'),
           position_sk: positionSK, // Jabatan Sesuai SK
@@ -389,7 +523,10 @@ export default function Import() {
           position_type: positionType,
           rank_group: normalizeImportValue(rawRank, RANK_GROUP_ALIASES, RANK_GROUPS),
           education_level: findCol(row, 'Pendidikan Terakhir', 'education_level'),
-          gender: findCol(row, 'Jenis Kelamin', 'gender'),
+          gender: gender,
+          birth_date: birth_date,
+          tmt_cpns: tmt_cpns,
+          religion: religion,
           department: dept,
           keterangan_formasi: findCol(row, 'Keterangan Formasi (ABK-Existing)', 'Keterangan Formasi'),
           keterangan_penempatan: findCol(row, 'Keterangan Penempatan', 'Keternangan Penempatan'),
@@ -601,6 +738,8 @@ export default function Import() {
             .from('employees')
             .update({
               name: row.name,
+              front_title: row.front_title || null,
+              back_title: row.back_title || null,
               nip: row.nip || null,
               asn_status: row.asn_status,
               position_sk: row.position_sk || null,
@@ -608,6 +747,9 @@ export default function Import() {
               position_type: row.position_type || null,
               rank_group: row.rank_group || null,
               gender: gender || null,
+              birth_date: row.birth_date || null,
+              tmt_cpns: row.tmt_cpns || null,
+              religion: row.religion || null,
               department: row.department,
               import_order: i + 1, // Save import order
               keterangan_formasi: row.keterangan_formasi || null,
@@ -630,6 +772,8 @@ export default function Import() {
             .from('employees')
             .insert({
               name: row.name,
+              front_title: row.front_title || null,
+              back_title: row.back_title || null,
               nip: row.nip || null,
               asn_status: row.asn_status,
               position_sk: row.position_sk || null,
@@ -637,6 +781,9 @@ export default function Import() {
               position_type: row.position_type || null,
               rank_group: row.rank_group || null,
               gender: gender || null,
+              birth_date: row.birth_date || null,
+              tmt_cpns: row.tmt_cpns || null,
+              religion: row.religion || null,
               department: row.department,
               import_order: i + 1, // Save import order
               keterangan_formasi: row.keterangan_formasi || null,
@@ -671,6 +818,65 @@ export default function Import() {
               employee_id: employeeId,
               level: parsedEducation.level,
               major: parsedEducation.major !== 'Tidak Ada' ? parsedEducation.major : null,
+            });
+          }
+        }
+
+        // Auto-create history records if they don't exist
+        if (employeeId && !existing) {
+          // Only create for new employees, not updates
+          const importDate = row.tmt_cpns || row.birth_date || new Date().toISOString().split('T')[0];
+
+          // Create mutation history (unit kerja saat ini)
+          if (row.department) {
+            await supabase.from('mutation_history').insert({
+              employee_id: employeeId,
+              tanggal: importDate,
+              ke_unit: row.department,
+              keterangan: 'Data import - Unit kerja saat ini',
+            });
+          }
+
+          // Create rank history (pangkat saat ini)
+          if (row.rank_group && row.rank_group !== 'Tidak Ada') {
+            await supabase.from('rank_history').insert({
+              employee_id: employeeId,
+              tanggal: importDate,
+              pangkat_baru: row.rank_group,
+              tmt: importDate,
+              keterangan: 'Data import - Pangkat/Golongan saat ini',
+            });
+          }
+
+          // Create position history (jabatan saat ini)
+          if (row.position_name) {
+            await supabase.from('position_history').insert({
+              employee_id: employeeId,
+              tanggal: importDate,
+              jabatan_baru: row.position_name,
+              keterangan: 'Data import - Jabatan sesuai Kepmen 202/2024 saat ini',
+            });
+          }
+
+          // Create notes from keterangan fields
+          if (row.keterangan_penempatan) {
+            await supabase.from('placement_notes').insert({
+              employee_id: employeeId,
+              note: row.keterangan_penempatan,
+            });
+          }
+
+          if (row.keterangan_penugasan) {
+            await supabase.from('assignment_notes').insert({
+              employee_id: employeeId,
+              note: row.keterangan_penugasan,
+            });
+          }
+
+          if (row.keterangan_perubahan) {
+            await supabase.from('change_notes').insert({
+              employee_id: employeeId,
+              note: row.keterangan_perubahan,
             });
           }
         }

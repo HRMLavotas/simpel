@@ -26,6 +26,7 @@ import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog'
 import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
+import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,6 +159,9 @@ export default function Employees() {
   const [selectedRankHistory, setSelectedRankHistory] = useState<HistoryEntry[]>([]);
   const [selectedCompetencyHistory, setSelectedCompetencyHistory] = useState<HistoryEntry[]>([]);
   const [selectedTrainingHistory, setSelectedTrainingHistory] = useState<HistoryEntry[]>([]);
+  const [selectedPlacementNotes, setSelectedPlacementNotes] = useState<NoteEntry[]>([]);
+  const [selectedAssignmentNotes, setSelectedAssignmentNotes] = useState<NoteEntry[]>([]);
+  const [selectedChangeNotes, setSelectedChangeNotes] = useState<NoteEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Change log dialog state
@@ -278,6 +282,9 @@ export default function Employees() {
     setSelectedRankHistory([]);
     setSelectedCompetencyHistory([]);
     setSelectedTrainingHistory([]);
+    setSelectedPlacementNotes([]);
+    setSelectedAssignmentNotes([]);
+    setSelectedChangeNotes([]);
     setFormModalOpen(true);
   };
 
@@ -292,13 +299,16 @@ export default function Employees() {
   const handleEditEmployee = async (employee: Employee) => {
     setSelectedEmployee(employee);
     
-    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes] = await Promise.all([
+    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
       supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
       supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
       supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
       supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
       supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true }),
+      supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+      supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+      supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
     ]);
 
     setSelectedEducation(
@@ -313,6 +323,11 @@ export default function Employees() {
     setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
     setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
     setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+    
+    // Map notes data
+    setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
     
     setFormModalOpen(true);
   };
@@ -475,6 +490,37 @@ export default function Employees() {
         saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
         saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
       ]);
+
+      // Save notes data
+      if (data.placement_notes) {
+        await supabase.from('placement_notes').delete().eq('employee_id', employeeId);
+        const placementRows = data.placement_notes
+          .filter(n => n.note && n.note.trim())
+          .map(n => ({ employee_id: employeeId, note: n.note }));
+        if (placementRows.length > 0) {
+          await supabase.from('placement_notes').insert(placementRows);
+        }
+      }
+
+      if (data.assignment_notes) {
+        await supabase.from('assignment_notes').delete().eq('employee_id', employeeId);
+        const assignmentRows = data.assignment_notes
+          .filter(n => n.note && n.note.trim())
+          .map(n => ({ employee_id: employeeId, note: n.note }));
+        if (assignmentRows.length > 0) {
+          await supabase.from('assignment_notes').insert(assignmentRows);
+        }
+      }
+
+      if (data.change_notes) {
+        await supabase.from('change_notes').delete().eq('employee_id', employeeId);
+        const changeRows = data.change_notes
+          .filter(n => n.note && n.note.trim())
+          .map(n => ({ employee_id: employeeId, note: n.note }));
+        if (changeRows.length > 0) {
+          await supabase.from('change_notes').insert(changeRows);
+        }
+      }
 
       // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
       if (changes.length > 0) {
@@ -735,6 +781,9 @@ export default function Employees() {
         initialRankHistory={selectedRankHistory}
         initialCompetencyTestHistory={selectedCompetencyHistory}
         initialTrainingHistory={selectedTrainingHistory}
+        initialPlacementNotes={selectedPlacementNotes}
+        initialAssignmentNotes={selectedAssignmentNotes}
+        initialChangeNotes={selectedChangeNotes}
       />
 
       <ChangeLogDialog
