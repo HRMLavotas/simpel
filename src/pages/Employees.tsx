@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -140,6 +141,14 @@ export default function Employees() {
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   
+  // Collapse state for each category
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
+    'Struktural': false,
+    'Fungsional': false,
+    'Pelaksana': false,
+    'Lainnya': false,
+  });
+  
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -164,12 +173,37 @@ export default function Employees() {
     if (!profile) return;
     setIsLoading(true);
     try {
+      // Fetch employees and sort by position_type (Struktural, Fungsional, Pelaksana) then import_order
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .order('name', { ascending: true });
+        .order('import_order', { ascending: true, nullsFirst: false });
+      
       if (error) throw error;
-      setEmployees(data || []);
+      
+      // Sort by position_type category first, then by import_order
+      const sortedData = (data || []).sort((a, b) => {
+        // Define category order
+        const categoryOrder: Record<string, number> = {
+          'Struktural': 1,
+          'Fungsional': 2,
+          'Pelaksana': 3,
+        };
+        
+        const catA = categoryOrder[a.position_type || ''] || 999;
+        const catB = categoryOrder[b.position_type || ''] || 999;
+        
+        if (catA !== catB) {
+          return catA - catB;
+        }
+        
+        // If same category, sort by import_order
+        const orderA = a.import_order || 999999;
+        const orderB = b.import_order || 999999;
+        return orderA - orderB;
+      });
+      
+      setEmployees(sortedData);
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
@@ -197,7 +231,44 @@ export default function Employees() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  // Group employees by position_type for display with category headers
+  const groupedEmployees = useMemo(() => {
+    const groups: { category: string; employees: Employee[] }[] = [];
+    let currentCategory = '';
+    let currentGroup: Employee[] = [];
+
+    paginatedEmployees.forEach((emp) => {
+      const category = emp.position_type || 'Lainnya';
+      
+      if (category !== currentCategory) {
+        // Save previous group if exists
+        if (currentGroup.length > 0) {
+          groups.push({ category: currentCategory, employees: currentGroup });
+        }
+        // Start new group
+        currentCategory = category;
+        currentGroup = [emp];
+      } else {
+        currentGroup.push(emp);
+      }
+    });
+
+    // Add last group
+    if (currentGroup.length > 0) {
+      groups.push({ category: currentCategory, employees: currentGroup });
+    }
+
+    return groups;
+  }, [paginatedEmployees]);
+
   useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter, departmentFilter]);
+
+  const toggleCategory = (category: string) => {
+    setCollapsedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
 
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
@@ -575,29 +646,59 @@ export default function Employees() {
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedEmployees.map((employee) => (
-                  <TableRow key={employee.id} className="animate-fade-in">
-                    <TableCell className="font-mono text-sm">{employee.nip || '-'}</TableCell>
-                    <TableCell className="font-medium">{formatDisplayName(employee)}</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground">{employee.position_name || '-'}</TableCell>
-                    <TableCell>{getStatusBadge(employee.asn_status)}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
-                    {isAdminPusat && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
-                    <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      {employee.join_date ? format(new Date(employee.join_date), 'd MMM yyyy', { locale: id }) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditEmployee(employee)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteEmployee(employee)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                <>
+                  {groupedEmployees.map((group, groupIdx) => (
+                    <React.Fragment key={`group-${groupIdx}`}>
+                      {/* Category Header Row with Collapse/Expand */}
+                      <TableRow 
+                        className="bg-muted/50 hover:bg-muted/70 cursor-pointer transition-colors"
+                        onClick={() => toggleCategory(group.category)}
+                      >
+                        <TableCell 
+                          colSpan={isAdminPusat ? 8 : 7} 
+                          className="font-semibold text-sm uppercase tracking-wide py-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            {collapsedCategories[group.category] ? (
+                              <ChevronRight className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                            <span>{group.category}</span>
+                            <span className="text-xs font-normal text-muted-foreground ml-2">
+                              ({group.employees.length} pegawai)
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Employee Rows - Only show if not collapsed */}
+                      {!collapsedCategories[group.category] && group.employees.map((employee) => (
+                        <TableRow key={employee.id} className="animate-fade-in">
+                          <TableCell className="font-mono text-sm">{employee.nip || '-'}</TableCell>
+                          <TableCell className="font-medium">{formatDisplayName(employee)}</TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground">{employee.position_name || '-'}</TableCell>
+                          <TableCell>{getStatusBadge(employee.asn_status)}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
+                          {isAdminPusat && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
+                          <TableCell className="hidden lg:table-cell text-muted-foreground">
+                            {employee.join_date ? format(new Date(employee.join_date), 'd MMM yyyy', { locale: id }) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditEmployee(employee)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteEmployee(employee)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </>
               )}
             </TableBody>
           </Table>
