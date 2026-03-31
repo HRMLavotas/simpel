@@ -390,16 +390,50 @@ export default function Employees() {
     fieldKeys: string[]
   ) => {
     if (!entries) return;
+    
+    // Delete existing entries
     await supabase.from(tableName as any).delete().eq('employee_id', employeeId);
+    
+    // Get current employee data for auto-filling "old" values
+    const { data: currentEmployee } = await supabase
+      .from('employees')
+      .select('rank_group, position_name, department')
+      .eq('id', employeeId)
+      .single();
+    
     const rows = entries
       .filter(e => fieldKeys.some(k => e[k]))
-      .map(e => {
+      .map((e, index, array) => {
         const row: any = { employee_id: employeeId };
+        
+        // Auto-fill "old" values based on previous entry or current state
+        if (tableName === 'rank_history' && e.pangkat_baru) {
+          // Get previous entry's pangkat_baru or current rank_group
+          const prevEntry = index > 0 ? array[index - 1] : null;
+          row.pangkat_lama = prevEntry?.pangkat_baru || currentEmployee?.rank_group || null;
+          row.pangkat_baru = e.pangkat_baru;
+        } else if (tableName === 'position_history' && e.jabatan_baru) {
+          // Get previous entry's jabatan_baru or current position_name
+          const prevEntry = index > 0 ? array[index - 1] : null;
+          row.jabatan_lama = prevEntry?.jabatan_baru || currentEmployee?.position_name || null;
+          row.jabatan_baru = e.jabatan_baru;
+        } else if (tableName === 'mutation_history' && e.ke_unit) {
+          // Get previous entry's ke_unit or current department
+          const prevEntry = index > 0 ? array[index - 1] : null;
+          row.dari_unit = prevEntry?.ke_unit || currentEmployee?.department || null;
+          row.ke_unit = e.ke_unit;
+        }
+        
+        // Copy other fields
         fieldKeys.forEach(k => {
-          row[k] = e[k] || null;
+          if (!row[k]) { // Don't overwrite auto-filled values
+            row[k] = e[k] || null;
+          }
         });
+        
         return row;
       });
+      
     if (rows.length > 0) {
       await supabase.from(tableName as any).insert(rows);
     }
@@ -459,6 +493,20 @@ export default function Employees() {
     setIsSubmitting(true);
 
     try {
+      // Determine the latest department from mutation history
+      let finalDepartment = data.department;
+      if (data.mutation_history && data.mutation_history.length > 0) {
+        // Sort by date to get the latest mutation
+        const sortedMutations = [...data.mutation_history]
+          .filter(m => m.tanggal && m.ke_unit)
+          .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+        
+        if (sortedMutations.length > 0) {
+          finalDepartment = sortedMutations[0].ke_unit || data.department;
+          console.log('Auto-updating department from latest mutation:', finalDepartment);
+        }
+      }
+
       const employeeData = {
         nip: data.nip || null,
         name: data.name,
@@ -472,7 +520,7 @@ export default function Employees() {
         position_name: data.position_name || null,
         asn_status: data.asn_status,
         rank_group: data.rank_group || null,
-        department: data.department,
+        department: finalDepartment, // Use the latest department from mutation
         join_date: data.join_date || null,
         tmt_cpns: data.tmt_cpns || null,
         tmt_pns: data.tmt_pns || null,
@@ -525,9 +573,9 @@ export default function Employees() {
 
       // Save all other history types (manual entries from form)
       await Promise.all([
-        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']),
-        saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']),
-        saveHistoryEntries('rank_history', employeeId, data.rank_history, ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
+        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'ke_unit', 'nomor_sk', 'keterangan']),
+        saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
+        saveHistoryEntries('rank_history', employeeId, data.rank_history, ['tanggal', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
         saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
         saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
       ]);

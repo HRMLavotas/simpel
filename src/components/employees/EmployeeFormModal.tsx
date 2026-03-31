@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock, Edit3 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -133,6 +133,11 @@ export function EmployeeFormModal({
   const [placementNotes, setPlacementNotes] = useState<NoteEntry[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<NoteEntry[]>([]);
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
+
+  // Refs for scrolling to sections
+  const mutationHistoryRef = useRef<HTMLDivElement>(null);
+  const positionHistoryRef = useRef<HTMLDivElement>(null);
+  const rankHistoryRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<z.infer<typeof employeeSchema>>({
     resolver: zodResolver(employeeSchema),
@@ -439,6 +444,17 @@ export function EmployeeFormModal({
     return ['Tidak Ada'];
   };
 
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Highlight the section briefly
+      ref.current.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+      setTimeout(() => {
+        ref.current?.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+      }, 2000);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -501,32 +517,103 @@ export function EmployeeFormModal({
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Kepegawaian</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               {renderSelectField('Status ASN', 'asn_status', ASN_STATUS_OPTIONS, 'Pilih status ASN', true)}
-              {renderSelectField('Golongan/Pangkat', 'rank_group', getRankOptions(), 'Pilih golongan', false, false,
-                form.watch('asn_status') === 'Non ASN' ? 'Non ASN tidak memiliki golongan' : undefined
-              )}
-              {renderSelectField('Jenis Jabatan', 'position_type', POSITION_TYPES, 'Pilih jenis jabatan')}
-
+              
+              {/* Locked Field: Golongan/Pangkat */}
               <div className="space-y-2">
-                <Label htmlFor="position_name">Nama Jabatan</Label>
-                <Input id="position_name" placeholder="Contoh: Analis Kepegawaian" {...form.register('position_name')} />
+                <Label className="flex items-center gap-2">
+                  Golongan/Pangkat
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => scrollToSection(rankHistoryRef)}
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    value={form.watch('rank_group') || '-'}
+                    disabled
+                    className="bg-muted/50 cursor-not-allowed"
+                  />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Untuk mengubah pangkat, tambahkan entry di Riwayat Kenaikan Pangkat
+                </p>
               </div>
 
+              {/* Normal Field: Jenis Jabatan */}
+              {renderSelectField('Jenis Jabatan', 'position_type', POSITION_TYPES, 'Pilih jenis jabatan')}
+
+              {/* Locked Field: Nama Jabatan */}
               <div className="space-y-2">
-                <Label>Unit Kerja *</Label>
-                <Select
-                  value={form.watch('department')}
-                  onValueChange={(v) => form.setValue('department', v)}
-                  disabled={!isAdminPusat}
-                >
-                  <SelectTrigger><SelectValue placeholder="Pilih unit kerja" /></SelectTrigger>
-                  <SelectContent>
-                    {DEPARTMENTS.filter(d => d !== 'Pusat').map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.department && <p className="text-xs text-destructive">{form.formState.errors.department.message}</p>}
-                {!isAdminPusat && <p className="text-xs text-muted-foreground">Unit kerja otomatis sesuai dengan unit Anda</p>}
+                <Label className="flex items-center gap-2">
+                  Nama Jabatan
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => scrollToSection(positionHistoryRef)}
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    value={form.watch('position_name') || '-'}
+                    disabled
+                    className="bg-muted/50 cursor-not-allowed"
+                  />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Untuk mengubah nama jabatan, tambahkan entry di Riwayat Jabatan
+                </p>
+              </div>
+
+              {/* Locked Field: Unit Kerja */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Unit Kerja *
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => scrollToSection(mutationHistoryRef)}
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    value={form.watch('department') || '-'}
+                    disabled
+                    className="bg-muted/50 cursor-not-allowed"
+                  />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
+                {!isAdminPusat && (
+                  <p className="text-xs text-muted-foreground">Unit kerja otomatis sesuai dengan unit Anda</p>
+                )}
+                {isEditing && (
+                  <p className="text-xs text-muted-foreground">
+                    💡 Untuk mutasi unit kerja, tambahkan entry di Riwayat Mutasi
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -564,32 +651,47 @@ export function EmployeeFormModal({
           <Separator />
 
           {/* Mutation History */}
-          <EmployeeHistoryForm
-            title="Riwayat Mutasi"
-            fields={MUTATION_FIELDS}
-            entries={mutationEntries}
-            onChange={setMutationEntries}
-          />
+          <div ref={mutationHistoryRef} className="scroll-mt-4 transition-all duration-300">
+            <EmployeeHistoryForm
+              title="Riwayat Mutasi"
+              fields={MUTATION_FIELDS}
+              entries={mutationEntries}
+              onChange={setMutationEntries}
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              💡 Unit kerja asal akan otomatis terisi dari riwayat sebelumnya atau data saat ini
+            </p>
+          </div>
 
           <Separator />
 
           {/* Position History */}
-          <EmployeeHistoryForm
-            title="Riwayat Jabatan"
-            fields={POSITION_HISTORY_FIELDS}
-            entries={positionHistoryEntries}
-            onChange={setPositionHistoryEntries}
-          />
+          <div ref={positionHistoryRef} className="scroll-mt-4 transition-all duration-300">
+            <EmployeeHistoryForm
+              title="Riwayat Jabatan"
+              fields={POSITION_HISTORY_FIELDS}
+              entries={positionHistoryEntries}
+              onChange={setPositionHistoryEntries}
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              💡 Jabatan lama akan otomatis terisi dari riwayat sebelumnya atau data saat ini
+            </p>
+          </div>
 
           <Separator />
 
           {/* Rank History */}
-          <EmployeeHistoryForm
-            title="Riwayat Kenaikan Pangkat"
-            fields={RANK_HISTORY_FIELDS}
-            entries={rankHistoryEntries}
-            onChange={setRankHistoryEntries}
-          />
+          <div ref={rankHistoryRef} className="scroll-mt-4 transition-all duration-300">
+            <EmployeeHistoryForm
+              title="Riwayat Kenaikan Pangkat"
+              fields={RANK_HISTORY_FIELDS}
+              entries={rankHistoryEntries}
+              onChange={setRankHistoryEntries}
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              💡 Pangkat lama akan otomatis terisi dari riwayat sebelumnya atau data saat ini
+            </p>
+          </div>
 
           <Separator />
 

@@ -245,6 +245,9 @@ export function EmployeeDetailsModal({
                       <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
+                          {hist.unit_kerja && (
+                            <Badge variant="secondary" className="text-xs">{hist.unit_kerja}</Badge>
+                          )}
                         </div>
                         <div className="space-y-1 text-sm">
                           {hist.jabatan_lama && (
