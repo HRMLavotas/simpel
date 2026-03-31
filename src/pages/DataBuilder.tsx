@@ -16,7 +16,7 @@ const PAGE_SIZE = 50;
 
 export default function DataBuilder() {
   const { toast } = useToast();
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(['name', 'nip', 'department', 'position_name']);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(['name', 'nip', 'department', 'position_type', 'position_sk', 'position_name']);
   const [filters, setFilters] = useState<FilterRule[]>([]);
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [allData, setAllData] = useState<Record<string, unknown>[]>([]);
@@ -38,6 +38,9 @@ export default function DataBuilder() {
     let q = query;
     for (const f of filters) {
       if (!f.value.trim()) continue;
+      // Skip exact_word filters here - they'll be applied client-side
+      if (f.operator === 'exact_word') continue;
+      
       if (f.operator === 'eq') {
         q = q.eq(f.field, f.value.trim()) as typeof q;
       } else if (f.operator === 'ilike') {
@@ -45,6 +48,25 @@ export default function DataBuilder() {
       }
     }
     return q;
+  };
+
+  const applyClientSideFilters = (data: Record<string, unknown>[]) => {
+    let filtered = data;
+    
+    // Apply exact_word filters client-side
+    const exactWordFilters = filters.filter(f => f.operator === 'exact_word' && f.value.trim());
+    
+    for (const f of exactWordFilters) {
+      const searchValue = f.value.trim().toLowerCase();
+      filtered = filtered.filter(row => {
+        const fieldValue = String(row[f.field] || '').toLowerCase();
+        // Use word boundary regex to match whole words only
+        const regex = new RegExp(`\\b${searchValue}\\b`, 'i');
+        return regex.test(fieldValue);
+      });
+    }
+    
+    return filtered;
   };
 
   const fetchData = async () => {
@@ -59,12 +81,7 @@ export default function DataBuilder() {
     try {
       const { selectStr } = buildQuery();
 
-      let countQuery = supabase.from('employees').select('*', { count: 'exact', head: true });
-      countQuery = applyFilters(countQuery as any) as any;
-      const { count, error: countError } = await countQuery;
-      if (countError) throw countError;
-      setTotalCount(count ?? 0);
-
+      // Note: We can't get accurate count with client-side filters, so we fetch all data first
       const all: Record<string, unknown>[] = [];
       let offset = 0;
       const batchSize = 1000;
@@ -80,8 +97,12 @@ export default function DataBuilder() {
         offset += batchSize;
       }
 
-      setAllData(all);
-      setData(all.slice(0, PAGE_SIZE));
+      // Apply client-side filters (for exact_word operator)
+      const filtered = applyClientSideFilters(all);
+
+      setAllData(filtered);
+      setTotalCount(filtered.length);
+      setData(filtered.slice(0, PAGE_SIZE));
     } catch (error: any) {
       toast({ title: 'Gagal mengambil data', description: error.message, variant: 'destructive' });
     } finally {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -66,6 +66,13 @@ export default function PetaJabatan() {
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionReference | null>(null);
 
+  // Collapse state for each category
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
+    'Struktural': false,
+    'Fungsional': false,
+    'Pelaksana': false,
+  });
+
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
   const [formName, setFormName] = useState('');
@@ -88,6 +95,15 @@ export default function PetaJabatan() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      console.log('Fetching data for department:', selectedDepartment);
+      
+      // Debug: Check all positions in database
+      const { data: allPositions } = await supabase
+        .from('position_references')
+        .select('department')
+        .limit(10);
+      console.log('Sample departments in position_references:', allPositions);
+      
       const [posRes, empRes] = await Promise.all([
         supabase
           .from('position_references')
@@ -101,11 +117,17 @@ export default function PetaJabatan() {
           .eq('department', selectedDepartment),
       ]);
 
+      console.log('Position query result:', posRes);
+      console.log('Employee query result:', empRes);
+
       if (posRes.error) throw posRes.error;
       if (empRes.error) throw empRes.error;
 
       setPositions(posRes.data || []);
       setEmployees(empRes.data || []);
+      
+      console.log('Positions loaded:', posRes.data?.length || 0);
+      console.log('Employees loaded:', empRes.data?.length || 0);
 
       // Fetch latest education for each employee
       if (empRes.data && empRes.data.length > 0) {
@@ -224,6 +246,13 @@ export default function PetaJabatan() {
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
     }
+  };
+
+  const toggleCategory = (category: string) => {
+    setCollapsedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   const handleExport = () => {
@@ -405,13 +434,37 @@ export default function PetaJabatan() {
                   <TableBody>
                     {tableRows.map((row, idx) => {
                       if (row.type === 'category') {
+                        const categoryPositions = groupedPositions[row.category!] || [];
+                        const totalEmployees = categoryPositions.reduce((sum, pos) => {
+                          return sum + getMatchingEmployees(pos.position_name).length;
+                        }, 0);
+                        
                         return (
-                          <TableRow key={`cat-${row.category}`} className="bg-muted/60">
-                            <TableCell colSpan={16} className="font-semibold text-sm py-2">
-                              {row.category}
+                          <TableRow 
+                            key={`cat-${row.category}`} 
+                            className="bg-muted/60 hover:bg-muted/80 cursor-pointer transition-colors"
+                            onClick={() => toggleCategory(row.category!)}
+                          >
+                            <TableCell colSpan={16} className="font-semibold text-sm py-3">
+                              <div className="flex items-center gap-2">
+                                {collapsedCategories[row.category!] ? (
+                                  <ChevronRight className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                                <span>{row.category}</span>
+                                <span className="text-xs font-normal text-muted-foreground ml-2">
+                                  ({categoryPositions.length} jabatan, {totalEmployees} pegawai)
+                                </span>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
+                      }
+
+                      // Skip position rows if category is collapsed
+                      if (collapsedCategories[row.position!.position_category]) {
+                        return null;
                       }
 
                       const pos = row.position!;

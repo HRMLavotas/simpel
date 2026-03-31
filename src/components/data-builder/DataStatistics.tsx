@@ -22,7 +22,8 @@ const STAT_FIELDS = [
   { key: 'department', label: 'Unit Kerja', icon: Users },
   { key: 'asn_status', label: 'Status ASN', icon: PieChart },
   { key: 'position_type', label: 'Jenis Jabatan', icon: BarChart3 },
-  { key: 'position_name', label: 'Nama Jabatan', icon: TrendingUp },
+  { key: 'position_sk', label: 'Jabatan Sesuai SK', icon: TrendingUp },
+  { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202 Tahun 2024', icon: TrendingUp },
   { key: 'rank_group', label: 'Pangkat/Golongan', icon: BarChart3 },
 ];
 

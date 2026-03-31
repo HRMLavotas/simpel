@@ -7,13 +7,14 @@ import { AVAILABLE_COLUMNS } from './ColumnSelector';
 export interface FilterRule {
   id: string;
   field: string;
-  operator: 'eq' | 'ilike';
+  operator: 'eq' | 'ilike' | 'exact_word';
   value: string;
 }
 
 const OPERATORS = [
   { value: 'eq', label: 'Sama dengan' },
   { value: 'ilike', label: 'Mengandung' },
+  { value: 'exact_word', label: 'Hanya Mengandung' },
 ];
 
 interface FilterBuilderProps {
