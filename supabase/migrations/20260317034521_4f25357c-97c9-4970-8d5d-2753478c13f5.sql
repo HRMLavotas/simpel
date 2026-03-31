@@ -1,9 +1,4 @@
 
--- 1. Attach handle_new_user trigger to auth.users
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
 -- 2. Create position_references table
 CREATE TABLE public.position_references (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

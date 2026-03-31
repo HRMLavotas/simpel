@@ -40,16 +40,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create client with user token to verify they are admin_pusat
-    const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Extract token from Bearer header
+    const token = authHeader.replace('Bearer ', '');
 
-    // Verify the caller is admin_pusat
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Verify the caller using admin client
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    console.log('Auth verification:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      error: authError?.message 
+    });
+    
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
