@@ -4,6 +4,20 @@
 
 Semua persiapan sudah selesai. Aplikasi siap di-deploy!
 
+**UPDATE**: Dependency resolution issue sudah diperbaiki! ✅
+
+---
+
+## 🔧 Recent Fix
+
+Error `ERESOLVE` sudah diperbaiki dengan:
+- ✅ Added `.npmrc` file
+- ✅ Updated `vercel.json`
+- ✅ Added overrides in `package.json`
+- ✅ Build test passed (2.21s)
+
+**Lihat**: `DEPLOYMENT_FIX.md` untuk detail
+
 ---
 
 ## 🚀 Pilih Cara Deploy (Pilih Salah Satu)

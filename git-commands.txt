@@ -1,0 +1,38 @@
+========================================
+GIT COMMANDS - COPY & PASTE
+========================================
+
+Jalankan command ini satu per satu:
+
+1. Add semua perubahan:
+---
+git add .
+
+2. Commit dengan message:
+---
+git commit -m "Fix: Add .npmrc and update configs for Vercel deployment"
+
+3. Push ke repository:
+---
+git push origin main
+
+========================================
+ATAU JALANKAN SEKALIGUS:
+========================================
+
+git add . && git commit -m "Fix: Add .npmrc and update configs for Vercel deployment" && git push origin main
+
+========================================
+SETELAH PUSH:
+========================================
+
+1. Buka Vercel Dashboard:
+   https://vercel.com/dashboard
+
+2. Monitor deployment progress
+
+3. Tunggu sampai status "Ready"
+
+4. Test aplikasi di URL production
+
+========================================
