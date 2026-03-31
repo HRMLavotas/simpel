@@ -186,6 +186,7 @@ export default function Employees() {
   const fetchEmployees = async () => {
     if (!profile) return;
     setIsLoading(true);
+    console.log('=== FETCHING EMPLOYEES ===');
     try {
       // Fetch employees and sort by position_type (Struktural, Fungsional, Pelaksana) then import_order
       const { data, error } = await supabase
@@ -194,6 +195,8 @@ export default function Employees() {
         .order('import_order', { ascending: true, nullsFirst: false });
       
       if (error) throw error;
+      
+      console.log('Fetched employees count:', data?.length || 0);
       
       // Sort by position_type category first, then by import_order
       const sortedData = (data || []).sort((a, b) => {
@@ -218,6 +221,7 @@ export default function Employees() {
       });
       
       setEmployees(sortedData);
+      console.log('Employees state updated');
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
@@ -227,7 +231,7 @@ export default function Employees() {
   };
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter((emp) => {
+    const filtered = employees.filter((emp) => {
       const displayName = formatDisplayName(emp).toLowerCase();
       const matchesSearch = 
         displayName.includes(searchQuery.toLowerCase()) ||
@@ -237,6 +241,13 @@ export default function Employees() {
       const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || emp.department === departmentFilter;
       return matchesSearch && matchesStatus && matchesDepartment;
     });
+    
+    console.log('=== FILTERED EMPLOYEES ===');
+    console.log('Total employees:', employees.length);
+    console.log('Department filter:', departmentFilter);
+    console.log('Filtered count:', filtered.length);
+    
+    return filtered;
   }, [employees, searchQuery, statusFilter, departmentFilter, isAdminPusat]);
 
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
@@ -380,6 +391,11 @@ export default function Employees() {
     setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
     setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
     
+    console.log('=== NOTES DATA FOR DETAILS MODAL ===');
+    console.log('Placement notes:', placementRes.data);
+    console.log('Assignment notes:', assignmentRes.data);
+    console.log('Change notes:', changeRes.data);
+    
     setDetailsModalOpen(true);
   };
 
@@ -390,6 +406,9 @@ export default function Employees() {
     fieldKeys: string[]
   ) => {
     if (!entries) return;
+    
+    console.log(`=== SAVING ${tableName} ===`);
+    console.log('Entries to save:', entries);
     
     // Delete existing entries
     await supabase.from(tableName as any).delete().eq('employee_id', employeeId);
@@ -406,36 +425,38 @@ export default function Employees() {
       .map((e, index, array) => {
         const row: any = { employee_id: employeeId };
         
-        // Auto-fill "old" values based on previous entry or current state
+        // First, copy all fields from the entry
+        fieldKeys.forEach(k => {
+          row[k] = e[k] || null;
+        });
+        
+        // Then auto-fill "old" values based on previous entry or current state
         if (tableName === 'rank_history' && e.pangkat_baru) {
           // Get previous entry's pangkat_baru or current rank_group
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.pangkat_lama = prevEntry?.pangkat_baru || currentEmployee?.rank_group || null;
-          row.pangkat_baru = e.pangkat_baru;
         } else if (tableName === 'position_history' && e.jabatan_baru) {
           // Get previous entry's jabatan_baru or current position_name
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.jabatan_lama = prevEntry?.jabatan_baru || currentEmployee?.position_name || null;
-          row.jabatan_baru = e.jabatan_baru;
         } else if (tableName === 'mutation_history' && e.ke_unit) {
           // Get previous entry's ke_unit or current department
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.dari_unit = prevEntry?.ke_unit || currentEmployee?.department || null;
-          row.ke_unit = e.ke_unit;
         }
-        
-        // Copy other fields
-        fieldKeys.forEach(k => {
-          if (!row[k]) { // Don't overwrite auto-filled values
-            row[k] = e[k] || null;
-          }
-        });
         
         return row;
       });
       
+    console.log('Rows to insert:', rows);
+    
     if (rows.length > 0) {
-      await supabase.from(tableName as any).insert(rows);
+      const { error } = await supabase.from(tableName as any).insert(rows);
+      if (error) {
+        console.error(`Error inserting ${tableName}:`, error);
+        throw error;
+      }
+      console.log(`Successfully saved ${rows.length} entries to ${tableName}`);
     }
   };
 
@@ -495,6 +516,8 @@ export default function Employees() {
     try {
       // Determine the latest department from mutation history
       let finalDepartment = data.department;
+      let departmentChanged = false;
+      
       if (data.mutation_history && data.mutation_history.length > 0) {
         // Sort by date to get the latest mutation
         const sortedMutations = [...data.mutation_history]
@@ -502,8 +525,13 @@ export default function Employees() {
           .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
         
         if (sortedMutations.length > 0) {
-          finalDepartment = sortedMutations[0].ke_unit || data.department;
+          const newDepartment = sortedMutations[0].ke_unit || data.department;
+          departmentChanged = selectedEmployee && newDepartment !== selectedEmployee.department;
+          finalDepartment = newDepartment;
           console.log('Auto-updating department from latest mutation:', finalDepartment);
+          if (departmentChanged) {
+            console.log(`Department changed from ${selectedEmployee?.department} to ${finalDepartment}`);
+          }
         }
       }
 
@@ -537,7 +565,14 @@ export default function Employees() {
         if (error) throw error;
         employeeId = selectedEmployee.id;
 
-        toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
+        if (departmentChanged) {
+          toast({ 
+            title: 'Berhasil', 
+            description: `Data pegawai berhasil diperbarui. Pegawai telah dipindahkan ke ${finalDepartment}.` 
+          });
+        } else {
+          toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
+        }
       } else {
         const { data: inserted, error } = await supabase
           .from('employees')
@@ -572,6 +607,10 @@ export default function Employees() {
       }
 
       // Save all other history types (manual entries from form)
+      console.log('=== SAVING ALL HISTORY DATA ===');
+      console.log('Mutation history:', data.mutation_history);
+      console.log('Position history:', data.position_history);
+      
       await Promise.all([
         saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'ke_unit', 'nomor_sk', 'keterangan']),
         saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
@@ -579,6 +618,8 @@ export default function Employees() {
         saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
         saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
       ]);
+      
+      console.log('=== ALL HISTORY DATA SAVED ===');
 
       // Save notes data
       if (data.placement_notes) {
@@ -620,7 +661,26 @@ export default function Employees() {
       setChangeLogOpen(false);
       setPendingFormData(null);
       setDetectedChanges([]);
-      fetchEmployees();
+      
+      console.log('=== STARTING REFRESH AFTER SAVE ===');
+      console.log('Department changed:', departmentChanged);
+      console.log('Final department:', finalDepartment);
+      
+      // Force refresh to ensure data is updated immediately
+      await fetchEmployees();
+      
+      console.log('=== REFRESH COMPLETED ===');
+      
+      // If department changed and user is not admin pusat, show info message
+      if (departmentChanged && !isAdminPusat) {
+        setTimeout(() => {
+          toast({ 
+            title: 'Info', 
+            description: 'Pegawai telah dipindahkan ke unit kerja lain dan tidak lagi muncul di daftar Anda.',
+            variant: 'default'
+          });
+        }, 500);
+      }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message || 'Gagal menyimpan data pegawai' });
     } finally {

@@ -1,7 +1,8 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -10,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EDUCATION_LEVELS } from '@/lib/constants';
+import { useState } from 'react';
 
 export interface EducationEntry {
   id?: string;
@@ -36,7 +38,12 @@ const emptyEntry: EducationEntry = {
 };
 
 export function EducationHistoryForm({ entries, onChange }: EducationHistoryFormProps) {
-  const addEntry = () => onChange([...entries, { ...emptyEntry }]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const addEntry = () => {
+    onChange([...entries, { ...emptyEntry }]);
+    setIsExpanded(true); // Auto-expand when adding new entry
+  };
 
   const removeEntry = (index: number) => {
     onChange(entries.filter((_, i) => i !== index));
@@ -49,23 +56,79 @@ export function EducationHistoryForm({ entries, onChange }: EducationHistoryForm
     onChange(updated);
   };
 
+  // Get summary for collapsed view
+  const getSummary = () => {
+    if (entries.length === 0) return 'Belum ada data';
+    
+    const latestEntry = entries[entries.length - 1];
+    const level = latestEntry.level || '';
+    const major = latestEntry.major || '';
+    
+    if (level && major) {
+      return `${entries.length} entri • Terbaru: ${level} ${major}`;
+    } else if (level) {
+      return `${entries.length} entri • Terbaru: ${level}`;
+    }
+    
+    return `${entries.length} entri`;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-semibold">Riwayat Pendidikan</Label>
-        <Button type="button" variant="outline" size="sm" onClick={addEntry}>
-          <Plus className="mr-1 h-3 w-3" />
-          Tambah
-        </Button>
+        <div className="flex items-center gap-2">
+          <Label className="text-base font-semibold">Riwayat Pendidikan</Label>
+          {entries.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {entries.length}
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {entries.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="mr-1 h-3 w-3" />
+                  Sembunyikan
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="mr-1 h-3 w-3" />
+                  Lihat Semua
+                </>
+              )}
+            </Button>
+          )}
+          <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+            <Plus className="mr-1 h-3 w-3" />
+            Tambah
+          </Button>
+        </div>
       </div>
 
-      {entries.length === 0 && (
-        <p className="text-sm text-muted-foreground py-2">
-          Belum ada riwayat pendidikan. Klik "Tambah" untuk menambahkan.
-        </p>
+      {/* Collapsed Summary View */}
+      {!isExpanded && entries.length > 0 && (
+        <div className="p-4 rounded-lg border bg-muted/30 text-sm text-muted-foreground">
+          {getSummary()}
+        </div>
       )}
 
-      {entries.map((entry, index) => (
+      {/* Expanded Full View */}
+      {isExpanded && (
+        <>
+          {entries.length === 0 && (
+            <p className="text-sm text-muted-foreground py-2">
+              Belum ada riwayat pendidikan. Klik "Tambah" untuk menambahkan.
+            </p>
+          )}
+
+          {entries.map((entry, index) => (
         <div key={index} className="rounded-lg border p-4 space-y-3 relative">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
@@ -153,6 +216,8 @@ export function EducationHistoryForm({ entries, onChange }: EducationHistoryForm
           </div>
         </div>
       ))}
+        </>
+      )}
     </div>
   );
 }
