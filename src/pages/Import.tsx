@@ -48,6 +48,31 @@ const findCol = (row: Record<string, string>, ...keys: string[]): string => {
   return '';
 };
 
+// Parse education string like "S3 Ilmu Administrasi" into level and major
+const parseEducation = (eduStr: string | null): { level: string; major: string } | null => {
+  if (!eduStr || eduStr === '-') return null;
+  
+  const trimmed = eduStr.trim();
+  const levels = ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+  
+  // Try to extract level from beginning (first word)
+  const words = trimmed.split(/\s+/);
+  const firstWord = words[0].toUpperCase();
+  
+  if (levels.includes(firstWord)) {
+    // First word is the level, rest is major
+    const major = words.slice(1).join(' ').trim() || 'Tidak Ada';
+    return { level: firstWord, major };
+  }
+  
+  // Fallback: check if the entire string is just a level
+  if (levels.includes(trimmed.toUpperCase())) {
+    return { level: trimmed.toUpperCase(), major: 'Tidak Ada' };
+  }
+  
+  return null;
+};
+
 // ============ EMPLOYEE IMPORT ============
 
 interface ParsedEmployee {
@@ -631,11 +656,23 @@ export default function Import() {
           }
         }
 
+        // Parse and save education data
         if (row.education_level && employeeId) {
-          await supabase.from('education_history').insert({
-            employee_id: employeeId,
-            level: row.education_level,
-          });
+          const parsedEducation = parseEducation(row.education_level);
+          if (parsedEducation) {
+            // Delete existing education history for this employee to avoid duplicates
+            await supabase
+              .from('education_history')
+              .delete()
+              .eq('employee_id', employeeId);
+            
+            // Insert new education record
+            await supabase.from('education_history').insert({
+              employee_id: employeeId,
+              level: parsedEducation.level,
+              major: parsedEducation.major !== 'Tidak Ada' ? parsedEducation.major : null,
+            });
+          }
         }
       } catch (err: any) {
         result.employees.errors.push({ row: i + 2, error: err.message });

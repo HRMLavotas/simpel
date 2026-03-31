@@ -123,6 +123,9 @@ export default function DataBuilder() {
 
     setIsExporting(true);
     try {
+      const wb = XLSX.utils.book_new();
+
+      // Sheet 1: Data Pegawai
       const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
       const exportData = allData.map((row, idx) => {
         const obj: Record<string, unknown> = { No: idx + 1 };
@@ -131,15 +134,57 @@ export default function DataBuilder() {
         });
         return obj;
       });
+      const wsData = XLSX.utils.json_to_sheet(exportData);
+      XLSX.utils.book_append_sheet(wb, wsData, 'Data Pegawai');
 
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Data Pegawai');
+      // Sheet 2: Statistik - Summary
+      const summaryData = [
+        { Kategori: 'Total Data', Nilai: allData.length },
+      ];
+      const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+
+      // Sheet 3+: Statistik per kategori
+      const STAT_FIELDS = [
+        { key: 'department', label: 'Unit Kerja' },
+        { key: 'asn_status', label: 'Status ASN' },
+        { key: 'position_type', label: 'Jenis Jabatan' },
+        { key: 'position_sk', label: 'Jabatan Sesuai SK' },
+        { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202 Tahun 2024' },
+        { key: 'rank_group', label: 'Pangkat/Golongan' },
+      ];
+
+      const dataKeys = allData.length > 0 ? Object.keys(allData[0]) : [];
+      const availableStats = STAT_FIELDS.filter(f => dataKeys.includes(f.key));
+
+      availableStats.forEach(stat => {
+        // Group data by field
+        const counts: Record<string, number> = {};
+        allData.forEach(row => {
+          const val = String(row[stat.key] ?? 'Tidak Ada');
+          counts[val] = (counts[val] || 0) + 1;
+        });
+
+        const statData = Object.entries(counts)
+          .map(([name, value]) => ({
+            [stat.label]: name,
+            Jumlah: value,
+            Persentase: `${((value / allData.length) * 100).toFixed(1)}%`,
+          }))
+          .sort((a, b) => b.Jumlah - a.Jumlah);
+
+        if (statData.length > 0) {
+          const wsStats = XLSX.utils.json_to_sheet(statData);
+          // Truncate sheet name to 31 chars (Excel limit)
+          const sheetName = stat.label.substring(0, 31);
+          XLSX.utils.book_append_sheet(wb, wsStats, sheetName);
+        }
+      });
 
       const timestamp = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(wb, `data-pegawai-${timestamp}.xlsx`);
 
-      toast({ title: `${allData.length} data berhasil diexport` });
+      toast({ title: `${allData.length} data berhasil diexport dengan ${availableStats.length} sheet statistik` });
     } catch (error: any) {
       toast({ title: 'Gagal export', description: error.message, variant: 'destructive' });
     } finally {

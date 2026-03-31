@@ -29,6 +29,48 @@ interface JoinYearData {
   count: number;
 }
 
+interface GenderData {
+  gender: string;
+  count: number;
+}
+
+interface ReligionData {
+  religion: string;
+  count: number;
+}
+
+interface PositionKepmenData {
+  position: string;
+  count: number;
+}
+
+interface TmtYearData {
+  year: string;
+  count: number;
+}
+
+interface WorkDurationData {
+  category: string;
+  count: number;
+  order: number;
+}
+
+interface GradeData {
+  grade: string;
+  count: number;
+}
+
+interface AgeData {
+  category: string;
+  count: number;
+  order: number;
+}
+
+interface RetirementYearData {
+  year: string;
+  count: number;
+}
+
 interface AsnPieChartProps {
   data: AsnData[];
 }
@@ -47,6 +89,40 @@ interface PositionTypePieChartProps {
 
 interface JoinYearBarChartProps {
   data: JoinYearData[];
+}
+
+interface GenderPieChartProps {
+  data: GenderData[];
+}
+
+interface ReligionPieChartProps {
+  data: ReligionData[];
+}
+
+interface PositionKepmenBarChartProps {
+  data: PositionKepmenData[];
+}
+
+interface TmtYearBarChartProps {
+  data: TmtYearData[];
+  title: string;
+  description: string;
+}
+
+interface WorkDurationBarChartProps {
+  data: WorkDurationData[];
+}
+
+interface GradeBarChartProps {
+  data: GradeData[];
+}
+
+interface AgeBarChartProps {
+  data: AgeData[];
+}
+
+interface RetirementYearBarChartProps {
+  data: RetirementYearData[];
 }
 
 const COLORS = {
@@ -384,3 +460,391 @@ export function JoinYearBarChart({ data }: JoinYearBarChartProps) {
 }
 
 export { COLORS };
+
+export function GenderPieChart({ data }: GenderPieChartProps) {
+  const isMobile = useIsMobile();
+  
+  const GENDER_COLORS = [
+    'hsl(217, 91%, 60%)',  // Male - blue
+    'hsl(330, 65%, 55%)',  // Female - pink
+  ];
+  
+  return (
+    <Card className="animate-fade-in">
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">Distribusi Jenis Kelamin</CardTitle>
+        <CardDescription>Persentase pegawai berdasarkan jenis kelamin</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={90}
+              paddingAngle={2}
+              dataKey="count"
+              nameKey="gender"
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+                  strokeWidth={0}
+                />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value: number, name: string) => [
+                `${value} pegawai`, 
+                name
+              ]}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Legend 
+              verticalAlign="bottom"
+              height={36}
+              wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+              formatter={(value, entry: any) => {
+                const item = data.find(d => d.gender === value);
+                return `${value} (${item?.count || 0})`;
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function ReligionPieChart({ data }: ReligionPieChartProps) {
+  const isMobile = useIsMobile();
+  
+  const RELIGION_COLORS = [
+    'hsl(217, 91%, 60%)',
+    'hsl(142, 76%, 36%)',
+    'hsl(38, 92%, 50%)',
+    'hsl(280, 65%, 60%)',
+    'hsl(0, 84%, 60%)',
+    'hsl(199, 89%, 48%)',
+  ];
+  
+  return (
+    <Card className="animate-fade-in">
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">Distribusi Agama</CardTitle>
+        <CardDescription>Persentase pegawai berdasarkan agama</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={90}
+              paddingAngle={2}
+              dataKey="count"
+              nameKey="religion"
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={RELIGION_COLORS[index % RELIGION_COLORS.length]}
+                  strokeWidth={0}
+                />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value: number, name: string) => [
+                `${value} pegawai`, 
+                name
+              ]}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Legend 
+              verticalAlign="bottom"
+              height={36}
+              wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+              formatter={(value, entry: any) => {
+                const item = data.find(d => d.religion === value);
+                return `${value} (${item?.count || 0})`;
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function PositionKepmenBarChart({ data }: PositionKepmenBarChartProps) {
+  const isMobile = useIsMobile();
+  
+  // Sort by count descending
+  const sortedData = [...data].sort((a, b) => b.count - a.count);
+  const totalCount = sortedData.reduce((sum, item) => sum + item.count, 0);
+  
+  // If too many positions (>20), use table view
+  const useTableView = sortedData.length > 20;
+  
+  // For chart view, take top 15
+  const chartData = sortedData.slice(0, 15).map(item => ({
+    ...item,
+    shortPosition: item.position.length > (isMobile ? 20 : 30) 
+      ? item.position.substring(0, isMobile ? 20 : 30) + '...' 
+      : item.position,
+  }));
+
+  const chartHeight = Math.max(350, chartData.length * 35);
+
+  return (
+    <Card className="animate-fade-in lg:col-span-2">
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">Distribusi Jabatan Kepmen 202/2024</CardTitle>
+        <CardDescription>
+          {useTableView 
+            ? `Daftar lengkap ${sortedData.length} jabatan` 
+            : 'Top 15 jabatan dengan jumlah pegawai terbanyak'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        {useTableView ? (
+          // Table view for many positions
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              Total: <span className="font-semibold text-foreground">{totalCount}</span> pegawai dalam <span className="font-semibold text-foreground">{sortedData.length}</span> jabatan
+            </div>
+            <div className="max-h-[500px] overflow-auto rounded-lg border shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-12">
+                      No
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Nama Jabatan
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">
+                      Jumlah
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">
+                      %
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedData.map((item, i) => (
+                    <tr 
+                      key={i} 
+                      className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {i + 1}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {item.position}
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-medium">
+                        {item.count}
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">
+                        {((item.count / totalCount) * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          // Bar chart for fewer positions
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <BarChart 
+              data={chartData} 
+              layout="vertical" 
+              margin={{ 
+                left: 20, 
+                right: 30,
+                top: 10,
+                bottom: 10
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
+              <XAxis 
+                type="number"
+                fontSize={12}
+                stroke="hsl(215, 16%, 47%)"
+              />
+              <YAxis 
+                type="category" 
+                dataKey="shortPosition" 
+                width={isMobile ? 140 : 220}
+                tick={{ fontSize: isMobile ? 10 : 11 }} 
+                axisLine={{ stroke: 'hsl(var(--border))' }}
+              />
+              <Tooltip 
+                formatter={(value: number) => [`${value} pegawai`, 'Jumlah']}
+                labelFormatter={(label, payload) => {
+                  if (payload && payload[0]) {
+                    return payload[0].payload.position;
+                  }
+                  return label;
+                }}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+              <Bar 
+                dataKey="count" 
+                fill="hsl(280, 65%, 60%)" 
+                radius={[0, 6, 6, 0]}
+                maxBarSize={28}
+                name="Jumlah Pegawai"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function TmtYearBarChart({ data, title, description }: TmtYearBarChartProps) {
+  const isMobile = useIsMobile();
+  
+  return (
+    <Card className="animate-fade-in">
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart 
+            data={data}
+            margin={{ 
+              left: isMobile ? 0 : 10, 
+              right: isMobile ? 0 : 10,
+              top: 10,
+              bottom: 10
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis 
+              dataKey="year" 
+              tick={{ fontSize: isMobile ? 10 : 12 }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
+            />
+            <YAxis 
+              tick={{ fontSize: isMobile ? 10 : 12 }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
+              width={isMobile ? 30 : 40}
+            />
+            <Tooltip 
+              formatter={(value: number) => [`${value} pegawai`, 'Jumlah']}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Bar 
+              dataKey="count" 
+              fill="hsl(199, 89%, 48%)" 
+              radius={[4, 4, 0, 0]}
+              name="Jumlah Pegawai"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function WorkDurationBarChart({ data }: WorkDurationBarChartProps) {
+  const isMobile = useIsMobile();
+  
+  // Sort by order to maintain logical sequence
+  const sortedData = [...data].sort((a, b) => a.order - b.order);
+  
+  const DURATION_COLORS = [
+    'hsl(142, 76%, 36%)',  // < 5 years - green
+    'hsl(199, 89%, 48%)',  // 5-10 years - blue
+    'hsl(38, 92%, 50%)',   // 10-20 years - yellow
+    'hsl(280, 65%, 60%)',  // 20-30 years - purple
+    'hsl(0, 84%, 60%)',    // > 30 years - red
+  ];
+  
+  return (
+    <Card className="animate-fade-in">
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">Distribusi Masa Kerja</CardTitle>
+        <CardDescription>Distribusi pegawai berdasarkan masa kerja (dihitung dari TMT CPNS/PNS)</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart 
+            data={sortedData}
+            margin={{ 
+              left: isMobile ? 0 : 10, 
+              right: isMobile ? 0 : 10,
+              top: 10,
+              bottom: 10
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis 
+              dataKey="category" 
+              tick={{ fontSize: isMobile ? 9 : 11 }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
+              angle={isMobile ? -45 : 0}
+              textAnchor={isMobile ? 'end' : 'middle'}
+              height={isMobile ? 60 : 30}
+            />
+            <YAxis 
+              tick={{ fontSize: isMobile ? 10 : 12 }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
+              width={isMobile ? 30 : 40}
+            />
+            <Tooltip 
+              formatter={(value: number) => [`${value} pegawai`, 'Jumlah']}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Bar 
+              dataKey="count" 
+              radius={[4, 4, 0, 0]}
+              name="Jumlah Pegawai"
+            >
+              {sortedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={DURATION_COLORS[index % DURATION_COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
