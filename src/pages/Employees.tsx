@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import React from 'react';
-import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, MoreVertical, Eye } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Table,
   TableBody,
   TableCell,
@@ -24,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeFormModal, type EmployeeFormData } from '@/components/employees/EmployeeFormModal';
 import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog';
 import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
+import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { type NoteEntry } from '@/components/employees/NotesForm';
@@ -152,6 +161,7 @@ export default function Employees() {
   
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [selectedEducation, setSelectedEducation] = useState<EducationEntry[]>([]);
   const [selectedMutationHistory, setSelectedMutationHistory] = useState<HistoryEntry[]>([]);
@@ -301,11 +311,11 @@ export default function Employees() {
     
     const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
-      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
-      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
-      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
-      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true }),
-      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true }),
+      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
       supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
       supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
       supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
@@ -335,6 +345,42 @@ export default function Employees() {
   const handleDeleteEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
     setDeleteDialogOpen(true);
+  };
+
+  const handleViewDetails = async (employee: Employee) => {
+    setSelectedEmployee(employee);
+    
+    // Fetch all related data
+    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+      supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+      supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+      supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+      supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+    ]);
+
+    setSelectedEducation(
+      (eduRes.data || []).map((d: any) => ({
+        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+        front_title: d.front_title || '', back_title: d.back_title || '',
+      }))
+    );
+    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']));
+    setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']));
+    setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+    setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+    setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+    
+    setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    
+    setDetailsModalOpen(true);
   };
 
   const saveHistoryEntries = async (
@@ -422,7 +468,6 @@ export default function Employees() {
         birth_date: data.birth_date || null,
         gender: data.gender || null,
         religion: data.religion || null,
-        old_position: data.old_position || null,
         position_type: data.position_type || null,
         position_name: data.position_name || null,
         asn_status: data.asn_status,
@@ -432,10 +477,6 @@ export default function Employees() {
         tmt_cpns: data.tmt_cpns || null,
         tmt_pns: data.tmt_pns || null,
         tmt_pensiun: data.tmt_pensiun || null,
-        keterangan_formasi: data.keterangan_formasi || null,
-        keterangan_penempatan: data.keterangan_penempatan || null,
-        keterangan_penugasan: data.keterangan_penugasan || null,
-        keterangan_perubahan: data.keterangan_perubahan || null,
       };
 
       let employeeId: string;
@@ -666,7 +707,7 @@ export default function Employees() {
                 <TableHead className="hidden lg:table-cell">Golongan</TableHead>
                 {isAdminPusat && <TableHead className="hidden xl:table-cell">Unit Kerja</TableHead>}
                 <TableHead className="hidden lg:table-cell">Tanggal Masuk</TableHead>
-                <TableHead className="w-[100px] text-right">Aksi</TableHead>
+                <TableHead className="w-[60px] text-center">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -680,7 +721,7 @@ export default function Employees() {
                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
                     {isAdminPusat && <TableCell className="hidden xl:table-cell"><Skeleton className="h-4 w-32" /></TableCell>}
                     <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-8 w-8 mx-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : paginatedEmployees.length === 0 ? (
@@ -731,14 +772,33 @@ export default function Employees() {
                             {employee.join_date ? format(new Date(employee.join_date), 'd MMM yyyy', { locale: id }) : '-'}
                           </TableCell>
                           <TableCell>
-                            <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditEmployee(employee)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteEmployee(employee)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleViewDetails(employee)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Lihat Detail
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteEmployee(employee)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -768,6 +828,21 @@ export default function Employees() {
           )}
         </div>
       </div>
+
+      <EmployeeDetailsModal
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+        employee={selectedEmployee}
+        education={selectedEducation}
+        mutationHistory={selectedMutationHistory}
+        positionHistory={selectedPositionHistory}
+        rankHistory={selectedRankHistory}
+        competencyHistory={selectedCompetencyHistory}
+        trainingHistory={selectedTrainingHistory}
+        placementNotes={selectedPlacementNotes}
+        assignmentNotes={selectedAssignmentNotes}
+        changeNotes={selectedChangeNotes}
+      />
 
       <EmployeeFormModal
         open={formModalOpen}

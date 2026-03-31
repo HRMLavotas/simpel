@@ -22,28 +22,57 @@ interface EmployeeHistoryFormProps {
   onChange: (entries: HistoryEntry[]) => void;
 }
 
+// Helper function to sort entries by date field (ascending - oldest first)
+const sortEntriesByDate = (entries: HistoryEntry[], fields: HistoryField[]): HistoryEntry[] => {
+  // Find the date field (tanggal, tanggal_mulai, etc.)
+  const dateField = fields.find(f => f.type === 'date')?.key;
+  if (!dateField) return entries;
+
+  return [...entries].sort((a, b) => {
+    const dateA = a[dateField] || '';
+    const dateB = b[dateField] || '';
+    
+    // Empty dates go to the end
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    
+    // Compare dates (ascending - oldest first)
+    return dateA.localeCompare(dateB);
+  });
+};
+
 export function EmployeeHistoryForm({ title, fields, entries, onChange }: EmployeeHistoryFormProps) {
   const addEntry = () => {
     const empty: HistoryEntry = {};
     fields.forEach(f => { empty[f.key] = ''; });
-    onChange([...entries, empty]);
+    const updated = [...entries, empty];
+    onChange(sortEntriesByDate(updated, fields));
   };
 
   const removeEntry = (index: number) => {
-    onChange(entries.filter((_, i) => i !== index));
+    const updated = entries.filter((_, i) => i !== index);
+    onChange(sortEntriesByDate(updated, fields));
   };
 
   const updateEntry = (index: number, field: string, value: string) => {
     const updated = entries.map((entry, i) =>
       i === index ? { ...entry, [field]: value } : entry
     );
-    onChange(updated);
+    // Auto-sort after update if the changed field is a date field
+    const isDateField = fields.find(f => f.key === field)?.type === 'date';
+    onChange(isDateField ? sortEntriesByDate(updated, fields) : updated);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-semibold">{title}</Label>
+        <div>
+          <Label className="text-base font-semibold">{title}</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Diurutkan dari yang terlama ke terbaru
+          </p>
+        </div>
         <Button type="button" variant="outline" size="sm" onClick={addEntry}>
           <Plus className="mr-1 h-3 w-3" />
           Tambah

@@ -134,14 +134,16 @@ const parseName = (fullName: string | null): {
   
   const trimmed = fullName.trim();
   
-  // Daftar gelar depan yang umum
+  // Daftar gelar depan yang umum - HARUS diikuti titik atau spasi
   const frontTitles = [
-    'Dr\\.?', 'dr\\.?', 'Prof\\.?', 'Ir\\.?', 'Drs\\.?', 'Dra\\.?', 
-    'H\\.?', 'Hj\\.?', 'KH\\.?', 'Tn\\.?', 'Ny\\.?', 'Sdr\\.?', 'Sdri\\.?'
+    'Dr\\.', 'dr\\.', 'Prof\\.', 'Ir\\.', 'Drs\\.', 'Dra\\.', 
+    'H\\.', 'Hj\\.', 'KH\\.', 'Tn\\.', 'Ny\\.', 'Sdr\\.', 'Sdri\\.'
   ];
   
   // Regex untuk mendeteksi gelar depan (di awal string)
-  const frontTitleRegex = new RegExp(`^((?:${frontTitles.join('|')})\\s*)+`, 'i');
+  // PENTING: Gelar harus diikuti spasi atau titik, tidak boleh langsung huruf
+  // Contoh: "Dr. Budi" ✓ | "H. Ahmad" ✓ | "Heru Setiawan" ✗ (H bukan gelar)
+  const frontTitleRegex = new RegExp(`^((?:${frontTitles.join('|')})\\s+)+`, 'i');
   const frontMatch = trimmed.match(frontTitleRegex);
   
   let front_title = '';
@@ -827,6 +829,13 @@ export default function Import() {
           // Only create for new employees, not updates
           const importDate = row.tmt_cpns || row.birth_date || new Date().toISOString().split('T')[0];
 
+          console.log(`Creating history for employee: ${row.name}`);
+          console.log('Keterangan data:', {
+            penempatan: row.keterangan_penempatan,
+            penugasan: row.keterangan_penugasan,
+            perubahan: row.keterangan_perubahan,
+          });
+
           // Create mutation history (unit kerja saat ini)
           if (row.department) {
             await supabase.from('mutation_history').insert({
@@ -860,24 +869,33 @@ export default function Import() {
 
           // Create notes from keterangan fields
           if (row.keterangan_penempatan) {
-            await supabase.from('placement_notes').insert({
+            console.log('Inserting placement note:', row.keterangan_penempatan);
+            const { error } = await supabase.from('placement_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_penempatan,
             });
+            if (error) console.error('Error inserting placement note:', error);
+            else console.log('✅ Placement note inserted');
           }
 
           if (row.keterangan_penugasan) {
-            await supabase.from('assignment_notes').insert({
+            console.log('Inserting assignment note:', row.keterangan_penugasan);
+            const { error } = await supabase.from('assignment_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_penugasan,
             });
+            if (error) console.error('Error inserting assignment note:', error);
+            else console.log('✅ Assignment note inserted');
           }
 
           if (row.keterangan_perubahan) {
-            await supabase.from('change_notes').insert({
+            console.log('Inserting change note:', row.keterangan_perubahan);
+            const { error } = await supabase.from('change_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_perubahan,
             });
+            if (error) console.error('Error inserting change note:', error);
+            else console.log('✅ Change note inserted');
           }
         }
       } catch (err: any) {

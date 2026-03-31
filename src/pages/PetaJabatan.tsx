@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -72,6 +72,9 @@ export default function PetaJabatan() {
     'Fungsional': false,
     'Pelaksana': false,
   });
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
@@ -160,25 +163,42 @@ export default function PetaJabatan() {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
   };
 
-  // Group positions by category
+  const getMatchingEmployees = (positionName: string) => {
+    const norm = positionName.trim().toLowerCase();
+    return employees.filter(e => e.position_name?.trim().toLowerCase() === norm);
+  };
+
+  // Group positions by category with search filter
   const groupedPositions = useMemo(() => {
     const groups: Record<string, PositionReference[]> = {
       Struktural: [],
       Fungsional: [],
       Pelaksana: [],
     };
-    positions.forEach(p => {
+    
+    // Filter positions by search query
+    const filteredPositions = positions.filter(p => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      
+      // Search in position name
+      if (p.position_name.toLowerCase().includes(query)) return true;
+      
+      // Search in employee names
+      const matchedEmployees = getMatchingEmployees(p.position_name);
+      return matchedEmployees.some(emp => {
+        const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+        return fullName.includes(query) || emp.nip?.includes(query);
+      });
+    });
+    
+    filteredPositions.forEach(p => {
       if (groups[p.position_category]) {
         groups[p.position_category].push(p);
       }
     });
     return groups;
-  }, [positions]);
-
-  const getMatchingEmployees = (positionName: string) => {
-    const norm = positionName.trim().toLowerCase();
-    return employees.filter(e => e.position_name?.trim().toLowerCase() === norm);
-  };
+  }, [positions, searchQuery, employees]);
 
   const openAddModal = () => {
     setEditingPosition(null);
@@ -403,12 +423,35 @@ export default function PetaJabatan() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              {selectedDepartment}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({positions.length} jabatan)
-              </span>
-            </CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-lg">
+                {selectedDepartment}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({positions.length} jabatan)
+                </span>
+              </CardTitle>
+              
+              {/* Search Input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Cari jabatan atau nama pegawai..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-8"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full w-8"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -529,6 +572,15 @@ export default function PetaJabatan() {
                       <TableRow>
                         <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">
                           Belum ada data jabatan. Klik "Tambah Jabatan" untuk menambahkan.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {positions.length > 0 && tableRows.filter(r => r.type === 'position' && !collapsedCategories[r.position!.position_category]).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">
+                          {searchQuery 
+                            ? `Tidak ada hasil untuk "${searchQuery}"`
+                            : 'Semua kategori sedang ditutup. Klik kategori untuk membuka.'}
                         </TableCell>
                       </TableRow>
                     )}
