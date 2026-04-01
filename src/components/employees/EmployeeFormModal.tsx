@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Lock, Edit3 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,8 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
@@ -123,7 +126,9 @@ export function EmployeeFormModal({
   initialChangeNotes,
 }: EmployeeFormModalProps) {
   const { profile, isAdminPusat } = useAuth();
+  const { toast } = useToast();
   const isEditing = !!employee;
+  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes'>('main');
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [mutationEntries, setMutationEntries] = useState<HistoryEntry[]>([]);
   const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
@@ -134,10 +139,10 @@ export function EmployeeFormModal({
   const [assignmentNotes, setAssignmentNotes] = useState<NoteEntry[]>([]);
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
 
-  // Refs for scrolling to sections
-  const mutationHistoryRef = useRef<HTMLDivElement>(null);
-  const positionHistoryRef = useRef<HTMLDivElement>(null);
-  const rankHistoryRef = useRef<HTMLDivElement>(null);
+  // Track if critical fields have changed
+  const [hasRankChanged, setHasRankChanged] = useState(false);
+  const [hasPositionChanged, setHasPositionChanged] = useState(false);
+  const [hasDepartmentChanged, setHasDepartmentChanged] = useState(false);
 
   const form = useForm<z.infer<typeof employeeSchema>>({
     resolver: zodResolver(employeeSchema),
@@ -156,10 +161,28 @@ export function EmployeeFormModal({
     position_name: string;
     department: string;
   }>({ rank_group: '', position_name: '', department: '' });
+  
+  // Track if form has been modified by user to prevent unwanted resets
+  const formModifiedRef = useRef(false);
+  const initialLoadCompleteRef = useRef(false);
+  
+  // Reset modification flag when modal closes
+  useEffect(() => {
+    if (!open) {
+      formModifiedRef.current = false;
+      initialLoadCompleteRef.current = false;
+      setHasRankChanged(false);
+      setHasPositionChanged(false);
+      setHasDepartmentChanged(false);
+    }
+  }, [open]);
 
   // Auto-detect changes and populate history
   useEffect(() => {
     if (!isEditing || !employee) return;
+
+    // Mark form as modified when user changes history entries
+    formModifiedRef.current = true;
 
     const subscription = form.watch((value, { name: fieldName }) => {
       const today = new Date().toISOString().split('T')[0];
@@ -187,8 +210,11 @@ export function EmployeeFormModal({
             };
             setRankHistoryEntries(prev => [...prev, newEntry]);
             
-            // Show toast or notification
-            console.log('✅ Riwayat Kenaikan Pangkat otomatis ditambahkan:', newEntry);
+            // Show toast notification
+            toast({
+              title: '✅ Riwayat Kenaikan Pangkat otomatis ditambahkan',
+              duration: 3000,
+            });
           }
         }
       }
@@ -213,7 +239,11 @@ export function EmployeeFormModal({
             };
             setPositionHistoryEntries(prev => [...prev, newEntry]);
             
-            console.log('✅ Riwayat Jabatan otomatis ditambahkan:', newEntry);
+            // Show toast notification
+            toast({
+              title: '✅ Riwayat Jabatan otomatis ditambahkan',
+              duration: 3000,
+            });
           }
         }
       }
@@ -238,7 +268,11 @@ export function EmployeeFormModal({
             };
             setMutationEntries(prev => [...prev, newEntry]);
             
-            console.log('✅ Riwayat Mutasi otomatis ditambahkan:', newEntry);
+            // Show toast notification
+            toast({
+              title: '✅ Riwayat Mutasi otomatis ditambahkan',
+              duration: 3000,
+            });
           }
         }
       }
@@ -246,6 +280,34 @@ export function EmployeeFormModal({
 
     return () => subscription.unsubscribe();
   }, [isEditing, employee, form, originalValues, rankHistoryEntries, positionHistoryEntries, mutationEntries]);
+
+  // Detect changes to critical fields for warning display
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      // Check if rank_group has changed
+      if (value.rank_group !== originalValues.rank_group && originalValues.rank_group) {
+        setHasRankChanged(true);
+      } else {
+        setHasRankChanged(false);
+      }
+
+      // Check if position_name has changed
+      if (value.position_name !== originalValues.position_name && originalValues.position_name) {
+        setHasPositionChanged(true);
+      } else {
+        setHasPositionChanged(false);
+      }
+
+      // Check if department has changed
+      if (value.department !== originalValues.department && originalValues.department) {
+        setHasDepartmentChanged(true);
+      } else {
+        setHasDepartmentChanged(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, originalValues]);
 
   // Auto-fill from NIP when NIP changes
   useEffect(() => {
@@ -297,6 +359,12 @@ export function EmployeeFormModal({
   }, [form]);
 
   useEffect(() => {
+    // Skip reset if user has modified the form (to prevent losing unsaved changes)
+    if (formModifiedRef.current && initialLoadCompleteRef.current) {
+      console.log('⚠️ Skipping form reset - user has unsaved changes');
+      return;
+    }
+    
     if (employee) {
       console.log('=== EMPLOYEE DATA FOR EDIT ===');
       console.log('Gender:', employee.gender);
@@ -360,6 +428,10 @@ export function EmployeeFormModal({
       setPlacementNotes(initialPlacementNotes || []);
       setAssignmentNotes(initialAssignmentNotes || []);
       setChangeNotes(initialChangeNotes || []);
+      
+      // Mark initial load as complete
+      initialLoadCompleteRef.current = true;
+      formModifiedRef.current = false;
     } else {
       // Reset original values for new employee
       setOriginalValues({ rank_group: '', position_name: '', department: '' });
@@ -380,6 +452,10 @@ export function EmployeeFormModal({
       setPlacementNotes([]);
       setAssignmentNotes([]);
       setChangeNotes([]);
+      
+      // Mark initial load as complete
+      initialLoadCompleteRef.current = true;
+      formModifiedRef.current = false;
     }
   }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory, initialPlacementNotes, initialAssignmentNotes, initialChangeNotes]);
 
@@ -444,17 +520,6 @@ export function EmployeeFormModal({
     return ['Tidak Ada'];
   };
 
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Highlight the section briefly
-      ref.current.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-      setTimeout(() => {
-        ref.current?.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-      }, 2000);
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -466,9 +531,17 @@ export function EmployeeFormModal({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-4">
-          {/* Identity Section */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Pribadi</h3>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'history' | 'notes')}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="main">Data Utama</TabsTrigger>
+              <TabsTrigger value="history">Riwayat</TabsTrigger>
+              <TabsTrigger value="notes">Keterangan</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="main" className="space-y-6">
+              {/* Identity Section */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Pribadi</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="nip">NIP (Opsional)</Label>
@@ -518,101 +591,49 @@ export function EmployeeFormModal({
             <div className="grid gap-4 sm:grid-cols-2">
               {renderSelectField('Status ASN', 'asn_status', ASN_STATUS_OPTIONS, 'Pilih status ASN', true)}
               
-              {/* Locked Field: Golongan/Pangkat */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  Golongan/Pangkat
-                  {isEditing && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => scrollToSection(rankHistoryRef)}
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                  )}
-                </Label>
-                <div className="relative">
-                  <Input
-                    value={form.watch('rank_group') || '-'}
-                    disabled
-                    className="bg-muted/50 cursor-not-allowed"
-                  />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  💡 Untuk mengubah pangkat, tambahkan entry di Riwayat Kenaikan Pangkat
-                </p>
-              </div>
+              {/* Unlocked Field: Golongan/Pangkat */}
+              {renderSelectField('Golongan/Pangkat', 'rank_group', getRankOptions(), 'Pilih golongan/pangkat')}
+              {hasRankChanged && (
+                <p className="text-xs text-muted-foreground">⚠️ Perubahan pangkat akan otomatis menambahkan riwayat kenaikan pangkat</p>
+              )}
 
               {/* Normal Field: Jenis Jabatan */}
               {renderSelectField('Jenis Jabatan', 'position_type', POSITION_TYPES, 'Pilih jenis jabatan')}
 
-              {/* Locked Field: Nama Jabatan */}
+              {/* Unlocked Field: Nama Jabatan */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  Nama Jabatan
-                  {isEditing && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => scrollToSection(positionHistoryRef)}
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                  )}
-                </Label>
-                <div className="relative">
-                  <Input
-                    value={form.watch('position_name') || '-'}
-                    disabled
-                    className="bg-muted/50 cursor-not-allowed"
-                  />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  💡 Untuk mengubah nama jabatan, tambahkan entry di Riwayat Jabatan
-                </p>
+                <Label htmlFor="position_name">Nama Jabatan</Label>
+                <Input id="position_name" placeholder="Contoh: Kepala Subbag Kepegawaian" {...form.register('position_name')} />
+                {hasPositionChanged && (
+                  <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan akan otomatis menambahkan riwayat jabatan</p>
+                )}
               </div>
 
-              {/* Locked Field: Unit Kerja */}
+              {/* Unlocked Field: Unit Kerja */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  Unit Kerja *
-                  {isEditing && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => scrollToSection(mutationHistoryRef)}
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                  )}
-                </Label>
-                <div className="relative">
-                  <Input
-                    value={form.watch('department') || '-'}
-                    disabled
-                    className="bg-muted/50 cursor-not-allowed"
-                  />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
+                <Label htmlFor="department">Unit Kerja *</Label>
+                <Select
+                  value={form.watch('department') || ''}
+                  onValueChange={(v) => form.setValue('department', v, { shouldValidate: true, shouldDirty: true })}
+                  disabled={!isAdminPusat}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih unit kerja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(isAdminPusat ? DEPARTMENTS : [profile?.department || '']).map((dept) => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.department && (
+                  <p className="text-xs text-destructive">{form.formState.errors.department.message}</p>
+                )}
                 {!isAdminPusat && (
                   <p className="text-xs text-muted-foreground">Unit kerja otomatis sesuai dengan unit Anda</p>
                 )}
-                {isEditing && (
-                  <p className="text-xs text-muted-foreground">
-                    💡 Untuk mutasi unit kerja, tambahkan entry di Riwayat Mutasi
-                  </p>
+                {hasDepartmentChanged && (
+                  <p className="text-xs text-muted-foreground">⚠️ Perubahan unit kerja akan otomatis menambahkan riwayat mutasi</p>
                 )}
               </div>
             </div>
@@ -643,15 +664,16 @@ export function EmployeeFormModal({
             </div>
           </div>
 
-          <Separator />
+            </TabsContent>
 
-          {/* Education Section */}
-          <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
+            <TabsContent value="history" className="space-y-6">
+              {/* Education Section */}
+              <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
 
           <Separator />
 
           {/* Mutation History */}
-          <div ref={mutationHistoryRef} className="scroll-mt-4 transition-all duration-300">
+          <div className="scroll-mt-4 transition-all duration-300">
             <EmployeeHistoryForm
               title="Riwayat Mutasi"
               fields={MUTATION_FIELDS}
@@ -666,7 +688,7 @@ export function EmployeeFormModal({
           <Separator />
 
           {/* Position History */}
-          <div ref={positionHistoryRef} className="scroll-mt-4 transition-all duration-300">
+          <div className="scroll-mt-4 transition-all duration-300">
             <EmployeeHistoryForm
               title="Riwayat Jabatan"
               fields={POSITION_HISTORY_FIELDS}
@@ -681,7 +703,7 @@ export function EmployeeFormModal({
           <Separator />
 
           {/* Rank History */}
-          <div ref={rankHistoryRef} className="scroll-mt-4 transition-all duration-300">
+          <div className="scroll-mt-4 transition-all duration-300">
             <EmployeeHistoryForm
               title="Riwayat Kenaikan Pangkat"
               fields={RANK_HISTORY_FIELDS}
@@ -713,10 +735,11 @@ export function EmployeeFormModal({
             onChange={setTrainingEntries}
           />
 
-          <Separator />
+            </TabsContent>
 
-          {/* Keterangan Penempatan */}
-          <NotesForm
+            <TabsContent value="notes" className="space-y-6">
+              {/* Keterangan Penempatan */}
+              <NotesForm
             title="Keterangan Penempatan"
             entries={placementNotes}
             onChange={setPlacementNotes}
@@ -742,6 +765,9 @@ export function EmployeeFormModal({
             onChange={setChangeNotes}
             placeholder="Contoh: PPPK TMT 1 Mei 2025, Mutasi dari Unit A ke Unit B"
           />
+
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

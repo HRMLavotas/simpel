@@ -187,7 +187,13 @@ export default function Employees() {
     fetchEmployees();
   }, [profile, canViewAll]);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (skipIfModalOpen = false) => {
+    // Skip refresh if modal is open and user is editing
+    if (skipIfModalOpen && (formModalOpen || nonAsnModalOpen || changeLogOpen)) {
+      console.log('Skipping fetchEmployees - modal is open');
+      return;
+    }
+    
     if (!profile) return;
     setIsLoading(true);
     console.log('=== FETCHING EMPLOYEES ===');
