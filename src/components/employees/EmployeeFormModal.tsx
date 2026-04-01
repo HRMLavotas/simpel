@@ -279,7 +279,7 @@ export function EmployeeFormModal({
     });
 
     return () => subscription.unsubscribe();
-  }, [isEditing, employee, form, originalValues, rankHistoryEntries, positionHistoryEntries, mutationEntries]);
+  }, [isEditing, employee, form, originalValues, toast]);
 
   // Detect changes to critical fields for warning display
   useEffect(() => {
