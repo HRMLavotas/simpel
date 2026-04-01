@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, Download, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -222,12 +222,37 @@ export default function Import() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
   
   // Department selection
   const userDept = profile?.department || '';
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
     isAdminPusat ? '' : userDept
   );
+
+  // Fetch available departments from database
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('departments')
+          .select('name')
+          .order('name');
+        
+        if (error) throw error;
+        
+        const deptNames = (data || []).map(d => d.name);
+        setAvailableDepartments(deptNames);
+        console.log('Available departments from database (Import ASN):', deptNames);
+      } catch (error: any) {
+        console.error('Error fetching departments:', error);
+        // Fallback to constants if database fetch fails
+        setAvailableDepartments([...DEPARTMENTS]);
+      }
+    };
+    
+    fetchDepartments();
+  }, []);
 
   // ======== UNIFIED PARSING ========
 
@@ -456,7 +481,7 @@ export default function Import() {
             // Validate position
             if (!position.position_name) position.error = 'Nama jabatan wajib diisi';
             else if (!position.department) position.error = 'Unit kerja wajib diisi';
-            else if (!DEPARTMENTS.includes(position.department as Department)) {
+            else if (!availableDepartments.includes(position.department)) {
               position.error = `Unit kerja tidak valid`;
             }
 
@@ -540,7 +565,7 @@ export default function Import() {
         if (!employee.name) employee.error = 'Nama wajib diisi';
         else if (!employee.asn_status) employee.error = 'Kriteria ASN wajib diisi';
         else if (!employee.department) employee.error = 'Unit kerja wajib diisi';
-        else if (!DEPARTMENTS.includes(employee.department as Department)) {
+        else if (!availableDepartments.includes(employee.department)) {
           employee.error = `Unit kerja tidak valid`;
         }
 
@@ -969,12 +994,12 @@ export default function Import() {
 
     // Reference sheet
     const refData = [];
-    const max = Math.max(ASN_STATUS_OPTIONS.length, RANK_GROUPS.length, isAdminPusat ? DEPARTMENTS.length : 1);
+    const max = Math.max(ASN_STATUS_OPTIONS.length, RANK_GROUPS.length, isAdminPusat ? availableDepartments.length : 1);
     for (let i = 0; i < max; i++) {
       refData.push({
         'Status ASN': ASN_STATUS_OPTIONS[i] || '',
         'Pangkat/Golongan': RANK_GROUPS[i] || '',
-        'Unit Kerja': isAdminPusat ? (DEPARTMENTS[i] || '') : (i === 0 ? userDept : ''),
+        'Unit Kerja': isAdminPusat ? (availableDepartments[i] || '') : (i === 0 ? userDept : ''),
         'Jenis Jabatan': ['Struktural', 'Fungsional', 'Pelaksana'][i] || '',
       });
     }
@@ -1101,7 +1126,7 @@ export default function Import() {
                     <SelectValue placeholder="Pilih unit kerja tujuan import..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.filter(d => d !== 'Pusat').map(d => (
+                    {availableDepartments.filter(d => d !== 'Pusat').map(d => (
                       <SelectItem key={d} value={d}>{d}</SelectItem>
                     ))}
                   </SelectContent>

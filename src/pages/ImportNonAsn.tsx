@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, Download, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -12,7 +12,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, type Department } from '@/lib/constants';
+import { DEPARTMENTS, DEPARTMENT_ALIASES, type Department } from '@/lib/constants';
 
 interface ImportResult {
   success: number;
@@ -30,7 +30,7 @@ interface ParsedNonAsn {
   birth_date: string | null;
   gender: string | null;
   religion: string | null;
-  department: Department;
+  department: string; // Changed from Department to string to support dynamic departments from database
   type_non_asn: string;
   job_description: string | null;
   notes: string | null;
@@ -134,10 +134,35 @@ function ImportNonAsn() {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [preview, setPreview] = useState<ParsedNonAsn[]>([]);
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
 
   const userDept = profile?.department;
 
-  const parseExcelFile = (file: File): Promise<ParsedNonAsn[]> => {
+  // Fetch available departments from database
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('departments')
+          .select('name')
+          .order('name');
+        
+        if (error) throw error;
+        
+        const deptNames = (data || []).map(d => d.name);
+        setAvailableDepartments(deptNames);
+        console.log('Available departments from database:', deptNames);
+      } catch (error: any) {
+        console.error('Error fetching departments:', error);
+        // Fallback to constants if database fetch fails
+        setAvailableDepartments([...DEPARTMENTS]);
+      }
+    };
+    
+    fetchDepartments();
+  }, []);
+
+  const parseExcelFile = (file: File, deptList: string[]): Promise<ParsedNonAsn[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -192,37 +217,42 @@ function ImportNonAsn() {
             const parsedEducation = parseEducation(education);
 
             // Determine department
-            let finalDept: Department;
+            let finalDept: string;
             if (isAdminPusat && department) {
-              // Try exact match first
-              let matchedDept = DEPARTMENTS.find(d => 
-                d.toLowerCase() === department.toLowerCase()
-              );
-              
-              // If no exact match, try partial match
-              if (!matchedDept) {
-                matchedDept = DEPARTMENTS.find(d => 
-                  d.toLowerCase().includes(department.toLowerCase()) ||
-                  department.toLowerCase().includes(d.toLowerCase())
+              // Step 1: Check DEPARTMENT_ALIASES first (exact mapping)
+              if (DEPARTMENT_ALIASES[department]) {
+                finalDept = DEPARTMENT_ALIASES[department];
+              } else {
+                // Step 2: Try exact match with database departments
+                let matchedDept = deptList.find(d => 
+                  d.toLowerCase() === department.toLowerCase()
                 );
+                
+                // Step 3: If no exact match, try partial match
+                if (!matchedDept) {
+                  matchedDept = deptList.find(d => 
+                    d.toLowerCase().includes(department.toLowerCase()) ||
+                    department.toLowerCase().includes(d.toLowerCase())
+                  );
+                }
+                
+                // Step 4: If still no match, try matching key words
+                if (!matchedDept) {
+                  const deptWords = department.toLowerCase().split(/\s+/);
+                  matchedDept = deptList.find(d => {
+                    const targetWords = d.toLowerCase().split(/\s+/);
+                    // Check if at least 2 significant words match
+                    const matchCount = deptWords.filter(word => 
+                      word.length > 3 && targetWords.some(tw => tw.includes(word) || word.includes(tw))
+                    ).length;
+                    return matchCount >= 2;
+                  });
+                }
+                
+                finalDept = matchedDept || (userDept as string) || 'Setditjen Binalavotas';
               }
-              
-              // If still no match, try matching key words (Direktorat, Sekretariat, etc)
-              if (!matchedDept) {
-                const deptWords = department.toLowerCase().split(/\s+/);
-                matchedDept = DEPARTMENTS.find(d => {
-                  const targetWords = d.toLowerCase().split(/\s+/);
-                  // Check if at least 2 significant words match
-                  const matchCount = deptWords.filter(word => 
-                    word.length > 3 && targetWords.some(tw => tw.includes(word) || word.includes(tw))
-                  ).length;
-                  return matchCount >= 2;
-                });
-              }
-              
-              finalDept = matchedDept || (userDept as Department) || 'Setditjen Binalavotas';
             } else {
-              finalDept = (userDept as Department) || 'Setditjen Binalavotas';
+              finalDept = (userDept as string) || 'Setditjen Binalavotas';
             }
 
             // Parse birth date if in format "DD/MM/YYYY" or "DD-MM-YYYY"
@@ -240,7 +270,7 @@ function ImportNonAsn() {
             if (!nik) error = 'NIK wajib diisi';
             else if (!name) error = 'Nama wajib diisi';
             else if (!position) error = 'Jabatan wajib diisi';
-            else if (isAdminPusat && department && !DEPARTMENTS.find(d => 
+            else if (isAdminPusat && department && !DEPARTMENT_ALIASES[department] && !deptList.find(d => 
               d.toLowerCase() === department.toLowerCase() ||
               d.toLowerCase().includes(department.toLowerCase()) ||
               department.toLowerCase().includes(d.toLowerCase())
@@ -295,7 +325,7 @@ function ImportNonAsn() {
     setProgress(0);
 
     try {
-      const parsed = await parseExcelFile(f);
+      const parsed = await parseExcelFile(f, availableDepartments);
       setPreview(parsed);
       
       const validCount = parsed.filter(p => !p.error).length;
@@ -333,7 +363,7 @@ function ImportNonAsn() {
     setResult(null);
 
     try {
-      const parsed = await parseExcelFile(file);
+      const parsed = await parseExcelFile(file, availableDepartments);
       const errors: { row: number; error: string }[] = [];
       let successCount = 0;
       let skippedCount = 0;
@@ -341,10 +371,10 @@ function ImportNonAsn() {
       // Get all existing NIKs for Non-ASN employees to avoid duplicates
       const { data: existingEmployees } = await supabase
         .from('employees')
-        .select('nip')
+        .select('nip, name, department')
         .eq('asn_status', 'Non ASN');
       
-      const existingNIKs = new Set((existingEmployees || []).map(e => e.nip));
+      const existingNIKs = new Map((existingEmployees || []).map(e => [e.nip, { name: e.name, department: e.department }]));
 
       for (let i = 0; i < parsed.length; i++) {
         const item = parsed[i];
@@ -371,9 +401,10 @@ function ImportNonAsn() {
         // Skip if NIK already exists
         if (existingNIKs.has(item.nik)) {
           skippedCount++;
+          const existing = existingNIKs.get(item.nik);
           errors.push({
             row: item.row || i + 2,
-            error: `NIK ${item.nik} sudah ada di database (dilewati)`,
+            error: `NIK ${item.nik} sudah ada di database (${existing?.name || 'Unknown'} - ${existing?.department || 'Unknown'}) - dilewati`,
           });
           continue;
         }
@@ -396,7 +427,7 @@ function ImportNonAsn() {
 
           if (error) throw error;
           successCount++;
-          existingNIKs.add(item.nik); // Add to set to prevent duplicates within the same import
+          existingNIKs.set(item.nik, { name: item.name, department: item.department }); // Add to map to prevent duplicates within the same import
         } catch (error: any) {
           errors.push({
             row: item.row || i + 2,
@@ -713,6 +744,66 @@ function ImportNonAsn() {
                     </TableBody>
                   </Table>
                 </div>
+                
+                {/* Error Log Section */}
+                {preview.filter(p => p.error).length > 0 && (
+                  <div className="space-y-3">
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Ditemukan {preview.filter(p => p.error).length} Error</AlertTitle>
+                      <AlertDescription>
+                        <p className="text-xs mb-2">Perbaiki error di bawah ini sebelum melakukan import. Data dengan error tidak akan diimport.</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {/* Error summary by type */}
+                          {(() => {
+                            const errorTypes: Record<string, number> = {};
+                            preview.filter(p => p.error).forEach(p => {
+                              const errorKey = p.error?.includes('NIK') ? 'NIK kosong' :
+                                              p.error?.includes('Nama') ? 'Nama kosong' :
+                                              p.error?.includes('Jabatan') ? 'Jabatan kosong' :
+                                              p.error?.includes('Unit kerja') ? 'Unit kerja tidak valid' :
+                                              'Lainnya';
+                              errorTypes[errorKey] = (errorTypes[errorKey] || 0) + 1;
+                            });
+                            return Object.entries(errorTypes).map(([type, count]) => (
+                              <span key={type} className="inline-block bg-destructive/20 text-destructive px-2 py-1 rounded text-xs font-medium">
+                                {type}: {count}
+                              </span>
+                            ));
+                          })()}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-destructive">
+                        Detail Error
+                      </h3>
+                      <div className="border border-destructive/30 rounded-lg overflow-auto max-h-64 bg-destructive/5">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-background">
+                            <TableRow>
+                              <TableHead className="w-20">Baris</TableHead>
+                              <TableHead className="w-40">NIK</TableHead>
+                              <TableHead className="min-w-[200px]">Nama</TableHead>
+                              <TableHead>Error</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {preview.filter(p => p.error).map((item, idx) => (
+                              <TableRow key={idx}>
+                                <TableCell className="text-xs font-medium">{item.row || '-'}</TableCell>
+                                <TableCell className="font-mono text-xs">{item.nik || '-'}</TableCell>
+                                <TableCell className="text-sm">{item.name || '-'}</TableCell>
+                                <TableCell className="text-xs text-destructive font-medium">{item.error}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

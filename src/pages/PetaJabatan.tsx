@@ -531,7 +531,12 @@ export default function PetaJabatan() {
             </TabsTrigger>
             <TabsTrigger value="non-asn">
               Formasi Non-ASN
-              <span className="ml-2 text-xs">({nonAsnEmployees.length} pegawai)</span>
+              <span className="ml-2 text-xs">
+                ({(() => {
+                  const uniquePositions = new Set(nonAsnEmployees.map(e => e.position_name || 'Tidak Ada Jabatan'));
+                  return uniquePositions.size;
+                })()} jabatan, {nonAsnEmployees.length} pegawai)
+              </span>
             </TabsTrigger>
           </TabsList>
 
@@ -730,12 +735,12 @@ export default function PetaJabatan() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">No</TableHead>
-                      <TableHead className="w-[140px]">NIK/NIP</TableHead>
-                      <TableHead>Nama</TableHead>
                       <TableHead>Jabatan</TableHead>
-                      <TableHead className="w-32">Jenis Kelamin</TableHead>
+                      <TableHead className="w-24 text-center">Formasi</TableHead>
+                      <TableHead className="w-24 text-center">Existing</TableHead>
+                      <TableHead>Nama Pemangku</TableHead>
                       <TableHead className="w-40">Type Non ASN</TableHead>
-                      <TableHead>Deskripsi Tugas</TableHead>
+                      <TableHead className="w-32">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -746,32 +751,69 @@ export default function PetaJabatan() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      nonAsnEmployees.map((emp, idx) => {
-                        return (
-                          <TableRow key={emp.id}>
-                            <TableCell className="text-center font-medium">{idx + 1}</TableCell>
-                            <TableCell className="font-mono text-xs">{emp.nip || '-'}</TableCell>
-                            <TableCell className="font-medium">
-                              {[emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ')}
-                            </TableCell>
-                            <TableCell>{emp.position_name || '-'}</TableCell>
-                            <TableCell className="text-sm">{emp.gender || '-'}</TableCell>
-                            <TableCell>
-                              <span className={cn(
-                                "inline-block px-2 py-1 rounded text-xs font-medium",
-                                emp.rank_group === 'Tenaga Alih Daya' 
-                                  ? "bg-blue-100 text-blue-800" 
-                                  : "bg-purple-100 text-purple-800"
-                              )}>
-                                {emp.rank_group || 'Tenaga Alih Daya'}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-sm max-w-xs truncate" title={emp.keterangan_penugasan || '-'}>
-                              {emp.keterangan_penugasan || '-'}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                      (() => {
+                        // Group employees by position_name
+                        const groupedByPosition: Record<string, EmployeeMatch[]> = {};
+                        nonAsnEmployees.forEach(emp => {
+                          const position = emp.position_name || 'Tidak Ada Jabatan';
+                          if (!groupedByPosition[position]) {
+                            groupedByPosition[position] = [];
+                          }
+                          groupedByPosition[position].push(emp);
+                        });
+
+                        let rowNumber = 0;
+                        return Object.entries(groupedByPosition).map(([position, employees]) => {
+                          rowNumber++;
+                          const formasi = employees.length; // Formasi = jumlah pegawai dengan jabatan yang sama
+                          const existing = employees.length; // Existing = sama dengan formasi (karena ini data aktual)
+                          const status = formasi - existing; // Status selalu 0 karena formasi = existing
+
+                          return employees.map((emp, idx) => {
+                            const isFirst = idx === 0;
+                            const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
+                            
+                            return (
+                              <TableRow key={emp.id}>
+                                {isFirst && (
+                                  <>
+                                    <TableCell rowSpan={employees.length} className="text-center font-medium align-top">
+                                      {rowNumber}
+                                    </TableCell>
+                                    <TableCell rowSpan={employees.length} className="font-medium align-top">
+                                      {position}
+                                    </TableCell>
+                                    <TableCell rowSpan={employees.length} className="text-center align-top font-medium">
+                                      {formasi}
+                                    </TableCell>
+                                    <TableCell rowSpan={employees.length} className="text-center align-top font-medium">
+                                      {existing}
+                                    </TableCell>
+                                  </>
+                                )}
+                                <TableCell className="text-sm">{fullName}</TableCell>
+                                <TableCell>
+                                  <span className={cn(
+                                    "inline-block px-2 py-1 rounded text-xs font-medium",
+                                    emp.rank_group === 'Tenaga Alih Daya' 
+                                      ? "bg-blue-100 text-blue-800" 
+                                      : "bg-purple-100 text-purple-800"
+                                  )}>
+                                    {emp.rank_group || 'Tenaga Alih Daya'}
+                                  </span>
+                                </TableCell>
+                                {isFirst && (
+                                  <TableCell rowSpan={employees.length} className="align-top">
+                                    <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                      Sesuai
+                                    </span>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            );
+                          });
+                        });
+                      })()
                     )}
                   </TableBody>
                 </Table>
