@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
 import { 
   AsnPieChart, 
   RankBarChart, 
@@ -144,23 +145,29 @@ export default function Dashboard() {
         if (error) {
           console.error('Error loading dashboard preferences:', error);
           // Use default if error
+          const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
+          setSelectedCharts(defaultCharts);
           setIsLoadingPreferences(false);
           return;
         }
 
-        if (data?.dashboard_preferences && Array.isArray(data.dashboard_preferences)) {
+        if (data?.dashboard_preferences && Array.isArray(data.dashboard_preferences) && data.dashboard_preferences.length > 0) {
           console.log('Loaded dashboard preferences:', data.dashboard_preferences);
-          setSelectedCharts(data.dashboard_preferences);
+          // Force state update by creating new array
+          setSelectedCharts([...data.dashboard_preferences]);
         } else {
           // If no preferences found, use default
           console.log('No preferences found, using default');
           const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
-          setSelectedCharts(defaultCharts);
+          setSelectedCharts([...defaultCharts]);
           // Save default to database
           await savePreferences(defaultCharts);
         }
       } catch (error) {
         console.error('Error loading dashboard preferences:', error);
+        // Use default on error
+        const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
+        setSelectedCharts([...defaultCharts]);
       } finally {
         setIsLoadingPreferences(false);
       }
@@ -169,11 +176,22 @@ export default function Dashboard() {
     loadPreferences();
   }, [profile?.id]); // Only re-run when profile.id changes
 
+  // Debug: Log selectedCharts changes
+  useEffect(() => {
+    console.log('=== SELECTED CHARTS UPDATED ===');
+    console.log('Selected charts:', selectedCharts);
+    console.log('Count:', selectedCharts.length);
+    console.log('Is loading preferences:', isLoadingPreferences);
+    console.log('Is loading data:', isLoading);
+  }, [selectedCharts, isLoadingPreferences, isLoading]);
+
   const toggleChart = (chartId: string) => {
     setSelectedCharts(prev => {
       const newCharts = prev.includes(chartId)
         ? prev.filter(id => id !== chartId)
         : [...prev, chartId];
+      
+      console.log('Toggle chart:', chartId, 'New charts:', newCharts);
       
       // Save to database
       savePreferences(newCharts);
@@ -368,59 +386,87 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2" key={`charts-${selectedCharts.join('-')}`}>
             {selectedCharts.includes('asn_status') && (
-              <AsnPieChart data={asnChartData} />
+              <AsnPieChart data={asnChartData} key="asn_status" />
             )}
             {selectedCharts.includes('rank') && (
-              <RankBarChart data={rankData} />
+              <ChartWrapper title="Distribusi Golongan" description="Jumlah pegawai per golongan/pangkat" data={rankData} key="rank">
+                <RankBarChart data={rankData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('position_type') && positionTypeData.length > 0 && (
-              <PositionTypePieChart data={positionTypeData} />
+            {selectedCharts.includes('position_type') && (
+              <ChartWrapper title="Jenis Jabatan" description="Distribusi berdasarkan jenis jabatan" data={positionTypeData} key="position_type">
+                <PositionTypePieChart data={positionTypeData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('join_year') && joinYearData.length > 0 && (
-              <JoinYearBarChart data={joinYearData} />
+            {selectedCharts.includes('join_year') && (
+              <ChartWrapper title="Tren Pegawai Bergabung" description="Jumlah pegawai bergabung per tahun" data={joinYearData} key="join_year">
+                <JoinYearBarChart data={joinYearData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('department') && canViewAll && selectedDepartment === 'all' && departmentData.length > 0 && (
-              <DepartmentBarChart data={departmentData} />
+            {selectedCharts.includes('department') && canViewAll && selectedDepartment === 'all' && (
+              <ChartWrapper title="Distribusi Unit Kerja" description="Jumlah pegawai per unit kerja" data={departmentData} key="department">
+                <DepartmentBarChart data={departmentData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('gender') && genderData.length > 0 && (
-              <GenderPieChart data={genderData} />
+            {selectedCharts.includes('gender') && (
+              <ChartWrapper title="Jenis Kelamin" description="Distribusi berdasarkan jenis kelamin" data={genderData} key="gender">
+                <GenderPieChart data={genderData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('religion') && religionData.length > 0 && (
-              <ReligionPieChart data={religionData} />
+            {selectedCharts.includes('religion') && (
+              <ChartWrapper title="Agama" description="Distribusi berdasarkan agama" data={religionData} key="religion">
+                <ReligionPieChart data={religionData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('position_kepmen') && positionKepmenData.length > 0 && (
-              <PositionKepmenBarChart data={positionKepmenData} />
+            {selectedCharts.includes('position_kepmen') && (
+              <ChartWrapper title="Jabatan Kepmen 202/2024" description="Distribusi jabatan sesuai Kepmen" data={positionKepmenData} key="position_kepmen">
+                <PositionKepmenBarChart data={positionKepmenData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('tmt_cpns') && tmtCpnsData.length > 0 && (
-              <TmtYearBarChart 
-                data={tmtCpnsData} 
-                title="Tren TMT CPNS" 
-                description="Jumlah pegawai berdasarkan tahun TMT CPNS (15 tahun terakhir)"
-              />
+            {selectedCharts.includes('tmt_cpns') && (
+              <ChartWrapper title="Tren TMT CPNS" description="Jumlah pegawai berdasarkan tahun TMT CPNS (15 tahun terakhir)" data={tmtCpnsData} key="tmt_cpns">
+                <TmtYearBarChart 
+                  data={tmtCpnsData} 
+                  title="Tren TMT CPNS" 
+                  description="Jumlah pegawai berdasarkan tahun TMT CPNS (15 tahun terakhir)"
+                />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('tmt_pns') && tmtPnsData.length > 0 && (
-              <TmtYearBarChart 
-                data={tmtPnsData} 
-                title="Tren TMT PNS" 
-                description="Jumlah pegawai berdasarkan tahun TMT PNS (15 tahun terakhir)"
-              />
+            {selectedCharts.includes('tmt_pns') && (
+              <ChartWrapper title="Tren TMT PNS" description="Jumlah pegawai berdasarkan tahun TMT PNS (15 tahun terakhir)" data={tmtPnsData} key="tmt_pns">
+                <TmtYearBarChart 
+                  data={tmtPnsData} 
+                  title="Tren TMT PNS" 
+                  description="Jumlah pegawai berdasarkan tahun TMT PNS (15 tahun terakhir)"
+                />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('work_duration') && workDurationData.length > 0 && (
-              <WorkDurationBarChart data={workDurationData} />
+            {selectedCharts.includes('work_duration') && (
+              <ChartWrapper title="Masa Kerja" description="Distribusi masa kerja pegawai" data={workDurationData} key="work_duration">
+                <WorkDurationBarChart data={workDurationData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('grade') && gradeData.length > 0 && (
-              <GradeBarChart data={gradeData} />
+            {selectedCharts.includes('grade') && (
+              <ChartWrapper title="Grade Jabatan" description="Distribusi grade jabatan" data={gradeData} key="grade">
+                <GradeBarChart data={gradeData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('age') && ageData.length > 0 && (
-              <AgeBarChart data={ageData} />
+            {selectedCharts.includes('age') && (
+              <ChartWrapper title="Usia Pegawai" description="Distribusi usia pegawai" data={ageData} key="age">
+                <AgeBarChart data={ageData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('retirement_year') && retirementYearData.length > 0 && (
-              <RetirementYearBarChart data={retirementYearData} />
+            {selectedCharts.includes('retirement_year') && (
+              <ChartWrapper title="Tahun Pensiun" description="Tren pegawai pensiun per tahun" data={retirementYearData} key="retirement_year">
+                <RetirementYearBarChart data={retirementYearData} />
+              </ChartWrapper>
             )}
-            {selectedCharts.includes('education') && educationData.length > 0 && (
-              <EducationPieChart data={educationData} />
+            {selectedCharts.includes('education') && (
+              <ChartWrapper title="Jenjang Pendidikan" description="Distribusi berdasarkan pendidikan terakhir" data={educationData} key="education">
+                <EducationPieChart data={educationData} />
+              </ChartWrapper>
             )}
           </div>
         )}

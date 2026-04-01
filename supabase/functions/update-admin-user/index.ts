@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('Missing authorization header');
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -35,9 +36,17 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    console.log('Auth verification:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      error: authError?.message 
+    });
+    
     if (authError || !user) {
+      console.error('Auth verification failed:', authError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -50,7 +59,10 @@ Deno.serve(async (req) => {
       .eq('role', 'admin_pusat')
       .maybeSingle();
 
+    console.log('Role check:', { roleData, roleError });
+
     if (roleError || !roleData) {
+      console.error('Role check failed:', roleError);
       return new Response(
         JSON.stringify({ error: 'Only admin_pusat can update admins' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

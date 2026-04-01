@@ -102,24 +102,27 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
     setIsSubmitting(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      const response = await supabase.functions.invoke('update-admin-user', {
-        body: {
-          user_id: admin.id,
-          ...formData,
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session?.access_token}`,
-        },
-      });
+      // Update profile directly in database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.full_name,
+          department: formData.department,
+        })
+        .eq('id', admin.id);
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Gagal mengupdate admin');
+      if (profileError) {
+        throw new Error(profileError.message);
       }
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
+      // Update role directly in database
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .update({ role: formData.role })
+        .eq('user_id', admin.id);
+
+      if (roleError) {
+        throw new Error(roleError.message);
       }
 
       toast({

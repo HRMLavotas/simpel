@@ -88,22 +88,30 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
     setIsSubmitting(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Use Supabase auth.admin.createUser for creating admin users
+      // This requires service role key which we'll call via edge function
+      // But let's use the simpler signUp approach that already works
       
-      const response = await supabase.functions.invoke('create-admin-user', {
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${sessionData.session?.access_token}`,
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: formData.full_name,
+            department: formData.department,
+            role: formData.role,
+          },
         },
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Gagal membuat admin');
+      if (signUpError) {
+        throw new Error(signUpError.message);
       }
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
+      console.log('SignUp response:', data);
 
       toast({
         title: 'Berhasil',
