@@ -214,8 +214,14 @@ export default function Admins() {
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{admin.email}</TableCell>
                     <TableCell className="hidden md:table-cell text-sm">{admin.department}</TableCell>
                     <TableCell>
-                      <Badge variant={admin.role === 'admin_pusat' ? 'default' : 'secondary'}>
-                        {admin.role === 'admin_pusat' ? 'Admin Pusat' : 'Admin Unit'}
+                      <Badge variant={
+                        admin.role === 'admin_pusat' ? 'default' : 
+                        admin.role === 'admin_pimpinan' ? 'secondary' : 
+                        'outline'
+                      }>
+                        {admin.role === 'admin_pusat' ? 'Admin Pusat' : 
+                         admin.role === 'admin_pimpinan' ? 'Admin Pimpinan' : 
+                         'Admin Unit'}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground">

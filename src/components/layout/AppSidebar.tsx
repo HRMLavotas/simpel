@@ -4,21 +4,23 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { ROLE_LABELS } from '@/lib/constants';
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   adminPusatOnly?: boolean;
+  hideForPimpinan?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Data Pegawai', href: '/employees', icon: Users },
-  { label: 'Import Data', href: '/import', icon: Upload },
+  { label: 'Import Data', href: '/import', icon: Upload, hideForPimpinan: true },
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
-  { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true },
+  { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Profile', href: '/profile', icon: User },
 ];
 
@@ -29,9 +31,15 @@ interface AppSidebarProps {
 
 export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const location = useLocation();
-  const { profile, signOut, isAdminPusat } = useAuth();
+  const { profile, signOut, isAdminPusat, isAdminPimpinan, role } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const filteredNavItems = navItems.filter(item => !item.adminPusatOnly || isAdminPusat);
+  const filteredNavItems = navItems.filter(item => {
+    // Hide admin-only items for non-admin-pusat
+    if (item.adminPusatOnly && !isAdminPusat) return false;
+    // Hide certain items for admin_pimpinan
+    if (item.hideForPimpinan && isAdminPimpinan) return false;
+    return true;
+  });
 
   const sidebarContent = (isMobile = false) => (
     <>
@@ -75,8 +83,13 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           <div className="rounded-lg bg-sidebar-accent p-3">
             <p className="text-sm font-medium text-sidebar-foreground truncate">{profile?.full_name || 'Admin'}</p>
             <p className="mt-0.5 text-xs text-sidebar-foreground/60 truncate">{profile?.department || 'Unit Kerja'}</p>
-            <span className={cn("mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium", isAdminPusat ? "bg-primary text-primary-foreground" : "bg-sidebar-foreground/10 text-sidebar-foreground")}>
-              {isAdminPusat ? 'Admin Pusat' : 'Admin Unit'}
+            <span className={cn(
+              "mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium",
+              isAdminPusat ? "bg-primary text-primary-foreground" : 
+              isAdminPimpinan ? "bg-purple-500 text-white" :
+              "bg-sidebar-foreground/10 text-sidebar-foreground"
+            )}>
+              {role ? ROLE_LABELS[role] : 'Admin'}
             </span>
           </div>
         </div>

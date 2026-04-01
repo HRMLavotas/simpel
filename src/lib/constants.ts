@@ -174,4 +174,36 @@ export function normalizeImportValue<T extends string>(
 }
 
 // App roles
-export type AppRole = 'admin_unit' | 'admin_pusat';
+export type AppRole = 'admin_unit' | 'admin_pusat' | 'admin_pimpinan';
+
+// Role permissions
+export const ROLE_PERMISSIONS = {
+  admin_unit: {
+    canEdit: true,
+    canDelete: true,
+    canCreate: true,
+    canViewAll: false,
+    scope: 'unit', // Only own unit
+  },
+  admin_pusat: {
+    canEdit: true,
+    canDelete: true,
+    canCreate: true,
+    canViewAll: true,
+    scope: 'all', // All units
+  },
+  admin_pimpinan: {
+    canEdit: false,
+    canDelete: false,
+    canCreate: false,
+    canViewAll: true,
+    scope: 'all', // All units, but read-only
+  },
+} as const;
+
+// Role labels for UI
+export const ROLE_LABELS: Record<AppRole, string> = {
+  admin_unit: 'Admin Unit',
+  admin_pusat: 'Admin Pusat',
+  admin_pimpinan: 'Admin Pimpinan',
+};

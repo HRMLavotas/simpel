@@ -10,7 +10,7 @@ interface CreateAdminRequest {
   password: string;
   full_name: string;
   department: string;
-  role: 'admin_unit' | 'admin_pusat';
+  role: 'admin_unit' | 'admin_pusat' | 'admin_pimpinan';
 }
 
 Deno.serve(async (req) => {
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate role
-    if (!['admin_unit', 'admin_pusat'].includes(role)) {
+    if (!['admin_unit', 'admin_pusat', 'admin_pimpinan'].includes(role)) {
       return new Response(
         JSON.stringify({ error: 'Invalid role' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

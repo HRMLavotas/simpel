@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Building2, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Building2, Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,13 +20,15 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password minimal 6 karakter'),
   fullName: z.string().min(3, 'Nama minimal 3 karakter'),
   department: z.string().min(1, 'Pilih unit kerja'),
-  role: z.enum(['admin_unit', 'admin_pusat'])
+  role: z.enum(['admin_unit', 'admin_pusat', 'admin_pimpinan'])
 });
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const navigate = useNavigate();
   const {
     toast
@@ -145,7 +147,7 @@ export default function Auth() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                 <Building2 className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold">SIMPEG</span>
+              <span className="text-lg font-bold">SIMPEL</span>
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
               {isLogin ? 'Masuk ke Akun Anda' : 'Buat Akun Baru'}
@@ -169,7 +171,20 @@ export default function Auth() {
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 input-focus" {...loginForm.register('password')} />
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    className="pl-10 pr-10 input-focus" 
+                    {...loginForm.register('password')} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {loginForm.formState.errors.password && <p className="text-xs text-destructive">{loginForm.formState.errors.password.message}</p>}
               </div>
@@ -202,7 +217,20 @@ export default function Auth() {
                 <Label htmlFor="signup-password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="signup-password" type="password" placeholder="Minimal 6 karakter" className="pl-10 input-focus" {...signupForm.register('password')} />
+                  <Input 
+                    id="signup-password" 
+                    type={showSignupPassword ? "text" : "password"} 
+                    placeholder="Minimal 6 karakter" 
+                    className="pl-10 pr-10 input-focus" 
+                    {...signupForm.register('password')} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignupPassword(!showSignupPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
                 {signupForm.formState.errors.password && <p className="text-xs text-destructive">{signupForm.formState.errors.password.message}</p>}
               </div>
@@ -229,6 +257,7 @@ export default function Auth() {
                   <SelectContent>
                     <SelectItem value="admin_unit">Admin Unit</SelectItem>
                     <SelectItem value="admin_pusat">Admin Pusat</SelectItem>
+                    <SelectItem value="admin_pimpinan">Admin Pimpinan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

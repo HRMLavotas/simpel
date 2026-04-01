@@ -42,7 +42,7 @@ interface EditAdminModalProps {
 const editAdminSchema = z.object({
   full_name: z.string().trim().min(1, 'Nama harus diisi').max(100, 'Nama terlalu panjang'),
   department: z.string().min(1, 'Unit kerja harus dipilih'),
-  role: z.enum(['admin_unit', 'admin_pusat'], { required_error: 'Role harus dipilih' }),
+  role: z.enum(['admin_unit', 'admin_pusat', 'admin_pimpinan'], { required_error: 'Role harus dipilih' }),
 });
 
 export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuccess }: EditAdminModalProps) {
@@ -53,7 +53,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
   const [formData, setFormData] = useState({
     full_name: '',
     department: '',
-    role: 'admin_unit' as 'admin_unit' | 'admin_pusat',
+    role: 'admin_unit' as 'admin_unit' | 'admin_pusat' | 'admin_pimpinan',
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
       setFormData({
         full_name: admin.full_name,
         department: admin.department,
-        role: admin.role as 'admin_unit' | 'admin_pusat',
+        role: admin.role as 'admin_unit' | 'admin_pusat' | 'admin_pimpinan',
       });
     }
   }, [admin]);
@@ -194,7 +194,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
             <Label htmlFor="edit_role">Role</Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'admin_unit' | 'admin_pusat') => 
+              onValueChange={(value: 'admin_unit' | 'admin_pusat' | 'admin_pimpinan') => 
                 setFormData({ ...formData, role: value })
               }
               disabled={isSubmitting || isSelf}
@@ -205,6 +205,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
               <SelectContent>
                 <SelectItem value="admin_unit">Admin Unit</SelectItem>
                 <SelectItem value="admin_pusat">Admin Pusat</SelectItem>
+                <SelectItem value="admin_pimpinan">Admin Pimpinan</SelectItem>
               </SelectContent>
             </Select>
             {isSelf && (

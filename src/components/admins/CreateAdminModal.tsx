@@ -34,7 +34,7 @@ const adminSchema = z.object({
   password: z.string().min(6, 'Password minimal 6 karakter').max(100, 'Password terlalu panjang'),
   full_name: z.string().trim().min(1, 'Nama harus diisi').max(100, 'Nama terlalu panjang'),
   department: z.string().min(1, 'Unit kerja harus dipilih'),
-  role: z.enum(['admin_unit', 'admin_pusat'], { required_error: 'Role harus dipilih' }),
+  role: z.enum(['admin_unit', 'admin_pusat', 'admin_pimpinan'], { required_error: 'Role harus dipilih' }),
 });
 
 export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminModalProps) {
@@ -48,7 +48,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
     password: '',
     full_name: '',
     department: '',
-    role: 'admin_unit' as 'admin_unit' | 'admin_pusat',
+    role: 'admin_unit' as 'admin_unit' | 'admin_pusat' | 'admin_pimpinan',
   });
 
   const resetForm = () => {
@@ -217,7 +217,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
             <Label htmlFor="role">Role</Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'admin_unit' | 'admin_pusat') => 
+              onValueChange={(value: 'admin_unit' | 'admin_pusat' | 'admin_pimpinan') => 
                 setFormData({ ...formData, role: value })
               }
               disabled={isSubmitting}
@@ -228,6 +228,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
               <SelectContent>
                 <SelectItem value="admin_unit">Admin Unit</SelectItem>
                 <SelectItem value="admin_pusat">Admin Pusat</SelectItem>
+                <SelectItem value="admin_pimpinan">Admin Pimpinan</SelectItem>
               </SelectContent>
             </Select>
             {errors.role && (

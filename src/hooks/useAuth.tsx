@@ -17,6 +17,9 @@ interface AuthContextType {
   role: AppRole | null;
   isLoading: boolean;
   isAdminPusat: boolean;
+  isAdminPimpinan: boolean;
+  canViewAll: boolean;
+  canEdit: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, department: string, role: AppRole) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -135,6 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdminPusat = role === 'admin_pusat';
+  const isAdminPimpinan = role === 'admin_pimpinan';
+  const canViewAll = role === 'admin_pusat' || role === 'admin_pimpinan';
+  const canEdit = role === 'admin_pusat' || role === 'admin_unit';
 
   return (
     <AuthContext.Provider value={{
@@ -144,6 +150,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       isLoading,
       isAdminPusat,
+      isAdminPimpinan,
+      canViewAll,
+      canEdit,
       signIn,
       signUp,
       signOut,

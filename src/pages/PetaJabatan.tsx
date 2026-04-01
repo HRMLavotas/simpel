@@ -53,7 +53,7 @@ interface EducationInfo {
 const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
 
 export default function PetaJabatan() {
-  const { profile, isAdminPusat } = useAuth();
+  const { profile, isAdminPusat, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
 
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
@@ -410,7 +410,7 @@ export default function PetaJabatan() {
             <p className="page-description">Jabatan Sesuai Kepmen 202 Tahun 2024</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {isAdminPusat && (
+            {canViewAll && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Pilih Unit Kerja" />
@@ -426,10 +426,12 @@ export default function PetaJabatan() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
             </Button>
-            <Button onClick={openAddModal} className="text-xs sm:text-sm">
-              <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
-            </Button>
+            {canEdit && (
+              <Button onClick={openAddModal} className="text-xs sm:text-sm">
+                <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -483,7 +485,7 @@ export default function PetaJabatan() {
                       <TableHead>Nama Pemangku</TableHead>
                       <TableHead className="w-20 text-center">Kriteria ASN</TableHead>
                       <TableHead className="w-20">Status</TableHead>
-                      <TableHead className="w-20">Aksi</TableHead>
+                      {canEdit && <TableHead className="w-20">Aksi</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -565,7 +567,7 @@ export default function PetaJabatan() {
                                 : <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Sesuai</span>}
                             </TableCell>
                           )}
-                          {row.isFirst && (
+                          {canEdit && row.isFirst && (
                             <TableCell rowSpan={row.rowSpan} className="align-top">
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>

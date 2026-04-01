@@ -141,7 +141,7 @@ function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedCha
 }
 
 export default function Employees() {
-  const { profile, isAdminPusat, user } = useAuth();
+  const { profile, isAdminPusat, user, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
   
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -181,7 +181,7 @@ export default function Employees() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [profile, isAdminPusat]);
+  }, [profile, canViewAll]);
 
   const fetchEmployees = async () => {
     if (!profile) return;
@@ -767,16 +767,18 @@ export default function Employees() {
           <div className="page-header mb-0">
             <h1 className="page-title">Data Pegawai</h1>
             <p className="page-description">
-              Kelola data nominatif pegawai {!isAdminPusat && profile?.department}
+              Kelola data nominatif pegawai {!canViewAll && profile?.department}
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
-            <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
-              <Plus className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Tambah Pegawai</span><span className="sm:hidden">Tambah</span>
-            </Button>
+            {canEdit && (
+              <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
+                <Plus className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Tambah Pegawai</span><span className="sm:hidden">Tambah</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -792,7 +794,7 @@ export default function Employees() {
               {ASN_STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
-          {isAdminPusat && (
+          {canViewAll && (
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
               <SelectTrigger className="w-full sm:w-[240px]"><SelectValue placeholder="Unit Kerja" /></SelectTrigger>
               <SelectContent>
@@ -813,7 +815,7 @@ export default function Employees() {
                 <TableHead className="hidden md:table-cell">Jabatan</TableHead>
                 <TableHead>Status ASN</TableHead>
                 <TableHead className="hidden lg:table-cell">Golongan</TableHead>
-                {isAdminPusat && <TableHead className="hidden xl:table-cell">Unit Kerja</TableHead>}
+                {canViewAll && <TableHead className="hidden xl:table-cell">Unit Kerja</TableHead>}
                 <TableHead className="hidden lg:table-cell">Tanggal Masuk</TableHead>
                 <TableHead className="w-[60px] text-center">Aksi</TableHead>
               </TableRow>
@@ -834,7 +836,7 @@ export default function Employees() {
                 ))
               ) : paginatedEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isAdminPusat ? 8 : 7} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={canViewAll ? 8 : 7} className="h-32 text-center text-muted-foreground">
                     {searchQuery || statusFilter !== 'all' || departmentFilter !== 'all'
                       ? 'Tidak ada data yang sesuai dengan filter'
                       : 'Belum ada data pegawai'}
@@ -850,7 +852,7 @@ export default function Employees() {
                         onClick={() => toggleCategory(group.category)}
                       >
                         <TableCell 
-                          colSpan={isAdminPusat ? 8 : 7} 
+                          colSpan={canViewAll ? 8 : 7} 
                           className="font-semibold text-sm uppercase tracking-wide py-3"
                         >
                           <div className="flex items-center gap-2">
@@ -875,7 +877,7 @@ export default function Employees() {
                           <TableCell className="hidden md:table-cell text-muted-foreground">{employee.position_name || '-'}</TableCell>
                           <TableCell>{getStatusBadge(employee.asn_status)}</TableCell>
                           <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
-                          {isAdminPusat && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
+                          {canViewAll && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
                           <TableCell className="hidden lg:table-cell text-muted-foreground">
                             {employee.join_date ? format(new Date(employee.join_date), 'd MMM yyyy', { locale: id }) : '-'}
                           </TableCell>
@@ -893,18 +895,22 @@ export default function Employees() {
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteEmployee(employee)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Hapus
-                                </DropdownMenuItem>
+                                {canEdit && (
+                                  <>
+                                    <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                      onClick={() => handleDeleteEmployee(employee)}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Hapus
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

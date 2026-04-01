@@ -67,7 +67,7 @@ const CHART_CATEGORIES = [
 ];
 
 export default function Dashboard() {
-  const { profile, isAdminPusat } = useAuth();
+  const { profile, isAdminPusat, canViewAll } = useAuth();
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedCharts, setSelectedCharts] = useState<string[]>([
@@ -97,36 +97,9 @@ export default function Dashboard() {
     isLoading 
   } = useDashboardData({
     department: profile?.department || null,
-    isAdminPusat,
+    isAdminPusat: canViewAll, // Use canViewAll instead of isAdminPusat
     selectedDepartment,
   });
-
-  // Load user preferences on mount
-  useEffect(() => {
-    const loadPreferences = async () => {
-      if (!profile?.id) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('dashboard_preferences')
-          .eq('id', profile.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data?.dashboard_preferences && Array.isArray(data.dashboard_preferences)) {
-          setSelectedCharts(data.dashboard_preferences);
-        }
-      } catch (error) {
-        console.error('Error loading dashboard preferences:', error);
-      } finally {
-        setIsLoadingPreferences(false);
-      }
-    };
-
-    loadPreferences();
-  }, [profile?.id]);
 
   // Save preferences to database
   const savePreferences = async (charts: string[]) => {
@@ -140,11 +113,7 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      // Optional: Show success toast (commented out to avoid too many notifications)
-      // toast({
-      //   title: 'Preferensi disimpan',
-      //   description: 'Pilihan chart Anda telah disimpan',
-      // });
+      console.log('Dashboard preferences saved:', charts);
     } catch (error) {
       console.error('Error saving dashboard preferences:', error);
       toast({
@@ -154,6 +123,51 @@ export default function Dashboard() {
       });
     }
   };
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!profile?.id) {
+        setIsLoadingPreferences(false);
+        return;
+      }
+      
+      setIsLoadingPreferences(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('dashboard_preferences')
+          .eq('id', profile.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading dashboard preferences:', error);
+          // Use default if error
+          setIsLoadingPreferences(false);
+          return;
+        }
+
+        if (data?.dashboard_preferences && Array.isArray(data.dashboard_preferences)) {
+          console.log('Loaded dashboard preferences:', data.dashboard_preferences);
+          setSelectedCharts(data.dashboard_preferences);
+        } else {
+          // If no preferences found, use default
+          console.log('No preferences found, using default');
+          const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
+          setSelectedCharts(defaultCharts);
+          // Save default to database
+          await savePreferences(defaultCharts);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard preferences:', error);
+      } finally {
+        setIsLoadingPreferences(false);
+      }
+    };
+
+    loadPreferences();
+  }, [profile?.id]); // Only re-run when profile.id changes
 
   const toggleChart = (chartId: string) => {
     setSelectedCharts(prev => {
@@ -185,7 +199,7 @@ export default function Dashboard() {
     { name: 'Non ASN', value: stats.nonAsn, color: COLORS['Non ASN'] },
   ].filter(d => d.value > 0);
 
-  const pageTitle = isAdminPusat 
+  const pageTitle = canViewAll 
     ? selectedDepartment === 'all' 
       ? 'Dashboard - Semua Unit Kerja' 
       : `Dashboard - ${selectedDepartment}`
@@ -207,7 +221,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex gap-2">
-            {isAdminPusat && (
+            {canViewAll && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Pilih Unit Kerja" />
@@ -367,7 +381,7 @@ export default function Dashboard() {
             {selectedCharts.includes('join_year') && joinYearData.length > 0 && (
               <JoinYearBarChart data={joinYearData} />
             )}
-            {selectedCharts.includes('department') && isAdminPusat && selectedDepartment === 'all' && departmentData.length > 0 && (
+            {selectedCharts.includes('department') && canViewAll && selectedDepartment === 'all' && departmentData.length > 0 && (
               <DepartmentBarChart data={departmentData} />
             )}
             {selectedCharts.includes('gender') && genderData.length > 0 && (

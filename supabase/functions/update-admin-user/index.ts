@@ -9,7 +9,7 @@ interface UpdateAdminRequest {
   user_id: string;
   full_name?: string;
   department?: string;
-  role?: 'admin_unit' | 'admin_pusat';
+  role?: 'admin_unit' | 'admin_pusat' | 'admin_pimpinan';
 }
 
 Deno.serve(async (req) => {
