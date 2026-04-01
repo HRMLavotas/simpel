@@ -291,10 +291,10 @@ export function EmployeeDetailsModal({
                 count={education.length}
                 isExpanded={expandedSections.education}
                 onToggle={() => toggleSection('education')}
-                preview={`Terbaru: ${education[education.length - 1]?.level || '-'} ${education[education.length - 1]?.major || ''}`}
+                preview={`Terbaru: ${[...education].reverse()[0]?.level || '-'} ${[...education].reverse()[0]?.major || ''}`}
               >
                 <div className="space-y-3">
-                  {education.map((edu, idx) => (
+                  {[...education].reverse().map((edu, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start gap-2">
                         <Badge variant="secondary" className="mt-0.5">{edu.level}</Badge>
@@ -322,10 +322,10 @@ export function EmployeeDetailsModal({
                 count={positionHistory.length}
                 isExpanded={expandedSections.position}
                 onToggle={() => toggleSection('position')}
-                preview={`Terbaru: ${positionHistory[positionHistory.length - 1]?.jabatan_baru || '-'}`}
+                preview={`Terbaru: ${[...positionHistory].reverse()[0]?.jabatan_baru || '-'}`}
               >
                 <div className="space-y-3">
-                  {positionHistory.map((hist, idx) => (
+                  {[...positionHistory].reverse().map((hist, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
@@ -334,11 +334,8 @@ export function EmployeeDetailsModal({
                         )}
                       </div>
                       <div className="space-y-1 text-sm">
-                        {hist.jabatan_lama && (
-                          <p><span className="text-muted-foreground">Dari:</span> {hist.jabatan_lama}</p>
-                        )}
                         {hist.jabatan_baru && (
-                          <p><span className="text-muted-foreground">Ke:</span> <span className="font-medium">{hist.jabatan_baru}</span></p>
+                          <p><span className="font-medium">{hist.jabatan_baru}</span></p>
                         )}
                         {hist.nomor_sk && (
                           <p className="text-xs text-muted-foreground">SK: {hist.nomor_sk}</p>
@@ -361,10 +358,10 @@ export function EmployeeDetailsModal({
                 count={rankHistory.length}
                 isExpanded={expandedSections.rank}
                 onToggle={() => toggleSection('rank')}
-                preview={`Terbaru: ${rankHistory[rankHistory.length - 1]?.pangkat_baru || '-'}`}
+                preview={`Terbaru: ${[...rankHistory].reverse()[0]?.pangkat_baru || '-'}`}
               >
                 <div className="space-y-3">
-                  {rankHistory.map((hist, idx) => (
+                  {[...rankHistory].reverse().map((hist, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
@@ -373,11 +370,8 @@ export function EmployeeDetailsModal({
                         )}
                       </div>
                       <div className="space-y-1 text-sm">
-                        {hist.pangkat_lama && (
-                          <p><span className="text-muted-foreground">Dari:</span> {hist.pangkat_lama}</p>
-                        )}
                         {hist.pangkat_baru && (
-                          <p><span className="text-muted-foreground">Ke:</span> <span className="font-medium">{hist.pangkat_baru}</span></p>
+                          <p><span className="font-medium">{hist.pangkat_baru}</span></p>
                         )}
                         {hist.nomor_sk && (
                           <p className="text-xs text-muted-foreground">SK: {hist.nomor_sk}</p>
@@ -400,20 +394,20 @@ export function EmployeeDetailsModal({
                 count={mutationHistory.length}
                 isExpanded={expandedSections.mutation}
                 onToggle={() => toggleSection('mutation')}
-                preview={`Terbaru: ${mutationHistory[mutationHistory.length - 1]?.ke_unit || '-'}`}
+                preview={`Terbaru: ${[...mutationHistory].reverse()[0]?.ke_unit || '-'}`}
               >
                 <div className="space-y-3">
-                  {mutationHistory.map((hist, idx) => (
+                  {[...mutationHistory].reverse().map((hist, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
                       </div>
                       <div className="space-y-1 text-sm">
-                        {hist.dari_unit && (
-                          <p><span className="text-muted-foreground">Dari:</span> {hist.dari_unit}</p>
-                        )}
                         {hist.ke_unit && (
-                          <p><span className="text-muted-foreground">Ke:</span> <span className="font-medium">{hist.ke_unit}</span></p>
+                          <p><span className="font-medium">{hist.ke_unit}</span></p>
+                        )}
+                        {hist.jabatan && (
+                          <p className="text-muted-foreground">{hist.jabatan}</p>
                         )}
                         {hist.nomor_sk && (
                           <p className="text-xs text-muted-foreground">SK: {hist.nomor_sk}</p>
@@ -437,14 +431,14 @@ export function EmployeeDetailsModal({
                 isExpanded={expandedSections.placementNotes}
                 onToggle={() => toggleSection('placementNotes')}
                 preview={
-                  placementNotes[placementNotes.length - 1]?.note 
-                    ? (placementNotes[placementNotes.length - 1].note.substring(0, 60) + 
-                       (placementNotes[placementNotes.length - 1].note.length > 60 ? '...' : ''))
+                  [...placementNotes].reverse()[0]?.note 
+                    ? ([...placementNotes].reverse()[0].note.substring(0, 60) + 
+                       ([...placementNotes].reverse()[0].note.length > 60 ? '...' : ''))
                     : 'Tidak ada preview'
                 }
               >
                 <div className="space-y-2">
-                  {placementNotes.map((note, idx) => (
+                  {[...placementNotes].reverse().map((note, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30 text-sm">
                       {note.note}
                     </div>
@@ -462,14 +456,14 @@ export function EmployeeDetailsModal({
                 isExpanded={expandedSections.assignmentNotes}
                 onToggle={() => toggleSection('assignmentNotes')}
                 preview={
-                  assignmentNotes[assignmentNotes.length - 1]?.note 
-                    ? (assignmentNotes[assignmentNotes.length - 1].note.substring(0, 60) + 
-                       (assignmentNotes[assignmentNotes.length - 1].note.length > 60 ? '...' : ''))
+                  [...assignmentNotes].reverse()[0]?.note 
+                    ? ([...assignmentNotes].reverse()[0].note.substring(0, 60) + 
+                       ([...assignmentNotes].reverse()[0].note.length > 60 ? '...' : ''))
                     : 'Tidak ada preview'
                 }
               >
                 <div className="space-y-2">
-                  {assignmentNotes.map((note, idx) => (
+                  {[...assignmentNotes].reverse().map((note, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30 text-sm">
                       {note.note}
                     </div>
@@ -487,14 +481,14 @@ export function EmployeeDetailsModal({
                 isExpanded={expandedSections.changeNotes}
                 onToggle={() => toggleSection('changeNotes')}
                 preview={
-                  changeNotes[changeNotes.length - 1]?.note 
-                    ? (changeNotes[changeNotes.length - 1].note.substring(0, 60) + 
-                       (changeNotes[changeNotes.length - 1].note.length > 60 ? '...' : ''))
+                  [...changeNotes].reverse()[0]?.note 
+                    ? ([...changeNotes].reverse()[0].note.substring(0, 60) + 
+                       ([...changeNotes].reverse()[0].note.length > 60 ? '...' : ''))
                     : 'Tidak ada preview'
                 }
               >
                 <div className="space-y-2">
-                  {changeNotes.map((note, idx) => (
+                  {[...changeNotes].reverse().map((note, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30 text-sm">
                       {note.note}
                     </div>

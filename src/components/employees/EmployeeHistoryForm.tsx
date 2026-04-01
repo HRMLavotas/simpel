@@ -27,7 +27,7 @@ interface EmployeeHistoryFormProps {
   onChange: (entries: HistoryEntry[]) => void;
 }
 
-// Helper function to sort entries by date field (ascending - oldest first)
+// Helper function to sort entries by date field (descending - newest first)
 const sortEntriesByDate = (entries: HistoryEntry[], fields: HistoryField[]): HistoryEntry[] => {
   // Find the date field (tanggal, tanggal_mulai, etc.)
   const dateField = fields.find(f => f.type === 'date')?.key;
@@ -42,8 +42,8 @@ const sortEntriesByDate = (entries: HistoryEntry[], fields: HistoryField[]): His
     if (!dateA) return 1;
     if (!dateB) return -1;
     
-    // Compare dates (ascending - oldest first)
-    return dateA.localeCompare(dateB);
+    // Compare dates (descending - newest first)
+    return dateB.localeCompare(dateA);
   });
 };
 
@@ -76,7 +76,7 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
   const getSummary = () => {
     if (entries.length === 0) return 'Belum ada data';
     
-    const latestEntry = entries[entries.length - 1]; // Last entry (newest)
+    const latestEntry = entries[0]; // First entry (newest after sorting)
     
     // Find the most relevant field to display (not date, not SK, not keterangan)
     const relevantField = fields.find(f => 
@@ -112,7 +112,7 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Diurutkan dari yang terlama ke terbaru
+            Diurutkan dari yang terbaru ke terlama
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -219,14 +219,15 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
 // Field configurations for each history type
 export const MUTATION_FIELDS: HistoryField[] = [
   { key: 'tanggal', label: 'Tanggal', type: 'date' },
-  { key: 'ke_unit', label: 'Unit Kerja Baru', type: 'select', placeholder: 'Pilih unit kerja tujuan', options: DEPARTMENTS.filter(d => d !== 'Pusat') },
+  { key: 'ke_unit', label: 'Unit Kerja', type: 'select', placeholder: 'Pilih unit kerja tujuan', options: DEPARTMENTS.filter(d => d !== 'Pusat') },
+  { key: 'jabatan', label: 'Jabatan', placeholder: 'Jabatan saat mutasi' },
   { key: 'nomor_sk', label: 'Nomor SK', placeholder: 'Nomor SK mutasi' },
   { key: 'keterangan', label: 'Keterangan', placeholder: 'Keterangan tambahan' },
 ];
 
 export const POSITION_HISTORY_FIELDS: HistoryField[] = [
   { key: 'tanggal', label: 'Tanggal', type: 'date' },
-  { key: 'jabatan_baru', label: 'Jabatan Baru', placeholder: 'Jabatan baru' },
+  { key: 'jabatan_baru', label: 'Jabatan', placeholder: 'Jabatan baru' },
   { key: 'unit_kerja', label: 'Unit Kerja', type: 'select', placeholder: 'Pilih unit kerja', options: DEPARTMENTS.filter(d => d !== 'Pusat') },
   { key: 'nomor_sk', label: 'Nomor SK', placeholder: 'Nomor SK' },
   { key: 'keterangan', label: 'Keterangan', placeholder: 'Keterangan tambahan' },
@@ -234,7 +235,7 @@ export const POSITION_HISTORY_FIELDS: HistoryField[] = [
 
 export const RANK_HISTORY_FIELDS: HistoryField[] = [
   { key: 'tanggal', label: 'Tanggal', type: 'date' },
-  { key: 'pangkat_baru', label: 'Pangkat Baru', placeholder: 'Pangkat baru' },
+  { key: 'pangkat_baru', label: 'Pangkat', placeholder: 'Pangkat baru' },
   { key: 'nomor_sk', label: 'Nomor SK', placeholder: 'Nomor SK' },
   { key: 'tmt', label: 'TMT', type: 'date' },
   { key: 'keterangan', label: 'Keterangan', placeholder: 'Keterangan tambahan' },

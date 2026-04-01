@@ -339,7 +339,7 @@ export default function Employees() {
         front_title: d.front_title || '', back_title: d.back_title || '',
       }))
     );
-    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']));
+    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
     setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']));
     setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
     setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
@@ -381,7 +381,7 @@ export default function Employees() {
         front_title: d.front_title || '', back_title: d.back_title || '',
       }))
     );
-    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'nomor_sk', 'keterangan']));
+    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
     setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'nomor_sk', 'keterangan']));
     setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
     setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
@@ -612,7 +612,7 @@ export default function Employees() {
       console.log('Position history:', data.position_history);
       
       await Promise.all([
-        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'ke_unit', 'nomor_sk', 'keterangan']),
+        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']),
         saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
         saveHistoryEntries('rank_history', employeeId, data.rank_history, ['tanggal', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
         saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
