@@ -512,7 +512,7 @@ export default function PetaJabatan() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
             </Button>
-            {canEdit && (
+            {isAdminPusat && (
               <Button onClick={openAddModal} className="text-xs sm:text-sm">
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
@@ -613,7 +613,7 @@ export default function PetaJabatan() {
                       <TableHead>Nama Pemangku</TableHead>
                       <TableHead className="w-20 text-center">Kriteria ASN</TableHead>
                       <TableHead className="w-20">Status</TableHead>
-                      {canEdit && <TableHead className="w-20">Aksi</TableHead>}
+                      {isAdminPusat && <TableHead className="w-20">Aksi</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -671,12 +671,7 @@ export default function PetaJabatan() {
                                 {positionNo}
                               </TableCell>
                               <TableCell rowSpan={row.rowSpan} className="font-medium align-top">
-                                <div className="flex flex-col">
-                                  <span>{pos.position_name}</span>
-                                  <span className="text-xs text-muted-foreground font-normal">
-                                    Mencari: "{pos.position_name.trim().toLowerCase().replace(/\s+/g, ' ')}"
-                                  </span>
-                                </div>
+                                {pos.position_name}
                               </TableCell>
                               <TableCell rowSpan={row.rowSpan} className="text-center align-top">
                                 {pos.grade || '-'}
@@ -700,7 +695,7 @@ export default function PetaJabatan() {
                                 : <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Sesuai</span>}
                             </TableCell>
                           )}
-                          {canEdit && row.isFirst && (
+                          {isAdminPusat && row.isFirst && (
                             <TableCell rowSpan={row.rowSpan} className="align-top">
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>
