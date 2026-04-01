@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import {
   Dialog,
   DialogContent,
@@ -143,6 +144,9 @@ export function EmployeeFormModal({
   const [hasRankChanged, setHasRankChanged] = useState(false);
   const [hasPositionChanged, setHasPositionChanged] = useState(false);
   const [hasDepartmentChanged, setHasDepartmentChanged] = useState(false);
+  
+  // Use validation hook
+  const { validateNIP, nipValidation, resetNIPValidation } = useEmployeeValidation({ debounceMs: 500 });
 
   const form = useForm<z.infer<typeof employeeSchema>>({
     resolver: zodResolver(employeeSchema),
@@ -174,17 +178,18 @@ export function EmployeeFormModal({
       setHasRankChanged(false);
       setHasPositionChanged(false);
       setHasDepartmentChanged(false);
+      resetNIPValidation();
     }
-  }, [open]);
+  }, [open, resetNIPValidation]);
 
-  // Auto-detect changes and populate history
+  // Auto-detect changes and populate history - ONLY after initial load is complete
   useEffect(() => {
-    if (!isEditing || !employee) return;
-
-    // Mark form as modified when user changes history entries
-    formModifiedRef.current = true;
+    if (!isEditing || !employee || !initialLoadCompleteRef.current) return;
 
     const subscription = form.watch((value, { name: fieldName }) => {
+      // Mark form as modified when user changes fields
+      formModifiedRef.current = true;
+      
       const today = new Date().toISOString().split('T')[0];
 
       // Detect Rank/Golongan change
@@ -279,7 +284,7 @@ export function EmployeeFormModal({
     });
 
     return () => subscription.unsubscribe();
-  }, [isEditing, employee, form, originalValues, toast]);
+  }, [isEditing, employee, form, originalValues, toast, rankHistoryEntries, positionHistoryEntries, mutationEntries]);
 
   // Detect changes to critical fields for warning display
   useEffect(() => {
@@ -309,12 +314,16 @@ export function EmployeeFormModal({
     return () => subscription.unsubscribe();
   }, [form, originalValues]);
 
-  // Auto-fill from NIP when NIP changes
+  // Auto-fill from NIP when NIP changes and validate
   useEffect(() => {
     const subscription = form.watch((value, { name: fieldName }) => {
       if (fieldName === 'nip' && value.nip) {
         const cleanNIP = value.nip.replace(/\s/g, '');
+        
+        // Trigger validation for NIP
         if (cleanNIP.length === 18) {
+          validateNIP(cleanNIP, employee?.id);
+          
           try {
             // Parse birth date: YYYYMMDD
             const birthDateStr = cleanNIP.substring(0, 8);
@@ -352,11 +361,13 @@ export function EmployeeFormModal({
           } catch (error) {
             console.error('Error parsing NIP:', error);
           }
+        } else {
+          resetNIPValidation();
         }
       }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, validateNIP, resetNIPValidation, employee?.id]);
 
   useEffect(() => {
     // Skip reset if user has modified the form (to prevent losing unsaved changes)
@@ -371,23 +382,42 @@ export function EmployeeFormModal({
       console.log('Religion:', employee.religion);
       console.log('Full employee:', employee);
       
-      // Normalize gender value to match options exactly
+      // Normalize gender value to match options exactly - handle all common variations
       let normalizedGender = employee.gender || '';
       if (normalizedGender) {
         const genderLower = normalizedGender.toLowerCase().trim();
-        if (genderLower === 'l' || genderLower === 'laki-laki' || genderLower === 'laki laki') {
+        if (genderLower === 'l' || genderLower === 'laki-laki' || genderLower === 'laki laki' || 
+            genderLower === 'male' || genderLower === 'pria' || genderLower === '1') {
           normalizedGender = 'Laki-laki';
-        } else if (genderLower === 'p' || genderLower === 'perempuan') {
+        } else if (genderLower === 'p' || genderLower === 'perempuan' || 
+                   genderLower === 'female' || genderLower === 'wanita' || genderLower === '2') {
           normalizedGender = 'Perempuan';
+        } else {
+          // If value doesn't match any known pattern, keep original but log warning
+          console.warn('Unknown gender value:', normalizedGender);
+          normalizedGender = ''; // Reset to empty to force user selection
         }
       }
       
-      // Normalize religion value to match options exactly
+      // Normalize religion value to match options exactly - handle all common variations
       let normalizedReligion = employee.religion || '';
       if (normalizedReligion) {
         const religionLower = normalizedReligion.toLowerCase().trim();
-        // Capitalize first letter to match options
-        normalizedReligion = religionLower.charAt(0).toUpperCase() + religionLower.slice(1);
+        const religionMap: Record<string, string> = {
+          'islam': 'Islam',
+          'kristen': 'Kristen',
+          'katolik': 'Katolik',
+          'hindu': 'Hindu',
+          'buddha': 'Buddha',
+          'budha': 'Buddha',
+          'konghucu': 'Konghucu',
+          'khonghucu': 'Konghucu',
+        };
+        
+        normalizedReligion = religionMap[religionLower] || '';
+        if (!normalizedReligion && employee.religion) {
+          console.warn('Unknown religion value:', employee.religion);
+        }
       }
       
       console.log('Normalized Gender:', normalizedGender);
@@ -460,6 +490,27 @@ export function EmployeeFormModal({
   }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory, initialPlacementNotes, initialAssignmentNotes, initialChangeNotes]);
 
   const handleSubmit = async (data: z.infer<typeof employeeSchema>) => {
+    // Check NIP validation before submit
+    if (data.nip && data.nip.length === 18) {
+      if (nipValidation.isLoading) {
+        toast({
+          variant: 'destructive',
+          title: 'Validasi sedang berjalan',
+          description: 'Mohon tunggu validasi NIP selesai',
+        });
+        return;
+      }
+      
+      if (!nipValidation.isValid) {
+        toast({
+          variant: 'destructive',
+          title: 'NIP tidak valid',
+          description: nipValidation.error || 'NIP sudah terdaftar',
+        });
+        return;
+      }
+    }
+    
     await onSubmit({
       ...data,
       education_history: educationEntries,
@@ -545,8 +596,37 @@ export function EmployeeFormModal({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="nip">NIP (Opsional)</Label>
-                <Input id="nip" placeholder="18 digit NIP" maxLength={18} {...form.register('nip')} />
+                <Input 
+                  id="nip" 
+                  placeholder="18 digit NIP" 
+                  maxLength={18} 
+                  {...form.register('nip')}
+                  onChange={(e) => {
+                    form.register('nip').onChange(e);
+                    const cleanNIP = e.target.value.replace(/\s/g, '');
+                    if (cleanNIP.length === 18) {
+                      validateNIP(cleanNIP, employee?.id);
+                    } else {
+                      resetNIPValidation();
+                    }
+                  }}
+                />
                 {form.formState.errors.nip && <p className="text-xs text-destructive">{form.formState.errors.nip.message}</p>}
+                {nipValidation.isLoading && (
+                  <p className="text-xs text-muted-foreground">
+                    <Loader2 className="inline h-3 w-3 animate-spin mr-1" />
+                    Memeriksa NIP...
+                  </p>
+                )}
+                {!nipValidation.isValid && nipValidation.error && (
+                  <Alert variant="destructive" className="py-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">{nipValidation.error}</AlertDescription>
+                  </Alert>
+                )}
+                {nipValidation.isValid && form.watch('nip')?.length === 18 && !nipValidation.isLoading && (
+                  <p className="text-xs text-green-600">✓ NIP tersedia</p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   💡 NIP 18 digit akan otomatis mengisi Tanggal Lahir, TMT CPNS, dan Jenis Kelamin
                 </p>

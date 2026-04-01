@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, type Department } from '@/lib/constants';
+import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 
 interface NonAsnFormData {
   nip: string;  // Using nip field for NIK
@@ -74,6 +76,9 @@ export function NonAsnFormModal({
   });
 
   const isEditing = !!editData;
+  
+  // Use validation hook
+  const { validateNIK, nikValidation, resetNIKValidation } = useEmployeeValidation({ debounceMs: 500 });
 
   useEffect(() => {
     if (editData) {
@@ -105,7 +110,12 @@ export function NonAsnFormModal({
         keterangan_perubahan: '',
       });
     }
-  }, [editData, userDepartment, open]);
+    
+    // Reset validation when modal opens/closes
+    if (!open) {
+      resetNIKValidation();
+    }
+  }, [editData, userDepartment, open, resetNIKValidation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +128,27 @@ export function NonAsnFormModal({
           variant: 'destructive',
           title: 'Data tidak lengkap',
           description: 'NIK, Nama, Jabatan, dan Unit Kerja wajib diisi',
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Check NIK validation status
+      if (nikValidation.isLoading) {
+        toast({
+          variant: 'destructive',
+          title: 'Validasi sedang berjalan',
+          description: 'Mohon tunggu validasi NIK selesai',
+        });
+        setLoading(false);
+        return;
+      }
+      
+      if (!nikValidation.isValid) {
+        toast({
+          variant: 'destructive',
+          title: 'NIK tidak valid',
+          description: nikValidation.error || 'NIK sudah terdaftar',
         });
         setLoading(false);
         return;
@@ -194,10 +225,35 @@ export function NonAsnFormModal({
             <Input
               id="nip"
               value={formData.nip}
-              onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
-              placeholder="Masukkan NIK"
+              onChange={(e) => {
+                const newNik = e.target.value;
+                setFormData({ ...formData, nip: newNik });
+                // Trigger validation with debounce
+                if (newNik.length === 16) {
+                  validateNIK(newNik, editData?.id);
+                } else {
+                  resetNIKValidation();
+                }
+              }}
+              placeholder="Masukkan NIK (16 digit)"
+              maxLength={16}
               required
             />
+            {nikValidation.isLoading && (
+              <p className="text-xs text-muted-foreground">
+                <Loader2 className="inline h-3 w-3 animate-spin mr-1" />
+                Memeriksa NIK...
+              </p>
+            )}
+            {!nikValidation.isValid && nikValidation.error && (
+              <Alert variant="destructive" className="py-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">{nikValidation.error}</AlertDescription>
+              </Alert>
+            )}
+            {nikValidation.isValid && formData.nip.length === 16 && !nikValidation.isLoading && (
+              <p className="text-xs text-green-600">✓ NIK tersedia</p>
+            )}
           </div>
 
           {/* Nama */}
