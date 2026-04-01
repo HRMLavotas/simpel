@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Import from "./pages/Import";
+import ImportNonAsn from "./pages/ImportNonAsn";
 import Profile from "./pages/Profile";
 import Admins from "./pages/Admins";
 import Departments from "./pages/Departments";
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
             <Route path="/import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
+            <Route path="/import-non-asn" element={<ProtectedRoute><ImportNonAsn /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admins" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
             <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />

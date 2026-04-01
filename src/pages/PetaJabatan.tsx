@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -34,15 +35,15 @@ interface EmployeeMatch {
   name: string;
   front_title: string | null;
   back_title: string | null;
-  nip: string | null;
-  asn_status: string | null;
-  rank_group: string | null;
+  nip?: string | null;
+  asn_status?: string | null;
+  rank_group?: string | null;
   gender: string | null;
-  position_name: string | null;
-  keterangan_formasi: string | null;
-  keterangan_penempatan: string | null;
-  keterangan_penugasan: string | null;
-  keterangan_perubahan: string | null;
+  position_name?: string | null;
+  keterangan_formasi?: string | null;
+  keterangan_penempatan?: string | null;
+  keterangan_penugasan?: string | null;
+  keterangan_perubahan?: string | null;
 }
 
 interface EducationInfo {
@@ -56,11 +57,13 @@ export default function PetaJabatan() {
   const { profile, isAdminPusat, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
 
+  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
     isAdminPusat ? DEPARTMENTS[0] : (profile?.department || '')
   );
   const [positions, setPositions] = useState<PositionReference[]>([]);
   const [employees, setEmployees] = useState<EmployeeMatch[]>([]);
+  const [nonAsnEmployees, setNonAsnEmployees] = useState<EmployeeMatch[]>([]);
   const [educationData, setEducationData] = useState<EducationInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -152,7 +155,7 @@ export default function PetaJabatan() {
         .limit(10);
       console.log('Sample departments in position_references:', allPositions);
       
-      const [posRes, empRes] = await Promise.all([
+      const [posRes, empRes, nonAsnRes] = await Promise.all([
         supabase
           .from('position_references')
           .select('*')
@@ -162,22 +165,32 @@ export default function PetaJabatan() {
         supabase
           .from('employees')
           .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
-          .eq('department', selectedDepartment),
+          .eq('department', selectedDepartment)
+          .or('asn_status.is.null,asn_status.neq.Non ASN'),
+        supabase
+          .from('employees')
+          .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
+          .eq('department', selectedDepartment)
+          .eq('asn_status', 'Non ASN'),
       ]);
 
       console.log('Position query result:', posRes);
       console.log('Employee query result:', empRes);
+      console.log('Non-ASN query result:', nonAsnRes);
 
       if (posRes.error) throw posRes.error;
       if (empRes.error) throw empRes.error;
+      if (nonAsnRes.error) throw nonAsnRes.error;
 
       setPositions(posRes.data || []);
       setEmployees(empRes.data || []);
+      setNonAsnEmployees(nonAsnRes.data || []);
       
       console.log('Positions loaded:', posRes.data?.length || 0);
       console.log('Employees loaded:', empRes.data?.length || 0);
+      console.log('Non-ASN loaded:', nonAsnRes.data?.length || 0);
 
-      // Fetch latest education for each employee
+      // Fetch latest education for each employee (ASN only)
       if (empRes.data && empRes.data.length > 0) {
         const empIds = empRes.data.map(e => e.id);
         const { data: eduData } = await supabase
@@ -510,38 +523,52 @@ export default function PetaJabatan() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle className="text-lg">
-                {selectedDepartment}
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({positions.length} jabatan, {employees.length} pegawai)
-                </span>
-              </CardTitle>
-              
-              {/* Search Input */}
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari jabatan atau nama pegawai..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-8"
-                />
-                {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full w-8"
-                    onClick={() => setSearchQuery('')}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn')} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="asn">
+              Peta Jabatan ASN
+              <span className="ml-2 text-xs">({positions.length} jabatan, {employees.length} pegawai)</span>
+            </TabsTrigger>
+            <TabsTrigger value="non-asn">
+              Formasi Non-ASN
+              <span className="ml-2 text-xs">({nonAsnEmployees.length} pegawai)</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab ASN */}
+          <TabsContent value="asn">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="text-lg">
+                    {selectedDepartment}
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">
+                      ({positions.length} jabatan, {employees.length} pegawai ASN)
+                    </span>
+                  </CardTitle>
+                  
+                  {/* Search Input */}
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Cari jabatan atau nama pegawai..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-8"
+                    />
+                    {searchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full w-8"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -679,6 +706,81 @@ export default function PetaJabatan() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      {/* Tab Non-ASN */}
+      <TabsContent value="non-asn">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Formasi Non-ASN - {selectedDepartment}
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({nonAsnEmployees.length} pegawai Non-ASN)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            ) : (
+              <div className="rounded-lg border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">No</TableHead>
+                      <TableHead className="w-[140px]">NIK/NIP</TableHead>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Jabatan</TableHead>
+                      <TableHead className="w-32">Jenis Kelamin</TableHead>
+                      <TableHead className="w-40">Type Non ASN</TableHead>
+                      <TableHead>Deskripsi Tugas</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {nonAsnEmployees.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          Belum ada data pegawai Non-ASN di unit kerja ini.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      nonAsnEmployees.map((emp, idx) => {
+                        return (
+                          <TableRow key={emp.id}>
+                            <TableCell className="text-center font-medium">{idx + 1}</TableCell>
+                            <TableCell className="font-mono text-xs">{emp.nip || '-'}</TableCell>
+                            <TableCell className="font-medium">
+                              {[emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ')}
+                            </TableCell>
+                            <TableCell>{emp.position_name || '-'}</TableCell>
+                            <TableCell className="text-sm">{emp.gender || '-'}</TableCell>
+                            <TableCell>
+                              <span className={cn(
+                                "inline-block px-2 py-1 rounded text-xs font-medium",
+                                emp.rank_group === 'Tenaga Alih Daya' 
+                                  ? "bg-blue-100 text-blue-800" 
+                                  : "bg-purple-100 text-purple-800"
+                              )}>
+                                {emp.rank_group || 'Tenaga Alih Daya'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm max-w-xs truncate" title={emp.keterangan_penugasan || '-'}>
+                              {emp.keterangan_penugasan || '-'}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
       </div>
 
       {/* Add/Edit Modal */}

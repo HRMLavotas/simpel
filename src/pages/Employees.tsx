@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeFormModal, type EmployeeFormData } from '@/components/employees/EmployeeFormModal';
+import { NonAsnFormModal } from '@/components/employees/NonAsnFormModal';
 import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog';
 import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
 import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
@@ -160,6 +161,7 @@ export default function Employees() {
   });
   
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [nonAsnModalOpen, setNonAsnModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -319,6 +321,12 @@ export default function Employees() {
 
   const handleEditEmployee = async (employee: Employee) => {
     setSelectedEmployee(employee);
+    
+    // Check if this is a Non-ASN employee
+    if (employee.asn_status === 'Non ASN') {
+      setNonAsnModalOpen(true);
+      return;
+    }
     
     const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
@@ -856,9 +864,28 @@ export default function Employees() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
-              <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
-                <Plus className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Tambah Pegawai</span><span className="sm:hidden">Tambah</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="text-xs sm:text-sm">
+                    <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Tambah Pegawai</span>
+                    <span className="sm:hidden">Tambah</span>
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Pilih Jenis Pegawai</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleAddEmployee}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Data ASN
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setNonAsnModalOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Data Non-ASN
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
@@ -1054,6 +1081,15 @@ export default function Employees() {
         initialPlacementNotes={selectedPlacementNotes}
         initialAssignmentNotes={selectedAssignmentNotes}
         initialChangeNotes={selectedChangeNotes}
+      />
+
+      <NonAsnFormModal
+        open={nonAsnModalOpen}
+        onOpenChange={setNonAsnModalOpen}
+        onSuccess={fetchEmployees}
+        editData={selectedEmployee?.asn_status === 'Non ASN' ? selectedEmployee : undefined}
+        userDepartment={profile?.department}
+        isAdminPusat={isAdminPusat}
       />
 
       <ChangeLogDialog
