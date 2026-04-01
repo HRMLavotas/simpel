@@ -102,6 +102,10 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
     setIsSubmitting(true);
 
     try {
+      console.log('=== UPDATING ADMIN ===');
+      console.log('Admin ID:', admin.id);
+      console.log('New data:', formData);
+      
       // Update profile directly in database
       const { error: profileError } = await supabase
         .from('profiles')
@@ -112,8 +116,10 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
         .eq('id', admin.id);
 
       if (profileError) {
+        console.error('Profile update error:', profileError);
         throw new Error(profileError.message);
       }
+      console.log('✅ Profile updated successfully');
 
       // Update role directly in database
       const { error: roleError } = await supabase
@@ -122,8 +128,10 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
         .eq('user_id', admin.id);
 
       if (roleError) {
+        console.error('Role update error:', roleError);
         throw new Error(roleError.message);
       }
+      console.log('✅ Role updated successfully');
 
       toast({
         title: 'Berhasil',
