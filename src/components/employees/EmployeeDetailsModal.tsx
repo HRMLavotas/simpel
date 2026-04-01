@@ -291,10 +291,10 @@ export function EmployeeDetailsModal({
                 count={education.length}
                 isExpanded={expandedSections.education}
                 onToggle={() => toggleSection('education')}
-                preview={`Terbaru: ${[...education].reverse()[0]?.level || '-'} ${[...education].reverse()[0]?.major || ''}`}
+                preview={`Pendidikan Terakhir: ${education[education.length - 1]?.level || '-'} ${education[education.length - 1]?.major || ''}`}
               >
                 <div className="space-y-3">
-                  {[...education].reverse().map((edu, idx) => (
+                  {education.map((edu, idx) => (
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start gap-2">
                         <Badge variant="secondary" className="mt-0.5">{edu.level}</Badge>
@@ -329,13 +329,13 @@ export function EmployeeDetailsModal({
                     <div key={idx} className="p-3 rounded-lg border bg-muted/30">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
-                        {hist.unit_kerja && (
-                          <Badge variant="secondary" className="text-xs">{hist.unit_kerja}</Badge>
-                        )}
                       </div>
                       <div className="space-y-1 text-sm">
                         {hist.jabatan_baru && (
                           <p><span className="font-medium">{hist.jabatan_baru}</span></p>
+                        )}
+                        {hist.unit_kerja && (
+                          <p className="text-muted-foreground text-xs">{hist.unit_kerja}</p>
                         )}
                         {hist.nomor_sk && (
                           <p className="text-xs text-muted-foreground">SK: {hist.nomor_sk}</p>
@@ -411,6 +411,79 @@ export function EmployeeDetailsModal({
                         )}
                         {hist.nomor_sk && (
                           <p className="text-xs text-muted-foreground">SK: {hist.nomor_sk}</p>
+                        )}
+                        {hist.keterangan && (
+                          <p className="text-xs text-muted-foreground italic">{hist.keterangan}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            )}
+
+            {/* Riwayat Uji Kompetensi */}
+            {competencyHistory.length > 0 && (
+              <CollapsibleSection
+                icon={Award}
+                title="Riwayat Uji Kompetensi"
+                count={competencyHistory.length}
+                isExpanded={expandedSections.competency}
+                onToggle={() => toggleSection('competency')}
+                preview={`Terbaru: ${[...competencyHistory].reverse()[0]?.jenis_uji || '-'}`}
+              >
+                <div className="space-y-3">
+                  {[...competencyHistory].reverse().map((hist, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border bg-muted/30">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <Badge variant="outline" className="text-xs">{formatDate(hist.tanggal || null)}</Badge>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {hist.jenis_uji && (
+                          <p><span className="font-medium">{hist.jenis_uji}</span></p>
+                        )}
+                        {hist.hasil && (
+                          <p className="text-muted-foreground">Hasil: {hist.hasil}</p>
+                        )}
+                        {hist.keterangan && (
+                          <p className="text-xs text-muted-foreground italic">{hist.keterangan}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            )}
+
+            {/* Riwayat Diklat */}
+            {trainingHistory.length > 0 && (
+              <CollapsibleSection
+                icon={GraduationCap}
+                title="Riwayat Diklat"
+                count={trainingHistory.length}
+                isExpanded={expandedSections.training}
+                onToggle={() => toggleSection('training')}
+                preview={`Terbaru: ${[...trainingHistory].reverse()[0]?.nama_diklat || '-'}`}
+              >
+                <div className="space-y-3">
+                  {[...trainingHistory].reverse().map((hist, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border bg-muted/30">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          {hist.tanggal_mulai && hist.tanggal_selesai 
+                            ? `${formatDate(hist.tanggal_mulai)} - ${formatDate(hist.tanggal_selesai)}`
+                            : formatDate(hist.tanggal_mulai || null)}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {hist.nama_diklat && (
+                          <p><span className="font-medium">{hist.nama_diklat}</span></p>
+                        )}
+                        {hist.penyelenggara && (
+                          <p className="text-muted-foreground text-xs">Penyelenggara: {hist.penyelenggara}</p>
+                        )}
+                        {hist.sertifikat && (
+                          <p className="text-xs text-muted-foreground">Sertifikat: {hist.sertifikat}</p>
                         )}
                         {hist.keterangan && (
                           <p className="text-xs text-muted-foreground italic">{hist.keterangan}</p>
