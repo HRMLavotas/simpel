@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
 
+import { ChartDataItem } from '@/types/chart';
+
 interface ChartWrapperProps {
   title: string;
   description?: string;
-  data: any[];
+  data: ChartDataItem[];
   children: React.ReactNode;
 }
 

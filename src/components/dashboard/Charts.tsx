@@ -195,7 +195,7 @@ export function AsnPieChart({ data }: AsnPieChartProps) {
             />
             <Legend 
               wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
-              formatter={(value, entry: any) => {
+              formatter={(value: string) => {
                 const item = data.find(d => d.name === value);
                 return `${value} (${item?.value || 0})`;
               }}
@@ -394,7 +394,7 @@ export function PositionTypePieChart({ data }: PositionTypePieChartProps) {
             />
             <Legend 
               wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
-              formatter={(value, entry: any) => {
+              formatter={(value: string) => {
                 const item = data.find(d => d.type === value);
                 return `${value} (${item?.count || 0})`;
               }}
@@ -512,7 +512,7 @@ export function GenderPieChart({ data }: GenderPieChartProps) {
               verticalAlign="bottom"
               height={36}
               wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
-              formatter={(value, entry: any) => {
+              formatter={(value: string) => {
                 const item = data.find(d => d.gender === value);
                 return `${value} (${item?.count || 0})`;
               }}
@@ -579,7 +579,7 @@ export function ReligionPieChart({ data }: ReligionPieChartProps) {
               verticalAlign="bottom"
               height={36}
               wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
-              formatter={(value, entry: any) => {
+              formatter={(value: string) => {
                 const item = data.find(d => d.religion === value);
                 return `${value} (${item?.count || 0})`;
               }}

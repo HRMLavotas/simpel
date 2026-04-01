@@ -46,6 +46,7 @@ import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { HistoryRowData, NoteData } from '@/types/employee';
 
 interface Employee {
   id: string;
@@ -332,10 +333,13 @@ export default function Employees() {
     }
   };
 
-  const mapHistoryRows = (data: any[], fields: string[]): HistoryEntry[] => {
-    return (data || []).map((d: any) => {
+  const mapHistoryRows = (data: HistoryRowData[], fields: string[]): HistoryEntry[] => {
+    return (data || []).map((d) => {
       const entry: HistoryEntry = { id: d.id };
-      fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
+      fields.forEach(f => { 
+        const value = d[f];
+        entry[f] = value?.toString() || ''; 
+      });
       return entry;
     });
   };
@@ -362,7 +366,7 @@ export default function Employees() {
     ]);
 
     setSelectedEducation(
-      (eduRes.data || []).map((d: any) => ({
+      (eduRes.data || []).map((d) => ({
         id: d.id, level: d.level || '', institution_name: d.institution_name || '',
         major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
         front_title: d.front_title || '', back_title: d.back_title || '',
@@ -375,9 +379,18 @@ export default function Employees() {
     setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
     
     // Map notes data
-    setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-    setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedPlacementNotes((placementRes.data || []).map((d: NoteData) => ({ 
+      id: d.id, 
+      note: d.note || '' 
+    })));
+    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: NoteData) => ({ 
+      id: d.id, 
+      note: d.note || '' 
+    })));
+    setSelectedChangeNotes((changeRes.data || []).map((d: NoteData) => ({ 
+      id: d.id, 
+      note: d.note || '' 
+    })));
     
     setFormModalOpen(true);
   };
@@ -416,9 +429,9 @@ export default function Employees() {
     setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
     setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
     
-    setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-    setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+    setSelectedPlacementNotes((placementRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+    setSelectedAssignmentNotes((assignmentRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+    setSelectedChangeNotes((changeRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
     
     logger.debug('=== NOTES DATA FOR DETAILS MODAL ===');
     logger.debug('Placement notes:', placementRes.data);
@@ -452,7 +465,7 @@ export default function Employees() {
     const rows = entries
       .filter(e => fieldKeys.some(k => e[k]))
       .map((e, index, array) => {
-        const row: any = { employee_id: employeeId };
+        const row: Record<string, string | number | null> = { employee_id: employeeId };
         
         // First, copy all fields from the entry
         fieldKeys.forEach(k => {
@@ -747,7 +760,7 @@ export default function Employees() {
           ]);
 
           setSelectedEducation(
-            (eduRes.data || []).map((d: any) => ({
+            (eduRes.data || []).map((d) => ({
               id: d.id, level: d.level || '', institution_name: d.institution_name || '',
               major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
               front_title: d.front_title || '', back_title: d.back_title || '',
@@ -791,8 +804,9 @@ export default function Employees() {
           });
         }, 500);
       }
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message || 'Gagal menyimpan data pegawai' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal menyimpan data pegawai';
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -834,8 +848,9 @@ export default function Employees() {
       toast({ title: 'Berhasil', description: 'Data pegawai berhasil dihapus' });
       setDeleteDialogOpen(false);
       fetchEmployees();
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message || 'Gagal menghapus data pegawai' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal menghapus data pegawai';
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
       setIsSubmitting(false);
     }

@@ -90,7 +90,17 @@ const getStatusBadge = (status: string | null) => {
   }
 };
 
-const InfoItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | React.ReactNode }) => (
+import { LucideIcon } from 'lucide-react';
+
+const InfoItem = ({ 
+  icon: Icon, 
+  label, 
+  value 
+}: { 
+  icon: LucideIcon; 
+  label: string; 
+  value: string | React.ReactNode;
+}) => (
   <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
     <div className="mt-0.5 text-muted-foreground">
       <Icon className="h-4 w-4" />
@@ -111,7 +121,7 @@ const CollapsibleSection = ({
   children,
   preview 
 }: { 
-  icon: any; 
+  icon: React.ComponentType<{ className?: string }>; 
   title: string; 
   count: number; 
   isExpanded: boolean; 

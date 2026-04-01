@@ -332,7 +332,7 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
                     verticalAlign="bottom"
                     height={36}
                     wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
-                    formatter={(value, entry: any) => {
+                    formatter={(value: string) => {
                       const item = sortedData.find(d => d.level === value);
                       return `${value} (${item?.count || 0})`;
                     }}

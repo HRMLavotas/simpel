@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AVAILABLE_COLUMNS } from './ColumnSelector';
 import { Users, BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Legend } from 'recharts';
+import { TooltipProps, YAxisTickProps } from '@/types/chart';
 
 const CHART_COLORS = [
   'hsl(217, 91%, 60%)',   // primary
@@ -44,7 +45,9 @@ function groupBy(data: Record<string, unknown>[], field: string): { name: string
 }
 
 // Custom tooltip for better readability
-const CustomTooltip = ({ active, payload, totalData }: any) => {
+import { TooltipProps } from '@/types/chart';
+
+const CustomTooltip = ({ active, payload, totalData }: TooltipProps & { totalData: number }) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     const percentage = ((data.value / totalData) * 100).toFixed(1);
@@ -70,7 +73,9 @@ const truncateText = (text: string, maxLength: number = 30) => {
 };
 
 // Custom YAxis tick for bar chart
-const CustomYAxisTick = ({ x, y, payload }: any) => {
+import { YAxisTickProps } from '@/types/chart';
+
+const CustomYAxisTick = ({ x, y, payload }: YAxisTickProps) => {
   return (
     <g transform={`translate(${x},${y})`}>
       <text
@@ -80,9 +85,9 @@ const CustomYAxisTick = ({ x, y, payload }: any) => {
         textAnchor="end"
         fill="hsl(215, 16%, 47%)"
         fontSize={11}
-        title={payload.value}
+        title={String(payload.value)}
       >
-        {truncateText(payload.value, 25)}
+        {truncateText(String(payload.value), 25)}
       </text>
     </g>
   );
