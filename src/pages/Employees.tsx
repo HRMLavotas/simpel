@@ -535,6 +535,27 @@ export default function Employees() {
         }
       }
 
+      // Determine the latest position from position history
+      let finalPositionName = data.position_name;
+      let positionChanged = false;
+      
+      if (data.position_history && data.position_history.length > 0) {
+        // Sort by date to get the latest position
+        const sortedPositions = [...data.position_history]
+          .filter(p => p.tanggal && p.jabatan_baru)
+          .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+        
+        if (sortedPositions.length > 0) {
+          const newPosition = sortedPositions[0].jabatan_baru || data.position_name;
+          positionChanged = selectedEmployee && newPosition !== selectedEmployee.position_name;
+          finalPositionName = newPosition;
+          console.log('Auto-updating position_name from latest position history:', finalPositionName);
+          if (positionChanged) {
+            console.log(`Position changed from ${selectedEmployee?.position_name} to ${finalPositionName}`);
+          }
+        }
+      }
+
       const employeeData = {
         nip: data.nip || null,
         name: data.name,
@@ -545,7 +566,7 @@ export default function Employees() {
         gender: data.gender || null,
         religion: data.religion || null,
         position_type: data.position_type || null,
-        position_name: data.position_name || null,
+        position_name: finalPositionName, // Use the latest position from position_history
         asn_status: data.asn_status,
         rank_group: data.rank_group || null,
         department: finalDepartment, // Use the latest department from mutation
@@ -565,10 +586,15 @@ export default function Employees() {
         if (error) throw error;
         employeeId = selectedEmployee.id;
 
-        if (departmentChanged) {
+        // Build notification message based on changes
+        const changes: string[] = [];
+        if (positionChanged) changes.push(`Jabatan: ${finalPositionName}`);
+        if (departmentChanged) changes.push(`Unit: ${finalDepartment}`);
+        
+        if (changes.length > 0) {
           toast({ 
             title: 'Berhasil', 
-            description: `Data pegawai berhasil diperbarui. Pegawai telah dipindahkan ke ${finalDepartment}.` 
+            description: `Data pegawai berhasil diperbarui. ${changes.join(' | ')}` 
           });
         } else {
           toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
@@ -584,7 +610,16 @@ export default function Employees() {
           throw error;
         }
         employeeId = inserted.id;
-        toast({ title: 'Berhasil', description: 'Pegawai baru berhasil ditambahkan' });
+        
+        // For new employee, show position if set from history
+        if (finalPositionName) {
+          toast({ 
+            title: 'Berhasil', 
+            description: `Pegawai baru berhasil ditambahkan dengan jabatan: ${finalPositionName}` 
+          });
+        } else {
+          toast({ title: 'Berhasil', description: 'Pegawai baru berhasil ditambahkan' });
+        }
       }
 
       // Handle education history
@@ -655,6 +690,52 @@ export default function Employees() {
       // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
       if (changes.length > 0) {
         await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
+      }
+
+      // Refresh the employee data and history if we're editing (to show updated position_name in form)
+      if (selectedEmployee) {
+        const { data: updatedEmployee } = await supabase
+          .from('employees')
+          .select('*')
+          .eq('id', employeeId)
+          .single();
+        
+        if (updatedEmployee) {
+          setSelectedEmployee(updatedEmployee as Employee);
+          console.log('Updated selectedEmployee with latest data:', updatedEmployee);
+          
+          // Reload all history data to reflect changes
+          const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+            supabase.from('education_history').select('*').eq('employee_id', employeeId).order('graduation_year', { ascending: true }),
+            supabase.from('mutation_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
+            supabase.from('position_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
+            supabase.from('rank_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
+            supabase.from('competency_test_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
+            supabase.from('training_history').select('*').eq('employee_id', employeeId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+            supabase.from('placement_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
+            supabase.from('assignment_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
+            supabase.from('change_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
+          ]);
+
+          setSelectedEducation(
+            (eduRes.data || []).map((d: any) => ({
+              id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+              major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+              front_title: d.front_title || '', back_title: d.back_title || '',
+            }))
+          );
+          setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
+          setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+          setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+          setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+          setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+          
+          setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+          setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+          setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+          
+          console.log('Reloaded all history data after save');
+        }
       }
 
       setFormModalOpen(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -76,6 +76,9 @@ export default function PetaJabatan() {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Debug mode state
+  const [showDebug, setShowDebug] = useState(false);
+
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
   const [formName, setFormName] = useState('');
@@ -105,6 +108,39 @@ export default function PetaJabatan() {
     }, 30000); // 30 seconds
     
     return () => clearInterval(interval);
+  }, [selectedDepartment]);
+
+  // Real-time subscription for employee changes
+  useEffect(() => {
+    if (!selectedDepartment) return;
+
+    console.log('Setting up real-time subscription for employees in:', selectedDepartment);
+    
+    const channel = supabase
+      .channel(`employees-${selectedDepartment}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employees'
+        },
+        (payload) => {
+          console.log('Employee change detected:', payload);
+          // Check if the change is relevant to current department
+          const record = payload.new || payload.old;
+          if (record && (record as any).department === selectedDepartment) {
+            console.log('Change is for current department, refreshing...');
+            fetchData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
   }, [selectedDepartment]);
 
   const fetchData = async () => {
@@ -176,8 +212,41 @@ export default function PetaJabatan() {
   };
 
   const getMatchingEmployees = (positionName: string) => {
-    const norm = positionName.trim().toLowerCase();
-    return employees.filter(e => e.position_name?.trim().toLowerCase() === norm);
+    // Normalize: trim, lowercase, and collapse multiple spaces into one
+    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+    const norm = normalize(positionName);
+    
+    const matched = employees.filter(e => {
+      if (!e.position_name) return false;
+      const empNorm = normalize(e.position_name);
+      const isMatch = empNorm === norm;
+      
+      // Debug logging for this specific position
+      if (positionName.toLowerCase().includes('arsiparis')) {
+        console.log(`Checking employee: ${e.name}`);
+        console.log(`  Position in DB: "${e.position_name}"`);
+        console.log(`  Normalized: "${empNorm}"`);
+        console.log(`  Looking for: "${norm}"`);
+        console.log(`  Match: ${isMatch}`);
+      }
+      
+      return isMatch;
+    });
+    
+    // Debug logging to help identify matching issues
+    if (matched.length === 0 && positionName.toLowerCase().includes('arsiparis')) {
+      console.log(`❌ No match for position: "${positionName}" (normalized: "${norm}")`);
+      console.log('All employee positions in this department:');
+      employees.forEach(e => {
+        if (e.position_name) {
+          console.log(`  - ${e.name}: "${e.position_name}" (normalized: "${normalize(e.position_name)}")`);
+        }
+      });
+    } else if (matched.length > 0 && positionName.toLowerCase().includes('arsiparis')) {
+      console.log(`✅ Found ${matched.length} match(es) for "${positionName}":`, matched.map(e => e.name));
+    }
+    
+    return matched;
   };
 
   // Group positions by category with search filter
@@ -422,6 +491,23 @@ export default function PetaJabatan() {
                 </SelectContent>
               </Select>
             )}
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => fetchData()} 
+              disabled={isLoading}
+              title="Refresh data"
+            >
+              <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowDebug(!showDebug)} 
+              title="Toggle debug info"
+            >
+              {showDebug ? 'Hide' : 'Show'} Debug
+            </Button>
             <Button variant="outline" onClick={handleExport} disabled={positions.length === 0} className="text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
@@ -441,7 +527,7 @@ export default function PetaJabatan() {
               <CardTitle className="text-lg">
                 {selectedDepartment}
                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({positions.length} jabatan)
+                  ({positions.length} jabatan, {employees.length} pegawai)
                 </span>
               </CardTitle>
               
@@ -468,6 +554,48 @@ export default function PetaJabatan() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Debug Panel */}
+            {showDebug && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
+                <h3 className="font-semibold text-sm">Debug Info</h3>
+                <div className="text-xs space-y-1">
+                  <p><strong>Total Positions:</strong> {positions.length}</p>
+                  <p><strong>Total Employees:</strong> {employees.length}</p>
+                  <div className="mt-2">
+                    <strong>Employees in this department:</strong>
+                    <ul className="ml-4 mt-1 space-y-1">
+                      {employees.map(emp => (
+                        <li key={emp.id}>
+                          {emp.name} → Position: "{emp.position_name || '(kosong)'}"
+                          <br />
+                          <span className="text-muted-foreground ml-4">
+                            Normalized: "{emp.position_name ? emp.position_name.trim().toLowerCase().replace(/\s+/g, ' ') : ''}"
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="mt-2">
+                    <strong>Positions in peta jabatan:</strong>
+                    <ul className="ml-4 mt-1 space-y-1">
+                      {positions.map(pos => {
+                        const matched = getMatchingEmployees(pos.position_name);
+                        return (
+                          <li key={pos.id}>
+                            {pos.position_name} → Matched: {matched.length} ({matched.map(e => e.name).join(', ') || 'none'})
+                            <br />
+                            <span className="text-muted-foreground ml-4">
+                              Normalized: "{pos.position_name.trim().toLowerCase().replace(/\s+/g, ' ')}"
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -543,7 +671,12 @@ export default function PetaJabatan() {
                                 {positionNo}
                               </TableCell>
                               <TableCell rowSpan={row.rowSpan} className="font-medium align-top">
-                                {pos.position_name}
+                                <div className="flex flex-col">
+                                  <span>{pos.position_name}</span>
+                                  <span className="text-xs text-muted-foreground font-normal">
+                                    Mencari: "{pos.position_name.trim().toLowerCase().replace(/\s+/g, ' ')}"
+                                  </span>
+                                </div>
                               </TableCell>
                               <TableCell rowSpan={row.rowSpan} className="text-center align-top">
                                 {pos.grade || '-'}
