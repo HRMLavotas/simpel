@@ -10,6 +10,7 @@ import Employees from "./pages/Employees";
 import Import from "./pages/Import";
 import Profile from "./pages/Profile";
 import Admins from "./pages/Admins";
+import Departments from "./pages/Departments";
 import DataBuilder from "./pages/DataBuilder";
 import PetaJabatan from "./pages/PetaJabatan";
 import NotFound from "./pages/NotFound";
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admins" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
+            <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
             <Route path="/peta-jabatan" element={<ProtectedRoute><PetaJabatan /></ProtectedRoute>} />
             <Route path="/data-builder" element={<ProtectedRoute><DataBuilder /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

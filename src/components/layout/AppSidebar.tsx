@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X } from 'lucide-react';
+import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
+  { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Profile', href: '/profile', icon: User },
 ];
 
