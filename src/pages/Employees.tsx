@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -145,6 +146,7 @@ export default function Employees() {
   const { profile, isAdminPusat, user, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
   
+  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -234,6 +236,11 @@ export default function Employees() {
 
   const filteredEmployees = useMemo(() => {
     const filtered = employees.filter((emp) => {
+      // Filter by active tab (ASN vs Non-ASN)
+      const matchesTab = activeTab === 'asn' 
+        ? emp.asn_status !== 'Non ASN' 
+        : emp.asn_status === 'Non ASN';
+      
       const displayName = formatDisplayName(emp).toLowerCase();
       const matchesSearch = 
         displayName.includes(searchQuery.toLowerCase()) ||
@@ -241,16 +248,17 @@ export default function Employees() {
         (emp.position_name && emp.position_name.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesStatus = statusFilter === 'all' || emp.asn_status === statusFilter;
       const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || emp.department === departmentFilter;
-      return matchesSearch && matchesStatus && matchesDepartment;
+      return matchesTab && matchesSearch && matchesStatus && matchesDepartment;
     });
     
     console.log('=== FILTERED EMPLOYEES ===');
+    console.log('Active tab:', activeTab);
     console.log('Total employees:', employees.length);
     console.log('Department filter:', departmentFilter);
     console.log('Filtered count:', filtered.length);
     
     return filtered;
-  }, [employees, searchQuery, statusFilter, departmentFilter, isAdminPusat]);
+  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, isAdminPusat]);
 
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
   const paginatedEmployees = filteredEmployees.slice(
@@ -288,7 +296,7 @@ export default function Employees() {
     return groups;
   }, [paginatedEmployees]);
 
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, statusFilter, departmentFilter]);
+  useEffect(() => { setCurrentPage(1); }, [activeTab, searchQuery, statusFilter, departmentFilter]);
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories(prev => ({
@@ -308,7 +316,13 @@ export default function Employees() {
     setSelectedPlacementNotes([]);
     setSelectedAssignmentNotes([]);
     setSelectedChangeNotes([]);
-    setFormModalOpen(true);
+    
+    // Open appropriate modal based on active tab
+    if (activeTab === 'non-asn') {
+      setNonAsnModalOpen(true);
+    } else {
+      setFormModalOpen(true);
+    }
   };
 
   const mapHistoryRows = (data: any[], fields: string[]): HistoryEntry[] => {
@@ -864,28 +878,36 @@ export default function Employees() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="text-xs sm:text-sm">
-                    <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Tambah Pegawai</span>
-                    <span className="sm:hidden">Tambah</span>
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Pilih Jenis Pegawai</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleAddEmployee}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Data ASN
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setNonAsnModalOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Data Non-ASN
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              activeTab === 'asn' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="text-xs sm:text-sm">
+                      <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Tambah Pegawai</span>
+                      <span className="sm:hidden">Tambah</span>
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Pilih Jenis Pegawai</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleAddEmployee}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Tambah Data ASN
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setNonAsnModalOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Tambah Data Non-ASN
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
+                  <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Tambah Pegawai Non-ASN</span>
+                  <span className="sm:hidden">Tambah</span>
+                </Button>
+              )
             )}
           </div>
         </div>
@@ -913,6 +935,31 @@ export default function Employees() {
           )}
         </div>
 
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn')} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="asn">
+              Data ASN
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({employees.filter(e => {
+                  const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
+                  const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || e.department === departmentFilter;
+                  return e.asn_status !== 'Non ASN' && matchesStatus && matchesDepartment;
+                }).length})
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="non-asn">
+              Data Non-ASN
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({employees.filter(e => {
+                  const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
+                  const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || e.department === departmentFilter;
+                  return e.asn_status === 'Non ASN' && matchesStatus && matchesDepartment;
+                }).length})
+              </span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={activeTab} className="mt-6">
         <div className="rounded-lg border bg-card overflow-hidden">
           <div className="overflow-x-auto">
           <Table>
@@ -1049,6 +1096,8 @@ export default function Employees() {
             </div>
           )}
         </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <EmployeeDetailsModal

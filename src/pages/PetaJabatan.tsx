@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -127,10 +135,33 @@ export default function PetaJabatan() {
         },
         (payload) => {
           console.log('Employee change detected:', payload);
-          // Check if the change is relevant to current department
-          const record = payload.new || payload.old;
-          if (record && (record as any).department === selectedDepartment) {
-            console.log('Change is for current department, refreshing...');
+          
+          // For INSERT and UPDATE: check new record
+          // For DELETE: check old record
+          // For UPDATE (pindah unit): check both old and new department
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
+          
+          let shouldRefresh = false;
+          
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            // Check if new department matches current selected department
+            if (newRecord && newRecord.department === selectedDepartment) {
+              shouldRefresh = true;
+              console.log('New/Updated record is for current department');
+            }
+          }
+          
+          if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
+            // Check if old department matches current selected department
+            if (oldRecord && oldRecord.department === selectedDepartment) {
+              shouldRefresh = true;
+              console.log('Deleted/Old record was from current department');
+            }
+          }
+          
+          if (shouldRefresh) {
+            console.log('Refreshing Peta Jabatan data...');
             fetchData();
           }
         }
@@ -353,6 +384,31 @@ export default function PetaJabatan() {
       const { error } = await supabase.from('position_references').delete().eq('id', id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Jabatan berhasil dihapus' });
+      fetchData();
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    }
+  };
+
+  const handleEditNonAsnEmployee = (employee: EmployeeMatch) => {
+    // Redirect to Data Pegawai page with employee ID
+    // Or open a modal to edit employee
+    toast({ 
+      title: 'Info', 
+      description: 'Untuk mengedit pegawai Non-ASN, silakan buka menu Data Pegawai → Tab Non-ASN',
+      duration: 5000
+    });
+  };
+
+  const handleDeleteNonAsnEmployee = async (employee: EmployeeMatch) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus pegawai ${employee.name}?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('employees').delete().eq('id', employee.id);
+      if (error) throw error;
+      toast({ title: 'Berhasil', description: 'Pegawai Non-ASN berhasil dihapus' });
       fetchData();
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
@@ -676,14 +732,29 @@ export default function PetaJabatan() {
                           )}
                           {isAdminPusat && row.isFirst && (
                             <TableCell rowSpan={row.rowSpan} className="align-top">
-                              <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModal(pos)}>
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(pos.id)}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => openEditModal(pos)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Jabatan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDelete(pos.id)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Hapus
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           )}
                         </TableRow>
@@ -741,12 +812,13 @@ export default function PetaJabatan() {
                       <TableHead>Nama Pemangku</TableHead>
                       <TableHead className="w-40">Type Non ASN</TableHead>
                       <TableHead className="w-32">Status</TableHead>
+                      {isAdminPusat && <TableHead className="w-20">Aksi</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {nonAsnEmployees.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={isAdminPusat ? 8 : 7} className="text-center py-8 text-muted-foreground">
                           Belum ada data pegawai Non-ASN di unit kerja ini.
                         </TableCell>
                       </TableRow>
@@ -809,6 +881,33 @@ export default function PetaJabatan() {
                                     </span>
                                   </TableCell>
                                 )}
+                                <TableCell>
+                                  {isAdminPusat && (
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleEditNonAsnEmployee(emp)}>
+                                          <Pencil className="mr-2 h-4 w-4" />
+                                          Edit Pegawai
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem 
+                                          onClick={() => handleDeleteNonAsnEmployee(emp)}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Hapus
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  )}
+                                </TableCell>
                               </TableRow>
                             );
                           });
