@@ -22,6 +22,7 @@ import {
   normalizeImportValue, type Department,
 } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 // ============ SHARED TYPES ============
 
@@ -243,7 +244,7 @@ export default function Import() {
         
         const deptNames = (data || []).map(d => d.name);
         setAvailableDepartments(deptNames);
-        console.log('Available departments from database (Import ASN):', deptNames);
+        logger.debug('Available departments from database (Import ASN):', deptNames);
       } catch (error: any) {
         console.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
@@ -282,16 +283,16 @@ export default function Import() {
       const strukturalKeywords = ['direktur', 'kepala', 'sekretaris', 'kasubag', 'kabag'];
       const pelaksanaKeywords = ['penelaah', 'penata', 'pengadministrasi', 'pengolah', 'pengumpul', 'penyusun', 'pengelola', 'petugas', 'dokumentalis'];
       
-      console.log('Starting parse, total rows:', rows.length);
+      logger.debug('Starting parse, total rows:', rows.length);
       
       // Debug: log first 10 rows to see structure
-      console.log('First 10 rows structure:');
+      logger.debug('First 10 rows structure:');
       rows.slice(0, 10).forEach((row, i) => {
         const no = findCol(row, 'No', 'no', '__EMPTY');
         const jabatanSK = findCol(row, 'Jabatan Sesuai SK', 'Jabatan SK');
         const jabatanKepmen = findCol(row, 'Jabatan Sesuai Kepmen 202 Tahun 2024', 'Nama Jabatan', 'Jabatan', 'position_name');
         const nama = findCol(row, 'Nama Pemangku', 'Nama Lengkap', 'Nama', 'name');
-        console.log(`Row ${i}:`, { no, jabatanSK, jabatanKepmen, nama });
+        logger.debug(`Row ${i}:`, { no, jabatanSK, jabatanKepmen, nama });
       });
 
       for (const row of rows) {
@@ -313,7 +314,7 @@ export default function Import() {
             allValues.includes('MASUK KE STANKOM =') ||
             allValues.includes('PENDIDIKAN ASN') && allValues.includes('JML') ||
             allValues.includes('JENIS KELAMIN') && allValues.includes('JML PEG')) {
-          console.log('⏭️ Skipping summary/reference row:', allValues.substring(0, 50));
+          logger.debug('⏭️ Skipping summary/reference row:', allValues.substring(0, 50));
           skippedRows++;
           continue;
         }
@@ -324,7 +325,7 @@ export default function Import() {
             trimmedValues.match(/^(II|III|IV|V|VI|VII|VIII|IX) \d+$/i) ||
             trimmedValues.match(/^(L|P) \d+ \d+$/i) || // L 28 26 atau P 26 28
             trimmedValues.match(/^\d+ \d+$/)) { // Hanya 2 angka
-          console.log('⏭️ Skipping summary row:', trimmedValues.substring(0, 30));
+          logger.debug('⏭️ Skipping summary row:', trimmedValues.substring(0, 30));
           skippedRows++;
           continue;
         }
@@ -340,30 +341,30 @@ export default function Import() {
           // Hanya cek kategori jika tidak ada nama pegawai
           if (noCol.includes('STRUKTURAL') || noCol === 'STRUKTURAL') {
             lastCategory = 'STRUKTURAL';
-            console.log('✓ Category detected: STRUKTURAL from No column');
+            logger.debug('✓ Category detected: STRUKTURAL from No column');
             continue;
           } else if (noCol.includes('FUNGSIONAL') || noCol === 'FUNGSIONAL') {
             lastCategory = 'FUNGSIONAL';
-            console.log('✓ Category detected: FUNGSIONAL from No column');
+            logger.debug('✓ Category detected: FUNGSIONAL from No column');
             continue;
           } else if (noCol.includes('PELAKSANA') || noCol === 'PELAKSANA') {
             lastCategory = 'PELAKSANA';
-            console.log('✓ Category detected: PELAKSANA from No column');
+            logger.debug('✓ Category detected: PELAKSANA from No column');
             continue;
           }
           
           // Fallback: cek semua kolom (reuse allValues from above)
           if (allValues.includes('STRUKTURAL') && !allValues.includes('DIREKTUR') && !allValues.includes('KEPALA')) {
             lastCategory = 'STRUKTURAL';
-            console.log('✓ Category detected: STRUKTURAL from all columns');
+            logger.debug('✓ Category detected: STRUKTURAL from all columns');
             continue;
           } else if (allValues.includes('FUNGSIONAL')) {
             lastCategory = 'FUNGSIONAL';
-            console.log('✓ Category detected: FUNGSIONAL from all columns');
+            logger.debug('✓ Category detected: FUNGSIONAL from all columns');
             continue;
           } else if (allValues.includes('PELAKSANA')) {
             lastCategory = 'PELAKSANA';
-            console.log('✓ Category detected: PELAKSANA from all columns');
+            logger.debug('✓ Category detected: PELAKSANA from all columns');
             continue;
           }
         }
@@ -387,15 +388,15 @@ export default function Import() {
           const posLower = currentPosition.toLowerCase();
           if (strukturalKeywords.some(kw => posLower.includes(kw))) {
             lastCategory = 'STRUKTURAL';
-            console.log('🔍 Auto-detected category: STRUKTURAL from position:', currentPosition);
+            logger.debug('🔍 Auto-detected category: STRUKTURAL from position:', currentPosition);
           } else if (pelaksanaKeywords.some(kw => posLower.includes(kw))) {
             lastCategory = 'PELAKSANA';
-            console.log('🔍 Auto-detected category: PELAKSANA from position:', currentPosition);
+            logger.debug('🔍 Auto-detected category: PELAKSANA from position:', currentPosition);
           } else {
             // Default ke Fungsional jika tidak cocok dengan struktural atau pelaksana
             if (!lastCategory) {
               lastCategory = 'FUNGSIONAL';
-              console.log('🔍 Auto-detected category: FUNGSIONAL (default) from position:', currentPosition);
+              logger.debug('🔍 Auto-detected category: FUNGSIONAL (default) from position:', currentPosition);
             }
           }
         }
@@ -439,7 +440,7 @@ export default function Import() {
         
         // Debug: log jika position type masih kosong
         if (!positionType && (currentPosition || name)) {
-          console.warn('⚠️ Position type empty for:', { 
+          logger.warn('⚠️ Position type empty for:', { 
             name, 
             position: currentPosition, 
             lastCategory,
@@ -457,7 +458,7 @@ export default function Import() {
           const normalizedRawDept = normalizeImportValue(rawDept, DEPARTMENT_ALIASES, DEPARTMENTS);
           // Jika template punya kolom unit kerja, harus sama dengan yang dipilih
           if (normalizedRawDept !== selectedDepartment) {
-            console.warn(`Unit kerja di template (${rawDept}) berbeda dengan yang dipilih (${selectedDepartment})`);
+            logger.warn(`Unit kerja di template (${rawDept}) berbeda dengan yang dipilih (${selectedDepartment})`);
           }
         }
 
@@ -492,23 +493,23 @@ export default function Import() {
         // Skip baris kosong, dengan nama "-", atau nama yang hanya angka
         if (!name || name === '-') {
           // Log all columns to see if name is in a different column
-          console.log('⏭️ Skipping empty name row, ALL COLUMNS:', row);
+          logger.debug('⏭️ Skipping empty name row, ALL COLUMNS:', row);
           skippedRows++;
           continue;
         }
         if (/^\d+$/.test(name)) {
-          console.log('⏭️ Skipping numeric name:', name);
+          logger.debug('⏭️ Skipping numeric name:', name);
           skippedRows++;
           continue;
         }
         
         // Log jika ada nama tapi tidak ada position
         if (name && !positionKepmen) {
-          console.warn('⚠️ Employee without position:', name, 'lastPosition:', lastPosition);
+          logger.warn('⚠️ Employee without position:', name, 'lastPosition:', lastPosition);
         }
         
         processedEmployees++;
-        console.log(`✓ Processing employee ${processedEmployees}:`, name, '| SK:', positionSK || 'EMPTY', '| Kepmen:', positionKepmen || 'EMPTY', '| Category:', lastCategory);
+        logger.debug(`✓ Processing employee ${processedEmployees}:`, name, '| SK:', positionSK || 'EMPTY', '| Kepmen:', positionKepmen || 'EMPTY', '| Category:', lastCategory);
 
         const rawRank = findCol(row, 'Pangkat Golongan', 'Pangkat\nGolongan', 'Pangkat\n Golongan', 'rank_group', 'Golongan');
         const nip = findCol(row, 'NIP', 'nip').replace(/\s/g, '').trim();
@@ -572,28 +573,28 @@ export default function Import() {
         parsedEmployees.push(employee);
       }
 
-      console.log('=== PARSING SUMMARY ===');
-      console.log('Total rows processed:', rows.length);
-      console.log('Rows skipped:', skippedRows);
-      console.log('Employees processed:', processedEmployees);
-      console.log('Parsed employees:', parsedEmployees.length, 'Parsed positions:', parsedPositions.length);
-      console.log('Sample employee:', parsedEmployees[0]);
-      console.log('Sample position:', parsedPositions[0]);
-      console.log('Last category detected:', lastCategory);
+      logger.debug('=== PARSING SUMMARY ===');
+      logger.debug('Total rows processed:', rows.length);
+      logger.debug('Rows skipped:', skippedRows);
+      logger.debug('Employees processed:', processedEmployees);
+      logger.debug('Parsed employees:', parsedEmployees.length, 'Parsed positions:', parsedPositions.length);
+      logger.debug('Sample employee:', parsedEmployees[0]);
+      logger.debug('Sample position:', parsedPositions[0]);
+      logger.debug('Last category detected:', lastCategory);
       
       // Log all employee names for verification
-      console.log('=== ALL PROCESSED EMPLOYEE NAMES ===');
+      logger.debug('=== ALL PROCESSED EMPLOYEE NAMES ===');
       parsedEmployees.forEach((emp, idx) => {
-        console.log(`${idx + 1}. ${emp.name} | ${emp.position_name || 'NO POSITION'} | ${emp.position_type || 'NO TYPE'}`);
+        logger.debug(`${idx + 1}. ${emp.name} | ${emp.position_name || 'NO POSITION'} | ${emp.position_type || 'NO TYPE'}`);
       });
       
       // Log errors with details
       const empErrors = parsedEmployees.filter(e => e.error);
       const posErrors = parsedPositions.filter(p => p.error);
-      console.log('Employee errors:', empErrors.length);
+      logger.debug('Employee errors:', empErrors.length);
       if (empErrors.length > 0) {
         empErrors.forEach((e, i) => {
-          console.log(`Employee error ${i + 1}:`, {
+          logger.debug(`Employee error ${i + 1}:`, {
             name: e.name,
             error: e.error,
             asn_status: e.asn_status,
@@ -601,10 +602,10 @@ export default function Import() {
           });
         });
       }
-      console.log('Position errors:', posErrors.length);
+      logger.debug('Position errors:', posErrors.length);
       if (posErrors.length > 0) {
         posErrors.forEach((p, i) => {
-          console.log(`Position error ${i + 1}:`, p);
+          logger.debug(`Position error ${i + 1}:`, p);
         });
       }
 
@@ -854,8 +855,8 @@ export default function Import() {
           // Only create for new employees, not updates
           const importDate = row.tmt_cpns || row.birth_date || new Date().toISOString().split('T')[0];
 
-          console.log(`Creating history for employee: ${row.name}`);
-          console.log('Keterangan data:', {
+          logger.debug(`Creating history for employee: ${row.name}`);
+          logger.debug('Keterangan data:', {
             penempatan: row.keterangan_penempatan,
             penugasan: row.keterangan_penugasan,
             perubahan: row.keterangan_perubahan,
@@ -894,33 +895,33 @@ export default function Import() {
 
           // Create notes from keterangan fields
           if (row.keterangan_penempatan) {
-            console.log('Inserting placement note:', row.keterangan_penempatan);
+            logger.debug('Inserting placement note:', row.keterangan_penempatan);
             const { error } = await supabase.from('placement_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_penempatan,
             });
             if (error) console.error('Error inserting placement note:', error);
-            else console.log('✅ Placement note inserted');
+            else logger.debug('✅ Placement note inserted');
           }
 
           if (row.keterangan_penugasan) {
-            console.log('Inserting assignment note:', row.keterangan_penugasan);
+            logger.debug('Inserting assignment note:', row.keterangan_penugasan);
             const { error } = await supabase.from('assignment_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_penugasan,
             });
             if (error) console.error('Error inserting assignment note:', error);
-            else console.log('✅ Assignment note inserted');
+            else logger.debug('✅ Assignment note inserted');
           }
 
           if (row.keterangan_perubahan) {
-            console.log('Inserting change note:', row.keterangan_perubahan);
+            logger.debug('Inserting change note:', row.keterangan_perubahan);
             const { error } = await supabase.from('change_notes').insert({
               employee_id: employeeId,
               note: row.keterangan_perubahan,
             });
             if (error) console.error('Error inserting change note:', error);
-            else console.log('✅ Change note inserted');
+            else logger.debug('✅ Change note inserted');
           }
         }
       } catch (err: any) {

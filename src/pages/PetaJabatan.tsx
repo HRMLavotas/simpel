@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, POSITION_TYPES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface PositionReference {
   id: string;
@@ -111,7 +112,7 @@ export default function PetaJabatan() {
     if (!selectedDepartment) return;
     
     const interval = setInterval(() => {
-      console.log('Auto-refreshing Peta Jabatan data...');
+      logger.debug('Auto-refreshing Peta Jabatan data...');
       fetchData();
     }, 30000); // 30 seconds
     
@@ -122,7 +123,7 @@ export default function PetaJabatan() {
   useEffect(() => {
     if (!selectedDepartment) return;
 
-    console.log('Setting up real-time subscription for employees in:', selectedDepartment);
+    logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
     
     const channel = supabase
       .channel(`employees-${selectedDepartment}`)
@@ -134,7 +135,7 @@ export default function PetaJabatan() {
           table: 'employees'
         },
         (payload) => {
-          console.log('Employee change detected:', payload);
+          logger.debug('Employee change detected:', payload);
           
           // For INSERT and UPDATE: check new record
           // For DELETE: check old record
@@ -148,7 +149,7 @@ export default function PetaJabatan() {
             // Check if new department matches current selected department
             if (newRecord && newRecord.department === selectedDepartment) {
               shouldRefresh = true;
-              console.log('New/Updated record is for current department');
+              logger.debug('New/Updated record is for current department');
             }
           }
           
@@ -156,12 +157,12 @@ export default function PetaJabatan() {
             // Check if old department matches current selected department
             if (oldRecord && oldRecord.department === selectedDepartment) {
               shouldRefresh = true;
-              console.log('Deleted/Old record was from current department');
+              logger.debug('Deleted/Old record was from current department');
             }
           }
           
           if (shouldRefresh) {
-            console.log('Refreshing Peta Jabatan data...');
+            logger.debug('Refreshing Peta Jabatan data...');
             fetchData();
           }
         }
@@ -169,7 +170,7 @@ export default function PetaJabatan() {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up real-time subscription');
+      logger.debug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [selectedDepartment]);
@@ -177,14 +178,14 @@ export default function PetaJabatan() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching data for department:', selectedDepartment);
+      logger.debug('Fetching data for department:', selectedDepartment);
       
       // Debug: Check all positions in database
       const { data: allPositions } = await supabase
         .from('position_references')
         .select('department')
         .limit(10);
-      console.log('Sample departments in position_references:', allPositions);
+      logger.debug('Sample departments in position_references:', allPositions);
       
       const [posRes, empRes, nonAsnRes] = await Promise.all([
         supabase
@@ -205,9 +206,9 @@ export default function PetaJabatan() {
           .eq('asn_status', 'Non ASN'),
       ]);
 
-      console.log('Position query result:', posRes);
-      console.log('Employee query result:', empRes);
-      console.log('Non-ASN query result:', nonAsnRes);
+      logger.debug('Position query result:', posRes);
+      logger.debug('Employee query result:', empRes);
+      logger.debug('Non-ASN query result:', nonAsnRes);
 
       if (posRes.error) throw posRes.error;
       if (empRes.error) throw empRes.error;
@@ -217,9 +218,9 @@ export default function PetaJabatan() {
       setEmployees(empRes.data || []);
       setNonAsnEmployees(nonAsnRes.data || []);
       
-      console.log('Positions loaded:', posRes.data?.length || 0);
-      console.log('Employees loaded:', empRes.data?.length || 0);
-      console.log('Non-ASN loaded:', nonAsnRes.data?.length || 0);
+      logger.debug('Positions loaded:', posRes.data?.length || 0);
+      logger.debug('Employees loaded:', empRes.data?.length || 0);
+      logger.debug('Non-ASN loaded:', nonAsnRes.data?.length || 0);
 
       // Fetch latest education for each employee (ASN only)
       if (empRes.data && empRes.data.length > 0) {
@@ -264,11 +265,11 @@ export default function PetaJabatan() {
       
       // Debug logging for this specific position
       if (positionName.toLowerCase().includes('arsiparis')) {
-        console.log(`Checking employee: ${e.name}`);
-        console.log(`  Position in DB: "${e.position_name}"`);
-        console.log(`  Normalized: "${empNorm}"`);
-        console.log(`  Looking for: "${norm}"`);
-        console.log(`  Match: ${isMatch}`);
+        logger.debug(`Checking employee: ${e.name}`);
+        logger.debug(`  Position in DB: "${e.position_name}"`);
+        logger.debug(`  Normalized: "${empNorm}"`);
+        logger.debug(`  Looking for: "${norm}"`);
+        logger.debug(`  Match: ${isMatch}`);
       }
       
       return isMatch;
@@ -276,15 +277,15 @@ export default function PetaJabatan() {
     
     // Debug logging to help identify matching issues
     if (matched.length === 0 && positionName.toLowerCase().includes('arsiparis')) {
-      console.log(`❌ No match for position: "${positionName}" (normalized: "${norm}")`);
-      console.log('All employee positions in this department:');
+      logger.debug(`❌ No match for position: "${positionName}" (normalized: "${norm}")`);
+      logger.debug('All employee positions in this department:');
       employees.forEach(e => {
         if (e.position_name) {
-          console.log(`  - ${e.name}: "${e.position_name}" (normalized: "${normalize(e.position_name)}")`);
+          logger.debug(`  - ${e.name}: "${e.position_name}" (normalized: "${normalize(e.position_name)}")`);
         }
       });
     } else if (matched.length > 0 && positionName.toLowerCase().includes('arsiparis')) {
-      console.log(`✅ Found ${matched.length} match(es) for "${positionName}":`, matched.map(e => e.name));
+      logger.debug(`✅ Found ${matched.length} match(es) for "${positionName}":`, matched.map(e => e.name));
     }
     
     return matched;

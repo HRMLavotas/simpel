@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, DEPARTMENT_ALIASES, type Department } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 interface ImportResult {
   success: number;
@@ -151,7 +152,7 @@ function ImportNonAsn() {
         
         const deptNames = (data || []).map(d => d.name);
         setAvailableDepartments(deptNames);
-        console.log('Available departments from database:', deptNames);
+        logger.debug('Available departments from database:', deptNames);
       } catch (error: any) {
         console.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
@@ -180,8 +181,8 @@ function ImportNonAsn() {
 
           // Debug: log first row to see headers
           if (rows.length > 0) {
-            console.log('First row headers:', Object.keys(rows[0]));
-            console.log('First row data:', rows[0]);
+            logger.debug('First row headers:', Object.keys(rows[0]));
+            logger.debug('First row data:', rows[0]);
           }
 
           for (let i = 0; i < rows.length; i++) {

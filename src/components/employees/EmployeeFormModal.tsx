@@ -39,6 +39,7 @@ import {
   TRAINING_FIELDS,
 } from './EmployeeHistoryForm';
 import { NotesForm, type NoteEntry } from './NotesForm';
+import { logger } from '@/lib/logger';
 
 const employeeSchema = z.object({
   nip: z.string().max(18, 'NIP maksimal 18 digit').optional().or(z.literal('')),
@@ -372,15 +373,15 @@ export function EmployeeFormModal({
   useEffect(() => {
     // Skip reset if user has modified the form (to prevent losing unsaved changes)
     if (formModifiedRef.current && initialLoadCompleteRef.current) {
-      console.log('⚠️ Skipping form reset - user has unsaved changes');
+      logger.debug('⚠️ Skipping form reset - user has unsaved changes');
       return;
     }
     
     if (employee) {
-      console.log('=== EMPLOYEE DATA FOR EDIT ===');
-      console.log('Gender:', employee.gender);
-      console.log('Religion:', employee.religion);
-      console.log('Full employee:', employee);
+      logger.debug('=== EMPLOYEE DATA FOR EDIT ===');
+      logger.debug('Gender:', employee.gender);
+      logger.debug('Religion:', employee.religion);
+      logger.debug('Full employee:', employee);
       
       // Normalize gender value to match options exactly - handle all common variations
       let normalizedGender = employee.gender || '';
@@ -394,7 +395,7 @@ export function EmployeeFormModal({
           normalizedGender = 'Perempuan';
         } else {
           // If value doesn't match any known pattern, keep original but log warning
-          console.warn('Unknown gender value:', normalizedGender);
+          logger.warn('Unknown gender value:', normalizedGender);
           normalizedGender = ''; // Reset to empty to force user selection
         }
       }
@@ -416,12 +417,12 @@ export function EmployeeFormModal({
         
         normalizedReligion = religionMap[religionLower] || '';
         if (!normalizedReligion && employee.religion) {
-          console.warn('Unknown religion value:', employee.religion);
+          logger.warn('Unknown religion value:', employee.religion);
         }
       }
       
-      console.log('Normalized Gender:', normalizedGender);
-      console.log('Normalized Religion:', normalizedReligion);
+      logger.debug('Normalized Gender:', normalizedGender);
+      logger.debug('Normalized Religion:', normalizedReligion);
       
       // Store original values for change detection
       setOriginalValues({
@@ -444,9 +445,9 @@ export function EmployeeFormModal({
       
       // Debug: Check form values after reset
       setTimeout(() => {
-        console.log('=== FORM VALUES AFTER RESET ===');
-        console.log('Gender:', form.getValues('gender'));
-        console.log('Religion:', form.getValues('religion'));
+        logger.debug('=== FORM VALUES AFTER RESET ===');
+        logger.debug('Gender:', form.getValues('gender'));
+        logger.debug('Religion:', form.getValues('religion'));
       }, 100);
       
       setEducationEntries(initialEducation || []);
@@ -533,7 +534,7 @@ export function EmployeeFormModal({
     
     // Debug logging for gender and religion
     if (fieldName === 'gender' || fieldName === 'religion') {
-      console.log(`${fieldName} - currentValue: "${currentValue}"`);
+      logger.debug(`${fieldName} - currentValue: "${currentValue}"`);
     }
     
     return (
@@ -542,7 +543,7 @@ export function EmployeeFormModal({
         <Select
           value={currentValue || ''}
           onValueChange={(v) => {
-            console.log(`${fieldName} changed to: "${v}"`);
+            logger.debug(`${fieldName} changed to: "${v}"`);
             form.setValue(fieldName, v, { shouldValidate: true, shouldDirty: true });
           }}
           disabled={disabled}

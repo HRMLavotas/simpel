@@ -39,6 +39,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { logger } from '@/lib/logger';
 import {
   Sheet,
   SheetContent,
@@ -114,7 +115,7 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      console.log('Dashboard preferences saved:', charts);
+      logger.debug('Dashboard preferences saved:', charts);
     } catch (error) {
       console.error('Error saving dashboard preferences:', error);
       toast({
@@ -152,12 +153,12 @@ export default function Dashboard() {
         }
 
         if (data?.dashboard_preferences && Array.isArray(data.dashboard_preferences) && data.dashboard_preferences.length > 0) {
-          console.log('Loaded dashboard preferences:', data.dashboard_preferences);
+          logger.debug('Loaded dashboard preferences:', data.dashboard_preferences);
           // Force state update by creating new array
           setSelectedCharts([...data.dashboard_preferences]);
         } else {
           // If no preferences found, use default
-          console.log('No preferences found, using default');
+          logger.debug('No preferences found, using default');
           const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
           setSelectedCharts([...defaultCharts]);
           // Save default to database
@@ -178,11 +179,11 @@ export default function Dashboard() {
 
   // Debug: Log selectedCharts changes
   useEffect(() => {
-    console.log('=== SELECTED CHARTS UPDATED ===');
-    console.log('Selected charts:', selectedCharts);
-    console.log('Count:', selectedCharts.length);
-    console.log('Is loading preferences:', isLoadingPreferences);
-    console.log('Is loading data:', isLoading);
+    logger.debug('=== SELECTED CHARTS UPDATED ===');
+    logger.debug('Selected charts:', selectedCharts);
+    logger.debug('Count:', selectedCharts.length);
+    logger.debug('Is loading preferences:', isLoadingPreferences);
+    logger.debug('Is loading data:', isLoading);
   }, [selectedCharts, isLoadingPreferences, isLoading]);
 
   const toggleChart = (chartId: string) => {
@@ -191,7 +192,7 @@ export default function Dashboard() {
         ? prev.filter(id => id !== chartId)
         : [...prev, chartId];
       
-      console.log('Toggle chart:', chartId, 'New charts:', newCharts);
+      logger.debug('Toggle chart:', chartId, 'New charts:', newCharts);
       
       // Save to database
       savePreferences(newCharts);

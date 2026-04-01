@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -190,13 +191,13 @@ export default function Employees() {
   const fetchEmployees = async (skipIfModalOpen = false) => {
     // Skip refresh if modal is open and user is editing
     if (skipIfModalOpen && (formModalOpen || nonAsnModalOpen || changeLogOpen)) {
-      console.log('Skipping fetchEmployees - modal is open');
+      logger.debug('Skipping fetchEmployees - modal is open');
       return;
     }
     
     if (!profile) return;
     setIsLoading(true);
-    console.log('=== FETCHING EMPLOYEES ===');
+    logger.debug('=== FETCHING EMPLOYEES ===');
     try {
       // Fetch employees and sort by position_type (Struktural, Fungsional, Pelaksana) then import_order
       const { data, error } = await supabase
@@ -206,7 +207,7 @@ export default function Employees() {
       
       if (error) throw error;
       
-      console.log('Fetched employees count:', data?.length || 0);
+      logger.debug('Fetched employees count:', data?.length || 0);
       
       // Sort by position_type category first, then by import_order
       const sortedData = (data || []).sort((a, b) => {
@@ -231,9 +232,9 @@ export default function Employees() {
       });
       
       setEmployees(sortedData);
-      console.log('Employees state updated');
+      logger.debug('Employees state updated');
     } catch (error) {
-      console.error('Error fetching employees:', error);
+      logger.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
     } finally {
       setIsLoading(false);
@@ -257,11 +258,11 @@ export default function Employees() {
       return matchesTab && matchesSearch && matchesStatus && matchesDepartment;
     });
     
-    console.log('=== FILTERED EMPLOYEES ===');
-    console.log('Active tab:', activeTab);
-    console.log('Total employees:', employees.length);
-    console.log('Department filter:', departmentFilter);
-    console.log('Filtered count:', filtered.length);
+    logger.debug('=== FILTERED EMPLOYEES ===');
+    logger.debug('Active tab:', activeTab);
+    logger.debug('Total employees:', employees.length);
+    logger.debug('Department filter:', departmentFilter);
+    logger.debug('Filtered count:', filtered.length);
     
     return filtered;
   }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, isAdminPusat]);
@@ -419,10 +420,10 @@ export default function Employees() {
     setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
     setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
     
-    console.log('=== NOTES DATA FOR DETAILS MODAL ===');
-    console.log('Placement notes:', placementRes.data);
-    console.log('Assignment notes:', assignmentRes.data);
-    console.log('Change notes:', changeRes.data);
+    logger.debug('=== NOTES DATA FOR DETAILS MODAL ===');
+    logger.debug('Placement notes:', placementRes.data);
+    logger.debug('Assignment notes:', assignmentRes.data);
+    logger.debug('Change notes:', changeRes.data);
     
     setDetailsModalOpen(true);
   };
@@ -435,8 +436,8 @@ export default function Employees() {
   ) => {
     if (!entries) return;
     
-    console.log(`=== SAVING ${tableName} ===`);
-    console.log('Entries to save:', entries);
+    logger.debug(`=== SAVING ${tableName} ===`);
+    logger.debug('Entries to save:', entries);
     
     // Delete existing entries
     await supabase.from(tableName as any).delete().eq('employee_id', employeeId);
@@ -476,7 +477,7 @@ export default function Employees() {
         return row;
       });
       
-    console.log('Rows to insert:', rows);
+    logger.debug('Rows to insert:', rows);
     
     if (rows.length > 0) {
       const { error } = await supabase.from(tableName as any).insert(rows);
@@ -484,7 +485,7 @@ export default function Employees() {
         console.error(`Error inserting ${tableName}:`, error);
         throw error;
       }
-      console.log(`Successfully saved ${rows.length} entries to ${tableName}`);
+      logger.debug(`Successfully saved ${rows.length} entries to ${tableName}`);
     }
   };
 
@@ -556,9 +557,9 @@ export default function Employees() {
           const newDepartment = sortedMutations[0].ke_unit || data.department;
           departmentChanged = selectedEmployee && newDepartment !== selectedEmployee.department;
           finalDepartment = newDepartment;
-          console.log('Auto-updating department from latest mutation:', finalDepartment);
+          logger.debug('Auto-updating department from latest mutation:', finalDepartment);
           if (departmentChanged) {
-            console.log(`Department changed from ${selectedEmployee?.department} to ${finalDepartment}`);
+            logger.debug(`Department changed from ${selectedEmployee?.department} to ${finalDepartment}`);
           }
         }
       }
@@ -577,9 +578,9 @@ export default function Employees() {
           const newPosition = sortedPositions[0].jabatan_baru || data.position_name;
           positionChanged = selectedEmployee && newPosition !== selectedEmployee.position_name;
           finalPositionName = newPosition;
-          console.log('Auto-updating position_name from latest position history:', finalPositionName);
+          logger.debug('Auto-updating position_name from latest position history:', finalPositionName);
           if (positionChanged) {
-            console.log(`Position changed from ${selectedEmployee?.position_name} to ${finalPositionName}`);
+            logger.debug(`Position changed from ${selectedEmployee?.position_name} to ${finalPositionName}`);
           }
         }
       }
@@ -670,9 +671,9 @@ export default function Employees() {
       }
 
       // Save all other history types (manual entries from form)
-      console.log('=== SAVING ALL HISTORY DATA ===');
-      console.log('Mutation history:', data.mutation_history);
-      console.log('Position history:', data.position_history);
+      logger.debug('=== SAVING ALL HISTORY DATA ===');
+      logger.debug('Mutation history:', data.mutation_history);
+      logger.debug('Position history:', data.position_history);
       
       await Promise.all([
         saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']),
@@ -682,7 +683,7 @@ export default function Employees() {
         saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
       ]);
       
-      console.log('=== ALL HISTORY DATA SAVED ===');
+      logger.debug('=== ALL HISTORY DATA SAVED ===');
 
       // Save notes data
       if (data.placement_notes) {
@@ -730,7 +731,7 @@ export default function Employees() {
         
         if (updatedEmployee) {
           setSelectedEmployee(updatedEmployee as Employee);
-          console.log('Updated selectedEmployee with latest data:', updatedEmployee);
+          logger.debug('Updated selectedEmployee with latest data:', updatedEmployee);
           
           // Reload all history data to reflect changes
           const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
@@ -762,7 +763,7 @@ export default function Employees() {
           setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
           setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
           
-          console.log('Reloaded all history data after save');
+          logger.debug('Reloaded all history data after save');
         }
       }
 
@@ -771,14 +772,14 @@ export default function Employees() {
       setPendingFormData(null);
       setDetectedChanges([]);
       
-      console.log('=== STARTING REFRESH AFTER SAVE ===');
-      console.log('Department changed:', departmentChanged);
-      console.log('Final department:', finalDepartment);
+      logger.debug('=== STARTING REFRESH AFTER SAVE ===');
+      logger.debug('Department changed:', departmentChanged);
+      logger.debug('Final department:', finalDepartment);
       
       // Force refresh to ensure data is updated immediately
       await fetchEmployees();
       
-      console.log('=== REFRESH COMPLETED ===');
+      logger.debug('=== REFRESH COMPLETED ===');
       
       // If department changed and user is not admin pusat, show info message
       if (departmentChanged && !isAdminPusat) {
