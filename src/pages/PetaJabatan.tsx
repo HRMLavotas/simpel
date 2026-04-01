@@ -76,9 +76,6 @@ export default function PetaJabatan() {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Debug mode state
-  const [showDebug, setShowDebug] = useState(false);
-
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
   const [formName, setFormName] = useState('');
@@ -500,14 +497,6 @@ export default function PetaJabatan() {
             >
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowDebug(!showDebug)} 
-              title="Toggle debug info"
-            >
-              {showDebug ? 'Hide' : 'Show'} Debug
-            </Button>
             <Button variant="outline" onClick={handleExport} disabled={positions.length === 0} className="text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
@@ -554,48 +543,6 @@ export default function PetaJabatan() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Debug Panel */}
-            {showDebug && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
-                <h3 className="font-semibold text-sm">Debug Info</h3>
-                <div className="text-xs space-y-1">
-                  <p><strong>Total Positions:</strong> {positions.length}</p>
-                  <p><strong>Total Employees:</strong> {employees.length}</p>
-                  <div className="mt-2">
-                    <strong>Employees in this department:</strong>
-                    <ul className="ml-4 mt-1 space-y-1">
-                      {employees.map(emp => (
-                        <li key={emp.id}>
-                          {emp.name} → Position: "{emp.position_name || '(kosong)'}"
-                          <br />
-                          <span className="text-muted-foreground ml-4">
-                            Normalized: "{emp.position_name ? emp.position_name.trim().toLowerCase().replace(/\s+/g, ' ') : ''}"
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mt-2">
-                    <strong>Positions in peta jabatan:</strong>
-                    <ul className="ml-4 mt-1 space-y-1">
-                      {positions.map(pos => {
-                        const matched = getMatchingEmployees(pos.position_name);
-                        return (
-                          <li key={pos.id}>
-                            {pos.position_name} → Matched: {matched.length} ({matched.map(e => e.name).join(', ') || 'none'})
-                            <br />
-                            <span className="text-muted-foreground ml-4">
-                              Normalized: "{pos.position_name.trim().toLowerCase().replace(/\s+/g, ' ')}"
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
