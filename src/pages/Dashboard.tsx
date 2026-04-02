@@ -72,6 +72,7 @@ export default function Dashboard() {
   const { profile, isAdminPusat, canViewAll } = useAuth();
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedAsnStatus, setSelectedAsnStatus] = useState<string>('all'); // New: ASN status filter
   const [selectedCharts, setSelectedCharts] = useState<string[]>([
     'asn_status',
     'rank',
@@ -96,11 +97,13 @@ export default function Dashboard() {
     ageData,
     retirementYearData,
     educationData,
-    isLoading 
+    isLoading,
+    error: dashboardError
   } = useDashboardData({
     department: profile?.department || null,
     isAdminPusat: canViewAll, // Use canViewAll instead of isAdminPusat
     selectedDepartment,
+    selectedAsnStatus, // New: Pass ASN status filter
   });
 
   // Save preferences to database
@@ -241,17 +244,32 @@ export default function Dashboard() {
 
           <div className="flex flex-col sm:flex-row gap-2">
             {canViewAll && (
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-full sm:w-[240px] h-9 sm:h-10">
-                  <SelectValue placeholder="Pilih Unit Kerja" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                  {DEPARTMENTS.filter(d => d !== 'Pusat').map((dept) => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger className="w-full sm:w-[240px] h-9 sm:h-10">
+                    <SelectValue placeholder="Pilih Unit Kerja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Unit Kerja</SelectItem>
+                    {DEPARTMENTS.filter(d => d !== 'Pusat').map((dept) => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedAsnStatus} onValueChange={setSelectedAsnStatus}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9 sm:h-10">
+                    <SelectValue placeholder="Status ASN" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="asn">ASN (PNS + PPPK)</SelectItem>
+                    <SelectItem value="PNS">PNS</SelectItem>
+                    <SelectItem value="PPPK">PPPK</SelectItem>
+                    <SelectItem value="Non ASN">Non ASN</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
             )}
 
             {/* Chart Selector Sheet */}
@@ -328,6 +346,25 @@ export default function Dashboard() {
             </Sheet>
           </div>
         </div>
+
+        {/* Error Display */}
+        {dashboardError && (
+          <Card className="border-destructive bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-destructive mb-1">Terjadi Kesalahan</h3>
+                  <p className="text-sm text-muted-foreground">{dashboardError}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Grid */}
         {isLoading ? (

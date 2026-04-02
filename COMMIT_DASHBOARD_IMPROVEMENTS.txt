@@ -1,0 +1,54 @@
+fix(dashboard): perbaiki filter semua unit kerja & URL length limit
+
+MASALAH YANG DIPERBAIKI:
+- Bug filter "Semua Unit Kerja" gagal memuat data jenjang pendidikan
+- Error 400 Bad Request karena URL query terlalu panjang (823 employee IDs)
+- Fungsi fetchEducationData tidak menangani deptFilter === null dengan benar
+
+PERBAIKAN:
+- Fixed: Filter logic di fetchEducationData untuk handle null department filter
+- Fixed: Batch processing untuk education_history queries (100 IDs per batch)
+- Fixed: URL length limit issue dengan membagi request menjadi batch kecil
+- Added: Enhanced logging untuk debugging ([Dashboard] prefix)
+- Added: Error state dan error display UI di dashboard
+- Added: Support untuk format "SMA/SMK" di education level
+- Added: Caching infrastructure (ready to use)
+
+ROOT CAUSE:
+1. Department filter tidak di-check untuk null value
+2. Supabase/PostgreSQL URL length limit untuk .in() operator
+3. 823 employee IDs dalam satu query = URL terlalu panjang
+
+SOLUSI:
+- Batch size: 100 employee IDs per request
+- Loop through batches dan aggregate results
+- Only apply department filter when not null
+
+PENINGKATAN:
+- Error handling yang lebih baik dengan user-friendly messages
+- Logging yang informatif untuk tracking data flow
+- Error display card di UI untuk feedback ke user
+- Konsistensi dengan fungsi fetch lainnya
+- Performance improvement dengan batch processing
+
+FILES MODIFIED:
+- src/hooks/useDashboardData.ts
+- src/pages/Dashboard.tsx
+- DASHBOARD_IMPROVEMENTS_2_APRIL_2026.md (dokumentasi lengkap)
+
+TESTING:
+✅ Filter "Semua Unit Kerja" untuk admin pusat
+✅ Filter "Semua Unit Kerja" untuk admin pimpinan  
+✅ Data jenjang pendidikan dimuat dengan benar
+✅ No 400 Bad Request errors
+✅ Batch processing works correctly
+✅ Error handling berfungsi
+✅ No TypeScript errors
+
+BREAKING CHANGES: None
+
+NOTES:
+- Batch size 100 dipilih untuk balance antara performance dan URL length
+- Caching infrastructure sudah disiapkan tapi belum diaktifkan
+- Dokumentasi lengkap tersedia di DASHBOARD_IMPROVEMENTS_2_APRIL_2026.md
+- Rekomendasi improvement lebih lanjut ada di dokumentasi

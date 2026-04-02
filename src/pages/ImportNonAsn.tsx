@@ -411,22 +411,46 @@ function ImportNonAsn() {
         }
 
         try {
-          const { error } = await supabase.from('employees').insert([{
-            nip: item.nik,  // Map NIK to nip field
-            name: item.name,
-            position_name: item.position,  // Map position to position_name
-            birth_place: item.birth_place,
-            birth_date: item.birth_date,
-            gender: item.gender,
-            religion: item.religion,
-            department: item.department,
-            asn_status: 'Non ASN',
-            rank_group: item.type_non_asn,  // Map type_non_asn to rank_group
-            keterangan_penugasan: item.job_description,  // Map job_description to keterangan_penugasan
-            keterangan_perubahan: item.notes,  // Map notes to keterangan_perubahan
-          }]);
+          // Insert employee data
+          const { data: newEmployee, error: empError } = await supabase
+            .from('employees')
+            .insert([{
+              nip: item.nik,  // Map NIK to nip field
+              name: item.name,
+              position_name: item.position,  // Map position to position_name
+              birth_place: item.birth_place,
+              birth_date: item.birth_date,
+              gender: item.gender,
+              religion: item.religion,
+              department: item.department,
+              asn_status: 'Non ASN',
+              rank_group: item.type_non_asn,  // Map type_non_asn to rank_group
+              keterangan_penugasan: item.job_description,  // Map job_description to keterangan_penugasan
+              keterangan_perubahan: item.notes,  // Map notes to keterangan_perubahan
+            }])
+            .select('id')
+            .single();
 
-          if (error) throw error;
+          if (empError) throw empError;
+
+          // Insert education data if available
+          if (newEmployee && item.education) {
+            const { error: eduError } = await supabase
+              .from('education_history')
+              .insert([{
+                employee_id: newEmployee.id,
+                level: item.education,
+                major: item.education_major || null,
+                institution: null,
+                graduation_year: null,
+              }]);
+
+            if (eduError) {
+              console.error('Failed to insert education data:', eduError);
+              // Don't fail the entire import if education insert fails
+            }
+          }
+
           successCount++;
           existingNIKs.set(item.nik, { name: item.name, department: item.department }); // Add to map to prevent duplicates within the same import
         } catch (error: any) {

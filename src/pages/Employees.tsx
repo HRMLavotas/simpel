@@ -1158,6 +1158,7 @@ export default function Employees() {
         editData={selectedEmployee?.asn_status === 'Non ASN' ? selectedEmployee : undefined}
         userDepartment={profile?.department}
         isAdminPusat={isAdminPusat}
+        initialEducation={selectedEducation}
       />
 
       <ChangeLogDialog

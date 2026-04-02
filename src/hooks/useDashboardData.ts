@@ -65,13 +65,38 @@ interface EducationData {
   details?: { major: string; count: number }[];
 }
 
+interface TmtYearData {
+  year: string;
+  count: number;
+}
+
+interface WorkDurationData {
+  category: string;
+  count: number;
+  order: number;
+}
+
 interface UseDashboardDataProps {
   department: string | null;
   isAdminPusat: boolean;
   selectedDepartment: string;
+  selectedAsnStatus: string; // New: ASN status filter
 }
 
-export function useDashboardData({ department, isAdminPusat, selectedDepartment }: UseDashboardDataProps) {
+// Add cache interface for performance optimization
+interface DashboardCache {
+  data: any;
+  timestamp: number;
+  filter: string;
+}
+
+// Cache duration: 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
+
+// Global cache object
+const dashboardCache: Record<string, DashboardCache> = {};
+
+export function useDashboardData({ department, isAdminPusat, selectedDepartment, selectedAsnStatus }: UseDashboardDataProps) {
   const [stats, setStats] = useState<Stats>({ total: 0, pns: 0, pppk: 0, nonAsn: 0 });
   const [rankData, setRankData] = useState<RankData[]>([]);
   const [departmentData, setDepartmentData] = useState<DepartmentData[]>([]);
@@ -88,6 +113,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
   const [retirementYearData, setRetirementYearData] = useState<RetirementYearData[]>([]);
   const [educationData, setEducationData] = useState<EducationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const getDepartmentFilter = useCallback(() => {
     if (!isAdminPusat) {
@@ -96,12 +122,36 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     return selectedDepartment !== 'all' ? selectedDepartment : null;
   }, [isAdminPusat, department, selectedDepartment]);
 
+  // New: Helper to get ASN status filter
+  const getAsnStatusFilter = useCallback(() => {
+    if (selectedAsnStatus === 'all') return null;
+    if (selectedAsnStatus === 'asn') return ['PNS', 'PPPK']; // ASN includes both PNS and PPPK
+    return [selectedAsnStatus]; // Single status: PNS, PPPK, or Non ASN
+  }, [selectedAsnStatus]);
+
+  // Helper to apply ASN status filter to query
+  const applyAsnStatusFilter = useCallback((query: any) => {
+    const asnFilter = getAsnStatusFilter();
+    if (asnFilter) {
+      return query.in('asn_status', asnFilter);
+    }
+    return query;
+  }, [getAsnStatusFilter]);
+
+  // Helper function to get cache key
+  const getCacheKey = useCallback((dataType: string) => {
+    const filter = getDepartmentFilter() || 'all';
+    const asnFilter = selectedAsnStatus || 'all';
+    return `${dataType}_${filter}_${asnFilter}`;
+  }, [getDepartmentFilter, selectedAsnStatus]);
+
   const fetchStats = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
 
     // Fetch total count
     let totalQuery = supabase.from('employees').select('*', { count: 'exact', head: true });
     if (deptFilter) totalQuery = totalQuery.eq('department', deptFilter);
+    totalQuery = applyAsnStatusFilter(totalQuery);
     const { count: total } = await totalQuery;
 
     // Fetch PNS count
@@ -125,7 +175,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       pppk: pppk || 0,
       nonAsn: nonAsn || 0,
     };
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchRankData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
@@ -142,6 +192,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .range(offset, offset + PAGE_SIZE - 1);
       
       if (deptFilter) query = query.eq('department', deptFilter);
+      query = applyAsnStatusFilter(query);
 
       const { data, error } = await query;
 
@@ -171,7 +222,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       .map(([rank, count]) => ({ rank, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchDepartmentData = useCallback(async () => {
     if (!isAdminPusat || selectedDepartment !== 'all') {
@@ -228,6 +279,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .range(offset, offset + PAGE_SIZE - 1);
       
       if (deptFilter) query = query.eq('department', deptFilter);
+      query = applyAsnStatusFilter(query);
 
       const { data, error } = await query;
 
@@ -255,7 +307,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     return Object.entries(positionCounts)
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count);
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchJoinYearData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
@@ -272,6 +324,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .range(offset, offset + PAGE_SIZE - 1);
       
       if (deptFilter) query = query.eq('department', deptFilter);
+      query = applyAsnStatusFilter(query);
 
       const { data, error } = await query;
 
@@ -302,7 +355,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       .map(([year, count]) => ({ year, count }))
       .sort((a, b) => a.year.localeCompare(b.year))
       .slice(-10); // Last 10 years
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchGenderData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
@@ -318,6 +371,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .range(offset, offset + PAGE_SIZE - 1);
       
       if (deptFilter) query = query.eq('department', deptFilter);
+      query = applyAsnStatusFilter(query);
 
       const { data, error } = await query;
 
@@ -345,7 +399,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     return Object.entries(genderCounts)
       .map(([gender, count]) => ({ gender, count }))
       .sort((a, b) => b.count - a.count);
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchReligionData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
@@ -361,6 +415,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .range(offset, offset + PAGE_SIZE - 1);
       
       if (deptFilter) query = query.eq('department', deptFilter);
+      query = applyAsnStatusFilter(query);
 
       const { data, error } = await query;
 
@@ -388,7 +443,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     return Object.entries(religionCounts)
       .map(([religion, count]) => ({ religion, count }))
       .sort((a, b) => b.count - a.count);
-  }, [getDepartmentFilter]);
+  }, [getDepartmentFilter, applyAsnStatusFilter]);
 
   const fetchPositionKepmenData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
@@ -833,10 +888,13 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
   const fetchEducationData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
     const PAGE_SIZE = 1000;
+    const BATCH_SIZE = 100; // Batch size for education_history queries to avoid URL length issues
     const educationCounts: Record<string, number> = {};
     const educationDetails: Record<string, Record<string, number>> = {}; // level -> { major -> count }
     let offset = 0;
     let hasMore = true;
+
+    console.log('[Dashboard] Fetching education data with filter:', deptFilter, 'ASN status:', selectedAsnStatus);
 
     while (hasMore) {
       // Get employee IDs for the department filter
@@ -845,36 +903,57 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         .select('id')
         .range(offset, offset + PAGE_SIZE - 1);
       
-      if (deptFilter) employeeQuery = employeeQuery.eq('department', deptFilter);
+      // Apply department filter if not null
+      if (deptFilter) {
+        employeeQuery = employeeQuery.eq('department', deptFilter);
+      }
+
+      // Apply ASN status filter
+      employeeQuery = applyAsnStatusFilter(employeeQuery);
 
       const { data: employees, error: empError } = await employeeQuery;
 
       if (empError) {
-        console.error('Error fetching employees for education:', empError);
+        console.error('[Dashboard] Error fetching employees for education:', empError);
         break;
       }
 
       if (!employees || employees.length === 0) {
         hasMore = false;
+        console.log('[Dashboard] No more employees to fetch');
       } else {
+        console.log(`[Dashboard] Fetched ${employees.length} employees at offset ${offset}`);
         const employeeIds = employees.map(e => e.id);
         
         // Get education data from education_history table
-        const { data: educations, error: eduError } = await supabase
-          .from('education_history')
-          .select('employee_id, level, major')
-          .in('employee_id', employeeIds);
+        const allEducations: any[] = [];
+        for (let i = 0; i < employeeIds.length; i += BATCH_SIZE) {
+          const batchIds = employeeIds.slice(i, i + BATCH_SIZE);
+          
+          const { data: educations, error: eduError } = await supabase
+            .from('education_history')
+            .select('employee_id, level, major')
+            .in('employee_id', batchIds);
 
-        if (!eduError && educations && educations.length > 0) {
+          if (eduError) {
+            console.error('[Dashboard] Error fetching education history batch:', eduError);
+          } else if (educations && educations.length > 0) {
+            allEducations.push(...educations);
+          }
+        }
+
+        console.log(`[Dashboard] Found ${allEducations.length} education records from education_history for ${employees.length} employees`);
+        
+        if (allEducations.length > 0) {
           // Use education_history data
           const educationOrder: Record<string, number> = {
-            'SD': 1, 'SMP': 2, 'SMA': 3, 'D1': 4, 'D2': 5, 
+            'SD': 1, 'SMP': 2, 'SMA': 3, 'SMA/SMK': 3, 'D1': 4, 'D2': 5, 
             'D3': 6, 'D4': 7, 'S1': 8, 'S2': 9, 'S3': 10,
           };
 
           // Get highest education per employee
           const employeeEducation: Record<string, { level: string; major: string | null }> = {};
-          educations.forEach(edu => {
+          allEducations.forEach(edu => {
             const current = employeeEducation[edu.employee_id];
             if (!current || 
                 (educationOrder[edu.level] || 0) > (educationOrder[current.level] || 0)) {
@@ -884,6 +963,8 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
               };
             }
           });
+
+          console.log(`[Dashboard] Processed ${Object.keys(employeeEducation).length} unique employees with education data`);
 
           // Count by level and major
           Object.values(employeeEducation).forEach(({ level, major }) => {
@@ -901,7 +982,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       }
     }
 
-    return Object.entries(educationCounts)
+    const result = Object.entries(educationCounts)
       .map(([level, count]) => ({
         level,
         count,
@@ -911,21 +992,30 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       }))
       .sort((a, b) => {
         const educationOrder: Record<string, number> = {
-          'SD': 1, 'SMP': 2, 'SMA': 3, 'D1': 4, 'D2': 5, 
+          'SD': 1, 'SMP': 2, 'SMA': 3, 'SMA/SMK': 3, 'D1': 4, 'D2': 5, 
           'D3': 6, 'D4': 7, 'S1': 8, 'S2': 9, 'S3': 10,
         };
         const orderA = educationOrder[a.level] || 999;
         const orderB = educationOrder[b.level] || 999;
         return orderA - orderB;
       });
-  }, [getDepartmentFilter]);
+
+    console.log('[Dashboard] Education data result:', result);
+    console.log('[Dashboard] NOTE: Only showing employees with data in education_history table');
+    console.log('[Dashboard] If data seems incomplete, please import education data to education_history table');
+    
+    return result;
+  }, [getDepartmentFilter, selectedAsnStatus, applyAsnStatusFilter]);
 
   const fetchDashboardData = useCallback(async () => {
     if (!department && !isAdminPusat) return;
     
     setIsLoading(true);
+    setError(null);
 
     try {
+      console.log('[Dashboard] Starting data fetch with filter:', getDepartmentFilter());
+      
       const [
         statsResult, 
         rankResult, 
@@ -960,6 +1050,8 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
         fetchEducationData(),
       ]);
 
+      console.log('[Dashboard] All data fetched successfully');
+
       setStats(statsResult);
       setRankData(rankResult);
       setDepartmentData(deptResult);
@@ -976,7 +1068,8 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
       setRetirementYearData(retirementYearResult);
       setEducationData(educationResult);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('[Dashboard] Error fetching dashboard data:', error);
+      setError(error instanceof Error ? error.message : 'Terjadi kesalahan saat memuat data dashboard');
     } finally {
       setIsLoading(false);
     }
@@ -997,7 +1090,8 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     fetchGradeData,
     fetchAgeData,
     fetchRetirementYearData,
-    fetchEducationData
+    fetchEducationData,
+    getDepartmentFilter
   ]);
 
   useEffect(() => {
@@ -1021,6 +1115,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment 
     retirementYearData,
     educationData,
     isLoading,
+    error,
     refetch: fetchDashboardData,
   };
 }

@@ -5,12 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, type Department } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
+import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
+import { logger } from '@/lib/logger';
 
 interface NonAsnFormData {
   nip: string;  // Using nip field for NIK
@@ -33,6 +37,7 @@ interface NonAsnFormModalProps {
   editData?: any;
   userDepartment?: Department;
   isAdminPusat?: boolean;
+  initialEducation?: EducationEntry[];
 }
 
 const GENDER_OPTIONS = ['Laki-laki', 'Perempuan'];
@@ -58,9 +63,12 @@ export function NonAsnFormModal({
   editData,
   userDepartment,
   isAdminPusat = false,
+  initialEducation,
 }: NonAsnFormModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'main' | 'education'>('main');
+  const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [formData, setFormData] = useState<NonAsnFormData>({
     nip: '',
     name: '',
@@ -95,6 +103,7 @@ export function NonAsnFormModal({
         keterangan_penugasan: editData.keterangan_penugasan || '',
         keterangan_perubahan: editData.keterangan_perubahan || '',
       });
+      setEducationEntries(initialEducation || []);
     } else {
       setFormData({
         nip: '',
@@ -109,13 +118,15 @@ export function NonAsnFormModal({
         keterangan_penugasan: '',
         keterangan_perubahan: '',
       });
+      setEducationEntries([]);
     }
     
     // Reset validation when modal opens/closes
     if (!open) {
       resetNIKValidation();
+      setActiveTab('main');
     }
-  }, [editData, userDepartment, open, resetNIKValidation]);
+  }, [editData, userDepartment, open, resetNIKValidation, initialEducation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,16 +188,69 @@ export function NonAsnFormModal({
 
         if (error) throw error;
 
+        // Update education history
+        if (educationEntries.length > 0) {
+          // Delete existing education entries
+          await supabase
+            .from('education_history')
+            .delete()
+            .eq('employee_id', editData.id);
+
+          // Insert new education entries
+          const educationData = educationEntries.map(entry => ({
+            employee_id: editData.id,
+            level: entry.level,
+            institution: entry.institution_name || null,
+            major: entry.major || null,
+            graduation_year: entry.graduation_year ? parseInt(entry.graduation_year) : null,
+            front_title: entry.front_title || null,
+            back_title: entry.back_title || null,
+          }));
+
+          const { error: eduError } = await supabase
+            .from('education_history')
+            .insert(educationData);
+
+          if (eduError) {
+            logger.error('Error saving education history:', eduError);
+            // Don't fail the entire operation if education save fails
+          }
+        }
+
         toast({
           title: 'Berhasil',
           description: 'Data Non-ASN berhasil diperbarui',
         });
       } else {
-        const { error } = await supabase
+        const { data: newEmployee, error } = await supabase
           .from('employees')
-          .insert([dataToSave]);
+          .insert([dataToSave])
+          .select('id')
+          .single();
 
         if (error) throw error;
+
+        // Insert education history if available
+        if (newEmployee && educationEntries.length > 0) {
+          const educationData = educationEntries.map(entry => ({
+            employee_id: newEmployee.id,
+            level: entry.level,
+            institution: entry.institution_name || null,
+            major: entry.major || null,
+            graduation_year: entry.graduation_year ? parseInt(entry.graduation_year) : null,
+            front_title: entry.front_title || null,
+            back_title: entry.back_title || null,
+          }));
+
+          const { error: eduError } = await supabase
+            .from('education_history')
+            .insert(educationData);
+
+          if (eduError) {
+            logger.error('Error saving education history:', eduError);
+            // Don't fail the entire operation if education save fails
+          }
+        }
 
         toast({
           title: 'Berhasil',
@@ -218,7 +282,18 @@ export function NonAsnFormModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'education')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="main">Data Utama</TabsTrigger>
+              <TabsTrigger value="education">Riwayat Pendidikan</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="main" className="space-y-6">
+              {/* Data Pribadi Section */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Pribadi</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
           {/* NIK */}
           <div className="space-y-2">
             <Label htmlFor="nip">NIK <span className="text-red-500">*</span></Label>
@@ -264,18 +339,6 @@ export function NonAsnFormModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Masukkan nama lengkap"
-              required
-            />
-          </div>
-
-          {/* Jabatan */}
-          <div className="space-y-2">
-            <Label htmlFor="position_name">Jabatan <span className="text-red-500">*</span></Label>
-            <Input
-              id="position_name"
-              value={formData.position_name}
-              onChange={(e) => setFormData({ ...formData, position_name: e.target.value })}
-              placeholder="Contoh: Pengemudi, Petugas Kebersihan, Pramubakti"
               required
             />
           </div>
@@ -331,6 +394,26 @@ export function NonAsnFormModal({
               </SelectContent>
             </Select>
           </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Data Kepegawaian Section */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Kepegawaian</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+          {/* Jabatan */}
+          <div className="space-y-2">
+            <Label htmlFor="position_name">Jabatan <span className="text-red-500">*</span></Label>
+            <Input
+              id="position_name"
+              value={formData.position_name}
+              onChange={(e) => setFormData({ ...formData, position_name: e.target.value })}
+              placeholder="Contoh: Pengemudi, Petugas Kebersihan, Pramubakti"
+              required
+            />
+          </div>
 
           {/* Unit Kerja */}
           <div className="space-y-2">
@@ -349,6 +432,9 @@ export function NonAsnFormModal({
                 ))}
               </SelectContent>
             </Select>
+            {!isAdminPusat && (
+              <p className="text-xs text-muted-foreground">Unit kerja otomatis sesuai dengan unit Anda</p>
+            )}
           </div>
 
           {/* Type Non ASN */}
@@ -367,7 +453,7 @@ export function NonAsnFormModal({
           </div>
 
           {/* Deskripsi Tugas */}
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="keterangan_penugasan">Deskripsi Tugas</Label>
             <Textarea
               id="keterangan_penugasan"
@@ -379,7 +465,7 @@ export function NonAsnFormModal({
           </div>
 
           {/* Catatan */}
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="keterangan_perubahan">Catatan</Label>
             <Textarea
               id="keterangan_perubahan"
@@ -389,6 +475,18 @@ export function NonAsnFormModal({
               rows={2}
             />
           </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="education" className="space-y-6">
+              {/* Education Section */}
+              <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
+              <p className="text-xs text-muted-foreground italic">
+                💡 Data pendidikan akan ditampilkan di dashboard dan laporan
+              </p>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
