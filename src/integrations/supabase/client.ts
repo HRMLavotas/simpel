@@ -7,6 +7,12 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   || import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
+if (import.meta.env.DEV && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
+  console.warn(
+    '[Supabase] Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env (lihat .env.production.example).'
+  );
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

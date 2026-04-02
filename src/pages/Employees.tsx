@@ -176,21 +176,36 @@ export default function Employees() {
     logger.debug('=== FETCHING EMPLOYEES ===');
     try {
       // Fetch employees - filter by department for admin_unit (RLS handles this server-side too)
-      let query = supabase
-        .from('employees')
-        .select('*')
-        .order('import_order', { ascending: true, nullsFirst: false });
+      const allData: Employee[] = [];
+      let offset = 0;
+      const batchSize = 1000;
 
-      // For admin_unit, restrict to their department (belt-and-suspenders with RLS)
-      if (!canViewAll && profile.department) {
-        query = query.eq('department', profile.department);
+      while (true) {
+        let query = supabase
+          .from('employees')
+          .select('*')
+          .range(offset, offset + batchSize - 1)
+          .order('import_order', { ascending: true, nullsFirst: false });
+
+        // For admin_unit, restrict to their department (belt-and-suspenders with RLS)
+        if (!canViewAll && profile.department) {
+          query = query.eq('department', profile.department);
+        }
+
+        const { data: batch, error } = await query;
+        
+        if (error) throw error;
+        
+        if (!batch || batch.length === 0) break;
+        allData.push(...batch);
+        
+        if (batch.length < batchSize) break;
+        offset += batchSize;
       }
-
-      const { data, error } = await query;
       
-      if (error) throw error;
+      const data = allData;
       
-      logger.debug('Fetched employees count:', data?.length || 0);
+      logger.debug('Fetched employees count:', data.length);
       
       // Sort by position_type category first, then by import_order
       const sortedData = (data || []).sort((a, b) => {
@@ -1161,7 +1176,7 @@ export default function Employees() {
         onOpenChange={setNonAsnModalOpen}
         onSuccess={fetchEmployees}
         editData={selectedEmployee?.asn_status === 'Non ASN' ? selectedEmployee : undefined}
-        userDepartment={profile?.department}
+        userDepartment={profile?.department as any}
         isAdminPusat={isAdminPusat}
         initialEducation={selectedEducation}
         initialPositionHistory={selectedPositionHistory}

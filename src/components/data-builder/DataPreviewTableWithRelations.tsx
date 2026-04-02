@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { AVAILABLE_COLUMNS } from './ColumnSelector';
+import { AVAILABLE_COLUMNS, formatEmployeeCellValue } from './ColumnSelector';
 import { RELATED_DATA_TABLES } from './RelatedDataSelector';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface DataPreviewTableWithRelationsProps {
   data: Record<string, unknown>[];
@@ -26,125 +27,168 @@ export function DataPreviewTableWithRelations({
   totalCount,
   onPageChange,
 }: DataPreviewTableWithRelationsProps) {
+  const { toast } = useToast();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [relatedData, setRelatedData] = useState<Map<string, Map<string, any[]>>>(new Map());
+  const [relatedData, setRelatedData] = useState<Map<string, Map<string, Record<string, unknown>[]>>>(new Map());
+  const relatedDataRef = useRef(relatedData);
+  relatedDataRef.current = relatedData;
+
   const [loadingRelated, setLoadingRelated] = useState<Set<string>>(new Set());
 
   const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const toggleRow = async (employeeId: string) => {
-    const newExpanded = new Set(expandedRows);
-    
+    if (!employeeId) {
+      toast({
+        title: 'ID pegawai tidak tersedia',
+        description: 'Muat ulang data; kolom inti seharusnya menyertakan id dari server.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (expandedRows.has(employeeId)) {
-      newExpanded.delete(employeeId);
-      setExpandedRows(newExpanded);
-    } else {
-      newExpanded.add(employeeId);
-      setExpandedRows(newExpanded);
+      setExpandedRows(prev => {
+        const next = new Set(prev);
+        next.delete(employeeId);
+        return next;
+      });
+      return;
+    }
 
-      // Fetch related data if not already loaded
-      if (!relatedData.has(employeeId) && selectedRelatedTables.length > 0) {
-        setLoadingRelated(new Set(loadingRelated).add(employeeId));
-        
-        try {
-          const employeeRelatedData = new Map<string, any[]>();
+    setExpandedRows(prev => new Set(prev).add(employeeId));
 
-          // Fetch all selected related tables
-          await Promise.all(
-            selectedRelatedTables.map(async (tableKey) => {
-              const tableConfig = RELATED_DATA_TABLES.find(t => t.key === tableKey);
-              if (!tableConfig) return;
+    const alreadyLoaded = relatedDataRef.current.has(employeeId);
+    if (alreadyLoaded || selectedRelatedTables.length === 0) {
+      return;
+    }
 
-              const { data: records, error } = await supabase
-                .from(tableConfig.table)
-                .select('*')
-                .eq('employee_id', employeeId)
-                .order('created_at', { ascending: true });
+    setLoadingRelated(prev => new Set(prev).add(employeeId));
 
-              if (!error && records) {
-                employeeRelatedData.set(tableKey, records);
-              }
-            })
-          );
+    try {
+      const employeeRelatedData = new Map<string, Record<string, unknown>[]>();
+      const failedTables: string[] = [];
 
-          setRelatedData(new Map(relatedData).set(employeeId, employeeRelatedData));
-        } catch (error) {
-          console.error('Error fetching related data:', error);
-        } finally {
-          const newLoading = new Set(loadingRelated);
-          newLoading.delete(employeeId);
-          setLoadingRelated(newLoading);
-        }
+      await Promise.all(
+        selectedRelatedTables.map(async tableKey => {
+          const tableConfig = RELATED_DATA_TABLES.find(t => t.key === tableKey);
+          if (!tableConfig) return;
+
+          const { data: records, error } = await supabase
+            .from(tableConfig.table)
+            .select('*')
+            .eq('employee_id', employeeId)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            failedTables.push(tableConfig.label);
+            return;
+          }
+          if (records) {
+            employeeRelatedData.set(tableKey, records as Record<string, unknown>[]);
+          }
+        })
+      );
+
+      if (failedTables.length > 0) {
+        toast({
+          title: 'Sebagian data relasi gagal dimuat',
+          description: failedTables.join(', '),
+          variant: 'destructive',
+        });
       }
+
+      setRelatedData(prev => new Map(prev).set(employeeId, employeeRelatedData));
+    } catch (error) {
+      console.error('Error fetching related data:', error);
+      toast({
+        title: 'Gagal memuat data relasi',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingRelated(prev => {
+        const next = new Set(prev);
+        next.delete(employeeId);
+        return next;
+      });
     }
   };
 
-  const formatValue = (value: any, fieldKey: string): string => {
+  const formatValue = (value: unknown, fieldKey: string): string => {
     if (value === null || value === undefined) return '-';
-    
-    // Format dates
-    if (fieldKey.includes('tanggal') || fieldKey === 'created_at' || fieldKey === 'tmt' || 
-        fieldKey === 'birth_date' || fieldKey === 'join_date') {
+
+    if (fieldKey.includes('tanggal') || fieldKey === 'created_at' || fieldKey === 'tmt') {
       try {
-        return new Date(value).toLocaleDateString('id-ID');
+        return new Date(value as string).toLocaleDateString('id-ID');
       } catch {
         return String(value);
       }
     }
-    
+
     return String(value);
   };
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        Belum ada data. Pilih kolom dan klik "Tampilkan Data".
+      <div className="flex flex-col items-center justify-center gap-2 py-14 text-center text-muted-foreground px-4">
+        <p>Belum ada data untuk ditampilkan.</p>
+        <p className="text-sm max-w-md">
+          Pilih kolom di panel kiri, sesuaikan filter bila perlu, lalu klik <strong>Tampilkan Data</strong>.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground">
-        Menampilkan {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} dari{' '}
-        <span className="font-semibold text-foreground">{totalCount}</span> data
+      <div className="text-sm text-muted-foreground flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span>
+          Menampilkan {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} dari{' '}
+          <span className="font-semibold text-foreground">{totalCount}</span> data
+        </span>
         {selectedRelatedTables.length > 0 && (
-          <span className="ml-2 text-primary">
-            (Klik baris untuk melihat {selectedRelatedTables.length} data relasi)
+          <span className="text-primary">
+            — Klik baris untuk melihat {selectedRelatedTables.length} jenis data relasi
           </span>
         )}
       </div>
 
-      <div className="rounded-lg border overflow-auto">
+      <div className="rounded-lg border overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
         <Table>
           <TableHeader>
             <TableRow>
-              {selectedRelatedTables.length > 0 && <TableHead className="w-12"></TableHead>}
+              {selectedRelatedTables.length > 0 && <TableHead className="w-12" />}
               <TableHead className="w-12">No</TableHead>
               {columns.map(col => (
-                <TableHead key={col.key}>{col.label}</TableHead>
+                <TableHead key={col.key} className="whitespace-nowrap">
+                  {col.label}
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((row, idx) => {
-              const employeeId = row.id as string;
+              const employeeId = String(row.id ?? '');
               const isExpanded = expandedRows.has(employeeId);
-              const isLoading = loadingRelated.has(employeeId);
+              const isRowLoading = loadingRelated.has(employeeId);
               const employeeRelations = relatedData.get(employeeId);
+              const rowKey = employeeId || `row-${idx}`;
 
               return (
-                <>
-                  {/* Main employee row */}
-                  <TableRow key={idx} className="hover:bg-muted/50">
+                <Fragment key={rowKey}>
+                  <TableRow className="hover:bg-muted/50">
                     {selectedRelatedTables.length > 0 && (
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0"
-                          onClick={() => toggleRow(employeeId)}
+                          type="button"
+                          onClick={() => void toggleRow(employeeId)}
+                          aria-expanded={isExpanded}
+                          aria-label={isExpanded ? 'Ciutkan detail' : 'Buka detail relasi'}
                         >
                           {isExpanded ? (
                             <ChevronDown className="h-4 w-4" />
@@ -154,24 +198,25 @@ export function DataPreviewTableWithRelations({
                         </Button>
                       </TableCell>
                     )}
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground tabular-nums">
                       {(currentPage - 1) * pageSize + idx + 1}
                     </TableCell>
                     {columns.map(col => (
-                      <TableCell key={col.key}>{String(row[col.dbField] ?? '-')}</TableCell>
+                      <TableCell key={col.key} className="max-w-[min(280px,40vw)] truncate" title={formatEmployeeCellValue(row[col.dbField], col.dbField)}>
+                        {formatEmployeeCellValue(row[col.dbField], col.dbField)}
+                      </TableCell>
                     ))}
                   </TableRow>
 
-                  {/* Expanded related data */}
                   {isExpanded && (
                     <TableRow>
-                      <TableCell 
-                        colSpan={columns.length + (selectedRelatedTables.length > 0 ? 2 : 1)} 
+                      <TableCell
+                        colSpan={columns.length + (selectedRelatedTables.length > 0 ? 2 : 1)}
                         className="bg-muted/30 p-4"
                       >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                        {isRowLoading ? (
+                          <div className="flex items-center justify-center gap-2 py-4">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
                             <span className="text-sm text-muted-foreground">Memuat data relasi...</span>
                           </div>
                         ) : (
@@ -185,8 +230,8 @@ export function DataPreviewTableWithRelations({
 
                               return (
                                 <div key={tableKey} className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Icon className="h-4 w-4 text-primary" />
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Icon className="h-4 w-4 text-primary shrink-0" />
                                     <h4 className="font-semibold text-sm">{tableConfig.label}</h4>
                                     <Badge variant="secondary" className="text-xs">
                                       {records.length} record
@@ -194,25 +239,19 @@ export function DataPreviewTableWithRelations({
                                   </div>
 
                                   {records.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic pl-6">
-                                      Tidak ada data
-                                    </p>
+                                    <p className="text-sm text-muted-foreground italic pl-6">Tidak ada data</p>
                                   ) : (
-                                    <div className="pl-6 space-y-2">
+                                    <div className="pl-2 sm:pl-6 space-y-2">
                                       {records.map((record, recordIdx) => (
-                                        <div 
-                                          key={record.id || recordIdx} 
+                                        <div
+                                          key={String(record.id ?? recordIdx)}
                                           className="p-3 rounded-md bg-background border text-sm"
                                         >
-                                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                             {tableConfig.fields.map(field => (
-                                              <div key={field.key}>
-                                                <span className="text-muted-foreground text-xs">
-                                                  {field.label}:
-                                                </span>
-                                                <p className="font-medium">
-                                                  {formatValue(record[field.key], field.key)}
-                                                </p>
+                                              <div key={field.key} className="min-w-0">
+                                                <span className="text-muted-foreground text-xs">{field.label}</span>
+                                                <p className="font-medium break-words">{formatValue(record[field.key], field.key)}</p>
                                               </div>
                                             ))}
                                           </div>
@@ -228,7 +267,7 @@ export function DataPreviewTableWithRelations({
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </TableBody>
@@ -236,24 +275,30 @@ export function DataPreviewTableWithRelations({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             disabled={currentPage <= 1}
             onClick={() => onPageChange(currentPage - 1)}
-            className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-40 hover:bg-muted transition-colors"
+            className="min-w-[7rem]"
           >
             Sebelumnya
-          </button>
-          <span className="text-sm text-muted-foreground">
+          </Button>
+          <span className="text-sm text-muted-foreground text-center tabular-nums">
             Hal {currentPage} / {totalPages}
           </span>
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             disabled={currentPage >= totalPages}
             onClick={() => onPageChange(currentPage + 1)}
-            className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-40 hover:bg-muted transition-colors"
+            className="min-w-[7rem]"
           >
             Selanjutnya
-          </button>
+          </Button>
         </div>
       )}
     </div>

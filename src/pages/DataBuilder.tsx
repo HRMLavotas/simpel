@@ -3,19 +3,52 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ColumnSelector, AVAILABLE_COLUMNS } from '@/components/data-builder/ColumnSelector';
+import { ColumnSelector, AVAILABLE_COLUMNS, formatEmployeeCellValue } from '@/components/data-builder/ColumnSelector';
 import { FilterBuilder, FilterRule } from '@/components/data-builder/FilterBuilder';
 import { DataPreviewTableWithRelations } from '@/components/data-builder/DataPreviewTableWithRelations';
 import { DataStatistics } from '@/components/data-builder/DataStatistics';
 import { RelatedDataSelector, RELATED_DATA_TABLES } from '@/components/data-builder/RelatedDataSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
+import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database, Cloud } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import * as XLSX from 'xlsx';
+import { logger } from '@/lib/logger';
+import { randomId } from '@/lib/utils';
+
+/** Excel melarang karakter \ / * ? : [ ] pada nama sheet — tanpa sanitasi, export gagal diam-diam */
+const EXCEL_SHEET_NAME_MAX = 31;
+
+function allocateExcelSheetName(raw: string, used: Set<string>): string {
+  let s = raw
+    .replace(/[\\/*?:\[\]]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!s) s = 'Sheet';
+  s = s.slice(0, EXCEL_SHEET_NAME_MAX);
+  let candidate = s;
+  let n = 2;
+  while (used.has(candidate)) {
+    const suffix = ` (${n})`;
+    const headLen = Math.max(1, EXCEL_SHEET_NAME_MAX - suffix.length);
+    candidate = (s.slice(0, headLen) + suffix).slice(0, EXCEL_SHEET_NAME_MAX);
+    n++;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+/** Supabase/PostgREST membatasi panjang query; .in() dengan ribuan UUID sering gagal */
+const RELATED_EXPORT_ID_CHUNK = 120;
+
+/** Field inti pegawai — selalu di-select agar relasi, pagination, dan export konsisten */
+const EMPLOYEE_BASE_SELECT_FIELDS = ['id', 'nip', 'name', 'department'] as const;
 
 type FilterableQuery = {
   eq: (field: string, value: string) => FilterableQuery;
   ilike: (field: string, value: string) => FilterableQuery;
+  in: (field: string, values: string[]) => FilterableQuery;
 };
 
 const PAGE_SIZE = 50;
@@ -58,7 +91,7 @@ const buildFiltersForSelectedColumns = (selectedColumns: string[], existingFilte
 
     return [
       generalFilter || {
-        id: crypto.randomUUID(),
+        id: randomId(),
         kind: 'general' as const,
         field,
         operator: getDefaultFilterOperator(field),
@@ -91,21 +124,32 @@ export default function DataBuilder() {
     const dbFields = selectedColumns
       .map(key => AVAILABLE_COLUMNS.find(c => c.key === key)?.dbField)
       .filter(Boolean) as string[];
-    
-    const selectStr = dbFields.length > 0 ? dbFields.join(',') : '*';
-    return { selectStr, dbFields };
+
+    const merged = [...new Set([...EMPLOYEE_BASE_SELECT_FIELDS, ...dbFields])];
+    const selectStr = merged.join(',');
+    return { selectStr, dbFields: merged };
   }, [selectedColumns]);
 
   const applyFilters = (query: FilterableQuery) => {
     let q = query;
     for (const filter of filters) {
       if (!isFilterRuleActive(filter)) continue;
-      if (filter.operator === 'exact_word' || filter.operator === 'in') continue;
+
+      if (filter.operator === 'in') {
+        const vals = filter.values?.filter(Boolean) ?? [];
+        if (vals.length === 0) continue;
+        q = q.in(filter.field, vals);
+        continue;
+      }
 
       const value = filter.value.trim();
       if (!value) continue;
-      
-      if (filter.operator === 'eq') {
+
+      if (filter.operator === 'exact_word') {
+        // Pre-filter pada level server (Supabase) dengan ilike untuk menghindari O.O.M (Out of Memory)
+        // Kueri akan sangat spesifik (tersaring substring) sebelum di-refine lebih lanjut di client-side dengan RegExp \b
+        q = q.ilike(filter.field, `%${value}%`);
+      } else if (filter.operator === 'eq') {
         q = q.eq(filter.field, value);
       } else if (filter.operator === 'ilike') {
         q = q.ilike(filter.field, `%${value}%`);
@@ -116,9 +160,9 @@ export default function DataBuilder() {
 
   const applyClientSideFilters = (rows: Record<string, unknown>[]) => {
     let filtered = rows;
-    
+
     const exactWordFilters = filters.filter(filter => filter.operator === 'exact_word' && isFilterRuleActive(filter));
-    
+
     for (const filter of exactWordFilters) {
       const searchValue = escapeRegExp(filter.value.trim().toLowerCase());
       filtered = filtered.filter(row => {
@@ -127,16 +171,7 @@ export default function DataBuilder() {
         return regex.test(fieldValue);
       });
     }
-    
-    const inFilters = filters.filter(filter => filter.operator === 'in' && isFilterRuleActive(filter));
-    
-    for (const filter of inFilters) {
-      filtered = filtered.filter(row => {
-        const fieldValue = String(row[filter.field] || '').trim();
-        return filter.values!.some(value => value.toLowerCase() === fieldValue.toLowerCase());
-      });
-    }
-    
+
     return filtered;
   };
 
@@ -157,8 +192,9 @@ export default function DataBuilder() {
       const batchSize = 1000;
 
       while (true) {
-        let q = supabase.from('employees').select(selectStr).range(offset, offset + batchSize - 1).order('name');
+        let q = supabase.from('employees').select(selectStr);
         q = applyFilters(q as unknown as FilterableQuery) as typeof q;
+        q = q.range(offset, offset + batchSize - 1).order('name');
         const { data: batch, error } = await q;
         if (error) throw error;
         if (!batch || batch.length === 0) break;
@@ -173,6 +209,7 @@ export default function DataBuilder() {
       setTotalCount(filtered.length);
       setData(filtered.slice(0, PAGE_SIZE));
     } catch (error) {
+      logger.error('[DataBuilder] Gagal mengambil data:', error);
       toast({
         title: 'Gagal mengambil data',
         description: error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil data.',
@@ -197,42 +234,77 @@ export default function DataBuilder() {
     setIsExporting(true);
     try {
       const wb = XLSX.utils.book_new();
-      const employeeIds = allData.map(emp => emp.id as string);
+      const sheetNamesUsed = new Set<string>();
+      const mainSheetName = allocateExcelSheetName('Data Pegawai', sheetNamesUsed);
+      const summarySheetName = allocateExcelSheetName('Ringkasan', sheetNamesUsed);
+
+      const employeeIds = allData
+        .map(emp => emp.id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0);
       const activeFilterCount = filters.filter(isFilterRuleActive).length;
 
       const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
       const exportData = allData.map((row, idx) => {
         const obj: Record<string, unknown> = { No: idx + 1 };
         columns.forEach(col => {
-          obj[col.label] = row[col.dbField] ?? '-';
+          const raw = row[col.dbField];
+          if (col.category === 'dates' && raw != null && raw !== '') {
+            obj[col.label] = formatEmployeeCellValue(raw, col.dbField);
+          } else {
+            obj[col.label] = raw ?? '-';
+          }
         });
         return obj;
       });
       const wsData = XLSX.utils.json_to_sheet(exportData);
-      XLSX.utils.book_append_sheet(wb, wsData, 'Data Pegawai');
+      XLSX.utils.book_append_sheet(wb, wsData, mainSheetName);
 
-      if (selectedRelatedTables.length > 0) {
+      const exportRelationErrors: string[] = [];
+
+      if (selectedRelatedTables.length > 0 && employeeIds.length > 0) {
         for (const tableKey of selectedRelatedTables) {
           const tableConfig = RELATED_DATA_TABLES.find(t => t.key === tableKey);
           if (!tableConfig) continue;
 
-          const { data: relatedData, error } = await supabase
-            .from(tableConfig.table)
-            .select('*')
-            .in('employee_id', employeeIds)
-            .order('created_at', { ascending: true });
+          const relatedMerged: Record<string, unknown>[] = [];
+          let batchError: Error | null = null;
 
-          if (error) {
-            console.error(`Error fetching ${tableConfig.table}:`, error);
+          for (let offset = 0; offset < employeeIds.length; offset += RELATED_EXPORT_ID_CHUNK) {
+            const chunk = employeeIds.slice(offset, offset + RELATED_EXPORT_ID_CHUNK);
+            const { data: batch, error } = await supabase
+              .from(tableConfig.table)
+              .select('*')
+              .in('employee_id', chunk);
+
+            if (error) {
+              batchError = new Error(error.message);
+              logger.error(`[DataBuilder export] ${tableConfig.table}:`, error);
+              break;
+            }
+            if (batch?.length) {
+              relatedMerged.push(...(batch as Record<string, unknown>[]));
+            }
+          }
+
+          if (batchError) {
+            exportRelationErrors.push(tableConfig.label);
             continue;
           }
 
-          if (!relatedData || relatedData.length === 0) continue;
+          relatedMerged.sort((a, b) => {
+            const ta = new Date(String(a.created_at ?? 0)).getTime();
+            const tb = new Date(String(b.created_at ?? 0)).getTime();
+            return ta - tb;
+          });
 
-          const employeeMap = new Map(allData.map(emp => [emp.id as string, emp]));
+          if (relatedMerged.length === 0) continue;
 
-          const relatedExportData = relatedData.map((record: Record<string, unknown>, idx: number) => {
-            const employee = employeeMap.get(record.employee_id);
+          const employeeMap = new Map(
+            allData.map(emp => [String(emp.id), emp] as [string, Record<string, unknown>])
+          );
+
+          const relatedExportData = relatedMerged.map((record: Record<string, unknown>, idx: number) => {
+            const employee = employeeMap.get(String(record.employee_id));
             const obj: Record<string, unknown> = {
               No: idx + 1,
               NIP: employee?.nip || '-',
@@ -243,7 +315,7 @@ export default function DataBuilder() {
             tableConfig.fields.forEach(field => {
               let value = record[field.key];
               if (field.key.includes('tanggal') || field.key === 'created_at' || field.key === 'tmt') {
-                value = value ? new Date(value).toLocaleDateString('id-ID') : '-';
+                value = value ? new Date(value as string | number | Date).toLocaleDateString('id-ID') : '-';
               }
               obj[field.label] = value ?? '-';
             });
@@ -252,7 +324,7 @@ export default function DataBuilder() {
           });
 
           const wsRelated = XLSX.utils.json_to_sheet(relatedExportData);
-          const sheetName = tableConfig.label.substring(0, 31);
+          const sheetName = allocateExcelSheetName(tableConfig.label, sheetNamesUsed);
           XLSX.utils.book_append_sheet(wb, wsRelated, sheetName);
         }
       }
@@ -264,7 +336,7 @@ export default function DataBuilder() {
         { Kategori: 'Filter Aktif', Nilai: activeFilterCount },
       ];
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+      XLSX.utils.book_append_sheet(wb, wsSummary, summarySheetName);
 
       const STAT_FIELDS = [
         { key: 'department', label: 'Unit Kerja' },
@@ -294,20 +366,28 @@ export default function DataBuilder() {
 
         if (statData.length > 0) {
           const wsStats = XLSX.utils.json_to_sheet(statData);
-          const sheetName = `Stat ${stat.label}`.substring(0, 31);
-          XLSX.utils.book_append_sheet(wb, wsStats, sheetName);
+          const statSheetName = allocateExcelSheetName(`Stat ${stat.label}`, sheetNamesUsed);
+          XLSX.utils.book_append_sheet(wb, wsStats, statSheetName);
         }
       });
 
       const timestamp = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(wb, `data-pegawai-${timestamp}.xlsx`);
+      const fileName = `data-pegawai-${timestamp}.xlsx`;
+      
+      // Menggunakan bawaan XLSX dengan opsi spesifik untuk memaksa encoding Excel tulen
+      XLSX.writeFile(wb, fileName, { bookType: 'xlsx', compression: true });
 
-      const totalSheets = 2 + selectedRelatedTables.length + availableStats.length;
-      toast({ 
-        title: `Export berhasil!`, 
-        description: `${allData.length} pegawai dengan ${totalSheets} sheet (termasuk ${selectedRelatedTables.length} data relasi)` 
+      const totalSheets = 2 + (selectedRelatedTables.length - exportRelationErrors.length) + availableStats.length;
+      toast({
+        title: 'Export berhasil',
+        description:
+          exportRelationErrors.length === 0
+            ? `${allData.length} pegawai, ${totalSheets} sheet (termasuk data relasi & ringkasan).`
+            : `${allData.length} pegawai diunduh. Beberapa sheet relasi tidak dibuat: ${exportRelationErrors.join(', ')}.`,
+        variant: 'default',
       });
     } catch (error) {
+      logger.error('[DataBuilder export] Gagal export:', error);
       toast({
         title: 'Gagal export',
         description: error instanceof Error ? error.message : 'Terjadi kesalahan saat export.',
@@ -318,20 +398,35 @@ export default function DataBuilder() {
     }
   };
 
+  const supabaseProjectId =
+    import.meta.env.VITE_SUPABASE_PROJECT_ID ||
+    (typeof import.meta.env.VITE_SUPABASE_URL === 'string'
+      ? import.meta.env.VITE_SUPABASE_URL.replace(/^https?:\/\/([^.]+)\..*$/, '$1')
+      : '');
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="page-header">
-          <h1 className="page-title flex items-center gap-2">
-            <FileSpreadsheet className="h-7 w-7 text-primary" />
-            Data Builder
-          </h1>
-          <p className="page-description">
-            Bangun query data pegawai secara custom, preview hasilnya, lalu export ke Excel atau lihat statistiknya.
-          </p>
+        <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="page-title flex items-center gap-2">
+              <FileSpreadsheet className="h-7 w-7 text-primary" />
+              Data Builder
+            </h1>
+            <p className="page-description max-w-2xl">
+              Pilih kolom dan filter, lalu muat data dari tabel <code className="text-xs bg-muted px-1 rounded">employees</code>.
+              Preview mendukung data relasi; export menghasilkan workbook Excel multi-sheet.
+            </p>
+          </div>
+          {supabaseProjectId ? (
+            <Badge variant="outline" className="shrink-0 gap-1.5 py-1.5 px-2 font-normal">
+              <Cloud className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+              Supabase: {supabaseProjectId}
+            </Badge>
+          ) : null}
         </div>
 
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Pilih Kolom</CardTitle>
@@ -350,6 +445,8 @@ export default function DataBuilder() {
             </CardContent>
           </Card>
         </div>
+
+        <Separator className="opacity-60" />
 
         <Card>
           <CardHeader className="pb-3">
@@ -370,21 +467,46 @@ export default function DataBuilder() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-3 flex-wrap">
-          <Button onClick={fetchData} disabled={isLoading} className="gap-2">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        <div className="sticky top-16 z-30 flex flex-col gap-3 sm:flex-row sm:items-center bg-background/95 backdrop-blur-md p-4 rounded-xl border shadow-sm my-6 transition-all duration-300 hover:shadow-md">
+          <Button onClick={fetchData} disabled={isLoading} size="lg" className="gap-2 w-full sm:w-auto font-medium">
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
             Tampilkan Data
           </Button>
-          <Button variant="outline" onClick={exportToExcel} disabled={isExporting || allData.length === 0} className="gap-2">
-            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={exportToExcel}
+            disabled={isExporting || allData.length === 0}
+            className="gap-2 w-full sm:w-auto font-medium hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors"
+          >
+            {isExporting ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileSpreadsheet className="h-5 w-5 text-emerald-600" />}
             Export Excel
           </Button>
+          {selectedColumns.length === 0 ? (
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 sm:ml-auto">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              Pilih minimal satu kolom untuk memuat data.
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground sm:ml-auto">
+              Total <b>{allData.length}</b> baris siap ditampilkan atau diexport.
+            </p>
+          )}
         </div>
 
         <Card>
+          <CardHeader className="pb-2 border-b">
+            <CardTitle className="text-base">Hasil</CardTitle>
+            <p className="text-sm text-muted-foreground font-normal">
+              Tab Tabel untuk preview dan pagination; tab Statistik untuk distribusi field yang termuat.
+            </p>
+          </CardHeader>
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4">
+              <TabsList className="mb-4 w-full sm:w-auto flex flex-wrap h-auto gap-1 p-1">
                 <TabsTrigger value="table" className="gap-2">
                   <Table2 className="h-4 w-4" />
                   Tabel Data

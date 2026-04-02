@@ -177,36 +177,51 @@ export default function PetaJabatan() {
         .limit(10);
       logger.debug('Sample departments in position_references:', allPositions);
       
+      // Helper to fetch all records without 1000-row limit
+      // Uses a factory function to create fresh query per batch (Supabase builder is mutable)
+      const fetchAllUnlimited = async (buildQuery: () => any) => {
+        const allData: any[] = [];
+        let offset = 0;
+        const batchSize = 1000;
+        while (true) {
+          const { data, error } = await buildQuery().range(offset, offset + batchSize - 1);
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          allData.push(...data);
+          if (data.length < batchSize) break;
+          offset += batchSize;
+        }
+        return { data: allData, error: null };
+      };
+
       const [posRes, empRes, nonAsnRes] = await Promise.all([
-        supabase
-          .from('position_references')
-          .select('*')
-          .eq('department', selectedDepartment)
-          .order('position_category')
-          .order('position_order'),
-        supabase
-          .from('employees')
-          .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
-          .eq('department', selectedDepartment)
-          .or('asn_status.is.null,asn_status.neq.Non ASN'),
-        supabase
-          .from('employees')
-          .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
-          .eq('department', selectedDepartment)
-          .eq('asn_status', 'Non ASN'),
+        fetchAllUnlimited(() =>
+          supabase
+            .from('position_references')
+            .select('*')
+            .eq('department', selectedDepartment)
+            .order('position_category')
+            .order('position_order')
+        ),
+        fetchAllUnlimited(() =>
+          supabase
+            .from('employees')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .eq('department', selectedDepartment)
+            .or('asn_status.is.null,asn_status.neq.Non ASN')
+        ),
+        fetchAllUnlimited(() =>
+          supabase
+            .from('employees')
+            .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
+            .eq('department', selectedDepartment)
+            .eq('asn_status', 'Non ASN')
+        ),
       ]);
 
-      logger.debug('Position query result:', posRes);
-      logger.debug('Employee query result:', empRes);
-      logger.debug('Non-ASN query result:', nonAsnRes);
-
-      if (posRes.error) throw posRes.error;
-      if (empRes.error) throw empRes.error;
-      if (nonAsnRes.error) throw nonAsnRes.error;
-
       setPositions(posRes.data || []);
-      setEmployees(empRes.data || []);
-      setNonAsnEmployees(nonAsnRes.data || []);
+      setEmployees((empRes.data || []) as EmployeeMatch[]);
+      setNonAsnEmployees((nonAsnRes.data || []) as EmployeeMatch[]);
       
       logger.debug('Positions loaded:', posRes.data?.length || 0);
       logger.debug('Employees loaded:', empRes.data?.length || 0);
@@ -243,43 +258,7 @@ export default function PetaJabatan() {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
   };
 
-  const getMatchingEmployees = (positionName: string) => {
-    // Normalize: trim, lowercase, and collapse multiple spaces into one
-    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
-    const norm = normalize(positionName);
-    
-    const matched = employees.filter(e => {
-      if (!e.position_name) return false;
-      const empNorm = normalize(e.position_name);
-      const isMatch = empNorm === norm;
-      
-      // Debug logging for this specific position
-      if (positionName.toLowerCase().includes('arsiparis')) {
-        logger.debug(`Checking employee: ${e.name}`);
-        logger.debug(`  Position in DB: "${e.position_name}"`);
-        logger.debug(`  Normalized: "${empNorm}"`);
-        logger.debug(`  Looking for: "${norm}"`);
-        logger.debug(`  Match: ${isMatch}`);
-      }
-      
-      return isMatch;
-    });
-    
-    // Debug logging to help identify matching issues
-    if (matched.length === 0 && positionName.toLowerCase().includes('arsiparis')) {
-      logger.debug(`❌ No match for position: "${positionName}" (normalized: "${norm}")`);
-      logger.debug('All employee positions in this department:');
-      employees.forEach(e => {
-        if (e.position_name) {
-          logger.debug(`  - ${e.name}: "${e.position_name}" (normalized: "${normalize(e.position_name)}")`);
-        }
-      });
-    } else if (matched.length > 0 && positionName.toLowerCase().includes('arsiparis')) {
-      logger.debug(`✅ Found ${matched.length} match(es) for "${positionName}":`, matched.map(e => e.name));
-    }
-    
-    return matched;
-  };
+
 
   // Group positions by category with search filter
   const groupedPositions = useMemo(() => {
@@ -287,6 +266,25 @@ export default function PetaJabatan() {
       Struktural: [],
       Fungsional: [],
       Pelaksana: [],
+    };
+    
+    // Normalize: trim, lowercase, and collapse multiple spaces into one
+    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Pre-group employees by their normalized position name for O(1) lookup
+    const employeesByPosition = new Map<string, EmployeeMatch[]>();
+    employees.forEach(emp => {
+      if (emp.position_name) {
+        const norm = normalize(emp.position_name);
+        const list = employeesByPosition.get(norm) || [];
+        list.push(emp);
+        employeesByPosition.set(norm, list);
+      }
+    });
+
+    const getMatchingEmployees = (positionName: string) => {
+      const norm = normalize(positionName);
+      return employeesByPosition.get(norm) || [];
     };
     
     // Filter positions by search query
@@ -310,8 +308,13 @@ export default function PetaJabatan() {
         groups[p.position_category].push(p);
       }
     });
-    return groups;
+
+    return { groups, getMatchingEmployees };
   }, [positions, searchQuery, employees]);
+
+  // Extract getMatchingEmployees from the memoized result
+  const getMatchingEmployees = groupedPositions.getMatchingEmployees;
+  const groupsData = groupedPositions.groups;
 
   const openAddModal = () => {
     setEditingPosition(null);
@@ -502,7 +505,7 @@ export default function PetaJabatan() {
 
     POSITION_CATEGORIES.forEach(category => {
       result.push({ type: 'category', category });
-      const catPositions = groupedPositions[category] || [];
+      const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
         const matched = getMatchingEmployees(pos.position_name);
         if (matched.length === 0) {
@@ -523,7 +526,7 @@ export default function PetaJabatan() {
     });
 
     return result;
-  }, [groupedPositions, employees]);
+  }, [groupsData, employees, getMatchingEmployees]);
 
   let positionNo = 0;
 

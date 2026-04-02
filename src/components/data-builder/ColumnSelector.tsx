@@ -48,6 +48,26 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'keterangan_formasi', label: 'Keterangan Formasi', dbField: 'keterangan_formasi', category: 'other', description: 'Catatan formasi jabatan' },
 ];
 
+/** Kolom tanggal — dipakai untuk format tampilan & export */
+export function isDateColumnDbField(dbField: string): boolean {
+  const col = AVAILABLE_COLUMNS.find(c => c.dbField === dbField);
+  return col?.category === 'dates';
+}
+
+export function formatEmployeeCellValue(value: unknown, dbField: string): string {
+  if (value === null || value === undefined || value === '') return '-';
+  if (isDateColumnDbField(dbField)) {
+    try {
+      const d = new Date(value as string);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleDateString('id-ID');
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+}
+
 const CATEGORY_LABELS = {
   identity: 'Data Pribadi',
   position: 'Jabatan',

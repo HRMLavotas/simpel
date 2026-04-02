@@ -47,8 +47,6 @@ function groupBy(data: Record<string, unknown>[], field: string): { name: string
 }
 
 // Custom tooltip for better readability
-import { TooltipProps } from '@/types/chart';
-
 const CustomTooltip = ({ active, payload, totalData }: TooltipProps & { totalData: number }) => {
   if (active && payload && payload.length) {
     const data = payload[0];
@@ -75,8 +73,6 @@ const truncateText = (text: string, maxLength: number = 30) => {
 };
 
 // Custom YAxis tick for bar chart
-import { YAxisTickProps } from '@/types/chart';
-
 const CustomYAxisTick = ({ x, y, payload }: YAxisTickProps) => {
   return (
     <g transform={`translate(${x},${y})`}>

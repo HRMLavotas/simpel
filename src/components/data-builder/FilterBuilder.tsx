@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Filter } from 'lucide-react';
 import { AVAILABLE_COLUMNS } from './ColumnSelector';
+import { randomId } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +56,7 @@ const isFilterRuleActive = (filter: FilterRule) => {
 };
 
 const createFilter = (field: string, kind: FilterRule['kind']): FilterRule => ({
-  id: crypto.randomUUID(),
+  id: randomId(),
   kind,
   field,
   operator: getDefaultFilterOperator(field),
