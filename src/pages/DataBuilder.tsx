@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,13 +13,68 @@ import { useToast } from '@/hooks/use-toast';
 import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
+type FilterableQuery = {
+  eq: (field: string, value: string) => FilterableQuery;
+  ilike: (field: string, value: string) => FilterableQuery;
+};
+
 const PAGE_SIZE = 50;
+const DEFAULT_SELECTED_COLUMNS = ['name', 'nip', 'department', 'position_type', 'position_sk', 'position_name'];
+const FILTER_OPTIONS: Record<string, string[]> = {
+  asn_status: ['PNS', 'PPPK', 'Non ASN'],
+  position_type: ['Struktural', 'Fungsional', 'Pelaksana'],
+  gender: ['Laki-laki', 'Perempuan'],
+  religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],
+  rank_group: [
+    'I/a', 'I/b', 'I/c', 'I/d',
+    'II/a', 'II/b', 'II/c', 'II/d',
+    'III/a', 'III/b', 'III/c', 'III/d',
+    'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
+  ],
+};
+
+const getDefaultFilterOperator = (field: string): FilterRule['operator'] => {
+  return FILTER_OPTIONS[field] ? 'in' : 'ilike';
+};
+
+const isFilterRuleActive = (filter: FilterRule) => {
+  if (filter.operator === 'in') {
+    return (filter.values?.length || 0) > 0;
+  }
+
+  return filter.value.trim().length > 0;
+};
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const buildFiltersForSelectedColumns = (selectedColumns: string[], existingFilters: FilterRule[] = []) => {
+  const selectedDbFields = selectedColumns
+    .map(key => AVAILABLE_COLUMNS.find(column => column.key === key)?.dbField)
+    .filter(Boolean) as string[];
+
+  return selectedDbFields.flatMap(field => {
+    const generalFilter = existingFilters.find(filter => filter.kind === 'general' && filter.field === field);
+    const advancedFilters = existingFilters.filter(filter => filter.kind === 'advanced' && filter.field === field);
+
+    return [
+      generalFilter || {
+        id: crypto.randomUUID(),
+        kind: 'general' as const,
+        field,
+        operator: getDefaultFilterOperator(field),
+        value: '',
+        values: [],
+      },
+      ...advancedFilters,
+    ];
+  });
+};
 
 export default function DataBuilder() {
   const { toast } = useToast();
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(['name', 'nip', 'department', 'position_type', 'position_sk', 'position_name']);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(DEFAULT_SELECTED_COLUMNS);
   const [selectedRelatedTables, setSelectedRelatedTables] = useState<string[]>([]);
-  const [filters, setFilters] = useState<FilterRule[]>([]);
+  const [filters, setFilters] = useState<FilterRule[]>(() => buildFiltersForSelectedColumns(DEFAULT_SELECTED_COLUMNS));
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [allData, setAllData] = useState<Record<string, unknown>[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -27,6 +82,10 @@ export default function DataBuilder() {
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('table');
+
+  useEffect(() => {
+    setFilters(currentFilters => buildFiltersForSelectedColumns(selectedColumns, currentFilters));
+  }, [selectedColumns]);
 
   const buildQuery = useCallback(() => {
     const dbFields = selectedColumns
@@ -37,46 +96,44 @@ export default function DataBuilder() {
     return { selectStr, dbFields };
   }, [selectedColumns]);
 
-  const applyFilters = (query: any) => {
+  const applyFilters = (query: FilterableQuery) => {
     let q = query;
-    for (const f of filters) {
-      // Skip exact_word and 'in' filters - they'll be applied client-side
-      if (f.operator === 'exact_word' || f.operator === 'in') continue;
+    for (const filter of filters) {
+      if (!isFilterRuleActive(filter)) continue;
+      if (filter.operator === 'exact_word' || filter.operator === 'in') continue;
+
+      const value = filter.value.trim();
+      if (!value) continue;
       
-      if (!f.value.trim()) continue;
-      
-      if (f.operator === 'eq') {
-        q = q.eq(f.field, f.value.trim());
-      } else if (f.operator === 'ilike') {
-        q = q.ilike(f.field, `%${f.value.trim()}%`);
+      if (filter.operator === 'eq') {
+        q = q.eq(filter.field, value);
+      } else if (filter.operator === 'ilike') {
+        q = q.ilike(filter.field, `%${value}%`);
       }
     }
     return q;
   };
 
-  const applyClientSideFilters = (data: Record<string, unknown>[]) => {
-    let filtered = data;
+  const applyClientSideFilters = (rows: Record<string, unknown>[]) => {
+    let filtered = rows;
     
-    // Apply exact_word filters client-side
-    const exactWordFilters = filters.filter(f => f.operator === 'exact_word' && f.value.trim());
+    const exactWordFilters = filters.filter(filter => filter.operator === 'exact_word' && isFilterRuleActive(filter));
     
-    for (const f of exactWordFilters) {
-      const searchValue = f.value.trim().toLowerCase();
+    for (const filter of exactWordFilters) {
+      const searchValue = escapeRegExp(filter.value.trim().toLowerCase());
       filtered = filtered.filter(row => {
-        const fieldValue = String(row[f.field] || '').toLowerCase();
-        // Use word boundary regex to match whole words only
+        const fieldValue = String(row[filter.field] || '').toLowerCase();
         const regex = new RegExp(`\\b${searchValue}\\b`, 'i');
         return regex.test(fieldValue);
       });
     }
     
-    // Apply multi-select 'in' filters client-side
-    const inFilters = filters.filter(f => f.operator === 'in' && f.values && f.values.length > 0);
+    const inFilters = filters.filter(filter => filter.operator === 'in' && isFilterRuleActive(filter));
     
-    for (const f of inFilters) {
+    for (const filter of inFilters) {
       filtered = filtered.filter(row => {
-        const fieldValue = String(row[f.field] || '').trim();
-        return f.values!.some(v => v.toLowerCase() === fieldValue.toLowerCase());
+        const fieldValue = String(row[filter.field] || '').trim();
+        return filter.values!.some(value => value.toLowerCase() === fieldValue.toLowerCase());
       });
     }
     
@@ -95,14 +152,13 @@ export default function DataBuilder() {
     try {
       const { selectStr } = buildQuery();
 
-      // Fetch all employee data
       const all: Record<string, unknown>[] = [];
       let offset = 0;
       const batchSize = 1000;
 
       while (true) {
         let q = supabase.from('employees').select(selectStr).range(offset, offset + batchSize - 1).order('name');
-        q = applyFilters(q as any) as any;
+        q = applyFilters(q as unknown as FilterableQuery) as typeof q;
         const { data: batch, error } = await q;
         if (error) throw error;
         if (!batch || batch.length === 0) break;
@@ -111,14 +167,17 @@ export default function DataBuilder() {
         offset += batchSize;
       }
 
-      // Apply client-side filters
       const filtered = applyClientSideFilters(all);
 
       setAllData(filtered);
       setTotalCount(filtered.length);
       setData(filtered.slice(0, PAGE_SIZE));
-    } catch (error: any) {
-      toast({ title: 'Gagal mengambil data', description: error.message, variant: 'destructive' });
+    } catch (error) {
+      toast({
+        title: 'Gagal mengambil data',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil data.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -139,8 +198,8 @@ export default function DataBuilder() {
     try {
       const wb = XLSX.utils.book_new();
       const employeeIds = allData.map(emp => emp.id as string);
+      const activeFilterCount = filters.filter(isFilterRuleActive).length;
 
-      // Sheet 1: Data Pegawai Utama
       const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
       const exportData = allData.map((row, idx) => {
         const obj: Record<string, unknown> = { No: idx + 1 };
@@ -152,13 +211,11 @@ export default function DataBuilder() {
       const wsData = XLSX.utils.json_to_sheet(exportData);
       XLSX.utils.book_append_sheet(wb, wsData, 'Data Pegawai');
 
-      // Fetch and add related data sheets
       if (selectedRelatedTables.length > 0) {
         for (const tableKey of selectedRelatedTables) {
           const tableConfig = RELATED_DATA_TABLES.find(t => t.key === tableKey);
           if (!tableConfig) continue;
 
-          // Fetch related data
           const { data: relatedData, error } = await supabase
             .from(tableConfig.table)
             .select('*')
@@ -172,11 +229,9 @@ export default function DataBuilder() {
 
           if (!relatedData || relatedData.length === 0) continue;
 
-          // Create employee lookup map
           const employeeMap = new Map(allData.map(emp => [emp.id as string, emp]));
 
-          // Build export data with employee info + related data
-          const relatedExportData = relatedData.map((record: any, idx: number) => {
+          const relatedExportData = relatedData.map((record: Record<string, unknown>, idx: number) => {
             const employee = employeeMap.get(record.employee_id);
             const obj: Record<string, unknown> = {
               No: idx + 1,
@@ -185,10 +240,8 @@ export default function DataBuilder() {
               'Unit Kerja': employee?.department || '-',
             };
 
-            // Add fields from related table
             tableConfig.fields.forEach(field => {
               let value = record[field.key];
-              // Format dates
               if (field.key.includes('tanggal') || field.key === 'created_at' || field.key === 'tmt') {
                 value = value ? new Date(value).toLocaleDateString('id-ID') : '-';
               }
@@ -199,23 +252,20 @@ export default function DataBuilder() {
           });
 
           const wsRelated = XLSX.utils.json_to_sheet(relatedExportData);
-          // Truncate sheet name to 31 chars (Excel limit)
           const sheetName = tableConfig.label.substring(0, 31);
           XLSX.utils.book_append_sheet(wb, wsRelated, sheetName);
         }
       }
 
-      // Sheet: Ringkasan
       const summaryData = [
         { Kategori: 'Total Pegawai', Nilai: allData.length },
         { Kategori: 'Kolom Dipilih', Nilai: selectedColumns.length },
         { Kategori: 'Data Relasi Dipilih', Nilai: selectedRelatedTables.length },
-        { Kategori: 'Filter Aktif', Nilai: filters.length },
+        { Kategori: 'Filter Aktif', Nilai: activeFilterCount },
       ];
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
-      // Sheet: Statistik per kategori
       const STAT_FIELDS = [
         { key: 'department', label: 'Unit Kerja' },
         { key: 'asn_status', label: 'Status ASN' },
@@ -225,7 +275,7 @@ export default function DataBuilder() {
       ];
 
       const dataKeys = allData.length > 0 ? Object.keys(allData[0]) : [];
-      const availableStats = STAT_FIELDS.filter(f => dataKeys.includes(f.key));
+      const availableStats = STAT_FIELDS.filter(field => dataKeys.includes(field.key));
 
       availableStats.forEach(stat => {
         const counts: Record<string, number> = {};
@@ -257,8 +307,12 @@ export default function DataBuilder() {
         title: `Export berhasil!`, 
         description: `${allData.length} pegawai dengan ${totalSheets} sheet (termasuk ${selectedRelatedTables.length} data relasi)` 
       });
-    } catch (error: any) {
-      toast({ title: 'Gagal export', description: error.message, variant: 'destructive' });
+    } catch (error) {
+      toast({
+        title: 'Gagal export',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan saat export.',
+        variant: 'destructive',
+      });
     } finally {
       setIsExporting(false);
     }
@@ -292,12 +346,11 @@ export default function DataBuilder() {
               <CardTitle className="text-base">Filter Data</CardTitle>
             </CardHeader>
             <CardContent>
-              <FilterBuilder filters={filters} onChange={setFilters} />
+              <FilterBuilder selectedColumns={selectedColumns} filters={filters} onChange={setFilters} />
             </CardContent>
           </Card>
         </div>
 
-        {/* Related Data Selection */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -317,7 +370,6 @@ export default function DataBuilder() {
           </CardContent>
         </Card>
 
-        {/* Actions */}
         <div className="flex gap-3 flex-wrap">
           <Button onClick={fetchData} disabled={isLoading} className="gap-2">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -329,7 +381,6 @@ export default function DataBuilder() {
           </Button>
         </div>
 
-        {/* Results with Tabs */}
         <Card>
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
