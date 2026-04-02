@@ -205,6 +205,7 @@ function ImportNonAsn() {
 
             const position = findCol(row, 'Jabatan', 'jabatan', 'position', 'posisi');
             const education = findCol(row, 'Pendidikan', 'pendidikan', 'education', 'pend');
+            const educationMajor = findCol(row, 'Jurusan', 'jurusan', 'major', 'prodi', 'program studi');
             const birthPlace = findCol(row, 'Tempat Tanggal Lahir', 'tempat lahir', 'birth_place', 'tempat tgl lahir', 'ttl');
             const birthDate = findCol(row, 'Tanggal Lahir', 'tanggal lahir', 'birth_date', 'tgl lahir');
             const gender = findCol(row, 'Jenis Kelamin', 'jenis kelamin', 'gender', 'kelamin', 'jk');
@@ -216,6 +217,10 @@ function ImportNonAsn() {
 
             // Parse education to extract level and major
             const parsedEducation = parseEducation(education);
+            
+            // Use explicit major from Excel if provided, otherwise use parsed major
+            const finalEducationLevel = parsedEducation?.level || education || '';
+            const finalEducationMajor = educationMajor || parsedEducation?.major || null;
 
             // Determine department
             let finalDept: string;
@@ -283,8 +288,8 @@ function ImportNonAsn() {
               nik: nik || '',
               name: name || '',
               position: position || '',
-              education: parsedEducation?.level || null,
-              education_major: parsedEducation?.major || null,
+              education: finalEducationLevel,
+              education_major: finalEducationMajor,
               birth_place: birthPlace || null,
               birth_date: parsedBirthDate,
               gender: gender || null,
@@ -368,6 +373,7 @@ function ImportNonAsn() {
       const errors: { row: number; error: string }[] = [];
       let successCount = 0;
       let skippedCount = 0;
+      let educationSavedCount = 0; // Track how many education records were saved
 
       // Get all existing NIKs for Non-ASN employees to avoid duplicates
       const { data: existingEmployees } = await supabase
@@ -434,20 +440,23 @@ function ImportNonAsn() {
           if (empError) throw empError;
 
           // Insert education data if available
-          if (newEmployee && item.education) {
+          if (newEmployee && (item.education || item.education_major)) {
             const { error: eduError } = await supabase
               .from('education_history')
               .insert([{
                 employee_id: newEmployee.id,
-                level: item.education,
+                level: item.education || '',
                 major: item.education_major || null,
-                institution: null,
+                institution_name: null,
                 graduation_year: null,
               }]);
 
             if (eduError) {
-              console.error('Failed to insert education data:', eduError);
+              logger.error('Failed to insert education data:', eduError);
               // Don't fail the entire import if education insert fails
+            } else {
+              educationSavedCount++;
+              logger.debug(`Education data saved for employee ${newEmployee.id}: ${item.education} ${item.education_major || ''}`);
             }
           }
 
@@ -468,9 +477,10 @@ function ImportNonAsn() {
       });
 
       if (successCount > 0) {
+        const educationInfo = educationSavedCount > 0 ? ` (${educationSavedCount} dengan data pendidikan)` : '';
         toast({
           title: 'Import selesai',
-          description: `${successCount} data berhasil diimport${skippedCount > 0 ? `, ${skippedCount} duplikat dilewati` : ''}, ${errors.length - skippedCount} error`,
+          description: `${successCount} data berhasil diimport${educationInfo}${skippedCount > 0 ? `, ${skippedCount} duplikat dilewati` : ''}, ${errors.length - skippedCount} error`,
         });
       } else if (skippedCount > 0) {
         toast({

@@ -43,7 +43,7 @@ export function FilterBuilder({ filters, onChange }: FilterBuilderProps) {
       {filters.map(filter => (
         <div key={filter.id} className="flex items-center gap-2 flex-wrap">
           <Select value={filter.field} onValueChange={v => updateFilter(filter.id, { field: v })}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger id={`filter-field-${filter.id}`} className="w-[160px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -59,7 +59,7 @@ export function FilterBuilder({ filters, onChange }: FilterBuilderProps) {
             value={filter.operator}
             onValueChange={v => updateFilter(filter.id, { operator: v as FilterRule['operator'] })}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger id={`filter-operator-${filter.id}`} className="w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -72,6 +72,7 @@ export function FilterBuilder({ filters, onChange }: FilterBuilderProps) {
           </Select>
 
           <Input
+            id={`filter-value-${filter.id}`}
             className="flex-1 min-w-[150px]"
             placeholder="Nilai filter..."
             value={filter.value}

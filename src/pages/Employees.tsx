@@ -5,6 +5,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { TableSkeleton } from '@/components/ui/skeleton-screens';
+import { KeyboardShortcutsHelp, EMPLOYEES_SHORTCUTS } from '@/components/KeyboardShortcutsHelp';
 import {
   Select,
   SelectContent,
@@ -330,6 +333,21 @@ export default function Employees() {
     
     // Check if this is a Non-ASN employee
     if (employee.asn_status === 'Non ASN') {
+      // Load education and position history for Non-ASN
+      const [eduRes, posRes] = await Promise.all([
+        supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+        supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+      ]);
+
+      setSelectedEducation(
+        (eduRes.data || []).map((d) => ({
+          id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+          major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+          front_title: d.front_title || '', back_title: d.back_title || '',
+        }))
+      );
+      setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+      
       setNonAsnModalOpen(true);
       return;
     }
@@ -882,6 +900,46 @@ export default function Employees() {
     }
   };
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    { 
+      key: 'n', 
+      ctrl: true, 
+      callback: () => {
+        if (canEdit) handleAddEmployee();
+      }, 
+      description: 'Add new employee' 
+    },
+    { 
+      key: 'k', 
+      ctrl: true, 
+      callback: () => {
+        const searchInput = document.querySelector('input[placeholder*="Cari"]') as HTMLInputElement;
+        searchInput?.focus();
+      }, 
+      description: 'Focus search' 
+    },
+    { 
+      key: 'e', 
+      ctrl: true, 
+      callback: () => {
+        if (filteredEmployees.length > 0) handleExport();
+      }, 
+      description: 'Export CSV' 
+    },
+    { 
+      key: 'Escape', 
+      callback: () => {
+        setFormModalOpen(false);
+        setNonAsnModalOpen(false);
+        setDeleteDialogOpen(false);
+        setDetailsModalOpen(false);
+        setChangeLogOpen(false);
+      }, 
+      description: 'Close modals' 
+    },
+  ]);
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -896,6 +954,7 @@ export default function Employees() {
             <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
+            <KeyboardShortcutsHelp shortcuts={EMPLOYEES_SHORTCUTS} />
             {canEdit && (
               activeTab === 'asn' ? (
                 <DropdownMenu>
@@ -937,7 +996,7 @@ export default function Employees() {
             <Input placeholder="Cari nama, NIP, atau jabatan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Status ASN" /></SelectTrigger>
+            <SelectTrigger id="status-filter" className="w-full sm:w-[180px]"><SelectValue placeholder="Status ASN" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Status</SelectItem>
               {ASN_STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -945,7 +1004,7 @@ export default function Employees() {
           </Select>
           {canViewAll && (
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-full sm:w-[240px]"><SelectValue placeholder="Unit Kerja" /></SelectTrigger>
+              <SelectTrigger id="department-filter" className="w-full sm:w-[240px]"><SelectValue placeholder="Unit Kerja" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Unit Kerja</SelectItem>
                 {dynamicDepartments.filter(d => d !== 'Pusat').map((dept) => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
@@ -996,18 +1055,7 @@ export default function Employees() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                [...Array(5)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-36" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
-                    {isAdminPusat && <TableCell className="hidden xl:table-cell"><Skeleton className="h-4 w-32" /></TableCell>}
-                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell className="text-center"><Skeleton className="h-8 w-8 mx-auto" /></TableCell>
-                  </TableRow>
-                ))
+                <TableSkeleton columns={canViewAll ? 8 : 7} rows={10} />
               ) : paginatedEmployees.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={canViewAll ? 8 : 7} className="h-32 text-center text-muted-foreground">
@@ -1159,6 +1207,7 @@ export default function Employees() {
         userDepartment={profile?.department}
         isAdminPusat={isAdminPusat}
         initialEducation={selectedEducation}
+        initialPositionHistory={selectedPositionHistory}
       />
 
       <ChangeLogDialog

@@ -236,9 +236,9 @@ export default function Auth() {
               </div>
 
               <div className="space-y-2">
-                <Label>Unit Kerja</Label>
+                <Label htmlFor="signup-department">Unit Kerja</Label>
                 <Select onValueChange={value => signupForm.setValue('department', value)} defaultValue="">
-                  <SelectTrigger className="input-focus">
+                  <SelectTrigger id="signup-department" className="input-focus">
                     <SelectValue placeholder="Pilih unit kerja" />
                   </SelectTrigger>
                   <SelectContent>
@@ -249,9 +249,9 @@ export default function Auth() {
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label htmlFor="signup-role">Role</Label>
                 <Select onValueChange={value => signupForm.setValue('role', value as AppRole)} defaultValue="admin_unit">
-                  <SelectTrigger className="input-focus">
+                  <SelectTrigger id="signup-role" className="input-focus">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

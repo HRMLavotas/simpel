@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface Stats {
   total: number;
@@ -93,8 +94,24 @@ interface DashboardCache {
 // Cache duration: 5 minutes
 const CACHE_DURATION = 5 * 60 * 1000;
 
-// Global cache object
-const dashboardCache: Record<string, DashboardCache> = {};
+// Query keys for React Query
+const QUERY_KEYS = {
+  stats: (dept: string | null, asn: string) => ['dashboard', 'stats', dept, asn],
+  rank: (dept: string | null, asn: string) => ['dashboard', 'rank', dept, asn],
+  department: (dept: string | null, asn: string) => ['dashboard', 'department', dept, asn],
+  positionType: (dept: string | null, asn: string) => ['dashboard', 'positionType', dept, asn],
+  joinYear: (dept: string | null, asn: string) => ['dashboard', 'joinYear', dept, asn],
+  gender: (dept: string | null, asn: string) => ['dashboard', 'gender', dept, asn],
+  religion: (dept: string | null, asn: string) => ['dashboard', 'religion', dept, asn],
+  positionKepmen: (dept: string | null, asn: string) => ['dashboard', 'positionKepmen', dept, asn],
+  tmtCpns: (dept: string | null, asn: string) => ['dashboard', 'tmtCpns', dept, asn],
+  tmtPns: (dept: string | null, asn: string) => ['dashboard', 'tmtPns', dept, asn],
+  workDuration: (dept: string | null, asn: string) => ['dashboard', 'workDuration', dept, asn],
+  grade: (dept: string | null, asn: string) => ['dashboard', 'grade', dept, asn],
+  age: (dept: string | null, asn: string) => ['dashboard', 'age', dept, asn],
+  retirement: (dept: string | null, asn: string) => ['dashboard', 'retirement', dept, asn],
+  education: (dept: string | null, asn: string) => ['dashboard', 'education', dept, asn],
+};
 
 export function useDashboardData({ department, isAdminPusat, selectedDepartment, selectedAsnStatus }: UseDashboardDataProps) {
   const [stats, setStats] = useState<Stats>({ total: 0, pns: 0, pppk: 0, nonAsn: 0 });
@@ -888,7 +905,6 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
   const fetchEducationData = useCallback(async () => {
     const deptFilter = getDepartmentFilter();
     const PAGE_SIZE = 1000;
-    const BATCH_SIZE = 100; // Batch size for education_history queries to avoid URL length issues
     const educationCounts: Record<string, number> = {};
     const educationDetails: Record<string, Record<string, number>> = {}; // level -> { major -> count }
     let offset = 0;
@@ -896,19 +912,20 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
 
     console.log('[Dashboard] Fetching education data with filter:', deptFilter, 'ASN status:', selectedAsnStatus);
 
-    while (hasMore) {
-      // Get employee IDs for the department filter
+    // First, get all employee IDs that match the filter
+    const allEmployeeIds: string[] = [];
+    let empOffset = 0;
+    let empHasMore = true;
+
+    while (empHasMore) {
       let employeeQuery = supabase
         .from('employees')
         .select('id')
-        .range(offset, offset + PAGE_SIZE - 1);
+        .range(empOffset, empOffset + PAGE_SIZE - 1);
       
-      // Apply department filter if not null
       if (deptFilter) {
         employeeQuery = employeeQuery.eq('department', deptFilter);
       }
-
-      // Apply ASN status filter
       employeeQuery = applyAsnStatusFilter(employeeQuery);
 
       const { data: employees, error: empError } = await employeeQuery;
@@ -919,41 +936,48 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       }
 
       if (!employees || employees.length === 0) {
-        hasMore = false;
-        console.log('[Dashboard] No more employees to fetch');
+        empHasMore = false;
       } else {
-        console.log(`[Dashboard] Fetched ${employees.length} employees at offset ${offset}`);
-        const employeeIds = employees.map(e => e.id);
-        
-        // Get education data from education_history table
-        const allEducations: any[] = [];
-        for (let i = 0; i < employeeIds.length; i += BATCH_SIZE) {
-          const batchIds = employeeIds.slice(i, i + BATCH_SIZE);
-          
-          const { data: educations, error: eduError } = await supabase
-            .from('education_history')
-            .select('employee_id, level, major')
-            .in('employee_id', batchIds);
+        allEmployeeIds.push(...employees.map(e => e.id));
+        if (employees.length < PAGE_SIZE) {
+          empHasMore = false;
+        } else {
+          empOffset += PAGE_SIZE;
+        }
+      }
+    }
 
-          if (eduError) {
-            console.error('[Dashboard] Error fetching education history batch:', eduError);
-          } else if (educations && educations.length > 0) {
-            allEducations.push(...educations);
-          }
+    console.log(`[Dashboard] Found ${allEmployeeIds.length} employees matching filter`);
+
+    if (allEmployeeIds.length === 0) {
+      return [];
+    }
+
+    // Now fetch education data in batches
+    const BATCH_SIZE = 50; // Smaller batch to avoid URL length issues
+    const educationOrder: Record<string, number> = {
+      'SD': 1, 'SMP': 2, 'SMA': 3, 'SMA/SMK': 3, 'D1': 4, 'D2': 5, 
+      'D3': 6, 'D4': 7, 'S1': 8, 'S2': 9, 'S3': 10,
+    };
+    const employeeEducation: Record<string, { level: string; major: string | null }> = {};
+
+    for (let i = 0; i < allEmployeeIds.length; i += BATCH_SIZE) {
+      const batchIds = allEmployeeIds.slice(i, i + BATCH_SIZE);
+      
+      try {
+        const { data: educations, error: eduError } = await supabase
+          .from('education_history')
+          .select('employee_id, level, major')
+          .in('employee_id', batchIds);
+
+        if (eduError) {
+          console.error('[Dashboard] Error fetching education history batch:', eduError);
+          continue;
         }
 
-        console.log(`[Dashboard] Found ${allEducations.length} education records from education_history for ${employees.length} employees`);
-        
-        if (allEducations.length > 0) {
-          // Use education_history data
-          const educationOrder: Record<string, number> = {
-            'SD': 1, 'SMP': 2, 'SMA': 3, 'SMA/SMK': 3, 'D1': 4, 'D2': 5, 
-            'D3': 6, 'D4': 7, 'S1': 8, 'S2': 9, 'S3': 10,
-          };
-
+        if (educations && educations.length > 0) {
           // Get highest education per employee
-          const employeeEducation: Record<string, { level: string; major: string | null }> = {};
-          allEducations.forEach(edu => {
+          educations.forEach(edu => {
             const current = employeeEducation[edu.employee_id];
             if (!current || 
                 (educationOrder[edu.level] || 0) > (educationOrder[current.level] || 0)) {
@@ -963,24 +987,20 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
               };
             }
           });
-
-          console.log(`[Dashboard] Processed ${Object.keys(employeeEducation).length} unique employees with education data`);
-
-          // Count by level and major
-          Object.values(employeeEducation).forEach(({ level, major }) => {
-            educationCounts[level] = (educationCounts[level] || 0) + 1;
-            if (!educationDetails[level]) educationDetails[level] = {};
-            educationDetails[level][major] = (educationDetails[level][major] || 0) + 1;
-          });
         }
-        
-        if (employees.length < PAGE_SIZE) {
-          hasMore = false;
-        } else {
-          offset += PAGE_SIZE;
-        }
+      } catch (err) {
+        console.error('[Dashboard] Exception fetching education batch:', err);
       }
     }
+
+    console.log(`[Dashboard] Processed ${Object.keys(employeeEducation).length} unique employees with education data`);
+
+    // Count by level and major
+    Object.values(employeeEducation).forEach(({ level, major }) => {
+      educationCounts[level] = (educationCounts[level] || 0) + 1;
+      if (!educationDetails[level]) educationDetails[level] = {};
+      educationDetails[level][major] = (educationDetails[level][major] || 0) + 1;
+    });
 
     const result = Object.entries(educationCounts)
       .map(([level, count]) => ({
@@ -991,10 +1011,6 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
           .sort((a, b) => b.count - a.count)
       }))
       .sort((a, b) => {
-        const educationOrder: Record<string, number> = {
-          'SD': 1, 'SMP': 2, 'SMA': 3, 'SMA/SMK': 3, 'D1': 4, 'D2': 5, 
-          'D3': 6, 'D4': 7, 'S1': 8, 'S2': 9, 'S3': 10,
-        };
         const orderA = educationOrder[a.level] || 999;
         const orderB = educationOrder[b.level] || 999;
         return orderA - orderB;
@@ -1002,7 +1018,6 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
 
     console.log('[Dashboard] Education data result:', result);
     console.log('[Dashboard] NOTE: Only showing employees with data in education_history table');
-    console.log('[Dashboard] If data seems incomplete, please import education data to education_history table');
     
     return result;
   }, [getDepartmentFilter, selectedAsnStatus, applyAsnStatusFilter]);

@@ -538,7 +538,7 @@ export default function PetaJabatan() {
           <div className="flex flex-wrap items-center gap-2">
             {canViewAll && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-full sm:w-[240px]">
+                <SelectTrigger id="department-filter" className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Pilih Unit Kerja" />
                 </SelectTrigger>
                 <SelectContent>
@@ -923,9 +923,9 @@ export default function PetaJabatan() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Kategori Jabatan</Label>
+              <Label htmlFor="form-category">Kategori Jabatan</Label>
               <Select value={formCategory} onValueChange={setFormCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="form-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {POSITION_CATEGORIES.map(c => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>

@@ -3,6 +3,9 @@ import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp } from 'lu
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { StatsGridSkeleton, ChartSkeleton } from '@/components/ui/skeleton-screens';
+import { KeyboardShortcutsHelp, DASHBOARD_SHORTCUTS } from '@/components/KeyboardShortcutsHelp';
 import { 
   AsnPieChart, 
   RankBarChart, 
@@ -227,6 +230,28 @@ export default function Dashboard() {
       : `Dashboard - ${selectedDepartment}`
     : `Dashboard - ${profile?.department}`;
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    { 
+      key: 'f', 
+      ctrl: true, 
+      callback: () => {
+        const filterBtn = document.querySelector('[role="combobox"]') as HTMLElement;
+        filterBtn?.focus();
+      }, 
+      description: 'Focus filter' 
+    },
+    { 
+      key: 'd', 
+      ctrl: true, 
+      callback: () => {
+        const dataBtn = document.querySelector('button:has(.lucide-settings-2)') as HTMLElement;
+        dataBtn?.click();
+      }, 
+      description: 'Open data selector' 
+    },
+  ]);
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -246,7 +271,7 @@ export default function Dashboard() {
             {canViewAll && (
               <>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                  <SelectTrigger className="w-full sm:w-[240px] h-9 sm:h-10">
+                  <SelectTrigger id="dashboard-department-filter" className="w-full sm:w-[240px] h-9 sm:h-10">
                     <SelectValue placeholder="Pilih Unit Kerja" />
                   </SelectTrigger>
                   <SelectContent>
@@ -258,7 +283,7 @@ export default function Dashboard() {
                 </Select>
 
                 <Select value={selectedAsnStatus} onValueChange={setSelectedAsnStatus}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-9 sm:h-10">
+                  <SelectTrigger id="dashboard-asn-status-filter" className="w-full sm:w-[200px] h-9 sm:h-10">
                     <SelectValue placeholder="Status ASN" />
                   </SelectTrigger>
                   <SelectContent>
@@ -272,78 +297,83 @@ export default function Dashboard() {
               </>
             )}
 
-            {/* Chart Selector Sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="default" className="gap-2 h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto">
-                  <Settings2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">Pilih Data</span>
-                  <span className="xs:hidden">Data</span>
-                  <span>({selectedCharts.length})</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto w-[90vw] sm:w-[400px] max-w-md">
-                <SheetHeader>
-                  <SheetTitle className="text-base sm:text-lg">Pilih Data untuk Ditampilkan</SheetTitle>
-                  <SheetDescription className="text-xs sm:text-sm">
-                    Pilih kategori data yang ingin ditampilkan di dashboard
-                  </SheetDescription>
-                </SheetHeader>
+            <div className="flex gap-2">
+              {/* Chart Selector Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="default" className="gap-2 h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto">
+                    <Settings2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Pilih Data</span>
+                    <span className="xs:hidden">Data</span>
+                    <span>({selectedCharts.length})</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto w-[90vw] sm:w-[400px] max-w-md">
+                  <SheetHeader>
+                    <SheetTitle className="text-base sm:text-lg">Pilih Data untuk Ditampilkan</SheetTitle>
+                    <SheetDescription className="text-xs sm:text-sm">
+                      Pilih kategori data yang ingin ditampilkan di dashboard
+                    </SheetDescription>
+                  </SheetHeader>
 
-                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 pb-6">
-                  <div className="flex gap-2 sticky top-0 bg-background z-10 pb-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={selectAllCharts}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      Pilih Semua
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearAllCharts}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      Hapus Semua
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto pr-2">
-                    {CHART_CATEGORIES.map(category => (
-                      <Card
-                        key={category.id}
-                        className={`cursor-pointer transition-all ${
-                          selectedCharts.includes(category.id)
-                            ? 'border-primary bg-primary/5'
-                            : 'hover:border-muted-foreground/50'
-                        }`}
-                        onClick={() => toggleChart(category.id)}
+                  <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 pb-6">
+                    <div className="flex gap-2 sticky top-0 bg-background z-10 pb-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={selectAllCharts}
+                        className="flex-1 h-8 text-xs"
                       >
-                        <CardContent className="p-3 sm:p-4">
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <Checkbox
-                              checked={selectedCharts.includes(category.id)}
-                              onCheckedChange={() => toggleChart(category.id)}
-                              className="mt-0.5 sm:mt-1"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <Label className="text-xs sm:text-sm font-medium cursor-pointer">
-                                {category.label}
-                              </Label>
-                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                                {category.description}
-                              </p>
+                        Pilih Semua
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearAllCharts}
+                        className="flex-1 h-8 text-xs"
+                      >
+                        Hapus Semua
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2 sm:space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto pr-2">
+                      {CHART_CATEGORIES.map(category => (
+                        <Card
+                          key={category.id}
+                          className={`cursor-pointer transition-all ${
+                            selectedCharts.includes(category.id)
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-muted-foreground/50'
+                          }`}
+                          onClick={() => toggleChart(category.id)}
+                        >
+                          <CardContent className="p-3 sm:p-4">
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <Checkbox
+                                checked={selectedCharts.includes(category.id)}
+                                onCheckedChange={() => toggleChart(category.id)}
+                                className="mt-0.5 sm:mt-1"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <Label className="text-xs sm:text-sm font-medium cursor-pointer">
+                                  {category.label}
+                                </Label>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                                  {category.description}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+
+              {/* Keyboard Shortcuts Help */}
+              <KeyboardShortcutsHelp shortcuts={DASHBOARD_SHORTCUTS} />
+            </div>
           </div>
         </div>
 
@@ -368,11 +398,7 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         {isLoading ? (
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-28 sm:h-32 rounded-xl" />
-            ))}
-          </div>
+          <StatsGridSkeleton count={4} />
         ) : (
           <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -408,10 +434,10 @@ export default function Dashboard() {
         {/* Charts */}
         {isLoading || isLoadingPreferences ? (
           <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
-            <Skeleton className="h-72 sm:h-80 rounded-xl" />
-            <Skeleton className="h-72 sm:h-80 rounded-xl" />
-            <Skeleton className="h-72 sm:h-80 rounded-xl" />
-            <Skeleton className="h-72 sm:h-80 rounded-xl" />
+            <ChartSkeleton />
+            <ChartSkeleton />
+            <ChartSkeleton />
+            <ChartSkeleton />
           </div>
         ) : selectedCharts.length === 0 ? (
           <Card className="border-dashed">

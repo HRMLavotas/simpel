@@ -169,7 +169,7 @@ export default function Admins() {
             />
           </div>
           <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-            <SelectTrigger className="w-full sm:w-[240px]">
+            <SelectTrigger id="admin-department-filter" className="w-full sm:w-[240px]">
               <SelectValue placeholder="Unit Kerja" />
             </SelectTrigger>
             <SelectContent>

@@ -533,6 +533,7 @@ export function EmployeeFormModal({
     options: readonly string[], placeholder: string, required = false, disabled = false, helpText?: string
   ) => {
     const currentValue = form.watch(fieldName) as string;
+    const fieldId = `employee-${fieldName}`;
     
     // Debug logging for gender and religion
     if (fieldName === 'gender' || fieldName === 'religion') {
@@ -541,7 +542,7 @@ export function EmployeeFormModal({
     
     return (
       <div className="space-y-2">
-        <Label>{label}{required && ' *'}</Label>
+        <Label htmlFor={fieldId}>{label}{required && ' *'}</Label>
         <Select
           value={currentValue || ''}
           onValueChange={(v) => {
@@ -550,7 +551,7 @@ export function EmployeeFormModal({
           }}
           disabled={disabled}
         >
-          <SelectTrigger>
+          <SelectTrigger id={fieldId}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
@@ -700,7 +701,7 @@ export function EmployeeFormModal({
                   onValueChange={(v) => form.setValue('department', v, { shouldValidate: true, shouldDirty: true })}
                   disabled={!isAdminPusat}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="department">
                     <SelectValue placeholder="Pilih unit kerja" />
                   </SelectTrigger>
                   <SelectContent>

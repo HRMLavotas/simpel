@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { AlertCircle, RefreshCw, ArrowLeft, Home } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -61,9 +62,36 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
-  private handleGoBack = () => {
-    window.history.back();
+  private handleGoHome = () => {
+    window.location.href = '/dashboard';
   };
+
+  private getErrorSuggestions(error: Error): string[] {
+    const suggestions: string[] = [];
+    const errorMessage = error.message.toLowerCase();
+
+    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      suggestions.push('Periksa koneksi internet Anda');
+      suggestions.push('Coba refresh halaman');
+    }
+
+    if (errorMessage.includes('permission') || errorMessage.includes('unauthorized')) {
+      suggestions.push('Anda mungkin tidak memiliki akses ke fitur ini');
+      suggestions.push('Coba login ulang');
+    }
+
+    if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+      suggestions.push('Halaman atau data yang Anda cari tidak ditemukan');
+      suggestions.push('Kembali ke halaman utama');
+    }
+
+    if (suggestions.length === 0) {
+      suggestions.push('Coba refresh halaman');
+      suggestions.push('Jika masalah berlanjut, hubungi administrator');
+    }
+
+    return suggestions;
+  }
 
   private handleReset = () => {
     this.setState({
@@ -75,6 +103,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      const suggestions = this.state.error ? this.getErrorSuggestions(this.state.error) : [];
+
       return (
         <div className="flex min-h-screen items-center justify-center p-4 bg-background">
           <div className="max-w-md w-full space-y-6">
@@ -91,9 +121,24 @@ export class ErrorBoundary extends Component<Props, State> {
                 Oops! Terjadi Kesalahan
               </h1>
               <p className="text-muted-foreground">
-                Aplikasi mengalami error yang tidak terduga. Silakan refresh halaman atau hubungi administrator jika masalah berlanjut.
+                Aplikasi mengalami error yang tidak terduga. Silakan coba salah satu solusi di bawah ini.
               </p>
             </div>
+
+            {/* Error Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-medium">Saran Perbaikan:</p>
+                <ul className="space-y-1">
+                  {suggestions.map((suggestion, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{suggestion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2">
@@ -106,11 +151,11 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={this.handleGoBack}
+                onClick={this.handleGoHome}
                 className="flex-1"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Kembali
+                <Home className="mr-2 h-4 w-4" />
+                Ke Dashboard
               </Button>
             </div>
 

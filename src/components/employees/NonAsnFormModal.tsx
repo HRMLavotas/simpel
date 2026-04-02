@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, type Department } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
+import { EmployeeHistoryForm, type HistoryEntry, POSITION_HISTORY_FIELDS } from './EmployeeHistoryForm';
 import { logger } from '@/lib/logger';
 
 interface NonAsnFormData {
@@ -38,6 +39,7 @@ interface NonAsnFormModalProps {
   userDepartment?: Department;
   isAdminPusat?: boolean;
   initialEducation?: EducationEntry[];
+  initialPositionHistory?: HistoryEntry[];
 }
 
 const GENDER_OPTIONS = ['Laki-laki', 'Perempuan'];
@@ -64,11 +66,13 @@ export function NonAsnFormModal({
   userDepartment,
   isAdminPusat = false,
   initialEducation,
+  initialPositionHistory,
 }: NonAsnFormModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'main' | 'education'>('main');
+  const [activeTab, setActiveTab] = useState<'main' | 'education' | 'history'>('main');
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
+  const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
   const [formData, setFormData] = useState<NonAsnFormData>({
     nip: '',
     name: '',
@@ -104,6 +108,7 @@ export function NonAsnFormModal({
         keterangan_perubahan: editData.keterangan_perubahan || '',
       });
       setEducationEntries(initialEducation || []);
+      setPositionHistoryEntries(initialPositionHistory || []);
     } else {
       setFormData({
         nip: '',
@@ -119,6 +124,7 @@ export function NonAsnFormModal({
         keterangan_perubahan: '',
       });
       setEducationEntries([]);
+      setPositionHistoryEntries([]);
     }
     
     // Reset validation when modal opens/closes
@@ -126,7 +132,7 @@ export function NonAsnFormModal({
       resetNIKValidation();
       setActiveTab('main');
     }
-  }, [editData, userDepartment, open, resetNIKValidation, initialEducation]);
+  }, [editData, userDepartment, open, resetNIKValidation, initialEducation, initialPositionHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +206,7 @@ export function NonAsnFormModal({
           const educationData = educationEntries.map(entry => ({
             employee_id: editData.id,
             level: entry.level,
-            institution: entry.institution_name || null,
+            institution_name: entry.institution_name || null,
             major: entry.major || null,
             graduation_year: entry.graduation_year ? parseInt(entry.graduation_year) : null,
             front_title: entry.front_title || null,
@@ -214,6 +220,35 @@ export function NonAsnFormModal({
           if (eduError) {
             logger.error('Error saving education history:', eduError);
             // Don't fail the entire operation if education save fails
+          }
+        }
+
+        // Update position history
+        if (positionHistoryEntries.length > 0) {
+          // Delete existing position history entries
+          await supabase
+            .from('position_history')
+            .delete()
+            .eq('employee_id', editData.id);
+
+          // Insert new position history entries
+          const positionData = positionHistoryEntries.map(entry => ({
+            employee_id: editData.id,
+            tanggal: entry.tanggal || null,
+            jabatan_lama: entry.jabatan_lama || null,
+            jabatan_baru: entry.jabatan_baru || null,
+            unit_kerja: entry.unit_kerja || null,
+            nomor_sk: entry.nomor_sk || null,
+            keterangan: entry.keterangan || null,
+          }));
+
+          const { error: posError } = await supabase
+            .from('position_history')
+            .insert(positionData);
+
+          if (posError) {
+            logger.error('Error saving position history:', posError);
+            // Don't fail the entire operation if position history save fails
           }
         }
 
@@ -235,7 +270,7 @@ export function NonAsnFormModal({
           const educationData = educationEntries.map(entry => ({
             employee_id: newEmployee.id,
             level: entry.level,
-            institution: entry.institution_name || null,
+            institution_name: entry.institution_name || null,
             major: entry.major || null,
             graduation_year: entry.graduation_year ? parseInt(entry.graduation_year) : null,
             front_title: entry.front_title || null,
@@ -249,6 +284,28 @@ export function NonAsnFormModal({
           if (eduError) {
             logger.error('Error saving education history:', eduError);
             // Don't fail the entire operation if education save fails
+          }
+        }
+
+        // Insert position history if available
+        if (newEmployee && positionHistoryEntries.length > 0) {
+          const positionData = positionHistoryEntries.map(entry => ({
+            employee_id: newEmployee.id,
+            tanggal: entry.tanggal || null,
+            jabatan_lama: entry.jabatan_lama || null,
+            jabatan_baru: entry.jabatan_baru || null,
+            unit_kerja: entry.unit_kerja || null,
+            nomor_sk: entry.nomor_sk || null,
+            keterangan: entry.keterangan || null,
+          }));
+
+          const { error: posError } = await supabase
+            .from('position_history')
+            .insert(positionData);
+
+          if (posError) {
+            logger.error('Error saving position history:', posError);
+            // Don't fail the entire operation if position history save fails
           }
         }
 
@@ -283,10 +340,11 @@ export function NonAsnFormModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'education')}>
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'education' | 'history')}>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="main">Data Utama</TabsTrigger>
               <TabsTrigger value="education">Riwayat Pendidikan</TabsTrigger>
+              <TabsTrigger value="history">Riwayat Jabatan</TabsTrigger>
             </TabsList>
 
             <TabsContent value="main" className="space-y-6">
@@ -369,7 +427,7 @@ export function NonAsnFormModal({
           <div className="space-y-2">
             <Label htmlFor="gender">Jenis Kelamin</Label>
             <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
-              <SelectTrigger>
+              <SelectTrigger id="gender">
                 <SelectValue placeholder="Pilih jenis kelamin" />
               </SelectTrigger>
               <SelectContent>
@@ -384,7 +442,7 @@ export function NonAsnFormModal({
           <div className="space-y-2">
             <Label htmlFor="religion">Agama</Label>
             <Select value={formData.religion} onValueChange={(value) => setFormData({ ...formData, religion: value })}>
-              <SelectTrigger>
+              <SelectTrigger id="religion">
                 <SelectValue placeholder="Pilih agama" />
               </SelectTrigger>
               <SelectContent>
@@ -441,7 +499,7 @@ export function NonAsnFormModal({
           <div className="space-y-2">
             <Label htmlFor="rank_group">Type Non ASN <span className="text-red-500">*</span></Label>
             <Select value={formData.rank_group} onValueChange={(value) => setFormData({ ...formData, rank_group: value })}>
-              <SelectTrigger>
+              <SelectTrigger id="rank_group">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -484,6 +542,19 @@ export function NonAsnFormModal({
               <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
               <p className="text-xs text-muted-foreground italic">
                 💡 Data pendidikan akan ditampilkan di dashboard dan laporan
+              </p>
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-6">
+              {/* Position History Section */}
+              <EmployeeHistoryForm
+                title="Riwayat Jabatan"
+                fields={POSITION_HISTORY_FIELDS}
+                entries={positionHistoryEntries}
+                onChange={setPositionHistoryEntries}
+              />
+              <p className="text-xs text-muted-foreground italic">
+                💡 Catat perubahan jabatan untuk tracking karir pegawai Non-ASN
               </p>
             </TabsContent>
           </Tabs>
