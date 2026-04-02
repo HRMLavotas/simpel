@@ -43,16 +43,16 @@ export function StatCard({
 
   return (
     <div className="stat-card animate-fade-in">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl sm:text-3xl font-bold tracking-tight">{value}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1 min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
+          <p className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{value}</p>
           {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{description}</p>
           )}
         </div>
-        <div className={cn("flex h-12 w-12 items-center justify-center rounded-lg", styles.bg)}>
-          <Icon className={cn("h-6 w-6", styles.icon)} />
+        <div className={cn("flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg flex-shrink-0", styles.bg)}>
+          <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6", styles.icon)} />
         </div>
       </div>
       <Icon className={cn("stat-card-icon", styles.icon)} />
