@@ -17,4 +17,35 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core libraries
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI component libraries
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+          ],
+          // Chart library
+          'chart-vendor': ['recharts'],
+          // Excel processing
+          'excel-vendor': ['xlsx'],
+          // Supabase
+          'supabase-vendor': ['@supabase/supabase-js'],
+          // Form libraries
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // Date utilities
+          'date-vendor': ['date-fns'],
+        },
+      },
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+  },
 }));

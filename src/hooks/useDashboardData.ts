@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 interface Stats {
   total: number;
@@ -910,7 +911,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
     let offset = 0;
     let hasMore = true;
 
-    console.log('[Dashboard] Fetching education data with filter:', deptFilter, 'ASN status:', selectedAsnStatus);
+    logger.debug('[Dashboard] Fetching education data with filter:', deptFilter, 'ASN status:', selectedAsnStatus);
 
     // First, get all employee IDs that match the filter
     const allEmployeeIds: string[] = [];
@@ -947,7 +948,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       }
     }
 
-    console.log(`[Dashboard] Found ${allEmployeeIds.length} employees matching filter`);
+    logger.debug(`[Dashboard] Found ${allEmployeeIds.length} employees matching filter`);
 
     if (allEmployeeIds.length === 0) {
       return [];
@@ -993,7 +994,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       }
     }
 
-    console.log(`[Dashboard] Processed ${Object.keys(employeeEducation).length} unique employees with education data`);
+    logger.debug(`[Dashboard] Processed ${Object.keys(employeeEducation).length} unique employees with education data`);
 
     // Count by level and major
     Object.values(employeeEducation).forEach(({ level, major }) => {
@@ -1016,8 +1017,8 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
         return orderA - orderB;
       });
 
-    console.log('[Dashboard] Education data result:', result);
-    console.log('[Dashboard] NOTE: Only showing employees with data in education_history table');
+    logger.debug('[Dashboard] Education data result:', result);
+    logger.debug('[Dashboard] NOTE: Only showing employees with data in education_history table');
     
     return result;
   }, [getDepartmentFilter, selectedAsnStatus, applyAsnStatusFilter]);
@@ -1029,7 +1030,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
     setError(null);
 
     try {
-      console.log('[Dashboard] Starting data fetch with filter:', getDepartmentFilter());
+      logger.debug('[Dashboard] Starting data fetch with filter:', getDepartmentFilter());
       
       const [
         statsResult, 
@@ -1065,7 +1066,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
         fetchEducationData(),
       ]);
 
-      console.log('[Dashboard] All data fetched successfully');
+      logger.debug('[Dashboard] All data fetched successfully');
 
       setStats(statsResult);
       setRankData(rankResult);
