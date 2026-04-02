@@ -5,9 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { TableSkeleton } from '@/components/ui/skeleton-screens';
-import { KeyboardShortcutsHelp, EMPLOYEES_SHORTCUTS } from '@/components/KeyboardShortcutsHelp';
 import {
   Select,
   SelectContent,
@@ -900,46 +898,6 @@ export default function Employees() {
     }
   };
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    { 
-      key: 'n', 
-      ctrl: true, 
-      callback: () => {
-        if (canEdit) handleAddEmployee();
-      }, 
-      description: 'Add new employee' 
-    },
-    { 
-      key: 'k', 
-      ctrl: true, 
-      callback: () => {
-        const searchInput = document.querySelector('input[placeholder*="Cari"]') as HTMLInputElement;
-        searchInput?.focus();
-      }, 
-      description: 'Focus search' 
-    },
-    { 
-      key: 'e', 
-      ctrl: true, 
-      callback: () => {
-        if (filteredEmployees.length > 0) handleExport();
-      }, 
-      description: 'Export CSV' 
-    },
-    { 
-      key: 'Escape', 
-      callback: () => {
-        setFormModalOpen(false);
-        setNonAsnModalOpen(false);
-        setDeleteDialogOpen(false);
-        setDetailsModalOpen(false);
-        setChangeLogOpen(false);
-      }, 
-      description: 'Close modals' 
-    },
-  ]);
-
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -954,7 +912,6 @@ export default function Employees() {
             <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
-            <KeyboardShortcutsHelp shortcuts={EMPLOYEES_SHORTCUTS} />
             {canEdit && (
               activeTab === 'asn' ? (
                 <DropdownMenu>

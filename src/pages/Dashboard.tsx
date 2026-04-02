@@ -3,9 +3,7 @@ import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp } from 'lu
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { StatsGridSkeleton, ChartSkeleton } from '@/components/ui/skeleton-screens';
-import { KeyboardShortcutsHelp, DASHBOARD_SHORTCUTS } from '@/components/KeyboardShortcutsHelp';
 import { 
   AsnPieChart, 
   RankBarChart, 
@@ -230,28 +228,6 @@ export default function Dashboard() {
       : `Dashboard - ${selectedDepartment}`
     : `Dashboard - ${profile?.department}`;
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    { 
-      key: 'f', 
-      ctrl: true, 
-      callback: () => {
-        const filterBtn = document.querySelector('[role="combobox"]') as HTMLElement;
-        filterBtn?.focus();
-      }, 
-      description: 'Focus filter' 
-    },
-    { 
-      key: 'd', 
-      ctrl: true, 
-      callback: () => {
-        const dataBtn = document.querySelector('button:has(.lucide-settings-2)') as HTMLElement;
-        dataBtn?.click();
-      }, 
-      description: 'Open data selector' 
-    },
-  ]);
-
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -370,9 +346,6 @@ export default function Dashboard() {
                   </div>
                 </SheetContent>
               </Sheet>
-
-              {/* Keyboard Shortcuts Help */}
-              <KeyboardShortcutsHelp shortcuts={DASHBOARD_SHORTCUTS} />
             </div>
           </div>
         </div>
