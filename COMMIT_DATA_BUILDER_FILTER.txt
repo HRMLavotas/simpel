@@ -1,0 +1,40 @@
+feat: Data Builder dengan Export Data Relasi Lengkap
+
+Peningkatan major Data Builder dengan kemampuan export data relasi:
+
+1. Data Relasi Lengkap (9 Tabel)
+   - Riwayat Pendidikan (jenjang, institusi, jurusan, tahun lulus)
+   - Riwayat Mutasi (perpindahan unit kerja, tanggal, SK)
+   - Riwayat Jabatan (perubahan jabatan, tanggal, SK)
+   - Riwayat Pangkat (kenaikan pangkat, TMT, SK)
+   - Riwayat Diklat/Pelatihan (nama, penyelenggara, sertifikat)
+   - Riwayat Uji Kompetensi (jenis, hasil, tanggal)
+   - Keterangan Penempatan, Penugasan, Perubahan
+
+2. Export Excel Multi-Sheet
+   - Sheet Data Pegawai (data utama)
+   - Sheet per tabel relasi (satu baris per riwayat)
+   - Sheet Ringkasan & Statistik
+   - Format terstruktur: NIP, Nama, Unit Kerja + detail riwayat
+   - Mudah untuk pivot & analisis di Excel
+
+3. Quick Filters Tambahan
+   - Pangkat/Golongan (I/a sampai IV/e)
+   - Agama (6 agama)
+   - Multi-select dengan checkbox
+
+4. UI/UX Improvements
+   - Card baru untuk memilih data relasi
+   - Icon & deskripsi per tabel relasi
+   - Badge counter jumlah kolom
+   - Info note tentang format export
+
+Files created:
+- src/components/data-builder/RelatedDataSelector.tsx
+
+Files modified:
+- src/components/data-builder/FilterBuilder.tsx
+- src/components/data-builder/ColumnSelector.tsx
+- src/pages/DataBuilder.tsx
+- DATA_BUILDER_FILTER_ENHANCEMENT.md
+

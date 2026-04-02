@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ColumnSelector, AVAILABLE_COLUMNS } from '@/components/data-builder/ColumnSelector';
 import { FilterBuilder, FilterRule } from '@/components/data-builder/FilterBuilder';
-import { DataPreviewTable } from '@/components/data-builder/DataPreviewTable';
+import { DataPreviewTableWithRelations } from '@/components/data-builder/DataPreviewTableWithRelations';
 import { DataStatistics } from '@/components/data-builder/DataStatistics';
+import { RelatedDataSelector, RELATED_DATA_TABLES } from '@/components/data-builder/RelatedDataSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileSpreadsheet, Search, Loader2, Table2, BarChart3 } from 'lucide-react';
+import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const PAGE_SIZE = 50;
@@ -17,6 +18,7 @@ const PAGE_SIZE = 50;
 export default function DataBuilder() {
   const { toast } = useToast();
   const [selectedColumns, setSelectedColumns] = useState<string[]>(['name', 'nip', 'department', 'position_type', 'position_sk', 'position_name']);
+  const [selectedRelatedTables, setSelectedRelatedTables] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterRule[]>([]);
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [allData, setAllData] = useState<Record<string, unknown>[]>([]);
@@ -27,24 +29,26 @@ export default function DataBuilder() {
   const [activeTab, setActiveTab] = useState('table');
 
   const buildQuery = useCallback(() => {
-    const dbFields = selectedColumns.map(
-      key => AVAILABLE_COLUMNS.find(c => c.key === key)?.dbField
-    ).filter(Boolean) as string[];
+    const dbFields = selectedColumns
+      .map(key => AVAILABLE_COLUMNS.find(c => c.key === key)?.dbField)
+      .filter(Boolean) as string[];
+    
     const selectStr = dbFields.length > 0 ? dbFields.join(',') : '*';
     return { selectStr, dbFields };
   }, [selectedColumns]);
 
-  const applyFilters = (query: ReturnType<typeof supabase.from>) => {
+  const applyFilters = (query: any) => {
     let q = query;
     for (const f of filters) {
+      // Skip exact_word and 'in' filters - they'll be applied client-side
+      if (f.operator === 'exact_word' || f.operator === 'in') continue;
+      
       if (!f.value.trim()) continue;
-      // Skip exact_word filters here - they'll be applied client-side
-      if (f.operator === 'exact_word') continue;
       
       if (f.operator === 'eq') {
-        q = q.eq(f.field, f.value.trim()) as typeof q;
+        q = q.eq(f.field, f.value.trim());
       } else if (f.operator === 'ilike') {
-        q = q.ilike(f.field, `%${f.value.trim()}%`) as typeof q;
+        q = q.ilike(f.field, `%${f.value.trim()}%`);
       }
     }
     return q;
@@ -66,6 +70,16 @@ export default function DataBuilder() {
       });
     }
     
+    // Apply multi-select 'in' filters client-side
+    const inFilters = filters.filter(f => f.operator === 'in' && f.values && f.values.length > 0);
+    
+    for (const f of inFilters) {
+      filtered = filtered.filter(row => {
+        const fieldValue = String(row[f.field] || '').trim();
+        return f.values!.some(v => v.toLowerCase() === fieldValue.toLowerCase());
+      });
+    }
+    
     return filtered;
   };
 
@@ -81,7 +95,7 @@ export default function DataBuilder() {
     try {
       const { selectStr } = buildQuery();
 
-      // Note: We can't get accurate count with client-side filters, so we fetch all data first
+      // Fetch all employee data
       const all: Record<string, unknown>[] = [];
       let offset = 0;
       const batchSize = 1000;
@@ -97,7 +111,7 @@ export default function DataBuilder() {
         offset += batchSize;
       }
 
-      // Apply client-side filters (for exact_word operator)
+      // Apply client-side filters
       const filtered = applyClientSideFilters(all);
 
       setAllData(filtered);
@@ -124,8 +138,9 @@ export default function DataBuilder() {
     setIsExporting(true);
     try {
       const wb = XLSX.utils.book_new();
+      const employeeIds = allData.map(emp => emp.id as string);
 
-      // Sheet 1: Data Pegawai
+      // Sheet 1: Data Pegawai Utama
       const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
       const exportData = allData.map((row, idx) => {
         const obj: Record<string, unknown> = { No: idx + 1 };
@@ -137,28 +152,82 @@ export default function DataBuilder() {
       const wsData = XLSX.utils.json_to_sheet(exportData);
       XLSX.utils.book_append_sheet(wb, wsData, 'Data Pegawai');
 
-      // Sheet 2: Statistik - Summary
+      // Fetch and add related data sheets
+      if (selectedRelatedTables.length > 0) {
+        for (const tableKey of selectedRelatedTables) {
+          const tableConfig = RELATED_DATA_TABLES.find(t => t.key === tableKey);
+          if (!tableConfig) continue;
+
+          // Fetch related data
+          const { data: relatedData, error } = await supabase
+            .from(tableConfig.table)
+            .select('*')
+            .in('employee_id', employeeIds)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            console.error(`Error fetching ${tableConfig.table}:`, error);
+            continue;
+          }
+
+          if (!relatedData || relatedData.length === 0) continue;
+
+          // Create employee lookup map
+          const employeeMap = new Map(allData.map(emp => [emp.id as string, emp]));
+
+          // Build export data with employee info + related data
+          const relatedExportData = relatedData.map((record: any, idx: number) => {
+            const employee = employeeMap.get(record.employee_id);
+            const obj: Record<string, unknown> = {
+              No: idx + 1,
+              NIP: employee?.nip || '-',
+              Nama: employee?.name || '-',
+              'Unit Kerja': employee?.department || '-',
+            };
+
+            // Add fields from related table
+            tableConfig.fields.forEach(field => {
+              let value = record[field.key];
+              // Format dates
+              if (field.key.includes('tanggal') || field.key === 'created_at' || field.key === 'tmt') {
+                value = value ? new Date(value).toLocaleDateString('id-ID') : '-';
+              }
+              obj[field.label] = value ?? '-';
+            });
+
+            return obj;
+          });
+
+          const wsRelated = XLSX.utils.json_to_sheet(relatedExportData);
+          // Truncate sheet name to 31 chars (Excel limit)
+          const sheetName = tableConfig.label.substring(0, 31);
+          XLSX.utils.book_append_sheet(wb, wsRelated, sheetName);
+        }
+      }
+
+      // Sheet: Ringkasan
       const summaryData = [
-        { Kategori: 'Total Data', Nilai: allData.length },
+        { Kategori: 'Total Pegawai', Nilai: allData.length },
+        { Kategori: 'Kolom Dipilih', Nilai: selectedColumns.length },
+        { Kategori: 'Data Relasi Dipilih', Nilai: selectedRelatedTables.length },
+        { Kategori: 'Filter Aktif', Nilai: filters.length },
       ];
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
-      // Sheet 3+: Statistik per kategori
+      // Sheet: Statistik per kategori
       const STAT_FIELDS = [
         { key: 'department', label: 'Unit Kerja' },
         { key: 'asn_status', label: 'Status ASN' },
         { key: 'position_type', label: 'Jenis Jabatan' },
-        { key: 'position_sk', label: 'Jabatan Sesuai SK' },
-        { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202 Tahun 2024' },
         { key: 'rank_group', label: 'Pangkat/Golongan' },
+        { key: 'gender', label: 'Jenis Kelamin' },
       ];
 
       const dataKeys = allData.length > 0 ? Object.keys(allData[0]) : [];
       const availableStats = STAT_FIELDS.filter(f => dataKeys.includes(f.key));
 
       availableStats.forEach(stat => {
-        // Group data by field
         const counts: Record<string, number> = {};
         allData.forEach(row => {
           const val = String(row[stat.key] ?? 'Tidak Ada');
@@ -175,8 +244,7 @@ export default function DataBuilder() {
 
         if (statData.length > 0) {
           const wsStats = XLSX.utils.json_to_sheet(statData);
-          // Truncate sheet name to 31 chars (Excel limit)
-          const sheetName = stat.label.substring(0, 31);
+          const sheetName = `Stat ${stat.label}`.substring(0, 31);
           XLSX.utils.book_append_sheet(wb, wsStats, sheetName);
         }
       });
@@ -184,7 +252,11 @@ export default function DataBuilder() {
       const timestamp = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(wb, `data-pegawai-${timestamp}.xlsx`);
 
-      toast({ title: `${allData.length} data berhasil diexport dengan ${availableStats.length} sheet statistik` });
+      const totalSheets = 2 + selectedRelatedTables.length + availableStats.length;
+      toast({ 
+        title: `Export berhasil!`, 
+        description: `${allData.length} pegawai dengan ${totalSheets} sheet (termasuk ${selectedRelatedTables.length} data relasi)` 
+      });
     } catch (error: any) {
       toast({ title: 'Gagal export', description: error.message, variant: 'destructive' });
     } finally {
@@ -225,6 +297,26 @@ export default function DataBuilder() {
           </Card>
         </div>
 
+        {/* Related Data Selection */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Database className="h-5 w-5 text-primary" />
+              Data Relasi (Riwayat & Keterangan)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Pilih data relasi yang ingin ditampilkan. Klik baris pegawai di preview untuk melihat detail riwayat.
+              Data relasi juga akan di-export sebagai sheet terpisah di Excel.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <RelatedDataSelector 
+              selectedTables={selectedRelatedTables} 
+              onChange={setSelectedRelatedTables} 
+            />
+          </CardContent>
+        </Card>
+
         {/* Actions */}
         <div className="flex gap-3 flex-wrap">
           <Button onClick={fetchData} disabled={isLoading} className="gap-2">
@@ -258,9 +350,10 @@ export default function DataBuilder() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 ) : (
-                  <DataPreviewTable
+                  <DataPreviewTableWithRelations
                     data={data}
                     selectedColumns={selectedColumns}
+                    selectedRelatedTables={selectedRelatedTables}
                     currentPage={currentPage}
                     pageSize={PAGE_SIZE}
                     totalCount={totalCount}
