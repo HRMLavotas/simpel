@@ -19,7 +19,7 @@ type FilterableQuery = {
 };
 
 const PAGE_SIZE = 50;
-const DEFAULT_SELECTED_COLUMNS = ['name', 'nip', 'department', 'position_type', 'position_sk', 'position_name'];
+const DEFAULT_SELECTED_COLUMNS: string[] = [];
 const FILTER_OPTIONS: Record<string, string[]> = {
   asn_status: ['PNS', 'PPPK', 'Non ASN'],
   position_type: ['Struktural', 'Fungsional', 'Pelaksana'],
