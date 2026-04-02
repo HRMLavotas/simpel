@@ -26,6 +26,8 @@ const STAT_FIELDS = [
   { key: 'position_sk', label: 'Jabatan Sesuai SK', icon: TrendingUp },
   { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202 Tahun 2024', icon: TrendingUp },
   { key: 'rank_group', label: 'Pangkat/Golongan', icon: BarChart3 },
+  { key: 'gender', label: 'Jenis Kelamin', icon: PieChart },
+  { key: 'religion', label: 'Agama', icon: PieChart },
 ];
 
 interface DataStatisticsProps {

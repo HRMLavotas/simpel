@@ -13,8 +13,9 @@ export interface Employee {
   gender: string | null;
   religion: string | null;
   old_position: string | null;
+  position_sk: string | null; // Jabatan Sesuai SK - jabatan spesifik/tugas aktual
   position_type: string | null;
-  position_name: string | null;
+  position_name: string | null; // Jabatan Sesuai Kepmen 202 Tahun 2024 - jabatan standar
   asn_status: string | null;
   rank_group: string | null;
   department: string;
