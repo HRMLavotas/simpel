@@ -1,8 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface GradeData {
   grade: string;
@@ -53,7 +52,7 @@ export function GradeBarChart({ data }: GradeBarChartProps) {
   });
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Grade Jabatan</CardTitle>
         <CardDescription>Distribusi pegawai berdasarkan grade jabatan</CardDescription>
@@ -117,7 +116,7 @@ export function AgeBarChart({ data }: AgeBarChartProps) {
   ];
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Usia Pegawai</CardTitle>
         <CardDescription>Distribusi pegawai berdasarkan kategori usia</CardDescription>
@@ -173,7 +172,7 @@ export function RetirementYearBarChart({ data }: RetirementYearBarChartProps) {
   const isMobile = useIsMobile();
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Tren Tahun Pensiun</CardTitle>
         <CardDescription>Jumlah pegawai yang akan pensiun per tahun (10 tahun ke depan)</CardDescription>
@@ -224,7 +223,6 @@ export function RetirementYearBarChart({ data }: RetirementYearBarChartProps) {
 
 export function EducationPieChart({ data }: EducationPieChartProps) {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState('level');
   
   // Define education level order for sorting
   const educationOrder: Record<string, number> = {
@@ -252,19 +250,6 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
   // For level view, use chart if ≤8 categories
   const useLevelChart = sortedData.length <= 8;
   
-  // Flatten details for detail view
-  const detailData: { level: string; major: string; count: number }[] = [];
-  sortedData.forEach(item => {
-    if (item.details) {
-      item.details.forEach(detail => {
-        detailData.push({
-          level: item.level,
-          major: detail.major,
-          count: detail.count
-        });
-      });
-    }
-  });
   
   const EDUCATION_COLORS = [
     'hsl(217, 91%, 60%)',   // primary blue
@@ -280,20 +265,13 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
   ];
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Jenjang Pendidikan</CardTitle>
         <CardDescription>Distribusi pegawai berdasarkan pendidikan terakhir</CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="level">Jenjang</TabsTrigger>
-            <TabsTrigger value="detail">Detail Jurusan</TabsTrigger>
-          </TabsList>
-
-          {/* Tab: Jenjang Only */}
-          <TabsContent value="level">
+        <div>
             {useLevelChart ? (
               // Pie chart for few categories
               <ResponsiveContainer width="100%" height={300}>
@@ -388,68 +366,7 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
                 </div>
               </div>
             )}
-          </TabsContent>
-
-          {/* Tab: Detail with Major */}
-          <TabsContent value="detail">
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Total: <span className="font-semibold text-foreground">{totalCount}</span> pegawai dalam <span className="font-semibold text-foreground">{detailData.length}</span> kombinasi jenjang-jurusan
-              </div>
-              <div className="max-h-[500px] overflow-auto rounded-lg border shadow-sm">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm">
-                    <tr className="border-b">
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Jenjang
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Jurusan
-                      </th>
-                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">
-                        Jumlah
-                      </th>
-                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">
-                        %
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detailData.map((item, i) => (
-                      <tr 
-                        key={i} 
-                        className="border-b last:border-0 hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-2.5 font-medium">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ 
-                                backgroundColor: EDUCATION_COLORS[
-                                  (educationOrder[item.level] || 0) % EDUCATION_COLORS.length
-                                ] 
-                              }}
-                            />
-                            {item.level}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {item.major}
-                        </td>
-                        <td className="px-4 py-2.5 text-right font-medium">
-                          {item.count}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-muted-foreground">
-                          {((item.count / totalCount) * 100).toFixed(1)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        </div>
       </CardContent>
     </Card>
   );

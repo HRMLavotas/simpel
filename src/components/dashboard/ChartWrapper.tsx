@@ -1,27 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
 
-import { ChartDataItem } from '@/types/chart';
-
 interface ChartWrapperProps {
   title: string;
   description?: string;
-  data: ChartDataItem[];
+  data: any[];
   children: React.ReactNode;
 }
 
 export function ChartWrapper({ title, description, data, children }: ChartWrapperProps) {
   if (!data || data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
+      <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
+        <CardHeader className="pb-2 flex-none">
+          <CardTitle className="text-lg">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <BarChart3 className="h-12 w-12 mb-3 opacity-20" />
-            <p className="text-sm">Tidak ada data untuk ditampilkan</p>
+        <CardContent className="flex-1 flex flex-col items-center justify-center p-6 text-muted-foreground bg-muted/20 border-t border-dashed m-4 rounded-lg">
+          <div className="flex flex-col items-center justify-center py-8">
+            <BarChart3 className="h-10 w-10 mb-3 opacity-20" />
+            <p className="text-sm font-medium">Tidak ada data untuk ditampilkan</p>
           </div>
         </CardContent>
       </Card>

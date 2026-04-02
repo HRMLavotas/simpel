@@ -147,7 +147,13 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       setStats(data.stats || { total: 0, pns: 0, pppk: 0, nonAsn: 0 });
       setRankData(data.rankData || []);
       setDepartmentData(data.departmentData || []);
-      setPositionTypeData(data.positionTypeData || []);
+      // Format position types: Rename "Tidak Diketahui" to "Non ASN" since it predominantly represents Non ASN staff without specific jabatan.
+      const formattedPositionTypeData = (data.positionTypeData || []).map((item: { type: string; count: number }) => ({
+        ...item,
+        type: item.type === 'Tidak Diketahui' ? 'Non ASN' : item.type
+      }));
+      
+      setPositionTypeData(formattedPositionTypeData);
       setJoinYearData(data.joinYearData || []);
       setGenderData(data.genderData || []);
       setReligionData(data.religionData || []);

@@ -154,12 +154,12 @@ export function AsnPieChart({ data }: AsnPieChartProps) {
   const isMobile = useIsMobile();
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Distribusi Status ASN</CardTitle>
         <CardDescription>Persentase pegawai berdasarkan status kepegawaian</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
           <PieChart>
             <Pie
@@ -217,12 +217,12 @@ export function RankBarChart({ data }: RankBarChartProps) {
   }));
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Distribusi per Golongan</CardTitle>
         <CardDescription>Top 10 golongan dengan jumlah pegawai terbanyak</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <ResponsiveContainer width="100%" height={isMobile ? 300 : 320}>
           <BarChart 
             data={processedData} 
@@ -290,12 +290,12 @@ export function DepartmentBarChart({ data }: DepartmentBarChartProps) {
     }));
 
   return (
-    <Card className="animate-fade-in lg:col-span-2">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Distribusi per Unit Kerja</CardTitle>
         <CardDescription>Top 10 unit kerja dengan jumlah pegawai terbanyak</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <ResponsiveContainer width="100%" height={isMobile ? 350 : 380}>
           <BarChart 
             data={sortedData} 
@@ -352,12 +352,12 @@ export function PositionTypePieChart({ data }: PositionTypePieChartProps) {
   const isMobile = useIsMobile();
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Distribusi Jenis Jabatan</CardTitle>
         <CardDescription>Persentase pegawai berdasarkan jenis jabatan</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
           <PieChart>
             <Pie
@@ -410,12 +410,12 @@ export function JoinYearBarChart({ data }: JoinYearBarChartProps) {
   const isMobile = useIsMobile();
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Tren Pegawai Bergabung</CardTitle>
         <CardDescription>Jumlah pegawai yang bergabung per tahun (10 tahun terakhir)</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
           <BarChart 
             data={data}
@@ -470,7 +470,7 @@ export function GenderPieChart({ data }: GenderPieChartProps) {
   ];
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Jenis Kelamin</CardTitle>
         <CardDescription>Persentase pegawai berdasarkan jenis kelamin</CardDescription>
@@ -537,7 +537,7 @@ export function ReligionPieChart({ data }: ReligionPieChartProps) {
   ];
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Agama</CardTitle>
         <CardDescription>Persentase pegawai berdasarkan agama</CardDescription>
@@ -612,7 +612,7 @@ export function PositionKepmenBarChart({ data }: PositionKepmenBarChartProps) {
   const chartHeight = Math.max(350, chartData.length * 35);
 
   return (
-    <Card className="animate-fade-in lg:col-span-2">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Jabatan Kepmen 202/2024</CardTitle>
         <CardDescription>
@@ -730,7 +730,7 @@ export function TmtYearBarChart({ data, title, description }: TmtYearBarChartPro
   const isMobile = useIsMobile();
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -794,7 +794,7 @@ export function WorkDurationBarChart({ data }: WorkDurationBarChartProps) {
   ];
   
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-3 border-b">
         <CardTitle className="text-base">Distribusi Masa Kerja</CardTitle>
         <CardDescription>Distribusi pegawai berdasarkan masa kerja (dihitung dari TMT CPNS/PNS)</CardDescription>
