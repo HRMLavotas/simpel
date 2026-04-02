@@ -30,6 +30,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/constants';
+import { logger } from '@/lib/logger';
+import { useDepartments } from '@/hooks/useDepartments';
 import { CreateAdminModal } from '@/components/admins/CreateAdminModal';
 import { EditAdminModal } from '@/components/admins/EditAdminModal';
 import { DeleteAdminDialog } from '@/components/admins/DeleteAdminDialog';
@@ -66,7 +68,7 @@ export default function Admins() {
   const fetchAdmins = async () => {
     setIsLoading(true);
     try {
-      console.log('=== FETCHING ADMINS ===');
+      logger.debug('=== FETCHING ADMINS ===');
       
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -75,7 +77,7 @@ export default function Admins() {
         .order('full_name', { ascending: true });
 
       if (profilesError) throw profilesError;
-      console.log('Profiles fetched:', profiles?.length);
+      logger.debug('Profiles fetched:', profiles?.length);
 
       // Fetch roles
       const { data: roles, error: rolesError } = await supabase
@@ -83,7 +85,7 @@ export default function Admins() {
         .select('*');
 
       if (rolesError) throw rolesError;
-      console.log('Roles fetched:', roles?.length);
+      logger.debug('Roles fetched:', roles?.length);
 
       // Combine data
       const adminsData: AdminUser[] = profiles?.map(profile => {
@@ -97,16 +99,15 @@ export default function Admins() {
           created_at: profile.created_at,
         };
         
-        // Log each admin for debugging
-        console.log(`Admin: ${adminData.full_name} | Dept: ${adminData.department} | Role: ${adminData.role}`);
+        logger.debug(`Admin: ${adminData.full_name} | Dept: ${adminData.department} | Role: ${adminData.role}`);
         
         return adminData;
       }) || [];
 
-      console.log('Combined admins data:', adminsData);
+      logger.debug('Combined admins data:', adminsData);
       setAdmins(adminsData);
     } catch (error) {
-      console.error('Error fetching admins:', error);
+      logger.error('Error fetching admins:', error);
       toast({
         variant: 'destructive',
         title: 'Error',

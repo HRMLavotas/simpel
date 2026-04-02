@@ -26,6 +26,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, POSITION_TYPES } from '@/lib/constants';
+import { useDepartments } from '@/hooks/useDepartments';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
@@ -65,6 +66,7 @@ const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
 export default function PetaJabatan() {
   const { profile, isAdminPusat, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
 
   const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
@@ -105,18 +107,6 @@ export default function PetaJabatan() {
     if (selectedDepartment) {
       fetchData();
     }
-  }, [selectedDepartment]);
-
-  // Auto-refresh every 30 seconds to catch updates from other users
-  useEffect(() => {
-    if (!selectedDepartment) return;
-    
-    const interval = setInterval(() => {
-      logger.debug('Auto-refreshing Peta Jabatan data...');
-      fetchData();
-    }, 30000); // 30 seconds
-    
-    return () => clearInterval(interval);
   }, [selectedDepartment]);
 
   // Real-time subscription for employee changes
@@ -552,7 +542,7 @@ export default function PetaJabatan() {
                   <SelectValue placeholder="Pilih Unit Kerja" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.filter(d => d !== 'Pusat').map(d => (
+                  {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
                     <SelectItem key={d} value={d}>{d}</SelectItem>
                   ))}
                 </SelectContent>

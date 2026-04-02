@@ -9,7 +9,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { profile, isAdminPusat } = useAuth();
+  const { profile, isAdminPusat, isAdminPimpinan } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -31,13 +31,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Menu className="h-5 w-5" />
             </Button>
             <h2 className="text-sm font-medium text-foreground truncate max-w-[200px] sm:max-w-none">
-              {isAdminPusat ? 'Admin Pusat - Semua Unit Kerja' : profile?.department}
+              {isAdminPusat || isAdminPimpinan ? 'Semua Unit Kerja' : profile?.department}
             </h2>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden sm:block text-right">
               <p className="text-xs font-medium text-foreground truncate max-w-[160px]">{profile?.full_name || 'Admin'}</p>
-              <p className="text-xs text-muted-foreground">{isAdminPusat ? 'Admin Pusat' : 'Admin Unit'}</p>
+              <p className="text-xs text-muted-foreground">
+                {isAdminPusat ? 'Admin Pusat' : isAdminPimpinan ? 'Admin Pimpinan' : 'Admin Unit'}
+              </p>
             </div>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium text-sm flex-shrink-0">
               {profile?.full_name?.charAt(0)?.toUpperCase() || 'A'}

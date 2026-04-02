@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
+import { useDepartments } from '@/hooks/useDepartments';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
 import {
   EmployeeHistoryForm,
@@ -129,6 +130,7 @@ export function EmployeeFormModal({
 }: EmployeeFormModalProps) {
   const { profile, isAdminPusat } = useAuth();
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
   const isEditing = !!employee;
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes'>('main');
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
@@ -702,7 +704,7 @@ export function EmployeeFormModal({
                     <SelectValue placeholder="Pilih unit kerja" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(isAdminPusat ? DEPARTMENTS : [profile?.department || '']).map((dept) => (
+                    {(isAdminPusat ? dynamicDepartments : [profile?.department || '']).map((dept) => (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}
                   </SelectContent>

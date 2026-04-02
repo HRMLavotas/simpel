@@ -41,40 +41,13 @@ import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, ASN_STATUS_OPTIONS } from '@/lib/constants';
+import { ASN_STATUS_OPTIONS } from '@/lib/constants';
+import { useDepartments } from '@/hooks/useDepartments';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { HistoryRowData, NoteData } from '@/types/employee';
-
-interface Employee {
-  id: string;
-  nip: string | null;
-  name: string;
-  front_title: string | null;
-  back_title: string | null;
-  birth_place: string | null;
-  birth_date: string | null;
-  gender: string | null;
-  religion: string | null;
-  old_position: string | null;
-  position_type: string | null;
-  position_name: string | null;
-  asn_status: string | null;
-  rank_group: string | null;
-  department: string;
-  join_date: string | null;
-  tmt_cpns: string | null;
-  tmt_pns: string | null;
-  tmt_pensiun: string | null;
-  keterangan_formasi: string | null;
-  keterangan_penempatan: string | null;
-  keterangan_penugasan: string | null;
-  keterangan_perubahan: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { HistoryRowData, NoteData, Employee } from '@/types/employee';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -147,6 +120,7 @@ function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedCha
 export default function Employees() {
   const { profile, isAdminPusat, user, canEdit, canViewAll } = useAuth();
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
   
   const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -200,11 +174,18 @@ export default function Employees() {
     setIsLoading(true);
     logger.debug('=== FETCHING EMPLOYEES ===');
     try {
-      // Fetch employees and sort by position_type (Struktural, Fungsional, Pelaksana) then import_order
-      const { data, error } = await supabase
+      // Fetch employees - filter by department for admin_unit (RLS handles this server-side too)
+      let query = supabase
         .from('employees')
         .select('*')
         .order('import_order', { ascending: true, nullsFirst: false });
+
+      // For admin_unit, restrict to their department (belt-and-suspenders with RLS)
+      if (!canViewAll && profile.department) {
+        query = query.eq('department', profile.department);
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -452,9 +433,6 @@ export default function Employees() {
     logger.debug(`=== SAVING ${tableName} ===`);
     logger.debug('Entries to save:', entries);
     
-    // Delete existing entries
-    await supabase.from(tableName as any).delete().eq('employee_id', employeeId);
-    
     // Get current employee data for auto-filling "old" values
     const { data: currentEmployee } = await supabase
       .from('employees')
@@ -467,22 +445,19 @@ export default function Employees() {
       .map((e, index, array) => {
         const row: Record<string, string | number | null> = { employee_id: employeeId };
         
-        // First, copy all fields from the entry
+        // Copy all fields from the entry
         fieldKeys.forEach(k => {
           row[k] = e[k] || null;
         });
         
-        // Then auto-fill "old" values based on previous entry or current state
+        // Auto-fill "old" values based on previous entry or current state
         if (tableName === 'rank_history' && e.pangkat_baru) {
-          // Get previous entry's pangkat_baru or current rank_group
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.pangkat_lama = prevEntry?.pangkat_baru || currentEmployee?.rank_group || null;
         } else if (tableName === 'position_history' && e.jabatan_baru) {
-          // Get previous entry's jabatan_baru or current position_name
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.jabatan_lama = prevEntry?.jabatan_baru || currentEmployee?.position_name || null;
         } else if (tableName === 'mutation_history' && e.ke_unit) {
-          // Get previous entry's ke_unit or current department
           const prevEntry = index > 0 ? array[index - 1] : null;
           row.dari_unit = prevEntry?.ke_unit || currentEmployee?.department || null;
         }
@@ -492,13 +467,27 @@ export default function Employees() {
       
     logger.debug('Rows to insert:', rows);
     
+    // Delete existing entries then insert new ones.
+    // If delete succeeds but insert fails, we re-throw so the caller can handle it.
+    const { error: deleteError } = await supabase
+      .from(tableName as any)
+      .delete()
+      .eq('employee_id', employeeId);
+    
+    if (deleteError) {
+      logger.error(`Error deleting ${tableName}:`, deleteError);
+      throw deleteError;
+    }
+    
     if (rows.length > 0) {
-      const { error } = await supabase.from(tableName as any).insert(rows);
-      if (error) {
-        console.error(`Error inserting ${tableName}:`, error);
-        throw error;
+      const { error: insertError } = await supabase.from(tableName as any).insert(rows);
+      if (insertError) {
+        logger.error(`Error inserting ${tableName}:`, insertError);
+        throw insertError;
       }
       logger.debug(`Successfully saved ${rows.length} entries to ${tableName}`);
+    } else {
+      logger.debug(`Cleared all entries from ${tableName} (no valid rows to insert)`);
     }
   };
 
@@ -857,19 +846,27 @@ export default function Employees() {
   };
 
   const handleExport = () => {
+    // Helper to escape CSV cell values (wrap in quotes and escape internal quotes)
+    const csvCell = (val: string | null | undefined) => {
+      const str = (val ?? '').replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
     const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk', 'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan'];
     const csvContent = [
-      headers.join(','),
+      headers.map(csvCell).join(','),
       ...filteredEmployees.map(emp => [
-        emp.nip || '', emp.front_title || '', `"${emp.name}"`, emp.back_title || '',
-        emp.position_type || '', `"${emp.position_name || ''}"`, emp.asn_status || '',
-        emp.rank_group || '', `"${emp.department}"`, emp.join_date || '',
-        `"${emp.keterangan_formasi || ''}"`, `"${emp.keterangan_penempatan || ''}"`,
-        `"${emp.keterangan_penugasan || ''}"`, `"${emp.keterangan_perubahan || ''}"`,
+        csvCell(emp.nip), csvCell(emp.front_title), csvCell(emp.name), csvCell(emp.back_title),
+        csvCell(emp.position_type), csvCell(emp.position_name), csvCell(emp.asn_status),
+        csvCell(emp.rank_group), csvCell(emp.department), csvCell(emp.join_date),
+        csvCell(emp.keterangan_formasi), csvCell(emp.keterangan_penempatan),
+        csvCell(emp.keterangan_penugasan), csvCell(emp.keterangan_perubahan),
       ].join(','))
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Add BOM for Excel to properly detect UTF-8
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `data-pegawai-${format(new Date(), 'yyyy-MM-dd')}.csv`;
@@ -951,7 +948,7 @@ export default function Employees() {
               <SelectTrigger className="w-full sm:w-[240px]"><SelectValue placeholder="Unit Kerja" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                {DEPARTMENTS.filter(d => d !== 'Pusat').map((dept) => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                {dynamicDepartments.filter(d => d !== 'Pusat').map((dept) => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
