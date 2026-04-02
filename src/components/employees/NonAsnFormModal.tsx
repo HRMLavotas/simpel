@@ -197,7 +197,7 @@ export function NonAsnFormModal({
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error saving Non-ASN:', error);
+      logger.error('Error saving Non-ASN:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal menyimpan',

@@ -118,7 +118,7 @@ const parseNIP = (nip: string | null): {
     
     return { birth_date, tmt_cpns, gender };
   } catch (error) {
-    console.error('Error parsing NIP:', error);
+    logger.error('Error parsing NIP:', error);
     return null;
   }
 };
@@ -246,7 +246,7 @@ export default function Import() {
         setAvailableDepartments(deptNames);
         logger.debug('Available departments from database (Import ASN):', deptNames);
       } catch (error: any) {
-        console.error('Error fetching departments:', error);
+        logger.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
         setAvailableDepartments([...DEPARTMENTS]);
       }
@@ -900,7 +900,7 @@ export default function Import() {
               employee_id: employeeId,
               note: row.keterangan_penempatan,
             });
-            if (error) console.error('Error inserting placement note:', error);
+            if (error) logger.error('Error inserting placement note:', error);
             else logger.debug('✅ Placement note inserted');
           }
 
@@ -910,7 +910,7 @@ export default function Import() {
               employee_id: employeeId,
               note: row.keterangan_penugasan,
             });
-            if (error) console.error('Error inserting assignment note:', error);
+            if (error) logger.error('Error inserting assignment note:', error);
             else logger.debug('✅ Assignment note inserted');
           }
 
@@ -920,7 +920,7 @@ export default function Import() {
               employee_id: employeeId,
               note: row.keterangan_perubahan,
             });
-            if (error) console.error('Error inserting change note:', error);
+            if (error) logger.error('Error inserting change note:', error);
             else logger.debug('✅ Change note inserted');
           }
         }

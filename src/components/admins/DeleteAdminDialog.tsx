@@ -70,7 +70,7 @@ export function DeleteAdminDialog({ open, onOpenChange, admin, currentUserId, on
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error('Error deleting admin:', error);
+      logger.error('Error deleting admin:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal menghapus admin',

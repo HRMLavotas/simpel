@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/constants';
@@ -102,9 +103,9 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
     setIsSubmitting(true);
 
     try {
-      console.log('=== UPDATING ADMIN ===');
-      console.log('Admin ID:', admin.id);
-      console.log('New data:', formData);
+      logger.debug('=== UPDATING ADMIN ===');
+      logger.debug('Admin ID:', admin.id);
+      logger.debug('New data:', formData);
       
       // Update profile directly in database
       const { error: profileError } = await supabase
@@ -116,10 +117,10 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
         .eq('id', admin.id);
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
+        logger.error('Profile update error:', profileError);
         throw new Error(profileError.message);
       }
-      console.log('✅ Profile updated successfully');
+      logger.debug('✅ Profile updated successfully');
 
       // Update role directly in database
       const { error: roleError } = await supabase
@@ -128,10 +129,10 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
         .eq('user_id', admin.id);
 
       if (roleError) {
-        console.error('Role update error:', roleError);
+        logger.error('Role update error:', roleError);
         throw new Error(roleError.message);
       }
-      console.log('✅ Role updated successfully');
+      logger.debug('✅ Role updated successfully');
 
       toast({
         title: 'Berhasil',
@@ -141,7 +142,7 @@ export function EditAdminModal({ open, onOpenChange, admin, currentUserId, onSuc
       handleClose();
       onSuccess();
     } catch (error: any) {
-      console.error('Error updating admin:', error);
+      logger.error('Error updating admin:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal mengupdate admin',

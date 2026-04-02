@@ -117,7 +117,7 @@ export default function Dashboard() {
 
       logger.debug('Dashboard preferences saved:', charts);
     } catch (error) {
-      console.error('Error saving dashboard preferences:', error);
+      logger.error('Error saving dashboard preferences:', error);
       toast({
         title: 'Gagal menyimpan preferensi',
         description: 'Terjadi kesalahan saat menyimpan pilihan chart',
@@ -144,7 +144,7 @@ export default function Dashboard() {
           .single();
 
         if (error) {
-          console.error('Error loading dashboard preferences:', error);
+          logger.error('Error loading dashboard preferences:', error);
           // Use default if error
           const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
           setSelectedCharts(defaultCharts);
@@ -165,7 +165,7 @@ export default function Dashboard() {
           await savePreferences(defaultCharts);
         }
       } catch (error) {
-        console.error('Error loading dashboard preferences:', error);
+        logger.error('Error loading dashboard preferences:', error);
         // Use default on error
         const defaultCharts = ['asn_status', 'rank', 'position_type', 'join_year'];
         setSelectedCharts([...defaultCharts]);

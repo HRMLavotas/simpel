@@ -7,6 +7,7 @@ import { User, Briefcase, Calendar, MapPin, Award, Building2, GraduationCap, His
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 
 interface Employee {
   id: string;
@@ -202,10 +203,10 @@ export function EmployeeDetailsModal({
 
   if (!employee) return null;
 
-  console.log('=== EMPLOYEE DETAILS MODAL ===');
-  console.log('Placement notes count:', placementNotes.length);
-  console.log('Assignment notes count:', assignmentNotes.length);
-  console.log('Change notes count:', changeNotes.length);
+  logger.debug('=== EMPLOYEE DETAILS MODAL ===');
+  logger.debug('Placement notes count:', placementNotes.length);
+  logger.debug('Assignment notes count:', assignmentNotes.length);
+  logger.debug('Change notes count:', changeNotes.length);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

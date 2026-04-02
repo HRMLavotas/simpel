@@ -90,7 +90,7 @@ export function DeleteDepartmentDialog({ open, onOpenChange, department, onSucce
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error('Error deleting department:', error);
+      logger.error('Error deleting department:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal menghapus',

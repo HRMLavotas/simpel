@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/constants';
@@ -111,7 +112,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
         throw new Error(signUpError.message);
       }
 
-      console.log('SignUp response:', data);
+      logger.debug('SignUp response:', data);
 
       toast({
         title: 'Berhasil',
@@ -121,7 +122,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
       handleClose();
       onSuccess();
     } catch (error: any) {
-      console.error('Error creating admin:', error);
+      logger.error('Error creating admin:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal membuat admin',

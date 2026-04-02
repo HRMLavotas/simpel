@@ -154,7 +154,7 @@ function ImportNonAsn() {
         setAvailableDepartments(deptNames);
         logger.debug('Available departments from database:', deptNames);
       } catch (error: any) {
-        console.error('Error fetching departments:', error);
+        logger.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
         setAvailableDepartments([...DEPARTMENTS]);
       }

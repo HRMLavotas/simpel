@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (roleError) throw roleError;
       setRole(roleData?.role as AppRole ?? null);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      logger.error('Error fetching user data:', error);
     } finally {
       setIsLoading(false);
     }

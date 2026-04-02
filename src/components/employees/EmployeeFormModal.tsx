@@ -362,7 +362,7 @@ export function EmployeeFormModal({
               }
             }
           } catch (error) {
-            console.error('Error parsing NIP:', error);
+            logger.error('Error parsing NIP:', error);
           }
         } else {
           resetNIPValidation();

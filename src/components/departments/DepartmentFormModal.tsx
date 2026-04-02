@@ -112,7 +112,7 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
       handleClose();
       onSuccess();
     } catch (error: any) {
-      console.error('Error saving department:', error);
+      logger.error('Error saving department:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal menyimpan',

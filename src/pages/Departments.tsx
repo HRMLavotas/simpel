@@ -61,7 +61,7 @@ export default function Departments() {
       if (error) throw error;
       setDepartments(data || []);
     } catch (error) {
-      console.error('Error fetching departments:', error);
+      logger.error('Error fetching departments:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
