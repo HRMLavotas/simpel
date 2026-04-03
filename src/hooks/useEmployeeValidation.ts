@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 /**
  * Async validation hooks for employee data
@@ -77,7 +78,7 @@ export function useEmployeeValidation(options: UseEmployeeValidationOptions = {}
       const { data, error } = await query.maybeSingle();
 
       if (error) {
-        console.error('Error checking duplicate NIP:', error);
+        logger.error('Error checking duplicate NIP:', error);
         return 'Gagal memvalidasi NIP. Silakan coba lagi.';
       }
 
@@ -87,7 +88,7 @@ export function useEmployeeValidation(options: UseEmployeeValidationOptions = {}
 
       return null;
     } catch (error) {
-      console.error('Error checking duplicate NIP:', error);
+      logger.error('Error checking duplicate NIP:', error);
       return 'Gagal memvalidasi NIP. Silakan coba lagi.';
     }
   }, []);
@@ -127,7 +128,7 @@ export function useEmployeeValidation(options: UseEmployeeValidationOptions = {}
       const { data, error } = await query.maybeSingle();
 
       if (error) {
-        console.error('Error checking duplicate NIK:', error);
+        logger.error('Error checking duplicate NIK:', error);
         return 'Gagal memvalidasi NIK. Silakan coba lagi.';
       }
 
@@ -137,7 +138,7 @@ export function useEmployeeValidation(options: UseEmployeeValidationOptions = {}
 
       return null;
     } catch (error) {
-      console.error('Error checking duplicate NIK:', error);
+      logger.error('Error checking duplicate NIK:', error);
       return 'Gagal memvalidasi NIK. Silakan coba lagi.';
     }
   }, []);

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface DataPreviewTableWithRelationsProps {
   data: Record<string, unknown>[];
@@ -101,7 +102,7 @@ export function DataPreviewTableWithRelations({
 
       setRelatedData(prev => new Map(prev).set(employeeId, employeeRelatedData));
     } catch (error) {
-      console.error('Error fetching related data:', error);
+      logger.error('Error fetching related data:', error);
       toast({
         title: 'Gagal memuat data relasi',
         description: error instanceof Error ? error.message : 'Terjadi kesalahan.',

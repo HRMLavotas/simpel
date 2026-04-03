@@ -168,7 +168,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
 
       logger.debug('[Dashboard] All data mapped successfully. Total:', data.stats?.total);
     } catch (err) {
-      console.error('[Dashboard] Error fetching dashboard data:', err);
+      logger.error('[Dashboard] Error fetching dashboard data:', err);
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat data dashboard');
     } finally {
       setIsLoading(false);

@@ -11,7 +11,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, type Department } from '@/lib/constants';
+import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
 import { EmployeeHistoryForm, type HistoryEntry, POSITION_HISTORY_FIELDS } from './EmployeeHistoryForm';
@@ -41,17 +41,6 @@ interface NonAsnFormModalProps {
   initialEducation?: EducationEntry[];
   initialPositionHistory?: HistoryEntry[];
 }
-
-const GENDER_OPTIONS = ['Laki-laki', 'Perempuan'];
-
-const RELIGION_OPTIONS = [
-  'Islam',
-  'Kristen',
-  'Katolik',
-  'Hindu',
-  'Buddha',
-  'Konghucu',
-];
 
 const TYPE_NON_ASN_OPTIONS = [
   'Tenaga Alih Daya',

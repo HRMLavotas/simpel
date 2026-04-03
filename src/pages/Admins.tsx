@@ -29,7 +29,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { useDepartments } from '@/hooks/useDepartments';
 import { CreateAdminModal } from '@/components/admins/CreateAdminModal';
@@ -50,6 +49,7 @@ interface AdminUser {
 export default function Admins() {
   const { isAdminPusat, user } = useAuth();
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
 
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,7 +174,7 @@ export default function Admins() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Unit Kerja</SelectItem>
-              {DEPARTMENTS.map((dept) => (
+              {dynamicDepartments.map((dept) => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
               ))}
             </SelectContent>
