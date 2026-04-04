@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { DEPARTMENTS, type AppRole } from '@/lib/constants';
+import { DEPARTMENTS } from '@/lib/constants';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -19,8 +19,7 @@ const signupSchema = z.object({
   email: z.string().email('Email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
   fullName: z.string().min(3, 'Nama minimal 3 karakter'),
-  department: z.string().min(1, 'Pilih unit kerja'),
-  role: z.enum(['admin_unit', 'admin_pusat', 'admin_pimpinan'])
+  department: z.string().min(1, 'Pilih unit kerja')
 });
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -51,7 +50,6 @@ export default function Auth() {
       password: '',
       fullName: '',
       department: '',
-      role: 'admin_unit'
     }
   });
   const handleLogin = async (data: LoginFormData) => {
@@ -78,7 +76,7 @@ export default function Auth() {
     setIsLoading(true);
     const {
       error
-    } = await signUp(data.email, data.password, data.fullName, data.department, data.role as AppRole);
+    } = await signUp(data.email, data.password, data.fullName, data.department);
     setIsLoading(false);
     if (error) {
       toast({
@@ -154,7 +152,7 @@ export default function Auth() {
               {isLogin ? 'Masuk ke Akun Anda' : 'Buat Akun Baru'}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              {isLogin ? 'Masukkan email dan password untuk melanjutkan' : 'Lengkapi data berikut untuk membuat akun admin'}
+              {isLogin ? 'Masukkan email dan password untuk melanjutkan' : 'Lengkapi data berikut untuk membuat akun admin unit'}
             </p>
           </div>
 
@@ -249,18 +247,9 @@ export default function Auth() {
                 {signupForm.formState.errors.department && <p className="text-xs text-destructive">{signupForm.formState.errors.department.message}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-role">Role</Label>
-                <Select onValueChange={value => signupForm.setValue('role', value as AppRole)} defaultValue="admin_unit">
-                  <SelectTrigger id="signup-role" className="input-focus">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin_unit">Admin Unit</SelectItem>
-                    <SelectItem value="admin_pusat">Admin Pusat</SelectItem>
-                    <SelectItem value="admin_pimpinan">Admin Pimpinan</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
+                Akun baru akan dibuat sebagai <span className="font-medium text-foreground">Admin Unit</span>.
+                Untuk akun Admin Pusat atau Admin Pimpinan, gunakan menu kelola admin.
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
