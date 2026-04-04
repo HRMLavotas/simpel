@@ -252,7 +252,7 @@ export default function Employees() {
         (emp.nip && emp.nip.includes(searchQuery)) ||
         (emp.position_name && emp.position_name.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesStatus = statusFilter === 'all' || emp.asn_status === statusFilter;
-      const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || emp.department === departmentFilter;
+      const matchesDepartment = !canViewAll || departmentFilter === 'all' || emp.department === departmentFilter;
       return matchesTab && matchesSearch && matchesStatus && matchesDepartment;
     });
     
@@ -263,7 +263,7 @@ export default function Employees() {
     logger.debug('Filtered count:', filtered.length);
     
     return filtered;
-  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, isAdminPusat]);
+  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, canViewAll]);
 
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
   const paginatedEmployees = filteredEmployees.slice(
@@ -344,12 +344,38 @@ export default function Employees() {
   const handleEditEmployee = async (employee: Employee) => {
     setSelectedEmployee(employee);
     
-    // Check if this is a Non-ASN employee
-    if (employee.asn_status === 'Non ASN') {
-      // Load education and position history for Non-ASN
-      const [eduRes, posRes] = await Promise.all([
+    try {
+      // Check if this is a Non-ASN employee
+      if (employee.asn_status === 'Non ASN') {
+        // Load education and position history for Non-ASN
+        const [eduRes, posRes] = await Promise.all([
+          supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+          supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        ]);
+
+        setSelectedEducation(
+          (eduRes.data || []).map((d) => ({
+            id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+            major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+            front_title: d.front_title || '', back_title: d.back_title || '',
+          }))
+        );
+        setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+        
+        setNonAsnModalOpen(true);
+        return;
+      }
+      
+      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
         supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+        supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
         supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+        supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
       ]);
 
       setSelectedEducation(
@@ -359,52 +385,31 @@ export default function Employees() {
           front_title: d.front_title || '', back_title: d.back_title || '',
         }))
       );
+      setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
       setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+      setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+      setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
       
-      setNonAsnModalOpen(true);
-      return;
+      // Map notes data
+      setSelectedPlacementNotes((placementRes.data || []).map((d: NoteData) => ({ 
+        id: d.id, 
+        note: d.note || '' 
+      })));
+      setSelectedAssignmentNotes((assignmentRes.data || []).map((d: NoteData) => ({ 
+        id: d.id, 
+        note: d.note || '' 
+      })));
+      setSelectedChangeNotes((changeRes.data || []).map((d: NoteData) => ({ 
+        id: d.id, 
+        note: d.note || '' 
+      })));
+      
+      setFormModalOpen(true);
+    } catch (error) {
+      logger.error('Error loading employee data for edit:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
     }
-    
-    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
-      supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
-      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
-      supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-      supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-      supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-    ]);
-
-    setSelectedEducation(
-      (eduRes.data || []).map((d) => ({
-        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
-        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
-        front_title: d.front_title || '', back_title: d.back_title || '',
-      }))
-    );
-    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
-    setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
-    setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
-    setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
-    setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
-    
-    // Map notes data
-    setSelectedPlacementNotes((placementRes.data || []).map((d: NoteData) => ({ 
-      id: d.id, 
-      note: d.note || '' 
-    })));
-    setSelectedAssignmentNotes((assignmentRes.data || []).map((d: NoteData) => ({ 
-      id: d.id, 
-      note: d.note || '' 
-    })));
-    setSelectedChangeNotes((changeRes.data || []).map((d: NoteData) => ({ 
-      id: d.id, 
-      note: d.note || '' 
-    })));
-    
-    setFormModalOpen(true);
   };
 
   const handleDeleteEmployee = (employee: Employee) => {
@@ -415,42 +420,47 @@ export default function Employees() {
   const handleViewDetails = async (employee: Employee) => {
     setSelectedEmployee(employee);
     
-    // Fetch all related data
-    const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
-      supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
-      supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
-      supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-      supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-      supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-    ]);
+    try {
+      // Fetch all related data
+      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+        supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+        supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+        supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+      ]);
 
-    setSelectedEducation(
-      (eduRes.data || []).map((d: any) => ({
-        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
-        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
-        front_title: d.front_title || '', back_title: d.back_title || '',
-      }))
-    );
-    setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
-    setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
-    setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
-    setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
-    setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
-    
-    setSelectedPlacementNotes((placementRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
-    setSelectedAssignmentNotes((assignmentRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
-    setSelectedChangeNotes((changeRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
-    
-    logger.debug('=== NOTES DATA FOR DETAILS MODAL ===');
-    logger.debug('Placement notes:', placementRes.data);
-    logger.debug('Assignment notes:', assignmentRes.data);
-    logger.debug('Change notes:', changeRes.data);
-    
-    setDetailsModalOpen(true);
+      setSelectedEducation(
+        (eduRes.data || []).map((d: any) => ({
+          id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+          major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+          front_title: d.front_title || '', back_title: d.back_title || '',
+        }))
+      );
+      setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
+      setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+      setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+      setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+      
+      setSelectedPlacementNotes((placementRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+      setSelectedAssignmentNotes((assignmentRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+      setSelectedChangeNotes((changeRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+      
+      logger.debug('=== NOTES DATA FOR DETAILS MODAL ===');
+      logger.debug('Placement notes:', placementRes.data);
+      logger.debug('Assignment notes:', assignmentRes.data);
+      logger.debug('Change notes:', changeRes.data);
+      
+      setDetailsModalOpen(true);
+    } catch (error) {
+      logger.error('Error loading employee details:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat detail pegawai' });
+    }
   };
 
   const saveHistoryEntries = async (
@@ -899,9 +909,11 @@ export default function Employees() {
     const bom = '\uFEFF';
     const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    link.href = url;
     link.download = `data-pegawai-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
+    URL.revokeObjectURL(url);
   };
 
   const getStatusBadge = (status: string | null) => {
@@ -992,7 +1004,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = !canViewAll || departmentFilter === 'all' || e.department === departmentFilter;
                   return e.asn_status !== 'Non ASN' && matchesStatus && matchesDepartment;
                 }).length})
               </span>
@@ -1002,7 +1014,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !isAdminPusat || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = !canViewAll || departmentFilter === 'all' || e.department === departmentFilter;
                   return e.asn_status === 'Non ASN' && matchesStatus && matchesDepartment;
                 }).length})
               </span>

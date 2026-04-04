@@ -23,7 +23,7 @@ import { PetaJabatanAsnTable, NonAsnPositionChart } from '@/components/dashboard
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { usePetaJabatanStats } from '@/hooks/usePetaJabatanStats';
-import { DEPARTMENTS } from '@/lib/constants';
+import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -67,6 +67,7 @@ const CHART_CATEGORIES = [
 export default function Dashboard() {
   const { profile, canViewAll } = useAuth();
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedAsnStatus, setSelectedAsnStatus] = useState<string>('all');
   // 6 Best charts for Executive Leadership
@@ -207,7 +208,7 @@ export default function Dashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                    {DEPARTMENTS.filter(d => d !== 'Pusat').map((dept) => (
+                    {dynamicDepartments.filter(d => d !== 'Pusat').map((dept) => (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}
                   </SelectContent>

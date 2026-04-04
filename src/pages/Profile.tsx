@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ROLE_LABELS } from '@/lib/constants';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(6, 'Password minimal 6 karakter'),
@@ -26,7 +27,7 @@ const passwordSchema = z.object({
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function Profile() {
-  const { profile, role, isAdminPusat, user } = useAuth();
+  const { profile, role, isAdminPusat, isAdminPimpinan, user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -101,8 +102,8 @@ export default function Profile() {
               <div>
                 <Label className="text-xs text-muted-foreground">Role</Label>
                 <div className="mt-1">
-                  <Badge variant={isAdminPusat ? 'default' : 'secondary'}>
-                    {isAdminPusat ? 'Admin Pusat' : 'Admin Unit'}
+                  <Badge variant={isAdminPusat ? 'default' : isAdminPimpinan ? 'default' : 'secondary'}>
+                    {role ? ROLE_LABELS[role] : 'Admin Unit'}
                   </Badge>
                 </div>
               </div>

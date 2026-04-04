@@ -92,7 +92,8 @@ export default function Auth() {
       title: 'Registrasi Berhasil',
       description: 'Akun berhasil dibuat. Silakan login.'
     });
-    navigate('/dashboard');
+    setIsLogin(true);
+    signupForm.reset();
   };
   return <div className="min-h-screen flex">
       {/* Left Panel - Branding */}

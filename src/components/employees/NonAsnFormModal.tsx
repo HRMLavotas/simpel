@@ -183,14 +183,13 @@ export function NonAsnFormModal({
 
         if (error) throw error;
 
-        // Update education history
-        if (educationEntries.length > 0) {
-          // Delete existing education entries
-          await supabase
-            .from('education_history')
-            .delete()
-            .eq('employee_id', editData.id);
+        // Update education history - always delete then re-insert
+        await supabase
+          .from('education_history')
+          .delete()
+          .eq('employee_id', editData.id);
 
+        if (educationEntries.length > 0) {
           // Insert new education entries
           const educationData = educationEntries.map(entry => ({
             employee_id: editData.id,
@@ -212,14 +211,13 @@ export function NonAsnFormModal({
           }
         }
 
-        // Update position history
-        if (positionHistoryEntries.length > 0) {
-          // Delete existing position history entries
-          await supabase
-            .from('position_history')
-            .delete()
-            .eq('employee_id', editData.id);
+        // Update position history - always delete then re-insert
+        await supabase
+          .from('position_history')
+          .delete()
+          .eq('employee_id', editData.id);
 
+        if (positionHistoryEntries.length > 0) {
           // Insert new position history entries
           const positionData = positionHistoryEntries.map(entry => ({
             employee_id: editData.id,
