@@ -1,0 +1,86 @@
+feat: Data Builder Expandable Preview & Peta Jabatan Summary dengan Filter
+
+Implementasi 2 fitur major dengan peningkatan UX:
+
+## 1. Data Builder - Preview dengan Expandable Rows
+
+Fitur:
+- Expandable rows untuk melihat data relasi di preview
+- Klik ikon panah untuk expand/collapse
+- Lazy loading: data relasi di-fetch on-demand per pegawai
+- Loading indicator saat fetch data relasi
+- Format card yang rapi dengan grid layout
+- Badge counter jumlah records per tabel relasi
+- Format tanggal otomatis (dd/mm/yyyy)
+
+Komponen Baru:
+- DataPreviewTableWithRelations.tsx (expandable table dengan lazy loading)
+
+UX Improvements:
+- User bisa preview data relasi tanpa perlu export
+- Data relasi tetap di-export sebagai sheet terpisah di Excel
+- Info tooltip yang jelas tentang cara menggunakan
+
+## 2. Peta Jabatan - Tab Summary dengan Filter & Pencarian
+
+Fitur Utama:
+- Tab baru "Summary Semua Unit" untuk overview gabungan
+- 4 summary cards per kategori jabatan (Struktural, Fungsional, Pelaksana)
+- Progress bar dengan color coding (orange/blue/green)
+- Tabel summary per unit kerja dengan metrics lengkap
+- Tabel summary per jabatan (agregasi dari semua unit kerja)
+- Filter dan pencarian independen (tidak terpengaruh tab lain) - NEW!
+- Lazy loading: data hanya di-fetch saat tab dibuka
+
+Filter & Pencarian (NEW!):
+- Search box: Cari unit kerja atau nama jabatan (real-time)
+- Filter Kategori: Semua/Struktural/Fungsional/Pelaksana
+- Filter Status: Semua/Kurang Pegawai/Sesuai ABK/Lebih Pegawai
+- Kombinasi filter untuk analisis yang lebih spesifik
+- Empty state yang informatif saat tidak ada hasil
+
+Metrics yang Ditampilkan:
+
+Per Unit Kerja:
+- Total Jabatan per unit kerja
+- Total ABK (Analisis Beban Kerja)
+- Total Existing (pegawai aktual)
+- Gap (ABK - Existing)
+- Persentase terisi
+- Status (Kurang/Lebih/Sesuai)
+
+Per Jabatan (Gabungan Semua Unit):
+- Kategori jabatan
+- Nama jabatan
+- Total ABK dari semua unit kerja
+- Total Existing dari semua unit kerja
+- Gap agregat
+- Persentase terisi
+- Status
+
+Use Cases:
+- Cari unit kerja atau jabatan spesifik dengan search
+- Filter jabatan struktural yang kurang pegawai untuk rekrutmen
+- Filter unit kerja yang over capacity untuk redistribusi
+- Identifikasi jabatan dengan gap terbesar
+- Perencanaan formasi tahunan berdasarkan data agregat
+- Monitoring distribusi pegawai per jabatan dan unit kerja
+
+Performance:
+- Parallel fetching untuk position_references dan employees
+- Efficient matching dengan Set (O(1) lookup)
+- Batch processing untuk handle 1000+ records
+- Normalisasi string untuk matching akurat
+- Agregasi jabatan yang sama dari berbagai unit kerja
+- Client-side filtering untuk responsiveness
+
+Files Created:
+- src/components/data-builder/DataPreviewTableWithRelations.tsx
+- PETA_JABATAN_SUMMARY_TAB.md
+
+Files Modified:
+- src/pages/DataBuilder.tsx
+- src/pages/PetaJabatan.tsx (tambah filter & search untuk summary)
+- src/components/data-builder/RelatedDataSelector.tsx
+- DATA_BUILDER_FILTER_ENHANCEMENT.md
+- COMMIT_DATA_BUILDER_FILTER.txt

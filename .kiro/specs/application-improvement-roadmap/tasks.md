@@ -79,7 +79,7 @@ All tasks reference specific requirements and design properties for traceability
   - Support real-time error clearing when field becomes valid
   - _Requirements: 1.7, 1.10_
 
-- [~] 2.7 Integrate validation into existing employee forms
+- [ ] 2.7 Integrate validation into existing employee forms
   - Update `src/components/employees/EmployeeFormModal.tsx` with zodResolver
   - Set form mode to 'onChange' for real-time validation
   - Integrate async validation for NIP/NIK fields
@@ -261,173 +261,173 @@ All tasks reference specific requirements and design properties for traceability
 
 ### 5. Performance Optimization and Caching (Requirement 12)
 
-- [~] 5.1 Configure React Query for optimal performance
+- [ ] 5.1 Configure React Query for optimal performance
   - Update `src/lib/query-client.ts` with staleTime and cacheTime settings
   - Configure retry strategy with exponential backoff
   - Set up proper error handling and retry logic
   - _Requirements: 12.1, 12.2_
 
-- [~] 5.2 Write property test for cache freshness
+- [ ] 5.2 Write property test for cache freshness
   - **Property 18: Cache Freshness**
   - **Validates: Requirements 12.1**
   - Test that data less than 5 minutes old loads from cache
 
-- [~] 5.3 Write property test for cache invalidation
+- [ ] 5.3 Write property test for cache invalidation
   - **Property 19: Cache Invalidation**
   - **Validates: Requirements 12.2**
   - Test that mutations invalidate relevant cached queries
 
-- [~] 5.4 Optimize employee data fetching hook
+- [ ] 5.4 Optimize employee data fetching hook
   - Update `src/hooks/useEmployees.ts` with proper caching configuration
   - Implement prefetching for next page
   - Add optimistic updates for mutations
   - Configure proper staleTime for employee data
   - _Requirements: 12.1, 12.2, 12.11_
 
-- [~] 5.5 Implement virtual scrolling for employee table
+- [ ] 5.5 Implement virtual scrolling for employee table
   - Create `src/components/employees/VirtualEmployeeTable.tsx` using @tanstack/react-virtual
   - Configure virtualizer with proper row height and overscan
   - Only render visible rows in DOM
   - Test with large datasets (1000+ employees)
   - _Requirements: 12.3_
 
-- [~] 5.6 Write property test for virtual scrolling
+- [ ] 5.6 Write property test for virtual scrolling
   - **Property 20: Virtual Scrolling**
   - **Validates: Requirements 12.3**
   - Test that only visible rows are rendered for lists over 100 items
 
-- [~] 5.7 Implement debouncing utility
+- [ ] 5.7 Implement debouncing utility
   - Create `src/lib/utils/debounce.ts` utility function
   - Use in search input to debounce API calls (300ms)
   - Add proper TypeScript types
   - _Requirements: 12.5_
 
-- [~] 5.8 Write property test for search debouncing
+- [ ] 5.8 Write property test for search debouncing
   - **Property 22: Search Debouncing**
   - **Validates: Requirements 12.5**
   - Test that rapid input changes result in single API call after 300ms
 
-- [~] 5.9 Implement lazy loading for routes
+- [ ] 5.9 Implement lazy loading for routes
   - Update `src/App.tsx` to use React.lazy for route components
   - Wrap routes in Suspense with loading fallback
   - Implement code splitting for major routes (Dashboard, Employees, Import, PetaJabatan)
   - _Requirements: 12.12_
 
-- [~] 5.10 Create skeleton loader components
+- [ ] 5.10 Create skeleton loader components
   - Create `src/components/ui/skeleton-table.tsx` for table loading states
   - Create skeleton loaders for dashboard widgets
   - Create skeleton loaders for employee cards
   - Replace blank screens with skeleton loaders
   - _Requirements: 12.8_
 
-- [~] 5.11 Write property test for loading state display
+- [ ] 5.11 Write property test for loading state display
   - **Property 25: Loading State Display**
   - **Validates: Requirements 12.8**
   - Test that skeleton loaders are shown during loading
 
-- [~] 5.12 Implement progressive dashboard loading
+- [ ] 5.12 Implement progressive dashboard loading
   - Update dashboard to load critical widgets first
   - Lazy load secondary widgets after critical ones
   - Use React.lazy and Suspense for widget components
   - _Requirements: 12.4_
 
-- [~] 5.13 Write property test for progressive widget loading
+- [ ] 5.13 Write property test for progressive widget loading
   - **Property 21: Progressive Widget Loading**
   - **Validates: Requirements 12.4**
   - Test that critical widgets load before secondary widgets
 
-- [~] 5.14 Implement lazy image loading
+- [ ] 5.14 Implement lazy image loading
   - Add loading="lazy" attribute to all image elements
   - Implement intersection observer for file previews
   - Only load images when they enter viewport
   - _Requirements: 12.6_
 
-- [~] 5.15 Write property test for lazy image loading
+- [ ] 5.15 Write property test for lazy image loading
   - **Property 23: Lazy Image Loading**
   - **Validates: Requirements 12.6**
   - Test that images only load when entering viewport
 
-- [~] 5.16 Implement stale-while-revalidate strategy
+- [ ] 5.16 Implement stale-while-revalidate strategy
   - Configure React Query to show stale data immediately
   - Fetch fresh data in background
   - Update UI when fresh data arrives
   - _Requirements: 12.7_
 
-- [~] 5.17 Write property test for stale-while-revalidate
+- [ ] 5.17 Write property test for stale-while-revalidate
   - **Property 24: Stale-While-Revalidate**
   - **Validates: Requirements 12.7**
   - Test that stale data displays immediately while fetching fresh data
 
-- [~] 5.18 Implement background export processing
+- [ ] 5.18 Implement background export processing
   - Create export queue system for large exports (>1000 records)
   - Process exports in background without blocking UI
   - Show notification when export is complete
   - Provide download link in notification
   - _Requirements: 12.9_
 
-- [~] 5.19 Write property test for background export
+- [ ] 5.19 Write property test for background export
   - **Property 26: Background Export Processing**
   - **Validates: Requirements 12.9**
   - Test that large exports process in background without blocking UI
 
-- [~] 5.20 Write property test for next page prefetching
+- [ ] 5.20 Write property test for next page prefetching
   - **Property 27: Next Page Prefetching**
   - **Validates: Requirements 12.11**
   - Test that page N+1 is prefetched when viewing page N
 
-- [~] 5.21 Write E2E performance tests
+- [ ] 5.21 Write E2E performance tests
   - Test dashboard load time is under 2 seconds
   - Test search response time is under 500ms
   - Test virtual scrolling with 1000+ rows
   - Test cache hit rates
 
-- [~] 5.22 Checkpoint - Ensure performance optimization tests pass
+- [ ] 5.22 Checkpoint - Ensure performance optimization tests pass
   - Ensure all performance optimization tests pass, ask the user if questions arise.
 
 ### 6. Integration and Polish
 
-- [~] 6.1 Integrate all Phase 1 features into main application
+- [ ] 6.1 Integrate all Phase 1 features into main application
   - Wire validation system into all employee forms
   - Wire search and filters into employee list page
   - Wire mobile components into layout
   - Wire performance optimizations into data fetching
   - _Requirements: 1, 3, 11, 12_
 
-- [~] 6.2 Add error boundary for graceful error handling
+- [ ] 6.2 Add error boundary for graceful error handling
   - Create `src/components/ErrorBoundary.tsx` component
   - Wrap application with error boundary
   - Display user-friendly error messages in Indonesian
   - Add reload button for recovery
   - _Requirements: All_
 
-- [~] 6.3 Implement offline detection and handling
+- [ ] 6.3 Implement offline detection and handling
   - Create `src/hooks/useOnlineStatus.ts` hook
   - Show toast notification when connection is lost
   - Show toast notification when connection is restored
   - Refetch queries when connection is restored
   - _Requirements: 12_
 
-- [~] 6.4 Add Supabase error translation
+- [ ] 6.4 Add Supabase error translation
   - Create error translation utility for common Supabase errors
   - Translate RLS policy violations to Indonesian
   - Translate unique constraint violations to Indonesian
   - Translate foreign key violations to Indonesian
   - _Requirements: All_
 
-- [~] 6.5 Write integration tests for complete user flows
+- [ ] 6.5 Write integration tests for complete user flows
   - Test complete employee creation flow with validation
   - Test complete search and filter flow
   - Test complete mobile navigation flow
   - Test complete data fetching and caching flow
 
-- [~] 6.6 Update documentation
+- [ ] 6.6 Update documentation
   - Document new validation schemas and usage
   - Document search and filter API
   - Document mobile-responsive patterns
   - Document performance optimization strategies
   - _Requirements: All_
 
-- [~] 6.7 Final checkpoint - Ensure all Phase 1 tests pass
+- [ ] 6.7 Final checkpoint - Ensure all Phase 1 tests pass
   - Run full test suite (unit, property, integration, E2E)
   - Verify all acceptance criteria are met
   - Verify all correctness properties are validated

@@ -68,7 +68,7 @@ export default function PetaJabatan() {
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
 
-  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
+  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn' | 'summary'>('asn');
   const [selectedDepartment, setSelectedDepartment] = useState<string>(
     isAdminPusat ? DEPARTMENTS[0] : (profile?.department || '')
   );
@@ -80,6 +80,11 @@ export default function PetaJabatan() {
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionReference | null>(null);
 
+  // Summary data for all departments
+  const [allPositions, setAllPositions] = useState<PositionReference[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeMatch[]>([]);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+
   // Collapse state for each category
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
     'Struktural': false,
@@ -89,6 +94,11 @@ export default function PetaJabatan() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Summary tab filters
+  const [summarySearchQuery, setSummarySearchQuery] = useState('');
+  const [summaryFilterCategory, setSummaryFilterCategory] = useState<string>('all');
+  const [summaryFilterStatus, setSummaryFilterStatus] = useState<string>('all');
 
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
@@ -108,6 +118,13 @@ export default function PetaJabatan() {
       fetchData();
     }
   }, [selectedDepartment]);
+
+  // Fetch summary data when summary tab is active
+  useEffect(() => {
+    if (activeTab === 'summary') {
+      fetchSummaryData();
+    }
+  }, [activeTab]);
 
   // Real-time subscription for employee changes
   useEffect(() => {
@@ -256,6 +273,58 @@ export default function PetaJabatan() {
 
   const getEmployeeEducation = (employeeId: string) => {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
+  };
+
+  const fetchSummaryData = async () => {
+    setIsSummaryLoading(true);
+    try {
+      logger.debug('Fetching summary data for all departments');
+      
+      // Helper to fetch all records without 1000-row limit
+      const fetchAllUnlimited = async (buildQuery: () => any) => {
+        const allData: any[] = [];
+        let offset = 0;
+        const batchSize = 1000;
+        while (true) {
+          const { data, error } = await buildQuery().range(offset, offset + batchSize - 1);
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          allData.push(...data);
+          if (data.length < batchSize) break;
+          offset += batchSize;
+        }
+        return { data: allData, error: null };
+      };
+
+      const [allPosRes, allEmpRes] = await Promise.all([
+        fetchAllUnlimited(() =>
+          supabase
+            .from('position_references')
+            .select('*')
+            .order('department')
+            .order('position_category')
+            .order('position_order')
+        ),
+        fetchAllUnlimited(() =>
+          supabase
+            .from('employees')
+            .select('id, name, department, position_name, asn_status')
+            .or('asn_status.is.null,asn_status.neq.Non ASN')
+        ),
+      ]);
+
+      setAllPositions(allPosRes.data || []);
+      setAllEmployees((allEmpRes.data || []) as EmployeeMatch[]);
+      
+      logger.debug('Summary data loaded:', {
+        positions: allPosRes.data?.length || 0,
+        employees: allEmpRes.data?.length || 0
+      });
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } finally {
+      setIsSummaryLoading(false);
+    }
   };
 
 
@@ -588,6 +657,9 @@ export default function PetaJabatan() {
                 })()} jabatan, {nonAsnEmployees.length} pegawai)
               </span>
             </TabsTrigger>
+            <TabsTrigger value="summary">
+              Summary Semua Unit
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab ASN */}
@@ -910,6 +982,400 @@ export default function PetaJabatan() {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* Tab Summary */}
+      <TabsContent value="summary">
+        <Card>
+          <CardHeader>
+            <div className="space-y-4">
+              <div>
+                <CardTitle className="text-lg">
+                  Summary Peta Jabatan ASN - Semua Unit Kerja
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                    (Gabungan dari semua unit kerja)
+                  </span>
+                </CardTitle>
+              </div>
+
+              {/* Summary Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari unit kerja atau jabatan..."
+                    value={summarySearchQuery}
+                    onChange={(e) => setSummarySearchQuery(e.target.value)}
+                    className="pl-10 pr-8"
+                  />
+                  {summarySearchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full w-8"
+                      onClick={() => setSummarySearchQuery('')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Category Filter */}
+                <Select value={summaryFilterCategory} onValueChange={setSummaryFilterCategory}>
+                  <SelectTrigger id="summary-category-filter" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Semua Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kategori</SelectItem>
+                    <SelectItem value="Struktural">Struktural</SelectItem>
+                    <SelectItem value="Fungsional">Fungsional</SelectItem>
+                    <SelectItem value="Pelaksana">Pelaksana</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Status Filter */}
+                <Select value={summaryFilterStatus} onValueChange={setSummaryFilterStatus}>
+                  <SelectTrigger id="summary-status-filter" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Semua Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="kurang">Kurang Pegawai</SelectItem>
+                    <SelectItem value="sesuai">Sesuai ABK</SelectItem>
+                    <SelectItem value="lebih">Lebih Pegawai</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isSummaryLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {POSITION_CATEGORIES.map(category => {
+                    const categoryPositions = allPositions.filter(p => p.position_category === category);
+                    const totalAbk = categoryPositions.reduce((sum, p) => sum + p.abk_count, 0);
+                    
+                    // Count existing employees for this category
+                    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+                    const positionNames = new Set(categoryPositions.map(p => normalize(p.position_name)));
+                    const totalExisting = allEmployees.filter(emp => 
+                      emp.position_name && positionNames.has(normalize(emp.position_name))
+                    ).length;
+                    
+                    const gap = totalAbk - totalExisting;
+                    const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
+                    
+                    return (
+                      <Card key={category} className="shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            {category}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-2xl font-bold">{totalExisting}</span>
+                            <span className="text-sm text-muted-foreground">/ {totalAbk} ABK</span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-medium">{percentage}%</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className={cn(
+                                  "h-full transition-all",
+                                  gap > 0 ? "bg-orange-500" : gap < 0 ? "bg-blue-500" : "bg-green-500"
+                                )}
+                                style={{ width: `${Math.min(parseFloat(percentage), 100)}%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {gap > 0 ? (
+                                <span className="text-orange-600">Kurang {gap} pegawai</span>
+                              ) : gap < 0 ? (
+                                <span className="text-blue-600">Lebih {Math.abs(gap)} pegawai</span>
+                              ) : (
+                                <span className="text-green-600">Sesuai ABK</span>
+                              )}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Summary Table by Department */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
+                  <div className="rounded-lg border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">No</TableHead>
+                          <TableHead>Unit Kerja</TableHead>
+                          <TableHead className="text-center">Total Jabatan</TableHead>
+                          <TableHead className="text-center">Total ABK</TableHead>
+                          <TableHead className="text-center">Total Existing</TableHead>
+                          <TableHead className="text-center">Gap</TableHead>
+                          <TableHead className="text-center">% Terisi</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(() => {
+                          // Group by department
+                          const deptGroups = dynamicDepartments
+                            .filter(d => d !== 'Pusat')
+                            .map(dept => {
+                              const deptPositions = allPositions.filter(p => {
+                                const matchCategory = summaryFilterCategory === 'all' || p.position_category === summaryFilterCategory;
+                                return p.department === dept && matchCategory;
+                              });
+                              const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
+                              
+                              const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+                              const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
+                              const totalExisting = allEmployees.filter(emp => 
+                                emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
+                              ).length;
+                              
+                              const gap = totalAbk - totalExisting;
+                              const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
+                              
+                              return {
+                                dept,
+                                totalJabatan: deptPositions.length,
+                                totalAbk,
+                                totalExisting,
+                                gap,
+                                percentage: parseFloat(percentage)
+                              };
+                            })
+                            .filter(d => {
+                              // Filter by search query
+                              if (summarySearchQuery && !d.dept.toLowerCase().includes(summarySearchQuery.toLowerCase())) {
+                                return false;
+                              }
+                              
+                              // Filter by status
+                              if (summaryFilterStatus === 'kurang' && d.gap <= 0) return false;
+                              if (summaryFilterStatus === 'sesuai' && d.gap !== 0) return false;
+                              if (summaryFilterStatus === 'lebih' && d.gap >= 0) return false;
+                              
+                              // Only show departments with positions
+                              return d.totalJabatan > 0;
+                            });
+
+                          if (deptGroups.length === 0) {
+                            return (
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                  {summarySearchQuery || summaryFilterCategory !== 'all' || summaryFilterStatus !== 'all'
+                                    ? 'Tidak ada data yang sesuai dengan filter'
+                                    : 'Belum ada data'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          return deptGroups.map((item, idx) => (
+                            <TableRow key={item.dept}>
+                              <TableCell className="text-center">{idx + 1}</TableCell>
+                              <TableCell className="font-medium">{item.dept}</TableCell>
+                              <TableCell className="text-center">{item.totalJabatan}</TableCell>
+                              <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
+                              <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
+                              <TableCell className="text-center">
+                                <span className={cn(
+                                  "font-medium",
+                                  item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
+                                )}>
+                                  {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
+                              <TableCell>
+                                {item.gap > 0 ? (
+                                  <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
+                                    Kurang {item.gap}
+                                  </span>
+                                ) : item.gap < 0 ? (
+                                  <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                    Lebih {Math.abs(item.gap)}
+                                  </span>
+                                ) : (
+                                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                    Sesuai
+                                  </span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ));
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                {/* Summary Table by Position */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold">Summary per Jabatan</h3>
+                  <div className="rounded-lg border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">No</TableHead>
+                          <TableHead>Kategori</TableHead>
+                          <TableHead>Nama Jabatan</TableHead>
+                          <TableHead className="text-center">Total ABK</TableHead>
+                          <TableHead className="text-center">Total Existing</TableHead>
+                          <TableHead className="text-center">Gap</TableHead>
+                          <TableHead className="text-center">% Terisi</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(() => {
+                          const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+                          
+                          // Group positions by normalized name across all departments
+                          const positionGroups = new Map<string, {
+                            category: string;
+                            displayName: string;
+                            totalAbk: number;
+                            totalExisting: number;
+                          }>();
+
+                          allPositions.forEach(pos => {
+                            // Apply category filter
+                            if (summaryFilterCategory !== 'all' && pos.position_category !== summaryFilterCategory) {
+                              return;
+                            }
+
+                            const normName = normalize(pos.position_name);
+                            const existing = positionGroups.get(normName);
+                            
+                            if (existing) {
+                              existing.totalAbk += pos.abk_count;
+                            } else {
+                              positionGroups.set(normName, {
+                                category: pos.position_category,
+                                displayName: pos.position_name,
+                                totalAbk: pos.abk_count,
+                                totalExisting: 0
+                              });
+                            }
+                          });
+
+                          // Count existing employees per position
+                          allEmployees.forEach(emp => {
+                            if (emp.position_name) {
+                              const normName = normalize(emp.position_name);
+                              const group = positionGroups.get(normName);
+                              if (group) {
+                                group.totalExisting++;
+                              }
+                            }
+                          });
+
+                          // Convert to array and apply filters
+                          const sortedPositions = Array.from(positionGroups.values())
+                            .map(item => ({
+                              ...item,
+                              gap: item.totalAbk - item.totalExisting,
+                              percentage: item.totalAbk > 0 ? ((item.totalExisting / item.totalAbk) * 100).toFixed(1) : '0'
+                            }))
+                            .filter(item => {
+                              // Apply search filter
+                              if (summarySearchQuery && !item.displayName.toLowerCase().includes(summarySearchQuery.toLowerCase())) {
+                                return false;
+                              }
+
+                              // Apply status filter
+                              if (summaryFilterStatus === 'kurang' && item.gap <= 0) return false;
+                              if (summaryFilterStatus === 'sesuai' && item.gap !== 0) return false;
+                              if (summaryFilterStatus === 'lebih' && item.gap >= 0) return false;
+
+                              return true;
+                            })
+                            .sort((a, b) => {
+                              // Sort by category first
+                              const catOrder = { 'Struktural': 1, 'Fungsional': 2, 'Pelaksana': 3 };
+                              const catCompare = (catOrder[a.category as keyof typeof catOrder] || 99) - 
+                                                (catOrder[b.category as keyof typeof catOrder] || 99);
+                              if (catCompare !== 0) return catCompare;
+                              // Then by name
+                              return a.displayName.localeCompare(b.displayName);
+                            });
+
+                          if (sortedPositions.length === 0) {
+                            return (
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                  {summarySearchQuery || summaryFilterCategory !== 'all' || summaryFilterStatus !== 'all'
+                                    ? 'Tidak ada data yang sesuai dengan filter'
+                                    : 'Belum ada data'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          return sortedPositions.map((item, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="text-center">{idx + 1}</TableCell>
+                              <TableCell>
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  {item.category}
+                                </span>
+                              </TableCell>
+                              <TableCell className="font-medium">{item.displayName}</TableCell>
+                              <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
+                              <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
+                              <TableCell className="text-center">
+                                <span className={cn(
+                                  "font-medium",
+                                  item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
+                                )}>
+                                  {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
+                              <TableCell>
+                                {item.gap > 0 ? (
+                                  <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
+                                    Kurang {item.gap}
+                                  </span>
+                                ) : item.gap < 0 ? (
+                                  <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                    Lebih {Math.abs(item.gap)}
+                                  </span>
+                                ) : (
+                                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                    Sesuai
+                                  </span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ));
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
