@@ -4,6 +4,8 @@ import { logger } from '@/lib/logger';
 
 export interface PetaJabatanStat {
   position_name: string;
+  position_category?: string;
+  department?: string;
   abk: number;
   existing_pns: number;
   existing_pppk: number;
@@ -67,7 +69,7 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
 
       // Query 1: Fetch position references for ABK (Analisis Beban Kerja)
       const { data: positions } = await fetchAllUnlimited(() => {
-        let q = supabase.from('position_references').select('position_name, abk_count');
+        let q = supabase.from('position_references').select('position_name, abk_count, position_category, department');
         if (deptFilter) {
           q = q.eq('department', deptFilter);
         }
@@ -78,7 +80,7 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
       const { data: asnEmployees } = await fetchAllUnlimited(() => {
         let q = supabase
           .from('employees')
-          .select('position_name, asn_status')
+          .select('position_name, asn_status, department')
           .neq('asn_status', 'Non ASN')
           .not('asn_status', 'is', null);
         if (deptFilter) {
@@ -108,6 +110,8 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
         if (!positionMap.has(name)) {
           positionMap.set(name, {
             position_name: name,
+            position_category: pos.position_category,
+            department: pos.department,
             abk: 0,
             existing_pns: 0,
             existing_pppk: 0,
@@ -125,6 +129,7 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
         if (!positionMap.has(name)) {
           positionMap.set(name, {
             position_name: name,
+            department: emp.department,
             abk: 0, // No ABK defined
             existing_pns: 0,
             existing_pppk: 0,

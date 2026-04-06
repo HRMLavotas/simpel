@@ -99,6 +99,9 @@ export default function PetaJabatan() {
   const [summarySearchQuery, setSummarySearchQuery] = useState('');
   const [summaryFilterCategory, setSummaryFilterCategory] = useState<string>('all');
   const [summaryFilterStatus, setSummaryFilterStatus] = useState<string>('all');
+  
+  // Expandable rows state for summary per jabatan
+  const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
 
   // Form state
   const [formCategory, setFormCategory] = useState<string>('Struktural');
@@ -483,6 +486,18 @@ export default function PetaJabatan() {
       ...prev,
       [category]: !prev[category]
     }));
+  };
+
+  const togglePositionExpand = (positionName: string) => {
+    setExpandedPositions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(positionName)) {
+        newSet.delete(positionName);
+      } else {
+        newSet.add(positionName);
+      }
+      return newSet;
+    });
   };
 
   const handleExport = () => {
@@ -1238,6 +1253,7 @@ export default function PetaJabatan() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-12"></TableHead>
                           <TableHead className="w-12">No</TableHead>
                           <TableHead>Kategori</TableHead>
                           <TableHead>Nama Jabatan</TableHead>
@@ -1325,7 +1341,7 @@ export default function PetaJabatan() {
                           if (sortedPositions.length === 0) {
                             return (
                               <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                                   {summarySearchQuery || summaryFilterCategory !== 'all' || summaryFilterStatus !== 'all'
                                     ? 'Tidak ada data yang sesuai dengan filter'
                                     : 'Belum ada data'}
@@ -1334,43 +1350,108 @@ export default function PetaJabatan() {
                             );
                           }
 
-                          return sortedPositions.map((item, idx) => (
-                            <TableRow key={idx}>
-                              <TableCell className="text-center">{idx + 1}</TableCell>
-                              <TableCell>
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  {item.category}
-                                </span>
-                              </TableCell>
-                              <TableCell className="font-medium">{item.displayName}</TableCell>
-                              <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
-                              <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
-                              <TableCell className="text-center">
-                                <span className={cn(
-                                  "font-medium",
-                                  item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
-                                )}>
-                                  {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
-                              <TableCell>
-                                {item.gap > 0 ? (
-                                  <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
-                                    Kurang {item.gap}
-                                  </span>
-                                ) : item.gap < 0 ? (
-                                  <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                                    Lebih {Math.abs(item.gap)}
-                                  </span>
-                                ) : (
-                                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                                    Sesuai
-                                  </span>
+                          return sortedPositions.flatMap((item, idx) => {
+                            const isExpanded = expandedPositions.has(item.displayName);
+                            
+                            // Get employees for this position
+                            const positionEmployees = allEmployees.filter(emp => {
+                              if (!emp.position_name) return false;
+                              return normalize(emp.position_name) === normalize(item.displayName);
+                            });
+
+                            const rows = [];
+                            
+                            // Main row
+                            rows.push(
+                              <TableRow 
+                                key={`pos-${idx}`}
+                                className={cn(
+                                  "cursor-pointer hover:bg-muted/50 transition-colors",
+                                  isExpanded && "bg-muted/30"
                                 )}
-                              </TableCell>
-                            </TableRow>
-                          ));
+                                onClick={() => togglePositionExpand(item.displayName)}
+                              >
+                                <TableCell className="text-center">
+                                  {positionEmployees.length > 0 ? (
+                                    isExpanded ? (
+                                      <ChevronDown className="h-4 w-4 mx-auto" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4 mx-auto" />
+                                    )
+                                  ) : null}
+                                </TableCell>
+                                <TableCell className="text-center">{idx + 1}</TableCell>
+                                <TableCell>
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {item.category}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="font-medium">{item.displayName}</TableCell>
+                                <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
+                                <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
+                                <TableCell className="text-center">
+                                  <span className={cn(
+                                    "font-medium",
+                                    item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
+                                  )}>
+                                    {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
+                                <TableCell>
+                                  {item.gap > 0 ? (
+                                    <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
+                                      Kurang {item.gap}
+                                    </span>
+                                  ) : item.gap < 0 ? (
+                                    <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                      Lebih {Math.abs(item.gap)}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                      Sesuai
+                                    </span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+
+                            // Expanded rows showing employees
+                            if (isExpanded && positionEmployees.length > 0) {
+                              rows.push(
+                                <TableRow key={`pos-${idx}-expanded`} className="bg-muted/20">
+                                  <TableCell colSpan={9} className="p-0">
+                                    <div className="px-4 py-3">
+                                      <div className="text-xs font-semibold text-muted-foreground mb-2">
+                                        Daftar Pemangku ({positionEmployees.length} orang):
+                                      </div>
+                                      <div className="space-y-2">
+                                        {positionEmployees.map((emp, empIdx) => {
+                                          const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
+                                          return (
+                                            <div 
+                                              key={emp.id} 
+                                              className="flex items-center justify-between p-2 bg-background rounded border text-sm"
+                                            >
+                                              <div className="flex-1">
+                                                <div className="font-medium">{empIdx + 1}. {fullName}</div>
+                                                <div className="text-xs text-muted-foreground mt-0.5">
+                                                  {emp.department && <span>Unit: {emp.department}</span>}
+                                                  {emp.asn_status && <span className="ml-3">Status: {emp.asn_status}</span>}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            return rows;
+                          });
                         })()}
                       </TableBody>
                     </Table>

@@ -295,3 +295,123 @@ Untuk perencanaan formasi tahun depan:
 - Historical comparison (bandingkan dengan bulan/tahun sebelumnya)
 - Alert untuk unit/jabatan dengan gap > threshold tertentu
 - Rekomendasi otomatis untuk redistribusi pegawai
+
+
+---
+
+## Update: Expandable Rows untuk Daftar Pemangku (6 April 2026)
+
+### Fitur Baru
+Di tabel "Summary per Jabatan", setiap baris jabatan sekarang dapat di-expand untuk menampilkan daftar pemangku jabatan tersebut dari semua unit kerja.
+
+### Cara Kerja
+1. User mencari jabatan (misalnya "Pengantar kerja")
+2. Tabel menampilkan summary jabatan tersebut
+3. Klik pada baris jabatan atau icon chevron untuk expand
+4. Muncul daftar pemangku dengan informasi:
+   - Nomor urut
+   - Nama lengkap (dengan gelar)
+   - Unit kerja
+   - Status ASN (PNS/PPPK)
+
+### Implementasi Teknis
+
+#### 1. State Management
+```typescript
+const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
+```
+
+#### 2. Toggle Function
+```typescript
+const togglePositionExpand = (positionName: string) => {
+  setExpandedPositions(prev => {
+    const newSet = new Set(prev);
+    if (newSet.has(positionName)) {
+      newSet.delete(positionName);
+    } else {
+      newSet.add(positionName);
+    }
+    return newSet;
+  });
+};
+```
+
+#### 3. Tabel dengan Expandable Rows
+- Kolom chevron di awal tabel (sebelum kolom No)
+- Icon ChevronRight (▶) untuk collapsed
+- Icon ChevronDown (▼) untuk expanded
+- Baris dapat diklik untuk toggle expand/collapse
+- Background highlight untuk baris yang di-expand
+- Hanya menampilkan chevron jika ada pemangku
+
+#### 4. Detail Pemangku
+Ketika di-expand, menampilkan:
+- Header: "Daftar Pemangku (X orang)"
+- Card untuk setiap pemangku dengan:
+  - Nomor urut dan nama lengkap
+  - Unit kerja dan status ASN
+  - Border dan background untuk visual hierarchy
+
+### UI/UX
+
+#### Visual Hierarchy
+```
+┌─────────────────────────────────────────────────────────┐
+│ ▶ 1  Struktural  Pengantar Kerja  5  3  -2  60%  Kurang│
+├─────────────────────────────────────────────────────────┤
+│ ▼ 2  Fungsional  Analis Data     10 12  +2  120% Lebih │
+│   Daftar Pemangku (12 orang):                           │
+│   ┌───────────────────────────────────────────────────┐ │
+│   │ 1. Dr. Ahmad Wijaya, S.Kom, M.T.                  │ │
+│   │    Unit: Dinas Pendidikan • Status: PNS          │ │
+│   └───────────────────────────────────────────────────┘ │
+│   ┌───────────────────────────────────────────────────┐ │
+│   │ 2. Siti Nurhaliza, S.E.                           │ │
+│   │    Unit: Dinas Kesehatan • Status: PPPK          │ │
+│   └───────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Interaksi
+- Hover effect pada baris utama (bg-muted/50)
+- Cursor pointer untuk menunjukkan baris dapat diklik
+- Background berbeda untuk baris yang di-expand (bg-muted/30)
+- Expanded content dengan background bg-muted/20
+- Smooth transition saat expand/collapse
+
+### Keunggulan
+1. **Informasi Lengkap**: User dapat melihat detail pemangku tanpa pindah halaman
+2. **Efficient**: Data sudah tersedia dari `allEmployees`, tidak perlu query tambahan
+3. **User-Friendly**: Expand/collapse dengan satu klik di mana saja pada baris
+4. **Responsive**: Tetap berfungsi baik di mobile dan desktop
+5. **Searchable**: Filter pencarian tetap berfungsi dengan baik
+6. **Smart Display**: Hanya menampilkan chevron jika ada pemangku
+
+### Filter dan Pencarian
+Fitur expandable rows bekerja dengan semua filter:
+- Search query (cari nama jabatan atau unit kerja)
+- Filter kategori (Struktural/Fungsional/Pelaksana)
+- Filter status (Kurang/Sesuai/Lebih)
+
+### Data yang Ditampilkan
+Untuk setiap pemangku:
+- Nama lengkap dengan gelar depan dan belakang
+- Unit kerja (department)
+- Status ASN (PNS/PPPK)
+- Nomor urut dalam daftar
+
+### Technical Details
+- Menggunakan `flatMap` untuk generate main row + expanded rows
+- Normalisasi nama jabatan untuk matching yang akurat
+- Filter employees berdasarkan normalized position name
+- State management dengan Set untuk efficient lookup
+- Click handler pada entire row untuk better UX
+
+---
+
+## Files Modified
+1. `src/pages/PetaJabatan.tsx` - Added expandable rows functionality
+   - New state: `expandedPositions`
+   - New function: `togglePositionExpand`
+   - Updated table structure with chevron column
+   - Added expanded row content with employee details
