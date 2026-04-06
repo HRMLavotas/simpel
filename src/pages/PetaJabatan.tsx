@@ -68,10 +68,19 @@ export default function PetaJabatan() {
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
 
+  // Calculate default department based on user role
+  const defaultDepartment = useMemo(() => {
+    if (canViewAll) {
+      return 'Setditjen Binalavotas';
+    }
+    if (profile?.department) {
+      return profile.department;
+    }
+    return '';
+  }, [canViewAll, profile?.department]);
+
   const [activeTab, setActiveTab] = useState<'asn' | 'non-asn' | 'summary'>('asn');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>(
-    isAdminPusat ? DEPARTMENTS[0] : (profile?.department || '')
-  );
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('Setditjen Binalavotas'); // Always start with Setditjen Binalavotas
   const [positions, setPositions] = useState<PositionReference[]>([]);
   const [employees, setEmployees] = useState<EmployeeMatch[]>([]);
   const [nonAsnEmployees, setNonAsnEmployees] = useState<EmployeeMatch[]>([]);
@@ -111,10 +120,15 @@ export default function PetaJabatan() {
   const [formOrder, setFormOrder] = useState('0');
 
   useEffect(() => {
-    if (!isAdminPusat && profile?.department) {
+    // Update selectedDepartment based on user role
+    if (!canViewAll && profile?.department) {
+      // For Admin Unit, override to their department
       setSelectedDepartment(profile.department);
+    } else if (canViewAll && selectedDepartment !== 'Setditjen Binalavotas') {
+      // For Admin Pimpinan/Pusat, ensure Setditjen Binalavotas is selected
+      setSelectedDepartment('Setditjen Binalavotas');
     }
-  }, [profile, isAdminPusat]);
+  }, [canViewAll, profile?.department, selectedDepartment]);
 
   useEffect(() => {
     if (selectedDepartment) {
@@ -626,7 +640,9 @@ export default function PetaJabatan() {
             {canViewAll && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger id="department-filter" className="w-full sm:w-[240px]">
-                  <SelectValue placeholder="Pilih Unit Kerja" />
+                  <SelectValue>
+                    {selectedDepartment || "Pilih Unit Kerja"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (

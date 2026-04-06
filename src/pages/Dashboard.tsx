@@ -70,13 +70,11 @@ export default function Dashboard() {
   const { departments: dynamicDepartments } = useDepartments();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedAsnStatus, setSelectedAsnStatus] = useState<string>('all');
-  // 6 Best charts for Executive Leadership
+  // 4 Essential charts for Executive Leadership (default for new users)
   const EXECUTIVE_DEFAULT_CHARTS = [
     'asn_status',
     'peta_jabatan_asn',
-    'non_asn_formasi',
     'position_type',
-    'retirement_year',
     'rank'
   ];
 
