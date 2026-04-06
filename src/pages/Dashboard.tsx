@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp } from 'lucide-react';
+import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp, AlertCircle } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
@@ -265,6 +265,22 @@ export default function Dashboard() {
 
         {dashboardError && (
           <Card className="border-destructive bg-destructive/5 p-4 text-destructive">{dashboardError}</Card>
+        )}
+
+        {!isLoading && !isPetaLoading && !isLoadingPreferences && stats.total === 0 && (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="flex items-start gap-3 p-4 sm:p-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-600">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">Belum ada data untuk filter ini</p>
+                <p className="text-sm text-muted-foreground">
+                  Tidak ada pegawai yang cocok dengan pilihan unit kerja/status saat ini. Coba ubah filter agar grafik dan ringkasan muncul.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {(isLoading || isPetaLoading) ? (
