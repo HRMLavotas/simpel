@@ -2,6 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Badge } from '@/components/ui/badge';
+import { BarChart3, Layers3 } from 'lucide-react';
 
 interface PetaJabatanStat {
   position_name: string;
@@ -10,6 +11,18 @@ interface PetaJabatanStat {
   existing_pppk: number;
   total_existing: number;
   gap: number;
+}
+
+function EmptyChartState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 px-6 py-10 text-center">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm">
+        <BarChart3 className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
 }
 
 export function PetaJabatanAsnTable({ data }: { data: PetaJabatanStat[] }) {
@@ -33,27 +46,36 @@ export function PetaJabatanAsnTable({ data }: { data: PetaJabatanStat[] }) {
           </Badge>
         </div>
         <div className="max-h-[400px] overflow-auto rounded-lg border shadow-sm flex-1">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/90 backdrop-blur z-10 hidden sm:table-header-group">
-              <tr className="border-b">
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-10">No</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Nama Jabatan</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">ABK Target</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">PNS/CPNS</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">PPPK</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Total Eksisting</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Kekurangan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground italic">
-                    Tidak ada data peta jabatan (ABK) yang tersedia untuk unit ini.
-                  </td>
+          {data.length === 0 ? (
+            <div className="p-4 sm:p-6">
+              <div className="rounded-lg border border-dashed bg-muted/20 p-6 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm">
+                  <Layers3 className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-sm font-semibold text-foreground">Belum ada data peta jabatan untuk ditampilkan</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Data ABK belum tersedia untuk unit kerja ini atau belum cocok dengan filter yang sedang aktif.
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Coba ubah unit kerja, lalu muat ulang data peta jabatan.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-muted/90 backdrop-blur z-10 hidden sm:table-header-group">
+                <tr className="border-b">
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-10">No</th>
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Nama Jabatan</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">ABK Target</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">PNS/CPNS</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">PPPK</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Total Eksisting</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Kekurangan</th>
                 </tr>
-              ) : (
-                data.map((item, i) => (
+              </thead>
+              <tbody>
+                {data.map((item, i) => (
                   <tr key={i} className="border-b last:border-0 hover:bg-muted/30 transition-colors flex flex-col sm:table-row py-2 sm:py-0">
                     <td className="px-4 sm:py-2.5 text-muted-foreground hidden sm:table-cell">{i + 1}</td>
                     <td className="px-4 py-1 sm:py-2.5 font-medium block sm:table-cell text-sm">{item.position_name}</td>
@@ -70,16 +92,16 @@ export function PetaJabatanAsnTable({ data }: { data: PetaJabatanStat[] }) {
                       <span className="inline-block w-24 sm:hidden text-muted-foreground font-normal">Total Eksisting:</span> {item.total_existing}
                     </td>
                     <td className="px-4 py-1 sm:py-2.5 text-left sm:text-right text-xs sm:text-sm sm:table-cell">
-                      <span className="inline-block w-24 sm:hidden text-muted-foreground font-normal">Kekurangan:</span> 
+                      <span className="inline-block w-24 sm:hidden text-muted-foreground font-normal">Kekurangan:</span>
                       <span className={item.gap > 0 ? "text-destructive font-bold" : "text-emerald-600 font-medium"}>
                         {item.gap > 0 ? `-${item.gap}` : 'Terpenuhi'}
                       </span>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -104,7 +126,10 @@ export function NonAsnPositionChart({ data }: { data: { position_name: string; c
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-center pt-4">
          {data.length === 0 ? (
-           <div className="text-center py-10 text-muted-foreground">Tidak ada data penugasan/jabatan Non ASN</div>
+           <EmptyChartState
+             title="Tidak ada data penugasan/jabatan Non ASN"
+             description="Belum ada data yang cocok untuk unit kerja ini. Coba cek filter unit kerja atau pastikan data Non ASN sudah diisi."
+           />
          ) : (
           <ResponsiveContainer width="100%" height={Math.max(350, sortedData.length * 35)}>
             <BarChart 

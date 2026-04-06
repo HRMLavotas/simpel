@@ -100,7 +100,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 sm:p-3">
         {filteredNavItems.map(item => {
-          const isActive = location.pathname === item.href;
+          const isActive = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

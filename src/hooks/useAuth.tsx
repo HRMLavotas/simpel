@@ -22,7 +22,7 @@ interface AuthContextType {
   canViewAll: boolean;
   canEdit: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, department: string, role: AppRole) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, department: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -107,11 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (
-    email: string, 
-    password: string, 
-    fullName: string, 
-    department: string, 
-    role: AppRole
+    email: string,
+    password: string,
+    fullName: string,
+    department: string
   ) => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -123,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           department: department,
-          role: role,
+          role: 'admin_unit',
         },
       },
     });

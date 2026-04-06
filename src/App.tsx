@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { queryClient } from "@/lib/query-client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
+import type { AppRole } from "@/lib/constants";
 
 // Lazy load pages for code splitting
 const Auth = lazy(() => import("./pages/Auth"));
@@ -28,8 +29,8 @@ const PageLoader = () => (
   </div>
 );
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: AppRole[] }) {
+  const { user, role, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -41,6 +42,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -82,13 +87,13 @@ const App = () => (
               <Route path="/auth" element={<PublicRoute><ErrorBoundary><Auth /></ErrorBoundary></PublicRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><ErrorBoundary><Dashboard /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/employees" element={<ProtectedRoute><ErrorBoundary><Employees /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/import" element={<ProtectedRoute><ErrorBoundary><Import /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/import-non-asn" element={<ProtectedRoute><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/import" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><Import /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/import-non-asn" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ErrorBoundary><Profile /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/admins" element={<ProtectedRoute><ErrorBoundary><Admins /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/departments" element={<ProtectedRoute><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/admins" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Admins /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/departments" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/peta-jabatan" element={<ProtectedRoute><ErrorBoundary><PetaJabatan /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/data-builder" element={<ProtectedRoute><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -696,20 +696,28 @@ export function EmployeeFormModal({
               {/* Unlocked Field: Unit Kerja */}
               <div className="space-y-2">
                 <Label htmlFor="department">Unit Kerja *</Label>
-                <Select
-                  value={form.watch('department') || ''}
-                  onValueChange={(v) => form.setValue('department', v, { shouldValidate: true, shouldDirty: true })}
-                  disabled={!isAdminPusat}
-                >
-                  <SelectTrigger id="department">
-                    <SelectValue placeholder="Pilih unit kerja" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(isAdminPusat ? dynamicDepartments : [profile?.department || '']).map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const departmentOptions = isAdminPusat
+                    ? dynamicDepartments.filter(Boolean)
+                    : [profile?.department].filter((dept): dept is string => Boolean(dept));
+
+                  return (
+                    <Select
+                      value={form.watch('department') || ''}
+                      onValueChange={(v) => form.setValue('department', v, { shouldValidate: true, shouldDirty: true })}
+                      disabled={!isAdminPusat}
+                    >
+                      <SelectTrigger id="department">
+                        <SelectValue placeholder="Pilih unit kerja" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departmentOptions.map((dept) => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
                 {form.formState.errors.department && (
                   <p className="text-xs text-destructive">{form.formState.errors.department.message}</p>
                 )}
