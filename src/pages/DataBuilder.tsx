@@ -8,9 +8,10 @@ import { FilterBuilder, FilterRule } from '@/components/data-builder/FilterBuild
 import { DataPreviewTableWithRelations } from '@/components/data-builder/DataPreviewTableWithRelations';
 import { DataStatistics } from '@/components/data-builder/DataStatistics';
 import { RelatedDataSelector, RELATED_DATA_TABLES } from '@/components/data-builder/RelatedDataSelector';
+import { QueryTemplates, QueryTemplate } from '@/components/data-builder/QueryTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database, Cloud } from 'lucide-react';
+import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import * as XLSX from 'xlsx';
@@ -225,6 +226,12 @@ export default function DataBuilder() {
     setData(allData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE));
   };
 
+  const handleApplyTemplate = (template: QueryTemplate) => {
+    setSelectedColumns(template.columns);
+    setFilters(template.filters);
+    setSelectedRelatedTables(template.relatedTables);
+  };
+
   const exportToExcel = async () => {
     if (allData.length === 0) {
       toast({ title: 'Tidak ada data untuk diexport', variant: 'destructive' });
@@ -397,13 +404,6 @@ export default function DataBuilder() {
       setIsExporting(false);
     }
   };
-
-  const supabaseProjectId =
-    import.meta.env.VITE_SUPABASE_PROJECT_ID ||
-    (typeof import.meta.env.VITE_SUPABASE_URL === 'string'
-      ? import.meta.env.VITE_SUPABASE_URL.replace(/^https?:\/\/([^.]+)\..*$/, '$1')
-      : '');
-
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -418,13 +418,26 @@ export default function DataBuilder() {
               Preview mendukung data relasi; export menghasilkan workbook Excel multi-sheet.
             </p>
           </div>
-          {supabaseProjectId ? (
-            <Badge variant="outline" className="shrink-0 gap-1.5 py-1.5 px-2 font-normal">
-              <Cloud className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
-              Supabase: {supabaseProjectId}
-            </Badge>
-          ) : null}
         </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Query Templates</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Gunakan template preset untuk setup cepat atau simpan konfigurasi query Anda sendiri
+            </p>
+          </CardHeader>
+          <CardContent>
+            <QueryTemplates
+              onApplyTemplate={handleApplyTemplate}
+              currentColumns={selectedColumns}
+              currentFilters={filters}
+              currentRelatedTables={selectedRelatedTables}
+            />
+          </CardContent>
+        </Card>
+
+        <Separator className="opacity-60" />
 
         <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
           <Card>

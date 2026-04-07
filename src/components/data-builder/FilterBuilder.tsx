@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useDepartments } from '@/hooks/useDepartments';
 
 export interface FilterRule {
   id: string;
@@ -39,12 +40,12 @@ const FILTER_OPTIONS: Record<string, string[]> = {
 };
 
 const getAvailableOperators = (field: string) => {
-  if (FILTER_OPTIONS[field]) return OPERATORS;
+  if (FILTER_OPTIONS[field] || field === 'department') return OPERATORS;
   return OPERATORS.filter(operator => operator.value !== 'in');
 };
 
 const getDefaultFilterOperator = (field: string): FilterRule['operator'] => {
-  return FILTER_OPTIONS[field] ? 'in' : 'ilike';
+  return (FILTER_OPTIONS[field] || field === 'department') ? 'in' : 'ilike';
 };
 
 const isFilterRuleActive = (filter: FilterRule) => {
@@ -71,7 +72,16 @@ interface FilterBuilderProps {
 }
 
 export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuilderProps) {
+  const { departments: dynamicDepartments } = useDepartments();
   const selectedFilterColumns = AVAILABLE_COLUMNS.filter(column => selectedColumns.includes(column.key));
+
+  // Build filter options dynamically including departments
+  const getFilterOptions = (field: string): string[] => {
+    if (field === 'department') {
+      return dynamicDepartments.filter(d => d !== 'Pusat');
+    }
+    return FILTER_OPTIONS[field] || [];
+  };
 
   const updateFilter = (id: string, updates: Partial<FilterRule>) => {
     onChange(filters.map(filter => (filter.id === id ? { ...filter, ...updates } : filter)));
@@ -118,7 +128,7 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
 
   const renderFilterEditor = (filter: FilterRule, options?: { removable?: boolean }) => {
     const removable = options?.removable || false;
-    const availableOptions = FILTER_OPTIONS[filter.field] || [];
+    const availableOptions = getFilterOptions(filter.field);
     const allowedOperators = getAvailableOperators(filter.field);
     const isMultiSelect = filter.operator === 'in';
     const isActive = isFilterRuleActive(filter);
