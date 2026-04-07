@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_employees_position_name_trgm
 -- Add B-tree indexes for exact match searches on NIP and NIK
 -- Note: NIP already has an index from the initial migration (idx_employees_nip)
 -- Adding NIK index if the column exists (it may be added in other migrations)
-DO $
+DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns 
@@ -25,7 +25,7 @@ BEGIN
   ) THEN
     CREATE INDEX IF NOT EXISTS idx_employees_nik ON public.employees(nik);
   END IF;
-END $;
+END $$;
 
 -- Add composite indexes for common filter combinations
 -- These speed up queries that filter by multiple columns simultaneously
@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_employees_join_date
   ON public.employees(join_date);
 
 -- Add indexes for other filterable fields if they exist
-DO $
+DO $$
 BEGIN
   -- Index for gender if column exists
   IF EXISTS (
@@ -78,7 +78,7 @@ BEGIN
   ) THEN
     CREATE INDEX IF NOT EXISTS idx_employees_education_level ON public.employees(education_level);
   END IF;
-END $;
+END $$;
 
 -- Add comments
 COMMENT ON INDEX idx_employees_name_trgm IS 'Trigram index for fuzzy search on employee names';

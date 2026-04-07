@@ -112,7 +112,7 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
 
   const getAsnStatusFilter = useCallback((): string[] | null => {
     if (selectedAsnStatus === 'all') return null;
-    if (selectedAsnStatus === 'asn') return ['PNS', 'PPPK'];
+    if (selectedAsnStatus === 'asn') return ['PNS', 'CPNS', 'PPPK'];
     return [selectedAsnStatus];
   }, [selectedAsnStatus]);
 

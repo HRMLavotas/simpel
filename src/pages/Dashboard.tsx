@@ -218,8 +218,9 @@ export default function Dashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua Status</SelectItem>
-                    <SelectItem value="asn">ASN (PNS + PPPK)</SelectItem>
+                    <SelectItem value="asn">ASN (PNS + CPNS + PPPK)</SelectItem>
                     <SelectItem value="PNS">PNS</SelectItem>
+                    <SelectItem value="CPNS">CPNS</SelectItem>
                     <SelectItem value="PPPK">PPPK</SelectItem>
                     <SelectItem value="Non ASN">Non ASN</SelectItem>
                   </SelectContent>

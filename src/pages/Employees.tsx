@@ -38,6 +38,7 @@ import { ChangeLogDialog, type DetectedChange } from '@/components/employees/Cha
 import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
+import { type AdditionalPositionHistoryEntry } from '@/components/employees/AdditionalPositionHistoryForm';
 import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -153,6 +154,7 @@ export default function Employees() {
   const [selectedPlacementNotes, setSelectedPlacementNotes] = useState<NoteEntry[]>([]);
   const [selectedAssignmentNotes, setSelectedAssignmentNotes] = useState<NoteEntry[]>([]);
   const [selectedChangeNotes, setSelectedChangeNotes] = useState<NoteEntry[]>([]);
+  const [selectedAdditionalPositionHistory, setSelectedAdditionalPositionHistory] = useState<AdditionalPositionHistoryEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Change log dialog state
@@ -366,7 +368,7 @@ export default function Employees() {
         return;
       }
       
-      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, additionalPosRes] = await Promise.all([
         supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
         supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
         supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
@@ -376,6 +378,7 @@ export default function Employees() {
         supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
         supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
         supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('additional_position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
       ]);
 
       setSelectedEducation(
@@ -404,6 +407,7 @@ export default function Employees() {
         id: d.id, 
         note: d.note || '' 
       })));
+      setSelectedAdditionalPositionHistory(mapHistoryRows(additionalPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
       
       setFormModalOpen(true);
     } catch (error) {
@@ -422,7 +426,7 @@ export default function Employees() {
     
     try {
       // Fetch all related data
-      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+      const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, additionalPosRes] = await Promise.all([
         supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
         supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
         supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
@@ -432,6 +436,7 @@ export default function Employees() {
         supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
         supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
         supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('additional_position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
       ]);
 
       setSelectedEducation(
@@ -450,6 +455,7 @@ export default function Employees() {
       setSelectedPlacementNotes((placementRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
       setSelectedAssignmentNotes((assignmentRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
       setSelectedChangeNotes((changeRes.data || []).map((d) => ({ id: d.id, note: d.note || '' })));
+      setSelectedAdditionalPositionHistory(mapHistoryRows(additionalPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
       
       logger.debug('=== NOTES DATA FOR DETAILS MODAL ===');
       logger.debug('Placement notes:', placementRes.data);
@@ -639,6 +645,7 @@ export default function Employees() {
         religion: data.religion || null,
         position_type: data.position_type || null,
         position_name: finalPositionName, // Use the latest position from position_history
+        additional_position: data.additional_position || null,
         asn_status: data.asn_status,
         rank_group: data.rank_group || null,
         department: finalDepartment, // Use the latest department from mutation
@@ -759,6 +766,25 @@ export default function Employees() {
         }
       }
 
+      // Save additional position history
+      if (data.additional_position_history) {
+        await supabase.from('additional_position_history').delete().eq('employee_id', employeeId);
+        const additionalPosRows = data.additional_position_history
+          .filter(h => h.jabatan_tambahan_baru || h.jabatan_tambahan_lama)
+          .map(h => ({
+            employee_id: employeeId,
+            tanggal: h.tanggal || null,
+            jabatan_tambahan_lama: h.jabatan_tambahan_lama || null,
+            jabatan_tambahan_baru: h.jabatan_tambahan_baru || null,
+            nomor_sk: h.nomor_sk || null,
+            tmt: h.tmt || null,
+            keterangan: h.keterangan || null,
+          }));
+        if (additionalPosRows.length > 0) {
+          await supabase.from('additional_position_history').insert(additionalPosRows);
+        }
+      }
+
       // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
       if (changes.length > 0) {
         await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
@@ -777,7 +803,7 @@ export default function Employees() {
           logger.debug('Updated selectedEmployee with latest data:', updatedEmployee);
           
           // Reload all history data to reflect changes
-          const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes] = await Promise.all([
+          const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, additionalPosRes] = await Promise.all([
             supabase.from('education_history').select('*').eq('employee_id', employeeId).order('graduation_year', { ascending: true }),
             supabase.from('mutation_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
             supabase.from('position_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
@@ -787,6 +813,7 @@ export default function Employees() {
             supabase.from('placement_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
             supabase.from('assignment_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
             supabase.from('change_notes').select('*').eq('employee_id', employeeId).order('created_at', { ascending: true }),
+            supabase.from('additional_position_history').select('*').eq('employee_id', employeeId).order('tanggal', { ascending: true, nullsFirst: false }),
           ]);
 
           setSelectedEducation(
@@ -805,6 +832,7 @@ export default function Employees() {
           setSelectedPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
           setSelectedAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
           setSelectedChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+          setSelectedAdditionalPositionHistory(mapHistoryRows(additionalPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
           
           logger.debug('Reloaded all history data after save');
         }
@@ -919,6 +947,7 @@ export default function Employees() {
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case 'PNS': return <Badge className="badge-pns">PNS</Badge>;
+      case 'CPNS': return <Badge className="badge-cpns">CPNS</Badge>;
       case 'PPPK': return <Badge className="badge-pppk">PPPK</Badge>;
       case 'Non ASN': return <Badge className="badge-nonasn">Non ASN</Badge>;
       default: return <Badge variant="outline">-</Badge>;
@@ -1033,16 +1062,15 @@ export default function Employees() {
                 <TableHead>Status ASN</TableHead>
                 <TableHead className="hidden lg:table-cell">Golongan</TableHead>
                 {canViewAll && <TableHead className="hidden xl:table-cell">Unit Kerja</TableHead>}
-                <TableHead className="hidden lg:table-cell">Tanggal Masuk</TableHead>
                 <TableHead className="w-[60px] text-center">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableSkeleton columns={canViewAll ? 8 : 7} rows={10} />
+                <TableSkeleton columns={canViewAll ? 7 : 6} rows={10} />
               ) : paginatedEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canViewAll ? 8 : 7} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={canViewAll ? 7 : 6} className="h-32 text-center text-muted-foreground">
                     {searchQuery || statusFilter !== 'all' || departmentFilter !== 'all'
                       ? 'Tidak ada data yang sesuai dengan filter'
                       : 'Belum ada data pegawai'}
@@ -1058,7 +1086,7 @@ export default function Employees() {
                         onClick={() => toggleCategory(group.category)}
                       >
                         <TableCell 
-                          colSpan={canViewAll ? 8 : 7} 
+                          colSpan={canViewAll ? 7 : 6} 
                           className="font-semibold text-sm uppercase tracking-wide py-3"
                         >
                           <div className="flex items-center gap-2">
@@ -1084,9 +1112,6 @@ export default function Employees() {
                           <TableCell>{getStatusBadge(employee.asn_status)}</TableCell>
                           <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
                           {canViewAll && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
-                          <TableCell className="hidden lg:table-cell text-muted-foreground">
-                            {employee.join_date ? format(new Date(employee.join_date), 'd MMM yyyy', { locale: id }) : '-'}
-                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1181,6 +1206,7 @@ export default function Employees() {
         initialPlacementNotes={selectedPlacementNotes}
         initialAssignmentNotes={selectedAssignmentNotes}
         initialChangeNotes={selectedChangeNotes}
+        initialAdditionalPositionHistory={selectedAdditionalPositionHistory}
       />
 
       <NonAsnFormModal

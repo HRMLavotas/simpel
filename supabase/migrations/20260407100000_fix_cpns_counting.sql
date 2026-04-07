@@ -1,22 +1,8 @@
-/**
- * Script to create the dashboard aggregation RPC function in Supabase.
- * Run: node scripts/create_dashboard_rpc.js
- */
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = 'https://mauyygrbdopmpdpnwzra.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdXl5Z3JiZG9wbXBkcG53enJhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDkzMTM4NCwiZXhwIjoyMDkwNTA3Mzg0fQ.qMJoz6Xuy4PKwS-LKWpjf_WM5o0fuNtEE4hsgLjJX4Q';
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  db: { schema: 'public' },
-  auth: { persistSession: false },
-});
-
-const SQL = `
 -- =============================================
--- Dashboard aggregation RPC: get_dashboard_stats
--- Returns all dashboard metrics in ONE call
+-- Fix CPNS counting in dashboard stats
+-- CPNS should be counted as part of PNS/ASN
 -- =============================================
+
 CREATE OR REPLACE FUNCTION get_dashboard_stats(
   p_department TEXT DEFAULT NULL,
   p_asn_status TEXT[] DEFAULT NULL
@@ -308,69 +294,3 @@ BEGIN
   RETURN result;
 END;
 $$;
-`;
-
-async function main() {
-  console.log('Creating dashboard RPC function...');
-  
-  const { data, error } = await supabase.rpc('exec_sql', { query: SQL });
-  
-  if (error) {
-    // If exec_sql doesn't exist, try direct REST API
-    console.log('exec_sql not available, trying direct SQL via REST API...');
-    
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ query: SQL }),
-    });
-    
-    if (!response.ok) {
-      // Last resort: use the SQL endpoint directly
-      console.log('Using Supabase SQL API...');
-      const sqlResponse = await fetch(`${SUPABASE_URL}/pg`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ query: SQL }),
-      });
-      
-      if (!sqlResponse.ok) {
-        console.error('Failed via SQL API too. Will create migration file instead.');
-        process.exit(1);
-      }
-      console.log('RPC function created via SQL API!');
-    } else {
-      console.log('RPC function created via exec_sql!');
-    }
-  } else {
-    console.log('RPC function created successfully!');
-  }
-  
-  // Test the function
-  console.log('\nTesting get_dashboard_stats...');
-  const { data: stats, error: testError } = await supabase.rpc('get_dashboard_stats');
-  
-  if (testError) {
-    console.error('Test failed:', testError.message);
-  } else {
-    console.log('Test succeeded!');
-    console.log('Stats:', JSON.stringify(stats?.stats, null, 2));
-    console.log('Rank data count:', stats?.rankData?.length);
-    console.log('Department data count:', stats?.departmentData?.length);
-  }
-  
-  process.exit(0);
-}
-
-main().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});

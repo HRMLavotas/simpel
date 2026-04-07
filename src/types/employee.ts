@@ -16,6 +16,7 @@ export interface Employee {
   position_sk: string | null; // Jabatan Sesuai SK - jabatan spesifik/tugas aktual
   position_type: string | null;
   position_name: string | null; // Jabatan Sesuai Kepmen 202 Tahun 2024 - jabatan standar
+  additional_position: string | null; // Jabatan Tambahan (opsional)
   asn_status: string | null;
   rank_group: string | null;
   department: string;
@@ -86,6 +87,7 @@ export interface EmployeeFormData {
   religion?: string;
   position_type?: string;
   position_name?: string;
+  additional_position?: string; // Jabatan Tambahan
   asn_status: string;
   rank_group?: string;
   department: string;

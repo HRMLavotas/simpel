@@ -139,7 +139,8 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
         }
         
         const stat = positionMap.get(name)!;
-        if (emp.asn_status === 'PNS') stat.existing_pns += 1;
+        // Count both PNS and CPNS as PNS (CPNS is also ASN)
+        if (emp.asn_status === 'PNS' || emp.asn_status === 'CPNS') stat.existing_pns += 1;
         else if (emp.asn_status === 'PPPK') stat.existing_pppk += 1;
         
         stat.total_existing = stat.existing_pns + stat.existing_pppk;

@@ -40,6 +40,7 @@ import {
   TRAINING_FIELDS,
 } from './EmployeeHistoryForm';
 import { NotesForm, type NoteEntry } from './NotesForm';
+import { AdditionalPositionHistoryForm, type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
 import { logger } from '@/lib/logger';
 
 const employeeSchema = z.object({
@@ -53,6 +54,7 @@ const employeeSchema = z.object({
   religion: z.string().optional().or(z.literal('')),
   position_type: z.string().optional().or(z.literal('')),
   position_name: z.string().max(255).optional().or(z.literal('')),
+  additional_position: z.string().max(255).optional().or(z.literal('')),
   asn_status: z.string().min(1, 'Status ASN wajib dipilih'),
   rank_group: z.string().optional().or(z.literal('')),
   department: z.string().min(1, 'Unit kerja wajib dipilih'),
@@ -72,6 +74,7 @@ export type EmployeeFormData = z.infer<typeof employeeSchema> & {
   placement_notes?: NoteEntry[];
   assignment_notes?: NoteEntry[];
   change_notes?: NoteEntry[];
+  additional_position_history?: AdditionalPositionHistoryEntry[];
 };
 
 interface Employee {
@@ -86,6 +89,7 @@ interface Employee {
   religion: string | null;
   position_type: string | null;
   position_name: string | null;
+  additional_position: string | null;
   asn_status: string | null;
   rank_group: string | null;
   department: string;
@@ -110,6 +114,7 @@ interface EmployeeFormModalProps {
   initialPlacementNotes?: NoteEntry[];
   initialAssignmentNotes?: NoteEntry[];
   initialChangeNotes?: NoteEntry[];
+  initialAdditionalPositionHistory?: AdditionalPositionHistoryEntry[];
 }
 
 export function EmployeeFormModal({
@@ -127,6 +132,7 @@ export function EmployeeFormModal({
   initialPlacementNotes,
   initialAssignmentNotes,
   initialChangeNotes,
+  initialAdditionalPositionHistory,
 }: EmployeeFormModalProps) {
   const { profile, isAdminPusat } = useAuth();
   const { toast } = useToast();
@@ -142,6 +148,7 @@ export function EmployeeFormModal({
   const [placementNotes, setPlacementNotes] = useState<NoteEntry[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<NoteEntry[]>([]);
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
+  const [additionalPositionHistoryEntries, setAdditionalPositionHistoryEntries] = useState<AdditionalPositionHistoryEntry[]>([]);
 
   // Track if critical fields have changed
   const [hasRankChanged, setHasRankChanged] = useState(false);
@@ -156,7 +163,7 @@ export function EmployeeFormModal({
     defaultValues: {
       nip: '', name: '', front_title: '', back_title: '',
       birth_place: '', birth_date: '', gender: '', religion: '',
-      position_type: '', position_name: '',
+      position_type: '', position_name: '', additional_position: '',
       asn_status: '', rank_group: '', department: profile?.department || '',
       join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
     },
@@ -439,7 +446,8 @@ export function EmployeeFormModal({
         birth_place: employee.birth_place || '', birth_date: employee.birth_date || '',
         gender: normalizedGender, religion: normalizedReligion,
         position_type: employee.position_type || '',
-        position_name: employee.position_name || '', asn_status: employee.asn_status || '',
+        position_name: employee.position_name || '', additional_position: employee.additional_position || '',
+        asn_status: employee.asn_status || '',
         rank_group: employee.rank_group || '', department: employee.department,
         join_date: employee.join_date || '', tmt_cpns: employee.tmt_cpns || '',
         tmt_pns: employee.tmt_pns || '', tmt_pensiun: employee.tmt_pensiun || '',
@@ -461,6 +469,7 @@ export function EmployeeFormModal({
       setPlacementNotes(initialPlacementNotes || []);
       setAssignmentNotes(initialAssignmentNotes || []);
       setChangeNotes(initialChangeNotes || []);
+      setAdditionalPositionHistoryEntries(initialAdditionalPositionHistory || []);
       
       // Mark initial load as complete
       initialLoadCompleteRef.current = true;
@@ -472,7 +481,7 @@ export function EmployeeFormModal({
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
         birth_place: '', birth_date: '', gender: '', religion: '',
-        position_type: '', position_name: '',
+        position_type: '', position_name: '', additional_position: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
         join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
       });
@@ -485,6 +494,7 @@ export function EmployeeFormModal({
       setPlacementNotes([]);
       setAssignmentNotes([]);
       setChangeNotes([]);
+      setAdditionalPositionHistoryEntries([]);
       
       // Mark initial load as complete
       initialLoadCompleteRef.current = true;
@@ -525,6 +535,7 @@ export function EmployeeFormModal({
       placement_notes: placementNotes,
       assignment_notes: assignmentNotes,
       change_notes: changeNotes,
+      additional_position_history: additionalPositionHistoryEntries,
     });
   };
 
@@ -593,7 +604,7 @@ export function EmployeeFormModal({
               <TabsTrigger value="notes">Keterangan</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="main" className="space-y-6">
+            <TabsContent value="main" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {/* Identity Section */}
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Pribadi</h3>
@@ -693,6 +704,36 @@ export function EmployeeFormModal({
                 )}
               </div>
 
+              {/* NEW: Jabatan Tambahan (Opsional) */}
+              <div className="space-y-2">
+                <Label htmlFor="additional_position">
+                  Jabatan Tambahan 
+                  <span className="text-xs text-muted-foreground ml-2">(Opsional)</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="additional_position" 
+                    placeholder="Contoh: Subkoordinator Bidang Data dan Informasi" 
+                    {...form.register('additional_position')} 
+                    className="flex-1"
+                  />
+                  {form.watch('additional_position') && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => form.setValue('additional_position', '', { shouldValidate: true, shouldDirty: true })}
+                      className="shrink-0"
+                    >
+                      Kosongkan
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Jabatan tambahan di luar jabatan sesuai Kepmen. Klik "Kosongkan" jika tidak memiliki jabatan tambahan.
+                </p>
+              </div>
+
               {/* Unlocked Field: Unit Kerja */}
               <div className="space-y-2">
                 <Label htmlFor="department">Unit Kerja *</Label>
@@ -758,7 +799,7 @@ export function EmployeeFormModal({
 
             </TabsContent>
 
-            <TabsContent value="history" className="space-y-6">
+            <TabsContent value="history" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {/* Education Section */}
               <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
 
@@ -827,9 +868,23 @@ export function EmployeeFormModal({
             onChange={setTrainingEntries}
           />
 
+          <Separator />
+
+          {/* Additional Position History */}
+          <div className="scroll-mt-4 transition-all duration-300">
+            <AdditionalPositionHistoryForm
+              entries={additionalPositionHistoryEntries}
+              onChange={setAdditionalPositionHistoryEntries}
+              currentAdditionalPosition={form.watch('additional_position')}
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              💡 Riwayat perubahan jabatan tambahan (opsional)
+            </p>
+          </div>
+
             </TabsContent>
 
-            <TabsContent value="notes" className="space-y-6">
+            <TabsContent value="notes" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {/* Keterangan Penempatan */}
               <NotesForm
             title="Keterangan Penempatan"
