@@ -193,7 +193,7 @@ export function QueryTemplates({
     }
 
     const newTemplate: QueryTemplate = {
-      id: `user-${Date.now()}`,
+      id: `user-${crypto.randomUUID()}`,
       name: templateName.trim(),
       description: templateDescription.trim(),
       type: 'user',
