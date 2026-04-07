@@ -120,15 +120,16 @@ export default function PetaJabatan() {
   const [formOrder, setFormOrder] = useState('0');
 
   useEffect(() => {
-    // Update selectedDepartment based on user role
+    // Set initial department based on user role (only on mount)
     if (!canViewAll && profile?.department) {
-      // For Admin Unit, override to their department
+      // For Admin Unit, set to their department
       setSelectedDepartment(profile.department);
-    } else if (canViewAll && selectedDepartment !== 'Setditjen Binalavotas') {
-      // For Admin Pimpinan/Pusat, ensure Setditjen Binalavotas is selected
+    } else if (canViewAll && !selectedDepartment) {
+      // For Admin Pimpinan/Pusat, set default only if empty
       setSelectedDepartment('Setditjen Binalavotas');
     }
-  }, [canViewAll, profile?.department, selectedDepartment]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canViewAll, profile?.department]); // Removed selectedDepartment from dependencies
 
   useEffect(() => {
     if (selectedDepartment) {

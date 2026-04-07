@@ -93,7 +93,7 @@ const App = () => (
               <Route path="/admins" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Admins /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/departments" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/peta-jabatan" element={<ProtectedRoute><ErrorBoundary><PetaJabatan /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat', 'admin_pimpinan']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
