@@ -34,6 +34,7 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'position_type', label: 'Jenis Jabatan', dbField: 'position_type', category: 'position', description: 'Struktural, Fungsional, atau Pelaksana' },
   { key: 'position_sk', label: 'Jabatan Sesuai SK', dbField: 'position_sk', category: 'position', description: 'Jabatan spesifik/tugas aktual pegawai' },
   { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202/2024', dbField: 'position_name', category: 'position', description: 'Jabatan standar/klasifikasi' },
+  { key: 'additional_position', label: 'Jabatan Tambahan', dbField: 'additional_position', category: 'position', description: 'Jabatan tambahan di luar jabatan sesuai Kepmen (opsional)' },
   { key: 'old_position', label: 'Jabatan Lama', dbField: 'old_position', category: 'position', description: 'Jabatan sebelum perubahan' },
   { key: 'department', label: 'Unit Kerja', dbField: 'department', category: 'employment', description: 'Nama unit kerja/dinas' },
   

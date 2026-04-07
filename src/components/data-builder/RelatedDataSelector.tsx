@@ -59,6 +59,21 @@ export const RELATED_DATA_TABLES: RelatedDataConfig[] = [
     ],
   },
   {
+    key: 'additional_position_history',
+    label: 'Riwayat Jabatan Tambahan',
+    table: 'additional_position_history',
+    icon: Briefcase,
+    description: 'Perubahan jabatan tambahan, tanggal, nomor SK',
+    fields: [
+      { key: 'tanggal', label: 'Tanggal' },
+      { key: 'jabatan_tambahan_lama', label: 'Jabatan Lama' },
+      { key: 'jabatan_tambahan_baru', label: 'Jabatan Baru' },
+      { key: 'nomor_sk', label: 'Nomor SK' },
+      { key: 'tmt', label: 'TMT' },
+      { key: 'keterangan', label: 'Keterangan' },
+    ],
+  },
+  {
     key: 'rank_history',
     label: 'Riwayat Pangkat',
     table: 'rank_history',

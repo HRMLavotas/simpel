@@ -36,7 +36,10 @@ export function DataPreviewTableWithRelations({
 
   const [loadingRelated, setLoadingRelated] = useState<Set<string>>(new Set());
 
-  const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
+  // Preserve user's column selection order
+  const columns = selectedColumns
+    .map(key => AVAILABLE_COLUMNS.find(c => c.key === key))
+    .filter((c): c is NonNullable<typeof c> => c !== undefined);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const toggleRow = async (employeeId: string) => {

@@ -1189,6 +1189,7 @@ export default function Employees() {
         placementNotes={selectedPlacementNotes}
         assignmentNotes={selectedAssignmentNotes}
         changeNotes={selectedChangeNotes}
+        additionalPositionHistory={selectedAdditionalPositionHistory}
       />
 
       <EmployeeFormModal

@@ -250,7 +250,9 @@ export default function DataBuilder() {
         .filter((id): id is string => typeof id === 'string' && id.length > 0);
       const activeFilterCount = filters.filter(isFilterRuleActive).length;
 
-      const columns = AVAILABLE_COLUMNS.filter(c => selectedColumns.includes(c.key));
+      const columns = selectedColumns
+        .map(key => AVAILABLE_COLUMNS.find(c => c.key === key))
+        .filter((c): c is NonNullable<typeof c> => c !== undefined);
       const exportData = allData.map((row, idx) => {
         const obj: Record<string, unknown> = { No: idx + 1 };
         columns.forEach(col => {
@@ -423,9 +425,6 @@ export default function DataBuilder() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Query Templates</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Gunakan template preset untuk setup cepat atau simpan konfigurasi query Anda sendiri
-            </p>
           </CardHeader>
           <CardContent>
             <QueryTemplates

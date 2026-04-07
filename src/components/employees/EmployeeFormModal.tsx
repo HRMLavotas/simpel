@@ -149,11 +149,16 @@ export function EmployeeFormModal({
   const [assignmentNotes, setAssignmentNotes] = useState<NoteEntry[]>([]);
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
   const [additionalPositionHistoryEntries, setAdditionalPositionHistoryEntries] = useState<AdditionalPositionHistoryEntry[]>([]);
+  
+  // State for additional position edit mode
+  const [isEditingAdditionalPosition, setIsEditingAdditionalPosition] = useState(false);
+  const [tempAdditionalPosition, setTempAdditionalPosition] = useState('');
 
   // Track if critical fields have changed
   const [hasRankChanged, setHasRankChanged] = useState(false);
   const [hasPositionChanged, setHasPositionChanged] = useState(false);
   const [hasDepartmentChanged, setHasDepartmentChanged] = useState(false);
+  const [hasAdditionalPositionChanged, setHasAdditionalPositionChanged] = useState(false);
   
   // Use validation hook
   const { validateNIP, nipValidation, resetNIPValidation } = useEmployeeValidation({ debounceMs: 500 });
@@ -174,7 +179,8 @@ export function EmployeeFormModal({
     rank_group: string;
     position_name: string;
     department: string;
-  }>({ rank_group: '', position_name: '', department: '' });
+    additional_position: string;
+  }>({ rank_group: '', position_name: '', department: '', additional_position: '' });
   
   // Track if form has been modified by user to prevent unwanted resets
   const formModifiedRef = useRef(false);
@@ -188,6 +194,9 @@ export function EmployeeFormModal({
       setHasRankChanged(false);
       setHasPositionChanged(false);
       setHasDepartmentChanged(false);
+      setHasAdditionalPositionChanged(false);
+      setIsEditingAdditionalPosition(false);
+      setTempAdditionalPosition('');
       resetNIPValidation();
     }
   }, [open, resetNIPValidation]);
@@ -291,6 +300,9 @@ export function EmployeeFormModal({
           }
         }
       }
+
+      // NOTE: Additional Position tracking moved to handleSaveAdditionalPosition
+      // to prevent multiple triggers while typing
     });
 
     return () => subscription.unsubscribe();
@@ -318,6 +330,13 @@ export function EmployeeFormModal({
         setHasDepartmentChanged(true);
       } else {
         setHasDepartmentChanged(false);
+      }
+
+      // Check if additional_position has changed
+      if (value.additional_position !== originalValues.additional_position && (originalValues.additional_position || value.additional_position)) {
+        setHasAdditionalPositionChanged(true);
+      } else {
+        setHasAdditionalPositionChanged(false);
       }
     });
 
@@ -438,6 +457,7 @@ export function EmployeeFormModal({
         rank_group: employee.rank_group || '',
         position_name: employee.position_name || '',
         department: employee.department || '',
+        additional_position: employee.additional_position || '',
       });
       
       form.reset({
@@ -476,7 +496,7 @@ export function EmployeeFormModal({
       formModifiedRef.current = false;
     } else {
       // Reset original values for new employee
-      setOriginalValues({ rank_group: '', position_name: '', department: '' });
+      setOriginalValues({ rank_group: '', position_name: '', department: '', additional_position: '' });
       
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
@@ -500,7 +520,69 @@ export function EmployeeFormModal({
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
     }
-  }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory, initialPlacementNotes, initialAssignmentNotes, initialChangeNotes]);
+  }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory, initialPlacementNotes, initialAssignmentNotes, initialChangeNotes, initialAdditionalPositionHistory]);
+
+  // Handle edit additional position
+  const handleEditAdditionalPosition = () => {
+    setTempAdditionalPosition(form.getValues('additional_position') || '');
+    setIsEditingAdditionalPosition(true);
+  };
+
+  // Handle save additional position
+  const handleSaveAdditionalPosition = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const oldAdditionalPosition = originalValues.additional_position;
+    const newAdditionalPosition = tempAdditionalPosition;
+    
+    // Update form value
+    form.setValue('additional_position', newAdditionalPosition, { shouldValidate: true, shouldDirty: true });
+    
+    // Only track if there's an actual change (not just empty to empty)
+    if (oldAdditionalPosition !== newAdditionalPosition && (oldAdditionalPosition || newAdditionalPosition)) {
+      const alreadyExists = additionalPositionHistoryEntries.some(
+        entry => entry.jabatan_tambahan_lama === oldAdditionalPosition && entry.jabatan_tambahan_baru === newAdditionalPosition
+      );
+
+      if (!alreadyExists) {
+        const newEntry: AdditionalPositionHistoryEntry = {
+          tanggal: today,
+          jabatan_tambahan_lama: oldAdditionalPosition || '',
+          jabatan_tambahan_baru: newAdditionalPosition || '',
+          nomor_sk: '',
+          tmt: today,
+          keterangan: 'Perubahan data - Auto-generated',
+        };
+        setAdditionalPositionHistoryEntries(prev => [...prev, newEntry]);
+        
+        // Show toast notification
+        if (newAdditionalPosition) {
+          toast({
+            title: '✅ Riwayat Jabatan Tambahan otomatis ditambahkan',
+            duration: 3000,
+          });
+        } else {
+          toast({
+            title: '✅ Riwayat penghapusan Jabatan Tambahan otomatis ditambahkan',
+            duration: 3000,
+          });
+        }
+      }
+      
+      // Update original value so it doesn't trigger again
+      setOriginalValues(prev => ({
+        ...prev,
+        additional_position: newAdditionalPosition
+      }));
+    }
+    
+    setIsEditingAdditionalPosition(false);
+  };
+
+  // Handle cancel edit additional position
+  const handleCancelEditAdditionalPosition = () => {
+    setTempAdditionalPosition('');
+    setIsEditingAdditionalPosition(false);
+  };
 
   const handleSubmit = async (data: z.infer<typeof employeeSchema>) => {
     // Check NIP validation before submit
@@ -711,27 +793,75 @@ export function EmployeeFormModal({
                   <span className="text-xs text-muted-foreground ml-2">(Opsional)</span>
                 </Label>
                 <div className="flex gap-2">
-                  <Input 
-                    id="additional_position" 
-                    placeholder="Contoh: Subkoordinator Bidang Data dan Informasi" 
-                    {...form.register('additional_position')} 
-                    className="flex-1"
-                  />
-                  {form.watch('additional_position') && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => form.setValue('additional_position', '', { shouldValidate: true, shouldDirty: true })}
-                      className="shrink-0"
-                    >
-                      Kosongkan
-                    </Button>
+                  {isEditingAdditionalPosition ? (
+                    <>
+                      <Input 
+                        id="additional_position_temp"
+                        placeholder="Contoh: Subkoordinator Bidang Data dan Informasi" 
+                        value={tempAdditionalPosition}
+                        onChange={(e) => setTempAdditionalPosition(e.target.value)}
+                        className="flex-1"
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onClick={handleSaveAdditionalPosition}
+                        className="shrink-0"
+                      >
+                        Simpan
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelEditAdditionalPosition}
+                        className="shrink-0"
+                      >
+                        Batal
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm flex-1 items-center">
+                        {form.watch('additional_position') || '-'}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEditAdditionalPosition}
+                        className="shrink-0"
+                      >
+                        Edit
+                      </Button>
+                      {form.watch('additional_position') && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setTempAdditionalPosition('');
+                            setIsEditingAdditionalPosition(true);
+                          }}
+                          className="shrink-0"
+                        >
+                          Kosongkan
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Jabatan tambahan di luar jabatan sesuai Kepmen. Klik "Kosongkan" jika tidak memiliki jabatan tambahan.
+                  {isEditingAdditionalPosition 
+                    ? 'Klik "Simpan" untuk menyimpan perubahan atau "Batal" untuk membatalkan'
+                    : 'Klik "Edit" untuk mengubah jabatan tambahan. Perubahan akan otomatis menambahkan riwayat.'
+                  }
                 </p>
+                {hasAdditionalPositionChanged && !isEditingAdditionalPosition && (
+                  <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan</p>
+                )}
               </div>
 
               {/* Unlocked Field: Unit Kerja */}
