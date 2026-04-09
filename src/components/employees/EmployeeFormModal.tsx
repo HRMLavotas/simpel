@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -41,6 +42,7 @@ import {
 } from './EmployeeHistoryForm';
 import { NotesForm, type NoteEntry } from './NotesForm';
 import { AdditionalPositionHistoryForm, type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
+import { QuickActionForm } from './QuickActionForm';
 import { logger } from '@/lib/logger';
 
 const employeeSchema = z.object({
@@ -138,7 +140,7 @@ export function EmployeeFormModal({
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   const isEditing = !!employee;
-  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes'>('main');
+  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>('main');
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [mutationEntries, setMutationEntries] = useState<HistoryEntry[]>([]);
   const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
@@ -668,6 +670,61 @@ export function EmployeeFormModal({
     return ['Tidak Ada'];
   };
 
+  // Quick Action handlers
+  const handleQuickRankChange = (newRank: string, entry: HistoryEntry) => {
+    // Update main form
+    form.setValue('rank_group', newRank, { shouldValidate: true, shouldDirty: true });
+    
+    // Add to rank history
+    setRankHistoryEntries(prev => [...prev, entry]);
+    
+    // Update original value to prevent duplicate auto-tracking
+    setOriginalValues(prev => ({ ...prev, rank_group: newRank }));
+    
+    // Show toast
+    toast({
+      title: '✅ Kenaikan Pangkat Berhasil',
+      description: `Pangkat diupdate menjadi ${newRank}`,
+      duration: 3000,
+    });
+  };
+
+  const handleQuickPositionChange = (newPosition: string, entry: HistoryEntry) => {
+    // Update main form
+    form.setValue('position_name', newPosition, { shouldValidate: true, shouldDirty: true });
+    
+    // Add to position history
+    setPositionHistoryEntries(prev => [...prev, entry]);
+    
+    // Update original value to prevent duplicate auto-tracking
+    setOriginalValues(prev => ({ ...prev, position_name: newPosition }));
+    
+    // Show toast
+    toast({
+      title: '✅ Pergantian Jabatan Berhasil',
+      description: `Jabatan diupdate menjadi ${newPosition}`,
+      duration: 3000,
+    });
+  };
+
+  const handleQuickDepartmentChange = (newDepartment: string, entry: HistoryEntry) => {
+    // Update main form
+    form.setValue('department', newDepartment, { shouldValidate: true, shouldDirty: true });
+    
+    // Add to mutation history
+    setMutationEntries(prev => [...prev, entry]);
+    
+    // Update original value to prevent duplicate auto-tracking
+    setOriginalValues(prev => ({ ...prev, department: newDepartment }));
+    
+    // Show toast
+    toast({
+      title: '✅ Mutasi Berhasil',
+      description: `Unit kerja diupdate menjadi ${newDepartment}`,
+      duration: 3000,
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -679,12 +736,35 @@ export function EmployeeFormModal({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-4">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'history' | 'notes')}>
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'main' | 'history' | 'notes' | 'quick')}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="quick">Quick Action</TabsTrigger>
               <TabsTrigger value="main">Data Utama</TabsTrigger>
               <TabsTrigger value="history">Riwayat</TabsTrigger>
               <TabsTrigger value="notes">Keterangan</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="quick" className="space-y-6 focus:outline-none focus-visible:outline-none">
+              {isEditing ? (
+                <QuickActionForm
+                  currentRank={form.watch('rank_group') || ''}
+                  currentPosition={form.watch('position_name') || ''}
+                  currentDepartment={form.watch('department') || ''}
+                  asnStatus={form.watch('asn_status') || ''}
+                  departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
+                  onRankChange={handleQuickRankChange}
+                  onPositionChange={handleQuickPositionChange}
+                  onDepartmentChange={handleQuickDepartmentChange}
+                />
+              ) : (
+                <Alert>
+                  <AlertDescription>
+                    Quick Action hanya tersedia saat mengedit data pegawai yang sudah ada.
+                    Silakan simpan data pegawai terlebih dahulu, kemudian edit untuk menggunakan fitur Quick Action.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
 
             <TabsContent value="main" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {/* Identity Section */}
