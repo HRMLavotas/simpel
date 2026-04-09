@@ -337,11 +337,6 @@ export function EmployeeDetailsModal({
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6 focus:outline-none focus-visible:outline-none">
-              {/* Education Section */}
-              <ReadOnlyEducationTable data={education} />
-
-              <Separator />
-
               {/* Mutation History */}
               <ReadOnlyHistoryTable
                 title="Riwayat Mutasi"
@@ -362,6 +357,16 @@ export function EmployeeDetailsModal({
 
               <Separator />
 
+              {/* Additional Position History */}
+              <ReadOnlyHistoryTable
+                title="Riwayat Jabatan Tambahan"
+                headers={['Tanggal', 'Jabatan Lama', 'Jabatan Baru', 'Nomor SK', 'TMT', 'Keterangan']}
+                data={additionalPositionHistory}
+                fields={['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']}
+              />
+
+              <Separator />
+
               {/* Rank History */}
               <ReadOnlyHistoryTable
                 title="Riwayat Kenaikan Pangkat"
@@ -369,6 +374,11 @@ export function EmployeeDetailsModal({
                 data={rankHistory}
                 fields={['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']}
               />
+
+              <Separator />
+
+              {/* Education Section */}
+              <ReadOnlyEducationTable data={education} />
 
               <Separator />
 
@@ -388,16 +398,6 @@ export function EmployeeDetailsModal({
                 headers={['Tanggal Mulai', 'Tanggal Selesai', 'Nama Diklat', 'Penyelenggara', 'Sertifikat', 'Keterangan']}
                 data={trainingHistory}
                 fields={['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']}
-              />
-
-              <Separator />
-
-              {/* Additional Position History */}
-              <ReadOnlyHistoryTable
-                title="Riwayat Jabatan Tambahan"
-                headers={['Tanggal', 'Jabatan Lama', 'Jabatan Baru', 'Nomor SK', 'TMT', 'Keterangan']}
-                data={additionalPositionHistory}
-                fields={['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']}
               />
             </TabsContent>
 

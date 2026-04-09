@@ -25,6 +25,9 @@ interface EmployeeHistoryFormProps {
   fields: HistoryField[];
   entries: HistoryEntry[];
   onChange: (entries: HistoryEntry[]) => void;
+  allowFutureEntries?: boolean; // Allow adding entries with date > latest entry (for Quick Action)
+  currentValue?: string; // Current value to display (e.g., current rank, position, department)
+  rankOptions?: readonly string[]; // Options for rank dropdown (PNS or PPPK)
 }
 
 // Helper function to sort entries by date field (descending - newest first)
@@ -47,8 +50,42 @@ const sortEntriesByDate = (entries: HistoryEntry[], fields: HistoryField[]): His
   });
 };
 
-export function EmployeeHistoryForm({ title, fields, entries, onChange }: EmployeeHistoryFormProps) {
+export function EmployeeHistoryForm({ title, fields, entries, onChange, allowFutureEntries = false, currentValue, rankOptions }: EmployeeHistoryFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [validationError, setValidationError] = useState<string>('');
+  
+  // Get the latest entry date
+  const getLatestEntryDate = (): string | null => {
+    if (entries.length === 0) return null;
+    
+    const dateField = fields.find(f => f.type === 'date')?.key;
+    if (!dateField) return null;
+    
+    // Entries are already sorted by date (newest first)
+    const latestEntry = entries[0];
+    return latestEntry[dateField] || null;
+  };
+  
+  // Validate if new entry date is allowed
+  const validateEntryDate = (entryDate: string): boolean => {
+    if (allowFutureEntries) return true; // No validation for Quick Action
+    if (!entryDate) return true; // Empty date is allowed (will be filled later)
+    
+    const latestDate = getLatestEntryDate();
+    if (!latestDate) return true; // No existing entries, any date is allowed
+    
+    // Check if new entry date is not after latest date
+    if (entryDate > latestDate) {
+      setValidationError(
+        `Tanggal tidak boleh lebih baru dari ${latestDate}. ` +
+        `Gunakan Quick Action untuk menambah data terbaru.`
+      );
+      return false;
+    }
+    
+    setValidationError('');
+    return true;
+  };
   
   const addEntry = () => {
     const empty: HistoryEntry = {};
@@ -56,19 +93,26 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
     const updated = [...entries, empty];
     onChange(sortEntriesByDate(updated, fields));
     setIsExpanded(true); // Auto-expand when adding new entry
+    setValidationError(''); // Clear validation error
   };
 
   const removeEntry = (index: number) => {
     const updated = entries.filter((_, i) => i !== index);
     onChange(sortEntriesByDate(updated, fields));
+    setValidationError(''); // Clear validation error
   };
 
   const updateEntry = (index: number, field: string, value: string) => {
+    // Validate date if it's a date field
+    const isDateField = fields.find(f => f.key === field)?.type === 'date';
+    if (isDateField && value && !validateEntryDate(value)) {
+      return; // Don't update if validation fails
+    }
+    
     const updated = entries.map((entry, i) =>
       i === index ? { ...entry, [field]: value } : entry
     );
     // Auto-sort after update if the changed field is a date field
-    const isDateField = fields.find(f => f.key === field)?.type === 'date';
     onChange(isDateField ? sortEntriesByDate(updated, fields) : updated);
   };
 
@@ -111,9 +155,16 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Diurutkan dari yang terbaru ke terlama
-          </p>
+          <div className="flex flex-col gap-0.5 mt-0.5">
+            <p className="text-xs text-muted-foreground">
+              Diurutkan dari yang terbaru ke terlama
+            </p>
+            {currentValue && (
+              <p className="text-xs font-medium text-primary">
+                Saat ini: {currentValue}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {entries.length > 0 && (
@@ -142,6 +193,13 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
           </Button>
         </div>
       </div>
+
+      {/* Validation Error */}
+      {validationError && (
+        <div className="p-3 rounded-lg border border-destructive bg-destructive/10 text-sm text-destructive">
+          ⚠️ {validationError}
+        </div>
+      )}
 
       {/* Collapsed Summary View */}
       {!isExpanded && entries.length > 0 && (
@@ -177,36 +235,43 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange }: Employ
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {fields.map((field) => (
-                  <div key={field.key} className="space-y-1.5">
-                    <Label className="text-xs">{field.label}</Label>
-                    {field.type === 'select' ? (
-                      <Select
-                        value={entry[field.key] || ''}
-                        onValueChange={(value) => updateEntry(index, field.key, value)}
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder={field.placeholder || 'Pilih...'} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {field.options?.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        className="h-9"
-                        type={field.type || 'text'}
-                        placeholder={field.placeholder || ''}
-                        value={entry[field.key] || ''}
-                        onChange={(e) => updateEntry(index, field.key, e.target.value)}
-                      />
-                    )}
-                  </div>
-                ))}
+                {fields.map((field) => {
+                  // Use rankOptions for pangkat fields if provided
+                  const fieldOptions = field.key.includes('pangkat') && rankOptions 
+                    ? rankOptions 
+                    : field.options;
+                  
+                  return (
+                    <div key={field.key} className="space-y-1.5">
+                      <Label className="text-xs">{field.label}</Label>
+                      {(field.type === 'select' || fieldOptions) ? (
+                        <Select
+                          value={entry[field.key] || ''}
+                          onValueChange={(value) => updateEntry(index, field.key, value)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder={field.placeholder || 'Pilih...'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {fieldOptions?.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          className="h-9"
+                          type={field.type || 'text'}
+                          placeholder={field.placeholder || ''}
+                          value={entry[field.key] || ''}
+                          onChange={(e) => updateEntry(index, field.key, e.target.value)}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

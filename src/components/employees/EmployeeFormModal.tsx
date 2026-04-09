@@ -77,6 +77,7 @@ export type EmployeeFormData = z.infer<typeof employeeSchema> & {
   assignment_notes?: NoteEntry[];
   change_notes?: NoteEntry[];
   additional_position_history?: AdditionalPositionHistoryEntry[];
+  _skipChangeDetection?: boolean; // Internal flag to skip change detection dialog
 };
 
 interface Employee {
@@ -140,7 +141,10 @@ export function EmployeeFormModal({
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   const isEditing = !!employee;
-  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>('main');
+  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>('quick');
+  
+  // Track if changes were made via Quick Action (to skip change detection dialog)
+  const quickActionUsedRef = useRef(false);
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [mutationEntries, setMutationEntries] = useState<HistoryEntry[]>([]);
   const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
@@ -193,6 +197,7 @@ export function EmployeeFormModal({
     if (!open) {
       formModifiedRef.current = false;
       initialLoadCompleteRef.current = false;
+      quickActionUsedRef.current = false;
       setHasRankChanged(false);
       setHasPositionChanged(false);
       setHasDepartmentChanged(false);
@@ -482,16 +487,20 @@ export function EmployeeFormModal({
         logger.debug('Religion:', form.getValues('religion'));
       }, 100);
       
-      setEducationEntries(initialEducation || []);
-      setMutationEntries(initialMutationHistory || []);
-      setPositionHistoryEntries(initialPositionHistory || []);
-      setRankHistoryEntries(initialRankHistory || []);
-      setCompetencyEntries(initialCompetencyTestHistory || []);
-      setTrainingEntries(initialTrainingHistory || []);
-      setPlacementNotes(initialPlacementNotes || []);
-      setAssignmentNotes(initialAssignmentNotes || []);
-      setChangeNotes(initialChangeNotes || []);
-      setAdditionalPositionHistoryEntries(initialAdditionalPositionHistory || []);
+      // Only reset history entries if form hasn't been modified by user
+      // This prevents losing user's changes (like deleted entries) when useEffect re-runs
+      if (!formModifiedRef.current || !initialLoadCompleteRef.current) {
+        setEducationEntries(initialEducation || []);
+        setMutationEntries(initialMutationHistory || []);
+        setPositionHistoryEntries(initialPositionHistory || []);
+        setRankHistoryEntries(initialRankHistory || []);
+        setCompetencyEntries(initialCompetencyTestHistory || []);
+        setTrainingEntries(initialTrainingHistory || []);
+        setPlacementNotes(initialPlacementNotes || []);
+        setAssignmentNotes(initialAssignmentNotes || []);
+        setChangeNotes(initialChangeNotes || []);
+        setAdditionalPositionHistoryEntries(initialAdditionalPositionHistory || []);
+      }
       
       // Mark initial load as complete
       initialLoadCompleteRef.current = true;
@@ -620,6 +629,7 @@ export function EmployeeFormModal({
       assignment_notes: assignmentNotes,
       change_notes: changeNotes,
       additional_position_history: additionalPositionHistoryEntries,
+      _skipChangeDetection: quickActionUsedRef.current, // Pass flag to parent
     });
   };
 
@@ -672,11 +682,24 @@ export function EmployeeFormModal({
 
   // Quick Action handlers
   const handleQuickRankChange = (newRank: string, entry: HistoryEntry) => {
+    // Mark that Quick Action was used
+    quickActionUsedRef.current = true;
+    formModifiedRef.current = true; // Mark form as modified
+    
     // Update main form
     form.setValue('rank_group', newRank, { shouldValidate: true, shouldDirty: true });
     
-    // Add to rank history
-    setRankHistoryEntries(prev => [...prev, entry]);
+    // Check for duplicate before adding
+    const isDuplicate = rankHistoryEntries.some(
+      e => e.pangkat_lama === entry.pangkat_lama && 
+           e.pangkat_baru === entry.pangkat_baru &&
+           e.tanggal === entry.tanggal
+    );
+    
+    if (!isDuplicate) {
+      // Add to rank history
+      setRankHistoryEntries(prev => [...prev, entry]);
+    }
     
     // Update original value to prevent duplicate auto-tracking
     setOriginalValues(prev => ({ ...prev, rank_group: newRank }));
@@ -690,11 +713,24 @@ export function EmployeeFormModal({
   };
 
   const handleQuickPositionChange = (newPosition: string, entry: HistoryEntry) => {
+    // Mark that Quick Action was used
+    quickActionUsedRef.current = true;
+    formModifiedRef.current = true; // Mark form as modified
+    
     // Update main form
     form.setValue('position_name', newPosition, { shouldValidate: true, shouldDirty: true });
     
-    // Add to position history
-    setPositionHistoryEntries(prev => [...prev, entry]);
+    // Check for duplicate before adding
+    const isDuplicate = positionHistoryEntries.some(
+      e => e.jabatan_lama === entry.jabatan_lama && 
+           e.jabatan_baru === entry.jabatan_baru &&
+           e.tanggal === entry.tanggal
+    );
+    
+    if (!isDuplicate) {
+      // Add to position history
+      setPositionHistoryEntries(prev => [...prev, entry]);
+    }
     
     // Update original value to prevent duplicate auto-tracking
     setOriginalValues(prev => ({ ...prev, position_name: newPosition }));
@@ -708,11 +744,24 @@ export function EmployeeFormModal({
   };
 
   const handleQuickDepartmentChange = (newDepartment: string, entry: HistoryEntry) => {
+    // Mark that Quick Action was used
+    quickActionUsedRef.current = true;
+    formModifiedRef.current = true; // Mark form as modified
+    
     // Update main form
     form.setValue('department', newDepartment, { shouldValidate: true, shouldDirty: true });
     
-    // Add to mutation history
-    setMutationEntries(prev => [...prev, entry]);
+    // Check for duplicate before adding
+    const isDuplicate = mutationEntries.some(
+      e => e.dari_unit === entry.dari_unit && 
+           e.ke_unit === entry.ke_unit &&
+           e.tanggal === entry.tanggal
+    );
+    
+    if (!isDuplicate) {
+      // Add to mutation history
+      setMutationEntries(prev => [...prev, entry]);
+    }
     
     // Update original value to prevent duplicate auto-tracking
     setOriginalValues(prev => ({ ...prev, department: newDepartment }));
@@ -723,6 +772,57 @@ export function EmployeeFormModal({
       description: `Unit kerja diupdate menjadi ${newDepartment}`,
       duration: 3000,
     });
+  };
+
+  // Wrapper functions for history onChange to mark form as modified
+  const handleRankHistoryChange = (entries: HistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setRankHistoryEntries(entries);
+  };
+
+  const handlePositionHistoryChange = (entries: HistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setPositionHistoryEntries(entries);
+  };
+
+  const handleMutationHistoryChange = (entries: HistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setMutationEntries(entries);
+  };
+
+  const handleCompetencyHistoryChange = (entries: HistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setCompetencyEntries(entries);
+  };
+
+  const handleTrainingHistoryChange = (entries: HistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setTrainingEntries(entries);
+  };
+
+  const handleEducationChange = (entries: EducationEntry[]) => {
+    formModifiedRef.current = true;
+    setEducationEntries(entries);
+  };
+
+  const handleAdditionalPositionHistoryChange = (entries: AdditionalPositionHistoryEntry[]) => {
+    formModifiedRef.current = true;
+    setAdditionalPositionHistoryEntries(entries);
+  };
+
+  const handlePlacementNotesChange = (entries: NoteEntry[]) => {
+    formModifiedRef.current = true;
+    setPlacementNotes(entries);
+  };
+
+  const handleAssignmentNotesChange = (entries: NoteEntry[]) => {
+    formModifiedRef.current = true;
+    setAssignmentNotes(entries);
+  };
+
+  const handleChangeNotesChange = (entries: NoteEntry[]) => {
+    formModifiedRef.current = true;
+    setChangeNotes(entries);
   };
 
   return (
@@ -1010,21 +1110,20 @@ export function EmployeeFormModal({
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6 focus:outline-none focus-visible:outline-none">
-              {/* Education Section */}
-              <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
-
-          <Separator />
-
           {/* Mutation History */}
           <div className="scroll-mt-4 transition-all duration-300">
             <EmployeeHistoryForm
               title="Riwayat Mutasi"
               fields={MUTATION_FIELDS}
               entries={mutationEntries}
-              onChange={setMutationEntries}
+              onChange={handleMutationHistoryChange}
+              currentValue={form.watch('department')}
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
               💡 Unit kerja asal akan otomatis terisi dari riwayat sebelumnya atau data saat ini
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ Untuk menambah mutasi terbaru, gunakan Quick Action
             </p>
           </div>
 
@@ -1036,10 +1135,28 @@ export function EmployeeFormModal({
               title="Riwayat Jabatan"
               fields={POSITION_HISTORY_FIELDS}
               entries={positionHistoryEntries}
-              onChange={setPositionHistoryEntries}
+              onChange={handlePositionHistoryChange}
+              currentValue={form.watch('position_name')}
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
               💡 Jabatan lama akan otomatis terisi dari riwayat sebelumnya atau data saat ini
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ Untuk menambah jabatan terbaru, gunakan Quick Action
+            </p>
+          </div>
+
+          <Separator />
+
+          {/* Additional Position History */}
+          <div className="scroll-mt-4 transition-all duration-300">
+            <AdditionalPositionHistoryForm
+              entries={additionalPositionHistoryEntries}
+              onChange={handleAdditionalPositionHistoryChange}
+              currentAdditionalPosition={form.watch('additional_position')}
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              💡 Riwayat perubahan jabatan tambahan (opsional)
             </p>
           </div>
 
@@ -1051,12 +1168,22 @@ export function EmployeeFormModal({
               title="Riwayat Kenaikan Pangkat"
               fields={RANK_HISTORY_FIELDS}
               entries={rankHistoryEntries}
-              onChange={setRankHistoryEntries}
+              onChange={handleRankHistoryChange}
+              currentValue={form.watch('rank_group')}
+              rankOptions={getRankOptions()}
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
               💡 Pangkat lama akan otomatis terisi dari riwayat sebelumnya atau data saat ini
             </p>
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ Untuk menambah pangkat terbaru, gunakan Quick Action
+            </p>
           </div>
+
+          <Separator />
+
+          {/* Education Section */}
+          <EducationHistoryForm entries={educationEntries} onChange={handleEducationChange} />
 
           <Separator />
 
@@ -1065,7 +1192,7 @@ export function EmployeeFormModal({
             title="Riwayat Uji Kompetensi"
             fields={COMPETENCY_TEST_FIELDS}
             entries={competencyEntries}
-            onChange={setCompetencyEntries}
+            onChange={handleCompetencyHistoryChange}
           />
 
           <Separator />
@@ -1075,22 +1202,8 @@ export function EmployeeFormModal({
             title="Riwayat Diklat"
             fields={TRAINING_FIELDS}
             entries={trainingEntries}
-            onChange={setTrainingEntries}
+            onChange={handleTrainingHistoryChange}
           />
-
-          <Separator />
-
-          {/* Additional Position History */}
-          <div className="scroll-mt-4 transition-all duration-300">
-            <AdditionalPositionHistoryForm
-              entries={additionalPositionHistoryEntries}
-              onChange={setAdditionalPositionHistoryEntries}
-              currentAdditionalPosition={form.watch('additional_position')}
-            />
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              💡 Riwayat perubahan jabatan tambahan (opsional)
-            </p>
-          </div>
 
             </TabsContent>
 
@@ -1099,7 +1212,7 @@ export function EmployeeFormModal({
               <NotesForm
             title="Keterangan Penempatan"
             entries={placementNotes}
-            onChange={setPlacementNotes}
+            onChange={handlePlacementNotesChange}
             placeholder="Contoh: Ditempatkan di Subbag Kepegawaian sejak 2020"
           />
 
@@ -1109,7 +1222,7 @@ export function EmployeeFormModal({
           <NotesForm
             title="Keterangan Penugasan Tambahan"
             entries={assignmentNotes}
-            onChange={setAssignmentNotes}
+            onChange={handleAssignmentNotesChange}
             placeholder="Contoh: Sertigas sebagai Koordinator Bidang X tgl 24 Oktober 2025"
           />
 
@@ -1119,7 +1232,7 @@ export function EmployeeFormModal({
           <NotesForm
             title="Keterangan Perubahan"
             entries={changeNotes}
-            onChange={setChangeNotes}
+            onChange={handleChangeNotesChange}
             placeholder="Contoh: PPPK TMT 1 Mei 2025, Mutasi dari Unit A ke Unit B"
           />
 

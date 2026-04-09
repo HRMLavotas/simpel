@@ -871,8 +871,8 @@ export default function Employees() {
   };
 
   const handleFormSubmit = async (data: EmployeeFormData) => {
-    // If editing, detect changes and show dialog
-    if (selectedEmployee) {
+    // If editing, detect changes and show dialog (unless Quick Action was used)
+    if (selectedEmployee && !data._skipChangeDetection) {
       const changes = detectChanges(selectedEmployee, data);
       if (changes.length > 0) {
         setDetectedChanges(changes);
@@ -883,7 +883,7 @@ export default function Employees() {
       }
     }
 
-    // No tracked changes or new employee — save directly
+    // No tracked changes, Quick Action was used, or new employee — save directly
     await executeSave(data, [], '', '', new Date().toISOString().split('T')[0]);
   };
 

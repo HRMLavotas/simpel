@@ -79,6 +79,12 @@ export function QuickActionForm({
       return;
     }
     
+    // Validate: new rank must be different from current
+    if (newRank === currentRank) {
+      alert('Pangkat baru harus berbeda dari pangkat saat ini');
+      return;
+    }
+    
     const entry: HistoryEntry = {
       tanggal: rankDate,
       pangkat_lama: currentRank,
@@ -103,6 +109,12 @@ export function QuickActionForm({
   const handleMutation = () => {
     if (!newDepartment) {
       alert('Pilih unit kerja tujuan terlebih dahulu');
+      return;
+    }
+    
+    // Validate: new department must be different from current
+    if (newDepartment === currentDepartment) {
+      alert('Unit kerja tujuan harus berbeda dari unit kerja saat ini');
       return;
     }
     
@@ -132,6 +144,12 @@ export function QuickActionForm({
       return;
     }
     
+    // Validate: new position must be different from current
+    if (newPosition.trim() === currentPosition.trim()) {
+      alert('Jabatan baru harus berbeda dari jabatan saat ini');
+      return;
+    }
+    
     const entry: HistoryEntry = {
       tanggal: positionDate,
       jabatan_lama: currentPosition,
@@ -156,8 +174,12 @@ export function QuickActionForm({
     <div className="space-y-4">
       <Alert>
         <AlertDescription>
-          💡 Gunakan Quick Action untuk mengupdate data pegawai dengan cepat. 
-          Perubahan akan otomatis tersimpan di Data Utama dan Riwayat.
+          💡 <strong>Cara Kerja Quick Action:</strong><br/>
+          1. Pilih aksi (Naik Pangkat/Mutasi/Ganti Jabatan)<br/>
+          2. Isi form dan klik tombol "Terapkan" → Data diupdate di form (belum tersimpan)<br/>
+          3. Klik tombol "Simpan Perubahan" di bawah → Data tersimpan ke database<br/>
+          <br/>
+          ⚠️ <strong>Penting:</strong> Tombol "Terapkan" hanya mengupdate form, belum menyimpan ke database!
         </AlertDescription>
       </Alert>
 
@@ -197,7 +219,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Pangkat berhasil diupdate! Data telah tersimpan di Data Utama dan Riwayat.
+                    ✅ Pangkat berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
                   </AlertDescription>
                 </Alert>
               )}
@@ -295,7 +317,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Mutasi berhasil diupdate! Data telah tersimpan di Data Utama dan Riwayat.
+                    ✅ Mutasi berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
                   </AlertDescription>
                 </Alert>
               )}
@@ -383,7 +405,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Jabatan berhasil diupdate! Data telah tersimpan di Data Utama dan Riwayat.
+                    ✅ Jabatan berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
                   </AlertDescription>
                 </Alert>
               )}
