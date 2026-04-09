@@ -50,6 +50,7 @@ import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { HistoryRowData, NoteData, Employee } from '@/types/employee';
+import { createNotification } from '@/hooks/useNotifications';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -120,7 +121,7 @@ function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedCha
 }
 
 export default function Employees() {
-  const { profile, isAdminPusat, user, canEdit, canViewAll } = useAuth();
+  const { profile, isAdminPusat, user, canEdit, canViewAll, role } = useAuth();
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   
@@ -678,6 +679,38 @@ export default function Employees() {
         } else {
           toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
         }
+
+        // Kirim notifikasi jika yang melakukan perubahan adalah admin_unit
+        if (role === 'admin_unit' && profile) {
+          const empName = [data.front_title, data.name, data.back_title].filter(Boolean).join(' ');
+          const changeDesc = changes.length > 0 ? ` (${changes.join(', ')})` : '';
+          await createNotification({
+            type: 'employee_updated',
+            title: 'Data Pegawai Diperbarui',
+            message: `${profile.full_name} (${profile.department}) memperbarui data ${empName}${changeDesc}`,
+            employee_id: employeeId,
+            employee_name: empName,
+            actor_id: user?.id,
+            actor_name: profile.full_name,
+            actor_department: profile.department,
+          });
+        }
+
+        // Jika ada mutasi masuk ke unit lain, notifikasi admin_unit penerima
+        if (departmentChanged && finalDepartment) {
+          const empName = [data.front_title, data.name, data.back_title].filter(Boolean).join(' ');
+          await createNotification({
+            type: 'mutation_in',
+            title: 'Pegawai Mutasi Masuk',
+            message: `${empName} telah dimutasi masuk ke unit Anda dari ${selectedEmployee?.department || '-'}`,
+            employee_id: employeeId,
+            employee_name: empName,
+            actor_id: user?.id,
+            actor_name: profile?.full_name,
+            actor_department: profile?.department,
+            target_department: finalDepartment,
+          });
+        }
       } else {
         const { data: inserted, error } = await supabase
           .from('employees')
@@ -698,6 +731,21 @@ export default function Employees() {
           });
         } else {
           toast({ title: 'Berhasil', description: 'Pegawai baru berhasil ditambahkan' });
+        }
+
+        // Kirim notifikasi ke admin_pusat jika yang menambahkan adalah admin_unit
+        if (role === 'admin_unit' && profile) {
+          const empName = [data.front_title, data.name, data.back_title].filter(Boolean).join(' ');
+          await createNotification({
+            type: 'employee_created',
+            title: 'Pegawai Baru Ditambahkan',
+            message: `${profile.full_name} (${profile.department}) menambahkan pegawai baru: ${empName}`,
+            employee_id: employeeId,
+            employee_name: empName,
+            actor_id: user?.id,
+            actor_name: profile.full_name,
+            actor_department: profile.department,
+          });
         }
       }
 
@@ -901,9 +949,26 @@ export default function Employees() {
     if (!selectedEmployee) return;
     setIsSubmitting(true);
     try {
+      const empName = formatDisplayName(selectedEmployee);
+      const empDepartment = selectedEmployee.department;
+
       const { error } = await supabase.from('employees').delete().eq('id', selectedEmployee.id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Data pegawai berhasil dihapus' });
+
+      // Kirim notifikasi ke admin_pusat jika yang menghapus adalah admin_unit
+      if (role === 'admin_unit' && profile) {
+        await createNotification({
+          type: 'employee_deleted',
+          title: 'Data Pegawai Dihapus',
+          message: `${profile.full_name} (${profile.department}) menghapus data pegawai: ${empName} dari unit ${empDepartment}`,
+          employee_name: empName,
+          actor_id: user?.id,
+          actor_name: profile.full_name,
+          actor_department: profile.department,
+        });
+      }
+
       setDeleteDialogOpen(false);
       fetchEmployees();
     } catch (error) {

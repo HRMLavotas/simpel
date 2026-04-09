@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useState } from 'react';
 import { logger } from '@/lib/logger';
+import { type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
 
 interface Employee {
   id: string;
@@ -62,7 +63,7 @@ interface EmployeeDetailsModalProps {
   placementNotes?: NoteEntry[];
   assignmentNotes?: NoteEntry[];
   changeNotes?: NoteEntry[];
-  additionalPositionHistory?: HistoryEntry[];
+  additionalPositionHistory?: AdditionalPositionHistoryEntry[];
 }
 
 const formatDate = (dateStr: string | null) => {

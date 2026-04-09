@@ -21,6 +21,7 @@ export interface AdditionalPositionHistoryEntry {
   nomor_sk?: string;
   tmt?: string;
   keterangan?: string;
+  [key: string]: string | undefined;
 }
 
 interface AdditionalPositionHistoryFormProps {

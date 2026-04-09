@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useSidebarContext } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -38,6 +39,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </h2>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <NotificationBell />
             <div className="hidden md:block text-right">
               <p className="text-xs font-medium text-foreground truncate max-w-[120px] lg:max-w-[160px]">{profile?.full_name || 'Admin'}</p>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
