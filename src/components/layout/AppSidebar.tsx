@@ -18,8 +18,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Data Pegawai', href: '/employees', icon: Users },
-  { label: 'Import Data ASN', href: '/import', icon: Upload, hideForPimpinan: true },
-  { label: 'Import Non-ASN', href: '/import-non-asn', icon: Upload, hideForPimpinan: true },
+  { label: 'Import Data ASN', href: '/import', icon: Upload, adminPusatOnly: true },
+  { label: 'Import Non-ASN', href: '/import-non-asn', icon: Upload, adminPusatOnly: true },
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },

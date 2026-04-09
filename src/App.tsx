@@ -89,8 +89,8 @@ const App = () => (
               <Route path="/auth" element={<PublicRoute><ErrorBoundary><Auth /></ErrorBoundary></PublicRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><ErrorBoundary><Dashboard /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/employees" element={<ProtectedRoute><ErrorBoundary><Employees /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/import" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><Import /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/import-non-asn" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/import" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Import /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/import-non-asn" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ErrorBoundary><Profile /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admins" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Admins /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/departments" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />

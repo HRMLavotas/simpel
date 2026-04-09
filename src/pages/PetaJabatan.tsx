@@ -1057,25 +1057,29 @@ export default function PetaJabatan() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn' | 'summary-asn' | 'summary-non-asn')} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="asn">
-              Peta Jabatan ASN
-              <span className="ml-2 text-xs">({positions.length} jabatan, {employees.length} pegawai)</span>
+          <TabsList className="w-full">
+            <TabsTrigger value="asn" className="flex-1 min-w-0">
+              <span className="hidden sm:inline">Peta Jabatan ASN</span>
+              <span className="sm:hidden">ASN</span>
+              <span className="ml-1.5 text-xs hidden md:inline">({positions.length} jabatan, {employees.length} pegawai)</span>
             </TabsTrigger>
-            <TabsTrigger value="non-asn">
-              Formasi Non-ASN
-              <span className="ml-2 text-xs">
+            <TabsTrigger value="non-asn" className="flex-1 min-w-0">
+              <span className="hidden sm:inline">Formasi Non-ASN</span>
+              <span className="sm:hidden">Non-ASN</span>
+              <span className="ml-1.5 text-xs hidden md:inline">
                 ({(() => {
                   const uniquePositions = new Set(nonAsnEmployees.map(e => e.position_name || 'Tidak Ada Jabatan'));
                   return uniquePositions.size;
                 })()} jabatan, {nonAsnEmployees.length} pegawai)
               </span>
             </TabsTrigger>
-            <TabsTrigger value="summary-asn">
-              Summary ASN
+            <TabsTrigger value="summary-asn" className="flex-1 min-w-0">
+              <span className="hidden sm:inline">Summary ASN</span>
+              <span className="sm:hidden">Sum. ASN</span>
             </TabsTrigger>
-            <TabsTrigger value="summary-non-asn">
-              Summary Non-ASN
+            <TabsTrigger value="summary-non-asn" className="flex-1 min-w-0">
+              <span className="hidden sm:inline">Summary Non-ASN</span>
+              <span className="sm:hidden">Sum. Non-ASN</span>
             </TabsTrigger>
           </TabsList>
 
