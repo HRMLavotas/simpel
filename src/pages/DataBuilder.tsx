@@ -56,7 +56,7 @@ type FilterableQuery = {
 const PAGE_SIZE = 50;
 const DEFAULT_SELECTED_COLUMNS: string[] = [];
 const FILTER_OPTIONS: Record<string, string[]> = {
-  asn_status: ['PNS', 'PPPK', 'Non ASN'],
+  asn_status: ['PNS', 'CPNS', 'PPPK', 'Non ASN'],
   position_type: ['Struktural', 'Fungsional', 'Pelaksana'],
   gender: ['Laki-laki', 'Perempuan'],
   religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],
@@ -69,7 +69,7 @@ const FILTER_OPTIONS: Record<string, string[]> = {
 };
 
 const getDefaultFilterOperator = (field: string): FilterRule['operator'] => {
-  return FILTER_OPTIONS[field] ? 'in' : 'ilike';
+  return (FILTER_OPTIONS[field] || field === 'department') ? 'in' : 'ilike';
 };
 
 const isFilterRuleActive = (filter: FilterRule) => {
@@ -196,8 +196,9 @@ export default function DataBuilder() {
       const batchSize = 1000;
 
       while (true) {
-        let q = supabase.from('employees').select(selectStr);
-        q = applyFilters(q as unknown as FilterableQuery) as typeof q;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let q: any = supabase.from('employees').select(selectStr);
+        q = applyFilters(q as FilterableQuery);
         // Admin Unit hanya bisa melihat data pegawai di unitnya sendiri
         if (isAdminUnit && profile?.department) {
           q = q.eq('department', profile.department);
@@ -297,7 +298,8 @@ export default function DataBuilder() {
           for (let offset = 0; offset < employeeIds.length; offset += RELATED_EXPORT_ID_CHUNK) {
             const chunk = employeeIds.slice(offset, offset + RELATED_EXPORT_ID_CHUNK);
             const { data: batch, error } = await supabase
-              .from(tableConfig.table)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .from(tableConfig.table as any)
               .select('*')
               .in('employee_id', chunk);
 
@@ -307,7 +309,7 @@ export default function DataBuilder() {
               break;
             }
             if (batch?.length) {
-              relatedMerged.push(...(batch as Record<string, unknown>[]));
+              relatedMerged.push(...(batch as unknown as Record<string, unknown>[]));
             }
           }
 

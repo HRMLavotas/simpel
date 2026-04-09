@@ -27,7 +27,7 @@ const OPERATORS = [
 ] as const;
 
 const FILTER_OPTIONS: Record<string, string[]> = {
-  asn_status: ['PNS', 'PPPK', 'Non ASN'],
+  asn_status: ['PNS', 'CPNS', 'PPPK', 'Non ASN'],
   position_type: ['Struktural', 'Fungsional', 'Pelaksana'],
   gender: ['Laki-laki', 'Perempuan'],
   religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],

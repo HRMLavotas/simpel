@@ -43,8 +43,8 @@ export interface QueryTemplate {
 export const SYSTEM_TEMPLATES: QueryTemplate[] = [
   {
     id: 'asn-aktif',
-    name: 'ASN Aktif (PNS + PPPK)',
-    description: 'Semua pegawai ASN aktif (PNS dan PPPK) dengan data lengkap',
+    name: 'ASN Aktif (PNS + CPNS + PPPK)',
+    description: 'Semua pegawai ASN aktif (PNS, CPNS, dan PPPK) dengan data lengkap',
     type: 'system',
     columns: ['name', 'nip', 'asn_status', 'department', 'position_name', 'position_type', 'rank_group'],
     filters: [
@@ -54,7 +54,7 @@ export const SYSTEM_TEMPLATES: QueryTemplate[] = [
         field: 'asn_status',
         operator: 'in',
         value: '',
-        values: ['PNS', 'PPPK'],
+        values: ['PNS', 'CPNS', 'PPPK'],
       },
     ],
     relatedTables: ['education_history', 'position_history', 'rank_history'],

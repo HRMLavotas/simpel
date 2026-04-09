@@ -29,7 +29,7 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'religion', label: 'Agama', dbField: 'religion', category: 'identity' },
   
   // Position & Employment Status
-  { key: 'asn_status', label: 'Status ASN', dbField: 'asn_status', category: 'employment', description: 'PNS, PPPK, atau Non ASN' },
+  { key: 'asn_status', label: 'Status ASN', dbField: 'asn_status', category: 'employment', description: 'PNS, CPNS, PPPK, atau Non ASN' },
   { key: 'rank_group', label: 'Pangkat/Golongan', dbField: 'rank_group', category: 'employment', description: 'Contoh: III/a, IV/b' },
   { key: 'position_type', label: 'Jenis Jabatan', dbField: 'position_type', category: 'position', description: 'Struktural, Fungsional, atau Pelaksana' },
   { key: 'position_sk', label: 'Jabatan Sesuai SK', dbField: 'position_sk', category: 'position', description: 'Jabatan spesifik/tugas aktual pegawai' },
