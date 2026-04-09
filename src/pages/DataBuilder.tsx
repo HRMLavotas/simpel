@@ -11,6 +11,7 @@ import { RelatedDataSelector, RELATED_DATA_TABLES } from '@/components/data-buil
 import { QueryTemplates, QueryTemplate } from '@/components/data-builder/QueryTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -106,6 +107,8 @@ const buildFiltersForSelectedColumns = (selectedColumns: string[], existingFilte
 
 export default function DataBuilder() {
   const { toast } = useToast();
+  const { profile, role } = useAuth();
+  const isAdminUnit = role === 'admin_unit';
   const [selectedColumns, setSelectedColumns] = useState<string[]>(DEFAULT_SELECTED_COLUMNS);
   const [selectedRelatedTables, setSelectedRelatedTables] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterRule[]>(() => buildFiltersForSelectedColumns(DEFAULT_SELECTED_COLUMNS));
@@ -195,6 +198,10 @@ export default function DataBuilder() {
       while (true) {
         let q = supabase.from('employees').select(selectStr);
         q = applyFilters(q as unknown as FilterableQuery) as typeof q;
+        // Admin Unit hanya bisa melihat data pegawai di unitnya sendiri
+        if (isAdminUnit && profile?.department) {
+          q = q.eq('department', profile.department);
+        }
         q = q.range(offset, offset + batchSize - 1).order('name');
         const { data: batch, error } = await q;
         if (error) throw error;
