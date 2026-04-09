@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { ROLE_LABELS } from '@/lib/constants';
+import { useSidebarContext } from '@/contexts/SidebarContext';
 
 interface NavItem {
   label: string;
@@ -34,7 +35,7 @@ interface AppSidebarProps {
 export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const location = useLocation();
   const { profile, signOut, isAdminPusat, isAdminPimpinan, role } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebarContext();
   const filteredNavItems = navItems.filter(item => {
     // Hide admin-only items for non-admin-pusat
     if (item.adminPusatOnly && !isAdminPusat) return false;
