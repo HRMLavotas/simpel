@@ -1524,7 +1524,7 @@ export default function PetaJabatan() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder={canViewAll ? "Cari unit kerja atau jabatan..." : "Cari jabatan..."}
+                    placeholder={canViewAll ? "Cari unit kerja, jabatan, atau nama pegawai..." : "Cari jabatan atau nama pegawai..."}
                     value={summarySearchQuery}
                     onChange={(e) => setSummarySearchQuery(e.target.value)}
                     className="pl-10 pr-8"
@@ -2007,7 +2007,7 @@ export default function PetaJabatan() {
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder={canViewAll ? "Cari unit kerja atau jabatan..." : "Cari jabatan..."}
+                      placeholder={canViewAll ? "Cari unit kerja, jabatan, atau nama pegawai..." : "Cari jabatan atau nama pegawai..."}
                       value={summaryNonAsnSearchQuery}
                       onChange={(e) => setSummaryNonAsnSearchQuery(e.target.value)}
                       className="pl-10 pr-8"
