@@ -277,29 +277,63 @@
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Responsive Text Utilities */
+  /* Responsive Text Utilities - Mobile First */
   .text-responsive-xs {
-    @apply text-[10px] sm:text-xs;
+    @apply text-[10px] sm:text-[11px] md:text-xs lg:text-sm;
   }
 
   .text-responsive-sm {
-    @apply text-xs sm:text-sm;
+    @apply text-xs sm:text-sm md:text-base lg:text-base;
   }
 
   .text-responsive-base {
-    @apply text-sm sm:text-base;
+    @apply text-sm sm:text-base md:text-base lg:text-lg;
   }
 
   .text-responsive-lg {
-    @apply text-base sm:text-lg md:text-xl;
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl;
   }
 
   .text-responsive-xl {
-    @apply text-lg sm:text-xl md:text-2xl;
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
   }
 
   .text-responsive-2xl {
-    @apply text-xl sm:text-2xl md:text-3xl;
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  .text-responsive-3xl {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  /* Responsive font weights */
+  .font-responsive-normal {
+    @apply font-normal sm:font-normal md:font-normal;
+  }
+
+  .font-responsive-medium {
+    @apply font-medium sm:font-medium md:font-semibold;
+  }
+
+  .font-responsive-semibold {
+    @apply font-semibold sm:font-semibold md:font-bold;
+  }
+
+  .font-responsive-bold {
+    @apply font-bold sm:font-bold md:font-bold;
+  }
+
+  /* Responsive line heights */
+  .leading-responsive-tight {
+    @apply leading-tight sm:leading-tight md:leading-normal;
+  }
+
+  .leading-responsive-normal {
+    @apply leading-normal sm:leading-normal md:leading-relaxed;
+  }
+
+  .leading-responsive-relaxed {
+    @apply leading-relaxed sm:leading-relaxed md:leading-loose;
   }
 
   /* Responsive Spacing */
@@ -350,28 +384,46 @@
 
   /* Mobile-friendly table */
   .table-mobile-card {
-    @apply block sm:table;
+    @apply block sm:table w-full;
   }
 
   .table-mobile-card thead {
-    @apply hidden sm:table-header-group;
+    @apply hidden sm:table-header-group bg-muted/50;
+  }
+
+  .table-mobile-card thead th {
+    @apply bg-muted/50 px-3 py-3 sm:py-2 text-left text-xs font-semibold uppercase tracking-wider;
   }
 
   .table-mobile-card tbody {
-    @apply block sm:table-row-group;
+    @apply block sm:table-row-group divide-y;
   }
 
-  .table-mobile-card tr {
-    @apply block sm:table-row mb-4 sm:mb-0 border sm:border-0 rounded-lg sm:rounded-none;
+  .table-mobile-card tbody tr {
+    @apply block sm:table-row mb-4 sm:mb-0 border border-border rounded-lg sm:rounded-none overflow-hidden sm:overflow-visible bg-card;
+  }
+
+  .table-mobile-card tbody tr:hover {
+    @apply sm:bg-muted/30 bg-muted/20;
   }
 
   .table-mobile-card td {
-    @apply block sm:table-cell text-right sm:text-left;
+    @apply block sm:table-cell px-4 py-3 sm:py-2 text-sm border-b sm:border-b-0 sm:border-r last:border-b-0 sm:last:border-r-0;
   }
 
   .table-mobile-card td::before {
     content: attr(data-label);
-    @apply float-left font-semibold sm:hidden;
+    @apply font-semibold text-muted-foreground sm:hidden block mb-1 text-xs uppercase tracking-wide;
+  }
+
+  /* Better spacing for mobile cards */
+  .table-mobile-card tr:not(:last-child) {
+    @apply sm:border-b;
+  }
+
+  /* Ensure last column actions are properly aligned */
+  .table-mobile-card td:last-child {
+    @apply flex items-center justify-end gap-2;
   }
 }
 
@@ -383,5 +435,79 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile landscape optimization */
+@media (max-height: 600px) and (orientation: landscape) {
+  /* Reduce padding/margin on landscape mobile */
+  .page-header {
+    @apply gap-2;
+  }
+
+  main {
+    @apply p-2 sm:p-3;
+  }
+
+  header {
+    @apply h-12 sm:h-14;
+  }
+
+  /* Reduce form spacing in landscape */
+  .space-y-4 {
+    @apply space-y-2;
+  }
+
+  .space-y-6 {
+    @apply space-y-3;
+  }
+
+  /* More compact button sizing in landscape */
+  .h-14,
+  .h-16 {
+    @apply h-12;
+  }
+
+  /* Reduce card padding */
+  .stat-card {
+    @apply p-3 sm:p-4;
+  }
+
+  /* Reduce modal padding */
+  .dialog-content {
+    @apply max-h-[95vh];
+  }
+}
+
+/* Extra small device support (< 375px) */
+@media (max-width: 375px) {
+  .page-title {
+    @apply text-lg;
+  }
+
+  .text-xs {
+    @apply text-[10px];
+  }
+
+  /* Ensure buttons are still touch-friendly */
+  button {
+    @apply min-h-[44px];
+  }
+
+  /* Reduce horizontal padding on very small screens */
+  .px-4,
+  .px-6 {
+    @apply px-2;
+  }
+
+  /* Stack filters on extra small devices */
+  .flex.gap-4 {
+    @apply flex-col gap-2;
+  }
+
+  /* Ensure select/input width is manageable */
+  select,
+  input {
+    @apply w-full;
   }
 }
