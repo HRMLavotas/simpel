@@ -245,6 +245,15 @@ export default function DataBuilder() {
       return;
     }
 
+    // Validate admin_unit can only export their own department data
+    if (isAdminUnit && profile?.department) {
+      const hasOtherDept = allData.some(row => row.department && row.department !== profile.department);
+      if (hasOtherDept) {
+        toast({ title: 'Akses ditolak', description: 'Anda hanya dapat mengexport data unit kerja Anda sendiri.', variant: 'destructive' });
+        return;
+      }
+    }
+
     setIsExporting(true);
     try {
       const wb = XLSX.utils.book_new();

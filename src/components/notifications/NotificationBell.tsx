@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Check, CheckCheck, Users, UserPlus, UserMinus, ArrowRightLeft } from 'lucide-react';
+import { Bell, CheckCheck, Users, UserPlus, UserMinus, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -19,7 +19,7 @@ const TYPE_CONFIG: Record<Notification['type'], { icon: React.ElementType; color
 };
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
 
   const handleOpen = (val: boolean) => {
@@ -67,7 +67,12 @@ export function NotificationBell() {
 
         {/* List */}
         <div className="max-h-[400px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
+              <p className="text-xs text-muted-foreground">Memuat notifikasi...</p>
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Bell className="h-8 w-8 text-muted-foreground/40 mb-2" />
               <p className="text-sm text-muted-foreground">Belum ada notifikasi</p>

@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface Notification {
   id: string;
+  recipient_role: string;
+  recipient_department: string | null;
   type: 'employee_created' | 'employee_updated' | 'employee_deleted' | 'mutation_in';
   title: string;
   message: string;
@@ -45,16 +47,30 @@ export function useNotifications() {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
     );
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    if (error) {
+      // Revert optimistic update on failure
+      setNotifications(prev =>
+        prev.map(n => (n.id === id ? { ...n, is_read: false } : n))
+      );
+    }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
+    if (unreadIds.length === 0) return;
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('is_read', false);
-  }, []);
+      .in('id', unreadIds);
+    if (error) {
+      // Revert on failure
+      setNotifications(prev =>
+        prev.map(n => unreadIds.includes(n.id) ? { ...n, is_read: false } : n)
+      );
+    }
+  }, [notifications]);
 
   // Real-time subscription
   useEffect(() => {
@@ -101,41 +117,40 @@ export async function createNotification(params: {
   actor_id?: string;
   actor_name?: string;
   actor_department?: string;
-  // For mutation_in: the new department that receives the employee
   target_department?: string;
 }) {
-  const notificationsToInsert: Record<string, unknown>[] = [];
+  type NotifInsert = {
+    recipient_role: string;
+    recipient_department: string | null;
+    type: string;
+    title: string;
+    message: string;
+    employee_id: string | null;
+    employee_name: string | null;
+    actor_id: string | null;
+    actor_name: string | null;
+    actor_department: string | null;
+  };
+
+  const notificationsToInsert: NotifInsert[] = [];
+
+  const base: Omit<NotifInsert, 'recipient_role' | 'recipient_department'> = {
+    type: params.type,
+    title: params.title,
+    message: params.message,
+    employee_id: params.employee_id || null,
+    employee_name: params.employee_name || null,
+    actor_id: params.actor_id || null,
+    actor_name: params.actor_name || null,
+    actor_department: params.actor_department || null,
+  };
 
   if (params.type === 'mutation_in') {
-    // Notify the admin_unit of the receiving department
     if (params.target_department) {
-      notificationsToInsert.push({
-        recipient_role: 'admin_unit',
-        recipient_department: params.target_department,
-        type: params.type,
-        title: params.title,
-        message: params.message,
-        employee_id: params.employee_id || null,
-        employee_name: params.employee_name || null,
-        actor_id: params.actor_id || null,
-        actor_name: params.actor_name || null,
-        actor_department: params.actor_department || null,
-      });
+      notificationsToInsert.push({ ...base, recipient_role: 'admin_unit', recipient_department: params.target_department });
     }
   } else {
-    // Notify admin_pusat for all employee changes by admin_unit
-    notificationsToInsert.push({
-      recipient_role: 'admin_pusat',
-      recipient_department: null,
-      type: params.type,
-      title: params.title,
-      message: params.message,
-      employee_id: params.employee_id || null,
-      employee_name: params.employee_name || null,
-      actor_id: params.actor_id || null,
-      actor_name: params.actor_name || null,
-      actor_department: params.actor_department || null,
-    });
+    notificationsToInsert.push({ ...base, recipient_role: 'admin_pusat', recipient_department: null });
   }
 
   if (notificationsToInsert.length > 0) {
