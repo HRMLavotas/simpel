@@ -1,150 +1,316 @@
-# Perbaikan UI Peta Jabatan
+# ✅ UI/UX Improvements - Peta Jabatan
 
-## Status: ✅ SELESAI
+## Status: SELESAI
 
 ## Perubahan yang Dilakukan
 
-### 1. Tombol Aksi dengan Dropdown Menu (Tab ASN)
+### 1. Reposisi Tombol Export
 
 #### Sebelum:
-- Tombol Edit dan Hapus ditampilkan secara terpisah (2 tombol kecil)
-- Kurang konsisten dengan menu lain
+```
+┌─────────────────────────────────────────────────────┐
+│ Page Header                                         │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Peta Jabatan                                    │ │
+│ │ [Dropdown Unit] [Refresh] [Export] [+ Tambah]  │ │ ← Export di sini
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Tab: ASN | Non-ASN | Summary                    │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Card Header                                     │ │
+│ │ Title                          [Search Input]   │ │
+│ └─────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
 
 #### Sesudah:
-- Menggunakan icon MoreVertical (3 titik vertikal)
-- Dropdown menu dengan opsi:
-  - "Edit Jabatan" (dengan icon Pencil)
-  - "Hapus" (dengan icon Trash2, warna merah)
-- Konsisten dengan implementasi di menu Data Pegawai dan menu lainnya
+```
+┌─────────────────────────────────────────────────────┐
+│ Page Header                                         │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Peta Jabatan                                    │ │
+│ │ [Dropdown Unit] [Refresh] [+ Tambah]           │ │ ← Export dihapus
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Tab: ASN | Non-ASN | Summary                    │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Card Header                                     │ │
+│ │ Title              [Search Input] [Export ASN]  │ │ ← Export di sini
+│ └─────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
 
-### 2. Tombol Aksi di Tab Non-ASN (BARU!)
+### 2. Penambahan Search di Tab Non-ASN
 
-#### Implementasi:
-- Menambahkan kolom "Aksi" di tab Non-ASN
-- Dropdown menu dengan icon MoreVertical untuk setiap pegawai
-- Opsi yang tersedia:
-  - "Edit Pegawai" → Mengarahkan ke menu Data Pegawai (dengan toast info)
-  - "Hapus" → Menghapus pegawai Non-ASN langsung dari Peta Jabatan
-- Hanya muncul untuk Admin Pusat
+#### Sebelum:
+```
+┌─────────────────────────────────────────────────────┐
+│ Tab: Non-ASN                                        │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Formasi Non-ASN - Unit          [Export Non-ASN]│ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ [Table dengan semua data]                          │
+└─────────────────────────────────────────────────────┘
+```
 
-### 3. Handler Functions untuk Non-ASN
+#### Sesudah:
+```
+┌─────────────────────────────────────────────────────┐
+│ Tab: Non-ASN                                        │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ Formasi Non-ASN - Unit                          │ │
+│ │                    [Search Input] [Export]      │ │ ← Search ditambahkan
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ [Table dengan data ter-filter]                     │
+└─────────────────────────────────────────────────────┘
+```
 
+## Detail Perubahan
+
+### Tab Peta Jabatan ASN
+
+**Layout CardHeader:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Setditjen Binalavotas (36 jabatan, 52 pegawai ASN)          │
+│                                                              │
+│ [🔍 Cari jabatan atau nama pegawai...] [📥 Export ASN]      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Fitur:**
+- Search input: 64 karakter width (sm breakpoint)
+- Export button: di sebelah kanan search
+- Responsive: stack vertical di mobile
+- Clear button (X) muncul saat ada text
+
+### Tab Formasi Non-ASN
+
+**Layout CardHeader:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Formasi Non-ASN - Setditjen Binalavotas (15 pegawai)        │
+│                                                              │
+│ [🔍 Cari jabatan atau nama pegawai...] [📥 Export Non-ASN]  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Fitur:**
+- Search input: BARU! Filter by jabatan, nama, NIP
+- Export button: di sebelah kanan search
+- Responsive: stack vertical di mobile
+- Clear button (X) muncul saat ada text
+- Empty state: "Tidak ada hasil untuk {query}"
+
+### Tab Summary Semua Unit
+
+**Layout CardHeader:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Summary Peta Jabatan ASN - Semua Unit Kerja                 │
+│                                                [📥 Export]    │
+│                                                              │
+│ [🔍 Search] [Filter Kategori ▼] [Filter Status ▼]           │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Fitur:**
+- Export button: di kanan atas (di atas filters)
+- Filters: search, kategori, status
+- Responsive: filters stack vertical di mobile
+
+## Konsistensi UI
+
+### Pattern yang Digunakan
+
+**Semua Tab mengikuti pattern:**
 ```typescript
-const handleEditNonAsnEmployee = (employee: EmployeeMatch) => {
-  // Redirect to Data Pegawai page with employee ID
-  toast({ 
-    title: 'Info', 
-    description: 'Untuk mengedit pegawai Non-ASN, silakan buka menu Data Pegawai → Tab Non-ASN',
-    duration: 5000
-  });
-};
-
-const handleDeleteNonAsnEmployee = async (employee: EmployeeMatch) => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus pegawai ${employee.name}?`)) {
-    return;
-  }
-
-  try {
-    const { error } = await supabase.from('employees').delete().eq('id', employee.id);
-    if (error) throw error;
-    toast({ title: 'Berhasil', description: 'Pegawai Non-ASN berhasil dihapus' });
-    fetchData();
-  } catch (err: any) {
-    toast({ variant: 'destructive', title: 'Error', description: err.message });
-  }
-};
+<CardHeader>
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <CardTitle>...</CardTitle>
+    
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+      {/* Search/Filters */}
+      <div className="relative w-full sm:w-64">...</div>
+      
+      {/* Export Button */}
+      <Button variant="outline" className="whitespace-nowrap">
+        <Download /> Export
+      </Button>
+    </div>
+  </div>
+</CardHeader>
 ```
 
-### 4. Import yang Ditambahkan
+### Responsive Behavior
 
+**Desktop (≥640px):**
+- Title di kiri, controls di kanan
+- Search dan Export button horizontal
+- Search width: 256px (w-64)
+
+**Mobile (<640px):**
+- Title di atas
+- Controls di bawah (full width)
+- Search dan Export button vertical stack
+- Search width: 100%
+
+## Search Functionality
+
+### Tab ASN
 ```typescript
-import { MoreVertical } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+// Search in:
+- Position name (jabatan)
+- Employee name (nama pegawai)
+- NIP
 ```
 
-### 5. Struktur Tabel Non-ASN
+### Tab Non-ASN (NEW)
+```typescript
+// Search in:
+- Position name (jabatan)
+- Employee name (nama pegawai)
+- NIP
 
-```tsx
-<TableHeader>
-  <TableRow>
-    <TableHead className="w-12">No</TableHead>
-    <TableHead>Jabatan</TableHead>
-    <TableHead className="w-24 text-center">Formasi</TableHead>
-    <TableHead className="w-24 text-center">Existing</TableHead>
-    <TableHead>Nama Pemangku</TableHead>
-    <TableHead className="w-40">Type Non ASN</TableHead>
-    <TableHead className="w-32">Status</TableHead>
-    {isAdminPusat && <TableHead className="w-20">Aksi</TableHead>}
-  </TableRow>
-</TableHeader>
+// Filter logic:
+const filteredEmployees = nonAsnEmployees.filter(emp => {
+  if (!nonAsnSearchQuery) return true;
+  const query = nonAsnSearchQuery.toLowerCase();
+  
+  if (emp.position_name?.toLowerCase().includes(query)) return true;
+  
+  const fullName = [emp.front_title, emp.name, emp.back_title]
+    .filter(Boolean).join(' ').toLowerCase();
+  if (fullName.includes(query)) return true;
+  
+  if (emp.nip?.includes(query)) return true;
+  
+  return false;
+});
 ```
 
-## Perbedaan Tab ASN vs Tab Non-ASN
+### Tab Summary
+```typescript
+// Search in:
+- Unit kerja (department)
+- Nama jabatan (position name)
 
-### Tab ASN:
-- Edit/Hapus → Mengelola data di tabel `position_references`
-- Edit: Membuka modal untuk edit nama jabatan, grade, ABK, dll
-- Hapus: Menghapus jabatan dari referensi Kepmen 202/2024
+// Additional filters:
+- Kategori: Struktural, Fungsional, Pelaksana
+- Status: Kurang, Sesuai, Lebih
+```
 
-### Tab Non-ASN:
-- Edit → Mengarahkan ke menu Data Pegawai (karena perlu form lengkap)
-- Hapus → Menghapus pegawai dari tabel `employees`
-- Data formasi otomatis ter-update setelah hapus pegawai
+## Benefits
 
-## Fitur yang Berfungsi
+### 1. Konsistensi
+- Semua tombol export di lokasi yang sama (CardHeader)
+- Pattern yang sama untuk semua tab
+- User tidak perlu mencari tombol export di tempat berbeda
 
-✅ Dropdown menu dengan icon MoreVertical di tab ASN
-✅ Dropdown menu dengan icon MoreVertical di tab Non-ASN
-✅ Opsi "Edit Jabatan" di tab ASN membuka modal edit
-✅ Opsi "Edit Pegawai" di tab Non-ASN menampilkan toast info
-✅ Opsi "Hapus" di tab ASN menghapus jabatan
-✅ Opsi "Hapus" di tab Non-ASN menghapus pegawai dengan konfirmasi
-✅ Styling konsisten dengan menu lain (warna merah untuk hapus)
-✅ Kolom Aksi hanya muncul untuk Admin Pusat
-✅ Real-time update saat ada perubahan data
+### 2. Konteks yang Jelas
+- Export button dekat dengan data yang akan di-export
+- User tahu data mana yang akan di-export
+- Tidak ada ambiguitas
 
-## Testing Checklist
+### 3. Better UX
+- Page header lebih bersih (hanya controls global)
+- CardHeader berisi controls spesifik untuk tab tersebut
+- Logical grouping: search + export
 
-### Tab ASN:
-- [ ] Buka menu Peta Jabatan → Tab ASN
-- [ ] Verifikasi icon 3 titik (MoreVertical) di kolom Aksi
-- [ ] Klik icon 3 titik, verifikasi dropdown menu muncul
-- [ ] Klik "Edit Jabatan", verifikasi modal edit terbuka
-- [ ] Klik "Hapus", verifikasi jabatan terhapus
+### 4. Fitur Pencarian Non-ASN
+- User bisa filter data Non-ASN dengan mudah
+- Konsisten dengan tab ASN yang sudah ada search
+- Meningkatkan produktivitas
 
-### Tab Non-ASN:
-- [ ] Buka menu Peta Jabatan → Tab Non-ASN
-- [ ] Verifikasi kolom "Aksi" muncul (jika Admin Pusat)
-- [ ] Verifikasi icon 3 titik di setiap baris pegawai
-- [ ] Klik icon 3 titik, verifikasi dropdown menu muncul
-- [ ] Klik "Edit Pegawai", verifikasi toast info muncul
-- [ ] Klik "Hapus", verifikasi konfirmasi muncul
-- [ ] Konfirmasi hapus, verifikasi pegawai terhapus
-- [ ] Verifikasi formasi berkurang otomatis setelah hapus
+### 5. Responsive Design
+- Layout optimal di desktop dan mobile
+- Controls tidak overlap
+- Touch-friendly di mobile
 
-## File yang Dimodifikasi
+## Testing Points
 
-- `src/pages/PetaJabatan.tsx`
+### Visual Testing
+- [ ] Tombol export tidak ada di page-header
+- [ ] Tombol export ada di CardHeader setiap tab
+- [ ] Search input ada di tab ASN dan Non-ASN
+- [ ] Layout rapi di desktop (≥640px)
+- [ ] Layout rapi di mobile (<640px)
+- [ ] Clear button (X) muncul saat ada text
+- [ ] Spacing konsisten antar elemen
 
-## Catatan Implementasi
+### Functional Testing
+- [ ] Search di tab ASN berfungsi
+- [ ] Search di tab Non-ASN berfungsi (NEW)
+- [ ] Clear button menghapus search query
+- [ ] Export button di tab ASN berfungsi
+- [ ] Export button di tab Non-ASN berfungsi
+- [ ] Export button di tab Summary berfungsi
+- [ ] Empty state muncul saat tidak ada hasil search
 
-1. **Konsistensi UI**: Dropdown menu dengan MoreVertical sekarang digunakan di:
-   - Menu Data Pegawai
-   - Menu Peta Jabatan (tab ASN dan Non-ASN)
-   - Menu Departments
-   - Menu lainnya
+### Responsive Testing
+- [ ] Desktop: controls horizontal
+- [ ] Mobile: controls vertical stack
+- [ ] Tablet: transisi smooth
+- [ ] Touch: button size adequate (44x44px minimum)
 
-2. **Edit Non-ASN**: Mengarahkan ke menu Data Pegawai karena form edit Non-ASN memerlukan banyak field (NIK, Jabatan, Pendidikan, dll)
+## Code Changes Summary
 
-3. **Hapus Non-ASN**: Langsung menghapus dari Peta Jabatan dengan konfirmasi, formasi otomatis ter-update
+### State
+```typescript
+// Added
+const [nonAsnSearchQuery, setNonAsnSearchQuery] = useState('');
+```
 
-4. **Permission**: Kolom Aksi hanya muncul untuk Admin Pusat (`isAdminPusat`)
+### Page Header
+```typescript
+// Removed
+<Button onClick={handleExportASN}>Export</Button>
+```
 
-5. **Hard Refresh**: Setelah perubahan, lakukan hard refresh (Ctrl+Shift+R) untuk clear cache
+### Tab ASN CardHeader
+```typescript
+// Modified: Added export button
+<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+  <div className="relative w-full sm:w-64">{/* Search */}</div>
+  <Button onClick={handleExportASN}>Export ASN</Button>
+</div>
+```
+
+### Tab Non-ASN CardHeader
+```typescript
+// Added: Search input + export button
+<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+  <div className="relative w-full sm:w-64">{/* Search */}</div>
+  <Button onClick={handleExportNonASN}>Export Non-ASN</Button>
+</div>
+```
+
+### Tab Non-ASN Table Body
+```typescript
+// Added: Filter logic
+const filteredEmployees = nonAsnEmployees.filter(emp => {
+  // Search logic
+});
+
+// Added: Empty state for no results
+if (filteredEmployees.length === 0) {
+  return <TableRow>
+    <TableCell>
+      {nonAsnSearchQuery 
+        ? `Tidak ada hasil untuk "${nonAsnSearchQuery}"`
+        : 'Belum ada data pegawai Non-ASN di unit kerja ini.'}
+    </TableCell>
+  </TableRow>;
+}
+```
+
+## Status
+✅ **SELESAI** - Semua perubahan UI/UX sudah diimplementasikan dan siap untuk testing

@@ -50,6 +50,7 @@ interface EmployeeMatch {
   rank_group?: string | null;
   gender: string | null;
   position_name?: string | null;
+  department?: string | null;
   keterangan_formasi?: string | null;
   keterangan_penempatan?: string | null;
   keterangan_penugasan?: string | null;
@@ -79,7 +80,7 @@ export default function PetaJabatan() {
     return '';
   }, [canViewAll, profile?.department]);
 
-  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn' | 'summary'>('asn');
+  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn' | 'summary-asn' | 'summary-non-asn'>('asn');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('Setditjen Binalavotas'); // Always start with Setditjen Binalavotas
   const [positions, setPositions] = useState<PositionReference[]>([]);
   const [employees, setEmployees] = useState<EmployeeMatch[]>([]);
@@ -92,6 +93,7 @@ export default function PetaJabatan() {
   // Summary data for all departments
   const [allPositions, setAllPositions] = useState<PositionReference[]>([]);
   const [allEmployees, setAllEmployees] = useState<EmployeeMatch[]>([]);
+  const [allNonAsnEmployees, setAllNonAsnEmployees] = useState<EmployeeMatch[]>([]);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
   // Collapse state for each category
@@ -103,11 +105,15 @@ export default function PetaJabatan() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  const [nonAsnSearchQuery, setNonAsnSearchQuery] = useState('');
 
   // Summary tab filters
   const [summarySearchQuery, setSummarySearchQuery] = useState('');
   const [summaryFilterCategory, setSummaryFilterCategory] = useState<string>('all');
   const [summaryFilterStatus, setSummaryFilterStatus] = useState<string>('all');
+  
+  // Summary Non-ASN filters
+  const [summaryNonAsnSearchQuery, setSummaryNonAsnSearchQuery] = useState('');
   
   // Expandable rows state for summary per jabatan
   const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
@@ -139,7 +145,7 @@ export default function PetaJabatan() {
 
   // Fetch summary data when summary tab is active
   useEffect(() => {
-    if (activeTab === 'summary') {
+    if (activeTab === 'summary-asn' || activeTab === 'summary-non-asn') {
       fetchSummaryData();
     }
   }, [activeTab]);
@@ -296,7 +302,7 @@ export default function PetaJabatan() {
   const fetchSummaryData = async () => {
     setIsSummaryLoading(true);
     try {
-      logger.debug('Fetching summary data for all departments');
+      logger.debug('Fetching summary data', { canViewAll, department: profile?.department });
       
       // Helper to fetch all records without 1000-row limit
       const fetchAllUnlimited = async (buildQuery: () => any) => {
@@ -314,29 +320,62 @@ export default function PetaJabatan() {
         return { data: allData, error: null };
       };
 
-      const [allPosRes, allEmpRes] = await Promise.all([
-        fetchAllUnlimited(() =>
-          supabase
+      // For Admin Unit, only fetch their department data
+      // For Admin Pusat/Pimpinan, fetch all departments
+      const [allPosRes, allEmpRes, allNonAsnRes] = await Promise.all([
+        fetchAllUnlimited(() => {
+          let query = supabase
             .from('position_references')
-            .select('*')
+            .select('*');
+          
+          // Filter by department for Admin Unit
+          if (!canViewAll && profile?.department) {
+            query = query.eq('department', profile.department);
+          }
+          
+          return query
             .order('department')
             .order('position_category')
-            .order('position_order')
-        ),
-        fetchAllUnlimited(() =>
-          supabase
+            .order('position_order');
+        }),
+        fetchAllUnlimited(() => {
+          let query = supabase
             .from('employees')
             .select('id, name, department, position_name, asn_status')
-            .or('asn_status.is.null,asn_status.neq.Non ASN')
-        ),
+            .or('asn_status.is.null,asn_status.neq.Non ASN');
+          
+          // Filter by department for Admin Unit
+          if (!canViewAll && profile?.department) {
+            query = query.eq('department', profile.department);
+          }
+          
+          return query;
+        }),
+        fetchAllUnlimited(() => {
+          let query = supabase
+            .from('employees')
+            .select('id, name, department, position_name, rank_group')
+            .eq('asn_status', 'Non ASN');
+          
+          // Filter by department for Admin Unit
+          if (!canViewAll && profile?.department) {
+            query = query.eq('department', profile.department);
+          }
+          
+          return query;
+        }),
       ]);
 
       setAllPositions(allPosRes.data || []);
       setAllEmployees((allEmpRes.data || []) as EmployeeMatch[]);
+      setAllNonAsnEmployees((allNonAsnRes.data || []) as EmployeeMatch[]);
       
       logger.debug('Summary data loaded:', {
         positions: allPosRes.data?.length || 0,
-        employees: allEmpRes.data?.length || 0
+        employees: allEmpRes.data?.length || 0,
+        nonAsnEmployees: allNonAsnRes.data?.length || 0,
+        canViewAll,
+        department: profile?.department
       });
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
@@ -515,7 +554,7 @@ export default function PetaJabatan() {
     });
   };
 
-  const handleExport = () => {
+  const handleExportASN = () => {
     const rows: Record<string, string | number>[] = [];
     let no = 1;
 
@@ -530,7 +569,7 @@ export default function PetaJabatan() {
         'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
       });
 
-      const catPositions = groupedPositions[category] || [];
+      const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
         const matched = getMatchingEmployees(pos.position_name);
         const existing = matched.length;
@@ -586,8 +625,355 @@ export default function PetaJabatan() {
       { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 },
       { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, 'Peta Jabatan');
-    XLSX.writeFile(wb, `Peta_Jabatan_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Peta Jabatan ASN');
+    XLSX.writeFile(wb, `Peta_Jabatan_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
+    
+    toast({ title: 'Berhasil', description: `Data Peta Jabatan ASN berhasil di-export (${rows.length - POSITION_CATEGORIES.length} baris data)` });
+  };
+
+  const handleExportNonASN = () => {
+    const rows: Record<string, string | number>[] = [];
+    
+    // Group employees by position_name
+    const groupedByPosition: Record<string, EmployeeMatch[]> = {};
+    nonAsnEmployees.forEach(emp => {
+      const position = emp.position_name || 'Tidak Ada Jabatan';
+      if (!groupedByPosition[position]) {
+        groupedByPosition[position] = [];
+      }
+      groupedByPosition[position].push(emp);
+    });
+
+    let no = 1;
+    Object.entries(groupedByPosition).forEach(([position, employees]) => {
+      const formasi = employees.length;
+      const existing = employees.length;
+
+      employees.forEach((emp, idx) => {
+        const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
+        rows.push({
+          'No': idx === 0 ? no++ : '',
+          'Jabatan': idx === 0 ? position : '',
+          'Formasi': idx === 0 ? formasi : '',
+          'Existing': idx === 0 ? existing : '',
+          'Nama Pemangku': fullName,
+          'NIP': emp.nip || '-',
+          'Type Non ASN': emp.rank_group || 'Tenaga Alih Daya',
+          'Jenis Kelamin': emp.gender || '-',
+          'Keterangan Penugasan': emp.keterangan_penugasan || '-',
+          'Status': idx === 0 ? 'Sesuai' : '',
+        });
+      });
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [
+      { wch: 5 }, { wch: 35 }, { wch: 10 }, { wch: 10 },
+      { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 14 },
+      { wch: 30 }, { wch: 12 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Formasi Non-ASN');
+    XLSX.writeFile(wb, `Formasi_Non_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
+    
+    toast({ title: 'Berhasil', description: `Data Formasi Non-ASN berhasil di-export (${rows.length} baris data)` });
+  };
+
+  const handleExportSummary = () => {
+    const wb = XLSX.utils.book_new();
+    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Sheet 1: Summary per Unit Kerja (only for Admin Pusat/Pimpinan)
+    if (canViewAll) {
+      const deptRows: Record<string, string | number>[] = [];
+      dynamicDepartments
+        .filter(d => d !== 'Pusat')
+        .forEach((dept, idx) => {
+          const deptPositions = allPositions.filter(p => p.department === dept);
+          const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
+          
+          const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
+          const totalExisting = allEmployees.filter(emp => 
+            emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
+          ).length;
+          
+          const gap = totalAbk - totalExisting;
+          const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
+          
+          deptRows.push({
+            'No': idx + 1,
+            'Unit Kerja': dept,
+            'Total Jabatan': deptPositions.length,
+            'Total ABK': totalAbk,
+            'Total Existing': totalExisting,
+            'Gap': gap,
+            '% Terisi': `${percentage}%`,
+            'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+          });
+        });
+
+      const ws1 = XLSX.utils.json_to_sheet(deptRows);
+      ws1['!cols'] = [
+        { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 12 },
+        { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
+      ];
+      XLSX.utils.book_append_sheet(wb, ws1, 'Summary per Unit');
+    }
+
+    // Sheet 2: Summary per Jabatan
+    const positionGroups = new Map<string, {
+      category: string;
+      displayName: string;
+      totalAbk: number;
+      totalExisting: number;
+    }>();
+
+    allPositions.forEach(pos => {
+      const normName = normalize(pos.position_name);
+      const existing = positionGroups.get(normName);
+      
+      if (existing) {
+        existing.totalAbk += pos.abk_count;
+      } else {
+        positionGroups.set(normName, {
+          category: pos.position_category,
+          displayName: pos.position_name,
+          totalAbk: pos.abk_count,
+          totalExisting: 0,
+        });
+      }
+    });
+
+    // Count existing employees per position
+    allEmployees.forEach(emp => {
+      if (emp.position_name) {
+        const normName = normalize(emp.position_name);
+        const group = positionGroups.get(normName);
+        if (group) {
+          group.totalExisting++;
+        }
+      }
+    });
+
+    const positionRows: Record<string, string | number>[] = [];
+    let posNo = 1;
+    
+    POSITION_CATEGORIES.forEach(category => {
+      const categoryPositions = Array.from(positionGroups.values())
+        .filter(p => p.category === category)
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+      categoryPositions.forEach(pos => {
+        const gap = pos.totalAbk - pos.totalExisting;
+        const percentage = pos.totalAbk > 0 ? ((pos.totalExisting / pos.totalAbk) * 100).toFixed(1) : '0';
+        
+        positionRows.push({
+          'No': posNo++,
+          'Kategori': pos.category,
+          'Nama Jabatan': pos.displayName,
+          'Total ABK': pos.totalAbk,
+          'Total Existing': pos.totalExisting,
+          'Gap': gap,
+          '% Terisi': `${percentage}%`,
+          'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+        });
+      });
+    });
+
+    const ws2 = XLSX.utils.json_to_sheet(positionRows);
+    ws2['!cols'] = [
+      { wch: 5 }, { wch: 15 }, { wch: 40 }, { wch: 12 },
+      { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary per Jabatan');
+
+    // Sheet 3: Summary per Kategori
+    const categoryRows: Record<string, string | number>[] = [];
+    POSITION_CATEGORIES.forEach((category, idx) => {
+      const categoryPositions = allPositions.filter(p => p.position_category === category);
+      const totalAbk = categoryPositions.reduce((sum, p) => sum + p.abk_count, 0);
+      
+      const positionNames = new Set(categoryPositions.map(p => normalize(p.position_name)));
+      const totalExisting = allEmployees.filter(emp => 
+        emp.position_name && positionNames.has(normalize(emp.position_name))
+      ).length;
+      
+      const gap = totalAbk - totalExisting;
+      const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
+      
+      categoryRows.push({
+        'No': idx + 1,
+        'Kategori': category,
+        'Total Jabatan': categoryPositions.length,
+        'Total ABK': totalAbk,
+        'Total Existing': totalExisting,
+        'Gap': gap,
+        '% Terisi': `${percentage}%`,
+        'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+      });
+    });
+
+    const ws3 = XLSX.utils.json_to_sheet(categoryRows);
+    ws3['!cols'] = [
+      { wch: 5 }, { wch: 15 }, { wch: 14 }, { wch: 12 },
+      { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Summary per Kategori');
+
+    // Generate filename based on role
+    const filename = canViewAll 
+      ? `Summary_Peta_Jabatan_Semua_Unit.xlsx`
+      : `Summary_Peta_Jabatan_${(profile?.department || selectedDepartment).replace(/\s/g, '_')}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
+    
+    const sheetCount = canViewAll ? 3 : 2; // Admin Unit doesn't have "Summary per Unit" sheet
+    toast({ 
+      title: 'Berhasil', 
+      description: `Summary Peta Jabatan berhasil di-export (${sheetCount} sheets)` 
+    });
+  };
+
+  const handleExportSummaryNonASN = () => {
+    const wb = XLSX.utils.book_new();
+    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Sheet 1: Summary per Unit Kerja (only for Admin Pusat/Pimpinan)
+    if (canViewAll) {
+      const deptRows: Record<string, string | number>[] = [];
+      dynamicDepartments
+        .filter(d => d !== 'Pusat')
+        .forEach((dept, idx) => {
+          const deptNonAsn = allNonAsnEmployees.filter(e => e.department === dept);
+          const tenagaAlihDaya = deptNonAsn.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length;
+          const lainnya = deptNonAsn.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length;
+          const uniquePositions = new Set(deptNonAsn.map(e => e.position_name || 'Tidak Ada Jabatan'));
+          
+          if (deptNonAsn.length > 0) {
+            deptRows.push({
+              'No': idx + 1,
+              'Unit Kerja': dept,
+              'Total Non-ASN': deptNonAsn.length,
+              'Tenaga Alih Daya': tenagaAlihDaya,
+              'Lainnya': lainnya,
+              'Jumlah Jabatan': uniquePositions.size,
+            });
+          }
+        });
+
+      if (deptRows.length > 0) {
+        const ws1 = XLSX.utils.json_to_sheet(deptRows);
+        ws1['!cols'] = [
+          { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 },
+          { wch: 10 }, { wch: 14 },
+        ];
+        XLSX.utils.book_append_sheet(wb, ws1, 'Summary per Unit');
+      }
+    }
+
+    // Sheet 2: Summary per Jabatan
+    const positionGroups = new Map<string, {
+      displayName: string;
+      total: number;
+      tenagaAlihDaya: number;
+      lainnya: number;
+      departments: Set<string>;
+    }>();
+
+    allNonAsnEmployees.forEach(emp => {
+      const posName = emp.position_name || 'Tidak Ada Jabatan';
+      const normName = normalize(posName);
+      const existing = positionGroups.get(normName);
+      
+      const isTenagaAlihDaya = emp.rank_group === 'Tenaga Alih Daya' || !emp.rank_group;
+      
+      if (existing) {
+        existing.total++;
+        if (isTenagaAlihDaya) {
+          existing.tenagaAlihDaya++;
+        } else {
+          existing.lainnya++;
+        }
+        if (emp.department) {
+          existing.departments.add(emp.department);
+        }
+      } else {
+        positionGroups.set(normName, {
+          displayName: posName,
+          total: 1,
+          tenagaAlihDaya: isTenagaAlihDaya ? 1 : 0,
+          lainnya: isTenagaAlihDaya ? 0 : 1,
+          departments: emp.department ? new Set([emp.department]) : new Set()
+        });
+      }
+    });
+
+    const positionRows: Record<string, string | number>[] = [];
+    const sortedPositions = Array.from(positionGroups.values())
+      .sort((a, b) => b.total - a.total);
+
+    sortedPositions.forEach((pos, idx) => {
+      const row: Record<string, string | number> = {
+        'No': idx + 1,
+        'Jabatan': pos.displayName,
+        'Total Pegawai': pos.total,
+        'Tenaga Alih Daya': pos.tenagaAlihDaya,
+        'Lainnya': pos.lainnya,
+      };
+      
+      if (canViewAll) {
+        row['Jumlah Unit'] = pos.departments.size;
+      }
+      
+      positionRows.push(row);
+    });
+
+    const ws2 = XLSX.utils.json_to_sheet(positionRows);
+    ws2['!cols'] = canViewAll 
+      ? [{ wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 12 }]
+      : [{ wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary per Jabatan');
+
+    // Sheet 3: Summary per Type
+    const typeRows: Record<string, string | number>[] = [
+      {
+        'No': 1,
+        'Type': 'Tenaga Alih Daya',
+        'Total Pegawai': allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length,
+        'Persentase': `${((allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}%`,
+      },
+      {
+        'No': 2,
+        'Type': 'Lainnya',
+        'Total Pegawai': allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length,
+        'Persentase': `${((allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}%`,
+      },
+      {
+        'No': '',
+        'Type': 'TOTAL',
+        'Total Pegawai': allNonAsnEmployees.length,
+        'Persentase': '100%',
+      },
+    ];
+
+    const ws3 = XLSX.utils.json_to_sheet(typeRows);
+    ws3['!cols'] = [
+      { wch: 5 }, { wch: 20 }, { wch: 14 }, { wch: 12 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Summary per Type');
+
+    // Generate filename based on role
+    const filename = canViewAll 
+      ? `Summary_Non_ASN_Semua_Unit.xlsx`
+      : `Summary_Non_ASN_${(profile?.department || selectedDepartment).replace(/\s/g, '_')}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
+    
+    const sheetCount = canViewAll ? 3 : 2; // Admin Unit doesn't have "Summary per Unit" sheet
+    toast({ 
+      title: 'Berhasil', 
+      description: `Summary Non-ASN berhasil di-export (${sheetCount} sheets)` 
+    });
   };
 
   // Build table rows for display
@@ -661,10 +1047,6 @@ export default function PetaJabatan() {
             >
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
-            <Button variant="outline" onClick={handleExport} disabled={positions.length === 0} className="text-xs sm:text-sm">
-              <Download className="mr-1 sm:mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Export</span><span className="sm:hidden">Export</span>
-            </Button>
             {isAdminPusat && (
               <Button onClick={openAddModal} className="text-xs sm:text-sm">
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
@@ -674,7 +1056,7 @@ export default function PetaJabatan() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn')} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn' | 'summary-asn' | 'summary-non-asn')} className="space-y-4">
           <TabsList>
             <TabsTrigger value="asn">
               Peta Jabatan ASN
@@ -689,8 +1071,11 @@ export default function PetaJabatan() {
                 })()} jabatan, {nonAsnEmployees.length} pegawai)
               </span>
             </TabsTrigger>
-            <TabsTrigger value="summary">
-              Summary Semua Unit
+            <TabsTrigger value="summary-asn">
+              Summary ASN
+            </TabsTrigger>
+            <TabsTrigger value="summary-non-asn">
+              Summary Non-ASN
             </TabsTrigger>
           </TabsList>
 
@@ -706,25 +1091,38 @@ export default function PetaJabatan() {
                     </span>
                   </CardTitle>
                   
-                  {/* Search Input */}
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Cari jabatan atau nama pegawai..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-8"
-                    />
-                    {searchQuery && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full w-8"
-                        onClick={() => setSearchQuery('')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    {/* Search Input */}
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Cari jabatan atau nama pegawai..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 pr-8"
+                      />
+                      {searchQuery && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full w-8"
+                          onClick={() => setSearchQuery('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Export Button */}
+                    <Button 
+                      variant="outline" 
+                      onClick={handleExportASN} 
+                      disabled={positions.length === 0}
+                      className="text-xs sm:text-sm whitespace-nowrap"
+                    >
+                      <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Export ASN</span><span className="sm:hidden">Export</span>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -886,12 +1284,48 @@ export default function PetaJabatan() {
       <TabsContent value="non-asn">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Formasi Non-ASN - {selectedDepartment}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({nonAsnEmployees.length} pegawai Non-ASN)
-              </span>
-            </CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-lg">
+                Formasi Non-ASN - {selectedDepartment}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({nonAsnEmployees.length} pegawai Non-ASN)
+                </span>
+              </CardTitle>
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari jabatan atau nama pegawai..."
+                    value={nonAsnSearchQuery}
+                    onChange={(e) => setNonAsnSearchQuery(e.target.value)}
+                    className="pl-10 pr-8"
+                  />
+                  {nonAsnSearchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full w-8"
+                      onClick={() => setNonAsnSearchQuery('')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Export Button */}
+                <Button 
+                  variant="outline" 
+                  onClick={handleExportNonASN} 
+                  disabled={nonAsnEmployees.length === 0}
+                  className="text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Export Non-ASN</span><span className="sm:hidden">Export</span>
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -922,9 +1356,39 @@ export default function PetaJabatan() {
                       </TableRow>
                     ) : (
                       (() => {
+                        // Filter employees by search query
+                        const filteredEmployees = nonAsnEmployees.filter(emp => {
+                          if (!nonAsnSearchQuery) return true;
+                          const query = nonAsnSearchQuery.toLowerCase();
+                          
+                          // Search in position name
+                          if (emp.position_name?.toLowerCase().includes(query)) return true;
+                          
+                          // Search in employee name
+                          const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+                          if (fullName.includes(query)) return true;
+                          
+                          // Search in NIP
+                          if (emp.nip?.includes(query)) return true;
+                          
+                          return false;
+                        });
+
+                        if (filteredEmployees.length === 0) {
+                          return (
+                            <TableRow>
+                              <TableCell colSpan={isAdminPusat ? 8 : 7} className="text-center py-8 text-muted-foreground">
+                                {nonAsnSearchQuery 
+                                  ? `Tidak ada hasil untuk "${nonAsnSearchQuery}"`
+                                  : 'Belum ada data pegawai Non-ASN di unit kerja ini.'}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+
                         // Group employees by position_name
                         const groupedByPosition: Record<string, EmployeeMatch[]> = {};
-                        nonAsnEmployees.forEach(emp => {
+                        filteredEmployees.forEach(emp => {
                           const position = emp.position_name || 'Tidak Ada Jabatan';
                           if (!groupedByPosition[position]) {
                             groupedByPosition[position] = [];
@@ -1020,18 +1484,38 @@ export default function PetaJabatan() {
         </Card>
       </TabsContent>
 
-      {/* Tab Summary */}
-      <TabsContent value="summary">
+      {/* Tab Summary ASN */}
+      <TabsContent value="summary-asn">
         <Card>
           <CardHeader>
             <div className="space-y-4">
-              <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <CardTitle className="text-lg">
-                  Summary Peta Jabatan ASN - Semua Unit Kerja
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    (Gabungan dari semua unit kerja)
-                  </span>
+                  {canViewAll ? (
+                    <>
+                      Summary Peta Jabatan ASN - Semua Unit Kerja
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Gabungan dari semua unit kerja)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Summary Peta Jabatan ASN - {profile?.department || selectedDepartment}
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Data unit kerja Anda)
+                      </span>
+                    </>
+                  )}
                 </CardTitle>
+                <Button 
+                  variant="outline" 
+                  onClick={handleExportSummary} 
+                  disabled={allPositions.length === 0}
+                  className="text-xs sm:text-sm"
+                >
+                  <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Export Summary</span><span className="sm:hidden">Export</span>
+                </Button>
               </div>
 
               {/* Summary Filters */}
@@ -1040,7 +1524,7 @@ export default function PetaJabatan() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Cari unit kerja atau jabatan..."
+                    placeholder={canViewAll ? "Cari unit kerja atau jabatan..." : "Cari jabatan..."}
                     value={summarySearchQuery}
                     onChange={(e) => setSummarySearchQuery(e.target.value)}
                     className="pl-10 pr-8"
@@ -1150,118 +1634,120 @@ export default function PetaJabatan() {
                   })}
                 </div>
 
-                {/* Summary Table by Department */}
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
-                  <div className="rounded-lg border overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12">No</TableHead>
-                          <TableHead>Unit Kerja</TableHead>
-                          <TableHead className="text-center">Total Jabatan</TableHead>
-                          <TableHead className="text-center">Total ABK</TableHead>
-                          <TableHead className="text-center">Total Existing</TableHead>
-                          <TableHead className="text-center">Gap</TableHead>
-                          <TableHead className="text-center">% Terisi</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(() => {
-                          // Group by department
-                          const deptGroups = dynamicDepartments
-                            .filter(d => d !== 'Pusat')
-                            .map(dept => {
-                              const deptPositions = allPositions.filter(p => {
-                                const matchCategory = summaryFilterCategory === 'all' || p.position_category === summaryFilterCategory;
-                                return p.department === dept && matchCategory;
+                {/* Summary Table by Department - Only show for Admin Pusat/Pimpinan */}
+                {canViewAll && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
+                    <div className="rounded-lg border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">No</TableHead>
+                            <TableHead>Unit Kerja</TableHead>
+                            <TableHead className="text-center">Total Jabatan</TableHead>
+                            <TableHead className="text-center">Total ABK</TableHead>
+                            <TableHead className="text-center">Total Existing</TableHead>
+                            <TableHead className="text-center">Gap</TableHead>
+                            <TableHead className="text-center">% Terisi</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            // Group by department
+                            const deptGroups = dynamicDepartments
+                              .filter(d => d !== 'Pusat')
+                              .map(dept => {
+                                const deptPositions = allPositions.filter(p => {
+                                  const matchCategory = summaryFilterCategory === 'all' || p.position_category === summaryFilterCategory;
+                                  return p.department === dept && matchCategory;
+                                });
+                                const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
+                                
+                                const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+                                const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
+                                const totalExisting = allEmployees.filter(emp => 
+                                  emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
+                                ).length;
+                                
+                                const gap = totalAbk - totalExisting;
+                                const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
+                                
+                                return {
+                                  dept,
+                                  totalJabatan: deptPositions.length,
+                                  totalAbk,
+                                  totalExisting,
+                                  gap,
+                                  percentage: parseFloat(percentage)
+                                };
+                              })
+                              .filter(d => {
+                                // Filter by search query
+                                if (summarySearchQuery && !d.dept.toLowerCase().includes(summarySearchQuery.toLowerCase())) {
+                                  return false;
+                                }
+                                
+                                // Filter by status
+                                if (summaryFilterStatus === 'kurang' && d.gap <= 0) return false;
+                                if (summaryFilterStatus === 'sesuai' && d.gap !== 0) return false;
+                                if (summaryFilterStatus === 'lebih' && d.gap >= 0) return false;
+                                
+                                // Only show departments with positions
+                                return d.totalJabatan > 0;
                               });
-                              const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
-                              
-                              const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
-                              const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
-                              const totalExisting = allEmployees.filter(emp => 
-                                emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
-                              ).length;
-                              
-                              const gap = totalAbk - totalExisting;
-                              const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
-                              
-                              return {
-                                dept,
-                                totalJabatan: deptPositions.length,
-                                totalAbk,
-                                totalExisting,
-                                gap,
-                                percentage: parseFloat(percentage)
-                              };
-                            })
-                            .filter(d => {
-                              // Filter by search query
-                              if (summarySearchQuery && !d.dept.toLowerCase().includes(summarySearchQuery.toLowerCase())) {
-                                return false;
-                              }
-                              
-                              // Filter by status
-                              if (summaryFilterStatus === 'kurang' && d.gap <= 0) return false;
-                              if (summaryFilterStatus === 'sesuai' && d.gap !== 0) return false;
-                              if (summaryFilterStatus === 'lebih' && d.gap >= 0) return false;
-                              
-                              // Only show departments with positions
-                              return d.totalJabatan > 0;
-                            });
 
-                          if (deptGroups.length === 0) {
-                            return (
-                              <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                  {summarySearchQuery || summaryFilterCategory !== 'all' || summaryFilterStatus !== 'all'
-                                    ? 'Tidak ada data yang sesuai dengan filter'
-                                    : 'Belum ada data'}
+                            if (deptGroups.length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                    {summarySearchQuery || summaryFilterCategory !== 'all' || summaryFilterStatus !== 'all'
+                                      ? 'Tidak ada data yang sesuai dengan filter'
+                                      : 'Belum ada data'}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            return deptGroups.map((item, idx) => (
+                              <TableRow key={item.dept}>
+                                <TableCell className="text-center">{idx + 1}</TableCell>
+                                <TableCell className="font-medium">{item.dept}</TableCell>
+                                <TableCell className="text-center">{item.totalJabatan}</TableCell>
+                                <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
+                                <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
+                                <TableCell className="text-center">
+                                  <span className={cn(
+                                    "font-medium",
+                                    item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
+                                  )}>
+                                    {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
+                                <TableCell>
+                                  {item.gap > 0 ? (
+                                    <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
+                                      Kurang {item.gap}
+                                    </span>
+                                  ) : item.gap < 0 ? (
+                                    <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                      Lebih {Math.abs(item.gap)}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                      Sesuai
+                                    </span>
+                                  )}
                                 </TableCell>
                               </TableRow>
-                            );
-                          }
-
-                          return deptGroups.map((item, idx) => (
-                            <TableRow key={item.dept}>
-                              <TableCell className="text-center">{idx + 1}</TableCell>
-                              <TableCell className="font-medium">{item.dept}</TableCell>
-                              <TableCell className="text-center">{item.totalJabatan}</TableCell>
-                              <TableCell className="text-center font-medium">{item.totalAbk}</TableCell>
-                              <TableCell className="text-center font-medium">{item.totalExisting}</TableCell>
-                              <TableCell className="text-center">
-                                <span className={cn(
-                                  "font-medium",
-                                  item.gap > 0 ? "text-orange-600" : item.gap < 0 ? "text-blue-600" : "text-green-600"
-                                )}>
-                                  {item.gap > 0 ? `-${item.gap}` : item.gap < 0 ? `+${Math.abs(item.gap)}` : '0'}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-center font-medium">{item.percentage}%</TableCell>
-                              <TableCell>
-                                {item.gap > 0 ? (
-                                  <span className="inline-block bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
-                                    Kurang {item.gap}
-                                  </span>
-                                ) : item.gap < 0 ? (
-                                  <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                                    Lebih {Math.abs(item.gap)}
-                                  </span>
-                                ) : (
-                                  <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                                    Sesuai
-                                  </span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ));
-                        })()}
-                      </TableBody>
-                    </Table>
+                            ));
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Summary Table by Position */}
                 <div className="space-y-2">
@@ -1333,9 +1819,20 @@ export default function PetaJabatan() {
                               percentage: item.totalAbk > 0 ? ((item.totalExisting / item.totalAbk) * 100).toFixed(1) : '0'
                             }))
                             .filter(item => {
-                              // Apply search filter
-                              if (summarySearchQuery && !item.displayName.toLowerCase().includes(summarySearchQuery.toLowerCase())) {
-                                return false;
+                              // Apply search filter - search in position name AND employee names
+                              if (summarySearchQuery) {
+                                const query = summarySearchQuery.toLowerCase();
+                                const positionMatch = item.displayName.toLowerCase().includes(query);
+                                
+                                // Check if any employee in this position matches the search
+                                const employeeMatch = allEmployees.some(emp => {
+                                  if (!emp.position_name) return false;
+                                  if (normalize(emp.position_name) !== normalize(item.displayName)) return false;
+                                  const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+                                  return fullName.includes(query);
+                                });
+                                
+                                if (!positionMatch && !employeeMatch) return false;
                               }
 
                               // Apply status filter
@@ -1474,6 +1971,375 @@ export default function PetaJabatan() {
                     </Table>
                   </div>
                 </div>
+
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* Tab Summary Non-ASN */}
+      <TabsContent value="summary-non-asn">
+        <Card>
+          <CardHeader>
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle className="text-lg">
+                  {canViewAll ? (
+                    <>
+                      Summary Pegawai Non-ASN - Semua Unit Kerja
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Gabungan dari semua unit kerja)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Summary Pegawai Non-ASN - {profile?.department || selectedDepartment}
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Data unit kerja Anda)
+                      </span>
+                    </>
+                  )}
+                </CardTitle>
+                
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  {/* Search Input */}
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder={canViewAll ? "Cari unit kerja atau jabatan..." : "Cari jabatan..."}
+                      value={summaryNonAsnSearchQuery}
+                      onChange={(e) => setSummaryNonAsnSearchQuery(e.target.value)}
+                      className="pl-10 pr-8"
+                    />
+                    {summaryNonAsnSearchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full w-8"
+                        onClick={() => setSummaryNonAsnSearchQuery('')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Export Button */}
+                  <Button 
+                    variant="outline" 
+                    onClick={handleExportSummaryNonASN} 
+                    disabled={allNonAsnEmployees.length === 0}
+                    className="text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Export Summary</span><span className="sm:hidden">Export</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isSummaryLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Cards for Non-ASN */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Total Non-ASN Card */}
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Total Pegawai Non-ASN
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{allNonAsnEmployees.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {canViewAll ? 'Dari semua unit kerja' : 'Di unit kerja Anda'}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tenaga Alih Daya Card */}
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Tenaga Alih Daya
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {((allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}% dari total
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Other Non-ASN Types Card */}
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Lainnya
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {((allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}% dari total
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Table: Summary Non-ASN per Unit (only for Admin Pusat/Pimpinan) */}
+                {canViewAll && allNonAsnEmployees.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
+                    <div className="rounded-lg border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">No</TableHead>
+                            <TableHead>Unit Kerja</TableHead>
+                            <TableHead className="text-center">Total Non-ASN</TableHead>
+                            <TableHead className="text-center">Tenaga Alih Daya</TableHead>
+                            <TableHead className="text-center">Lainnya</TableHead>
+                            <TableHead className="text-center">Jumlah Jabatan</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            // Group Non-ASN by department
+                            const deptNonAsnGroups = dynamicDepartments
+                              .filter(d => d !== 'Pusat')
+                              .map(dept => {
+                                const deptNonAsn = allNonAsnEmployees.filter(e => e.department === dept);
+                                const tenagaAlihDaya = deptNonAsn.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length;
+                                const lainnya = deptNonAsn.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length;
+                                const uniquePositions = new Set(deptNonAsn.map(e => e.position_name || 'Tidak Ada Jabatan'));
+                                
+                                return {
+                                  dept,
+                                  total: deptNonAsn.length,
+                                  tenagaAlihDaya,
+                                  lainnya,
+                                  jumlahJabatan: uniquePositions.size
+                                };
+                              })
+                              .filter(d => d.total > 0) // Only show departments with Non-ASN employees
+                              .filter(d => {
+                                // Apply search filter
+                                if (!summaryNonAsnSearchQuery.trim()) return true;
+                                const query = summaryNonAsnSearchQuery.toLowerCase();
+                                return d.dept.toLowerCase().includes(query);
+                              });
+
+                            if (deptNonAsnGroups.length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                    {summaryNonAsnSearchQuery.trim() 
+                                      ? `Tidak ada unit kerja yang cocok dengan "${summaryNonAsnSearchQuery}"`
+                                      : 'Belum ada data pegawai Non-ASN'
+                                    }
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            return deptNonAsnGroups.map((item, idx) => (
+                              <TableRow key={item.dept}>
+                                <TableCell className="text-center">{idx + 1}</TableCell>
+                                <TableCell className="font-medium">{item.dept}</TableCell>
+                                <TableCell className="text-center font-medium">{item.total}</TableCell>
+                                <TableCell className="text-center">{item.tenagaAlihDaya}</TableCell>
+                                <TableCell className="text-center">{item.lainnya}</TableCell>
+                                <TableCell className="text-center">{item.jumlahJabatan}</TableCell>
+                              </TableRow>
+                            ));
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Table: Summary Non-ASN per Jabatan */}
+                {allNonAsnEmployees.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold">Summary per Jabatan</h3>
+                    <div className="rounded-lg border overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12"></TableHead>
+                            <TableHead className="w-12">No</TableHead>
+                            <TableHead>Jabatan</TableHead>
+                            <TableHead className="text-center">Total Pegawai</TableHead>
+                            <TableHead className="text-center">Tenaga Alih Daya</TableHead>
+                            <TableHead className="text-center">Lainnya</TableHead>
+                            {canViewAll && <TableHead className="text-center">Jumlah Unit</TableHead>}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            // Group Non-ASN by position
+                            const positionGroups = new Map<string, {
+                              displayName: string;
+                              total: number;
+                              tenagaAlihDaya: number;
+                              lainnya: number;
+                              departments: Set<string>;
+                              employees: EmployeeMatch[];
+                            }>();
+
+                            const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
+
+                            allNonAsnEmployees.forEach(emp => {
+                              const posName = emp.position_name || 'Tidak Ada Jabatan';
+                              const normName = normalize(posName);
+                              const existing = positionGroups.get(normName);
+                              
+                              const isTenagaAlihDaya = emp.rank_group === 'Tenaga Alih Daya' || !emp.rank_group;
+                              
+                              if (existing) {
+                                existing.total++;
+                                existing.employees.push(emp);
+                                if (isTenagaAlihDaya) {
+                                  existing.tenagaAlihDaya++;
+                                } else {
+                                  existing.lainnya++;
+                                }
+                                if (emp.department) {
+                                  existing.departments.add(emp.department);
+                                }
+                              } else {
+                                positionGroups.set(normName, {
+                                  displayName: posName,
+                                  total: 1,
+                                  tenagaAlihDaya: isTenagaAlihDaya ? 1 : 0,
+                                  lainnya: isTenagaAlihDaya ? 0 : 1,
+                                  departments: emp.department ? new Set([emp.department]) : new Set(),
+                                  employees: [emp]
+                                });
+                              }
+                            });
+
+                            const sortedPositions = Array.from(positionGroups.entries())
+                              .sort((a, b) => b[1].total - a[1].total) // Sort by total descending
+                              .filter(([normName, pos]) => {
+                                // Apply search filter
+                                if (!summaryNonAsnSearchQuery.trim()) return true;
+                                const query = summaryNonAsnSearchQuery.toLowerCase();
+                                
+                                // Search in position name
+                                if (pos.displayName.toLowerCase().includes(query)) return true;
+                                
+                                // Search in employee names
+                                return pos.employees.some(emp => {
+                                  const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+                                  return fullName.includes(query);
+                                });
+                              });
+
+                            if (sortedPositions.length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={canViewAll ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                                    {summaryNonAsnSearchQuery.trim() 
+                                      ? `Tidak ada jabatan atau pegawai yang cocok dengan "${summaryNonAsnSearchQuery}"`
+                                      : 'Belum ada data pegawai Non-ASN'
+                                    }
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            const rows: JSX.Element[] = [];
+                            sortedPositions.forEach(([normName, pos], idx) => {
+                              const isExpanded = expandedPositions.has(normName);
+                              const positionEmployees = pos.employees;
+
+                              // Main row
+                              rows.push(
+                                <TableRow key={normName} className="hover:bg-muted/50">
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => togglePositionExpand(normName)}
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronDown className="h-4 w-4" />
+                                      ) : (
+                                        <ChevronRight className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TableCell>
+                                  <TableCell className="text-center">{idx + 1}</TableCell>
+                                  <TableCell className="font-medium">{pos.displayName}</TableCell>
+                                  <TableCell className="text-center font-medium">{pos.total}</TableCell>
+                                  <TableCell className="text-center">{pos.tenagaAlihDaya}</TableCell>
+                                  <TableCell className="text-center">{pos.lainnya}</TableCell>
+                                  {canViewAll && <TableCell className="text-center">{pos.departments.size}</TableCell>}
+                                </TableRow>
+                              );
+
+                              // Expanded rows showing employees
+                              if (isExpanded && positionEmployees.length > 0) {
+                                rows.push(
+                                  <TableRow key={`${normName}-expanded`} className="bg-muted/20">
+                                    <TableCell colSpan={canViewAll ? 7 : 6} className="p-0">
+                                      <div className="px-4 py-3">
+                                        <div className="text-xs font-semibold text-muted-foreground mb-2">
+                                          Daftar Pemangku ({positionEmployees.length} orang):
+                                        </div>
+                                        <div className="space-y-2">
+                                          {positionEmployees.map((emp, empIdx) => {
+                                            const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
+                                            return (
+                                              <div 
+                                                key={emp.id} 
+                                                className="flex items-center justify-between p-2 bg-background rounded border text-sm"
+                                              >
+                                                <div className="flex-1">
+                                                  <div className="font-medium">{empIdx + 1}. {fullName}</div>
+                                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                                    {emp.department && <span>Unit: {emp.department}</span>}
+                                                    {emp.rank_group && <span className="ml-3">Type: {emp.rank_group}</span>}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              }
+                            });
+
+                            return rows;
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {allNonAsnEmployees.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground border rounded-lg">
+                    Belum ada data pegawai Non-ASN
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
