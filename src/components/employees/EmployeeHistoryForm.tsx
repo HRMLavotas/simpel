@@ -4,13 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { DEPARTMENTS } from '@/lib/constants';
 import { useState } from 'react';
 
 export interface HistoryField {
   key: string;
   label: string;
-  type?: 'text' | 'date' | 'select';
+  type?: 'text' | 'date' | 'select' | 'position';
   placeholder?: string;
   options?: readonly string[]; // For select type
 }
@@ -25,9 +26,10 @@ interface EmployeeHistoryFormProps {
   fields: HistoryField[];
   entries: HistoryEntry[];
   onChange: (entries: HistoryEntry[]) => void;
-  allowFutureEntries?: boolean; // Allow adding entries with date > latest entry (for Quick Action)
-  currentValue?: string; // Current value to display (e.g., current rank, position, department)
-  rankOptions?: readonly string[]; // Options for rank dropdown (PNS or PPPK)
+  allowFutureEntries?: boolean;
+  currentValue?: string;
+  rankOptions?: readonly string[];
+  positionOptions?: string[]; // Daftar jabatan dari Peta Jabatan
 }
 
 // Helper function to sort entries by date field (descending - newest first)
@@ -50,7 +52,7 @@ const sortEntriesByDate = (entries: HistoryEntry[], fields: HistoryField[]): His
   });
 };
 
-export function EmployeeHistoryForm({ title, fields, entries, onChange, allowFutureEntries = false, currentValue, rankOptions }: EmployeeHistoryFormProps) {
+export function EmployeeHistoryForm({ title, fields, entries, onChange, allowFutureEntries = false, currentValue, rankOptions, positionOptions = [] }: EmployeeHistoryFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
   
@@ -244,7 +246,14 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange, allowFut
                   return (
                     <div key={field.key} className="space-y-1.5">
                       <Label className="text-xs">{field.label}</Label>
-                      {(field.type === 'select' || fieldOptions) ? (
+                      {field.type === 'position' ? (
+                        <PositionAutocomplete
+                          value={entry[field.key] || ''}
+                          onChange={(value) => updateEntry(index, field.key, value)}
+                          options={positionOptions}
+                          placeholder={field.placeholder || 'Pilih jabatan...'}
+                        />
+                      ) : (field.type === 'select' || fieldOptions) ? (
                         <Select
                           value={entry[field.key] || ''}
                           onValueChange={(value) => updateEntry(index, field.key, value)}
@@ -285,14 +294,14 @@ export function EmployeeHistoryForm({ title, fields, entries, onChange, allowFut
 export const MUTATION_FIELDS: HistoryField[] = [
   { key: 'tanggal', label: 'Tanggal', type: 'date' },
   { key: 'ke_unit', label: 'Unit Kerja', type: 'select', placeholder: 'Pilih unit kerja tujuan', options: DEPARTMENTS.filter(d => d !== 'Pusat') },
-  { key: 'jabatan', label: 'Jabatan', placeholder: 'Jabatan saat mutasi' },
+  { key: 'jabatan', label: 'Jabatan', type: 'position', placeholder: 'Pilih jabatan saat mutasi' },
   { key: 'nomor_sk', label: 'Nomor SK', placeholder: 'Nomor SK mutasi' },
   { key: 'keterangan', label: 'Keterangan', placeholder: 'Keterangan tambahan' },
 ];
 
 export const POSITION_HISTORY_FIELDS: HistoryField[] = [
   { key: 'tanggal', label: 'Tanggal', type: 'date' },
-  { key: 'jabatan_baru', label: 'Jabatan', placeholder: 'Jabatan baru' },
+  { key: 'jabatan_baru', label: 'Jabatan', type: 'position', placeholder: 'Pilih jabatan baru' },
   { key: 'unit_kerja', label: 'Unit Kerja', type: 'select', placeholder: 'Pilih unit kerja', options: DEPARTMENTS.filter(d => d !== 'Pusat') },
   { key: 'nomor_sk', label: 'Nomor SK', placeholder: 'Nomor SK' },
   { key: 'keterangan', label: 'Keterangan', placeholder: 'Keterangan tambahan' },

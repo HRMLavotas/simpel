@@ -1073,7 +1073,11 @@ export function EmployeeFormModal({
                   return (
                     <Select
                       value={form.watch('department') || ''}
-                      onValueChange={(v) => form.setValue('department', v, { shouldValidate: true, shouldDirty: true })}
+                      onValueChange={(v) => {
+                        form.setValue('department', v, { shouldValidate: true, shouldDirty: true });
+                        // Reset jabatan karena daftar jabatan berbeda per unit kerja
+                        form.setValue('position_name', '', { shouldValidate: false, shouldDirty: true });
+                      }}
                       disabled={!isAdminPusat}
                     >
                       <SelectTrigger id="department">
@@ -1136,6 +1140,7 @@ export function EmployeeFormModal({
               entries={mutationEntries}
               onChange={handleMutationHistoryChange}
               currentValue={form.watch('department')}
+              positionOptions={positionNames}
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
               💡 Unit kerja asal akan otomatis terisi dari riwayat sebelumnya atau data saat ini
@@ -1155,6 +1160,7 @@ export function EmployeeFormModal({
               entries={positionHistoryEntries}
               onChange={handlePositionHistoryChange}
               currentValue={form.watch('position_name')}
+              positionOptions={positionNames}
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
               💡 Jabatan lama akan otomatis terisi dari riwayat sebelumnya atau data saat ini
