@@ -43,6 +43,8 @@ import {
 import { NotesForm, type NoteEntry } from './NotesForm';
 import { AdditionalPositionHistoryForm, type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
 import { QuickActionForm } from './QuickActionForm';
+import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
+import { usePositionOptions } from '@/hooks/usePositionOptions';
 import { logger } from '@/lib/logger';
 
 const employeeSchema = z.object({
@@ -141,6 +143,7 @@ export function EmployeeFormModal({
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   const isEditing = !!employee;
+
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>('quick');
   
   // Track if changes were made via Quick Action (to skip change detection dialog)
@@ -179,6 +182,11 @@ export function EmployeeFormModal({
       join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
     },
   });
+
+  // Fetch jabatan dari Peta Jabatan berdasarkan unit kerja yang dipilih
+  const watchedDepartment = form.watch('department');
+  const { positions: positionOptions } = usePositionOptions(watchedDepartment || undefined);
+  const positionNames = positionOptions.map((p) => p.position_name);
 
   // Track original values for change detection
   const [originalValues, setOriginalValues] = useState<{
@@ -852,6 +860,7 @@ export function EmployeeFormModal({
                   currentDepartment={form.watch('department') || ''}
                   asnStatus={form.watch('asn_status') || ''}
                   departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
+                  positionOptions={positionNames}
                   onRankChange={handleQuickRankChange}
                   onPositionChange={handleQuickPositionChange}
                   onDepartmentChange={handleQuickDepartmentChange}
@@ -957,10 +966,19 @@ export function EmployeeFormModal({
               {/* Normal Field: Jenis Jabatan */}
               {renderSelectField('Jenis Jabatan', 'position_type', POSITION_TYPES, 'Pilih jenis jabatan')}
 
-              {/* Unlocked Field: Nama Jabatan */}
+              {/* Unlocked Field: Nama Jabatan - autocomplete dari Peta Jabatan */}
               <div className="space-y-2">
                 <Label htmlFor="position_name">Nama Jabatan</Label>
-                <Input id="position_name" placeholder="Contoh: Kepala Subbag Kepegawaian" {...form.register('position_name')} />
+                <PositionAutocomplete
+                  id="position_name"
+                  value={form.watch('position_name') || ''}
+                  onChange={(v) => form.setValue('position_name', v, { shouldValidate: true, shouldDirty: true })}
+                  options={positionNames}
+                  placeholder="Ketik atau pilih jabatan dari Peta Jabatan"
+                />
+                {positionNames.length > 0 && (
+                  <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini</p>
+                )}
                 {hasPositionChanged && (
                   <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan akan otomatis menambahkan riwayat jabatan</p>
                 )}

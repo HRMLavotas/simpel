@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, TrendingUp, MapPin, Briefcase } from 'lucide-react';
 import { RANK_GROUPS_PNS, RANK_GROUPS_PPPK } from '@/lib/constants';
+import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import type { HistoryEntry } from './EmployeeHistoryForm';
 
 interface QuickActionFormProps {
@@ -26,6 +27,9 @@ interface QuickActionFormProps {
   
   // Departments list
   departments: string[];
+
+  // Position options from Peta Jabatan
+  positionOptions?: string[];
   
   // Callbacks to update main form
   onRankChange: (newRank: string, entry: HistoryEntry) => void;
@@ -39,6 +43,7 @@ export function QuickActionForm({
   currentDepartment,
   asnStatus,
   departments,
+  positionOptions = [],
   onRankChange,
   onPositionChange,
   onDepartmentChange,
@@ -420,12 +425,16 @@ export function QuickActionForm({
 
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="quick-new-position">Jabatan Baru *</Label>
-                  <Input
+                  <PositionAutocomplete
                     id="quick-new-position"
-                    placeholder="Contoh: Kepala Subbag Kepegawaian"
                     value={newPosition}
-                    onChange={(e) => setNewPosition(e.target.value)}
+                    onChange={setNewPosition}
+                    options={positionOptions}
+                    placeholder="Ketik atau pilih jabatan dari Peta Jabatan"
                   />
+                  {positionOptions.length > 0 && (
+                    <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini</p>
+                  )}
                 </div>
 
                 <div className="space-y-2 sm:col-span-2">
