@@ -21,7 +21,7 @@ import {
 import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS } from '@/lib/constants';
+import { useDepartments } from '@/hooks/useDepartments';
 import { z } from 'zod';
 
 interface CreateAdminModalProps {
@@ -40,6 +40,7 @@ const adminSchema = z.object({
 
 export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminModalProps) {
   const { toast } = useToast();
+  const { departments: dynamicDepartments } = useDepartments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -210,7 +211,7 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
                 <SelectValue placeholder="Pilih unit kerja" />
               </SelectTrigger>
               <SelectContent>
-                {DEPARTMENTS.map((dept) => (
+                {dynamicDepartments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
                   </SelectItem>

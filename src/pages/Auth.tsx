@@ -115,7 +115,7 @@ export default function Auth() {
           </h2>
           <p className="text-lg text-sidebar-foreground/70 max-w-md">
             Sistem terintegrasi untuk pengelolaan data pegawai di seluruh unit kerja 
-            Ditjen Binalavotas Kementerian Perindustrian.
+            Ditjen Binalavotas Kementerian Ketenagakerjaan.
           </p>
           <div className="flex gap-8 pt-4">
             <div>
