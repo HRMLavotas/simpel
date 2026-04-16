@@ -17,6 +17,7 @@ export function usePositionOptions(department?: string) {
 
   useEffect(() => {
     let cancelled = false;
+    setPositions([]); // reset dulu saat department berubah
     setIsLoading(true);
 
     const fetch = async () => {

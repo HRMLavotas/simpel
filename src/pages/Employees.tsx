@@ -36,6 +36,7 @@ import { NonAsnFormModal } from '@/components/employees/NonAsnFormModal';
 import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog';
 import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
 import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
+import { DuplicateMutationDialog, type DuplicateEmployee } from '@/components/employees/DuplicateMutationDialog';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { type AdditionalPositionHistoryEntry } from '@/components/employees/AdditionalPositionHistoryForm';
@@ -162,6 +163,18 @@ export default function Employees() {
   const [changeLogOpen, setChangeLogOpen] = useState(false);
   const [detectedChanges, setDetectedChanges] = useState<DetectedChange[]>([]);
   const [pendingFormData, setPendingFormData] = useState<EmployeeFormData | null>(null);
+
+  // Duplicate mutation dialog state
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateEmployee, setDuplicateEmployee] = useState<DuplicateEmployee | null>(null);
+  const [pendingMutationData, setPendingMutationData] = useState<{
+    data: EmployeeFormData;
+    changes: DetectedChange[];
+    notes: string;
+    link: string;
+    effectiveDate: string;
+    finalDepartment: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -587,7 +600,6 @@ export default function Employees() {
     }
   };
 
-  /** Core save logic shared by both "with notes" and "without notes" paths */
   const executeSave = async (data: EmployeeFormData, changes: DetectedChange[], notes: string, link: string, effectiveDate: string) => {
     if (!user) return;
     setIsSubmitting(true);
@@ -598,40 +610,128 @@ export default function Employees() {
       let departmentChanged = false;
       
       if (data.mutation_history && data.mutation_history.length > 0) {
-        // Sort by date to get the latest mutation
         const sortedMutations = [...data.mutation_history]
           .filter(m => m.tanggal && m.ke_unit)
           .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
         
         if (sortedMutations.length > 0) {
           const newDepartment = sortedMutations[0].ke_unit || data.department;
-          departmentChanged = selectedEmployee && newDepartment !== selectedEmployee.department;
+          departmentChanged = !!(selectedEmployee && newDepartment !== selectedEmployee.department);
           finalDepartment = newDepartment;
-          logger.debug('Auto-updating department from latest mutation:', finalDepartment);
-          if (departmentChanged) {
-            logger.debug(`Department changed from ${selectedEmployee?.department} to ${finalDepartment}`);
-          }
         }
       }
 
-      // Determine the latest position from position history
+      // --- DETEKSI DUPLIKAT SAAT MUTASI LINTAS UNIT ---
+      if (departmentChanged && selectedEmployee && finalDepartment !== selectedEmployee.department) {
+        const namePattern = `%${selectedEmployee.name}%`;
+        let orFilter = `name.ilike.${namePattern}`;
+        if (selectedEmployee.nip) {
+          orFilter += `,nip.eq.${selectedEmployee.nip}`;
+        }
+
+        const { data: dupes } = await supabase
+          .from('employees')
+          .select('id, name, nip, department, position_name')
+          .eq('department', finalDepartment)
+          .neq('id', selectedEmployee.id)
+          .or(orFilter)
+          .limit(1);
+
+        if (dupes && dupes.length > 0) {
+          setPendingMutationData({ data, changes, notes, link, effectiveDate, finalDepartment });
+          setDuplicateEmployee(dupes[0] as DuplicateEmployee);
+          setDuplicateDialogOpen(true);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      // --- END DETEKSI DUPLIKAT ---
+
+      // Langsung jalankan tanpa setIsSubmitting lagi (sudah true dari atas)
+      await doExecuteSave(data, changes, notes, link, effectiveDate, finalDepartment, departmentChanged);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal menyimpan data pegawai';
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
+      setIsSubmitting(false);
+    }
+    // Tidak ada finally di sini - doExecuteSave yang handle setIsSubmitting(false)
+  };
+
+  /** Handler pilihan "Gabungkan" dari dialog duplikat */
+  const handleMergeDuplicate = async () => {
+    if (!pendingMutationData || !duplicateEmployee || !selectedEmployee) return;
+    setIsSubmitting(true);
+    let mergeSuccess = false;
+    try {
+      const tables = [
+        'mutation_history', 'position_history', 'rank_history',
+        'competency_test_history', 'training_history',
+        'placement_notes', 'assignment_notes', 'change_notes',
+        'education_history', 'additional_position_history',
+      ];
+      await Promise.all(
+        tables.map((t) =>
+          supabase.from(t as any).update({ employee_id: selectedEmployee.id }).eq('employee_id', duplicateEmployee.id)
+        )
+      );
+      await supabase.from('employees').delete().eq('id', duplicateEmployee.id);
+      toast({ title: 'Data digabungkan', description: `Record duplikat ${duplicateEmployee.name} di ${duplicateEmployee.department} telah dihapus.` });
+      mergeSuccess = true;
+    } catch (err) {
+      logger.error('Error merging duplicate:', err);
+      toast({ variant: 'destructive', title: 'Gagal menggabungkan', description: 'Terjadi kesalahan saat menggabungkan data.' });
+    }
+
+    const { data, changes, notes, link, effectiveDate, finalDepartment } = pendingMutationData;
+    const deptChanged = selectedEmployee.department !== finalDepartment;
+    setDuplicateDialogOpen(false);
+    setDuplicateEmployee(null);
+    setPendingMutationData(null);
+
+    if (mergeSuccess) {
+      await doExecuteSave(data, changes, notes, link, effectiveDate, finalDepartment, deptChanged);
+    } else {
+      setIsSubmitting(false);
+    }
+  };
+
+  /** Handler pilihan "Biarkan Keduanya" dari dialog duplikat */
+  const handleKeepBothDuplicate = async () => {
+    if (!pendingMutationData || !selectedEmployee) return;
+    setIsSubmitting(true);
+    const { data, changes, notes, link, effectiveDate, finalDepartment } = pendingMutationData;
+    const deptChanged = selectedEmployee.department !== finalDepartment;
+    setDuplicateDialogOpen(false);
+    setDuplicateEmployee(null);
+    setPendingMutationData(null);
+    await doExecuteSave(data, changes, notes, link, effectiveDate, finalDepartment, deptChanged);
+  };
+
+  /** Inti penyimpanan setelah semua pengecekan selesai */
+  const doExecuteSave = async (
+    data: EmployeeFormData,
+    detectedChanges: DetectedChange[],
+    notes: string,
+    link: string,
+    effectiveDate: string,
+    finalDepartment: string,
+    departmentChanged: boolean,
+  ) => {
+    if (!user) return;
+    // Catatan: setIsSubmitting(true) sudah dipanggil oleh caller
+    try {
       let finalPositionName = data.position_name;
       let positionChanged = false;
       
       if (data.position_history && data.position_history.length > 0) {
-        // Sort by date to get the latest position
         const sortedPositions = [...data.position_history]
           .filter(p => p.tanggal && p.jabatan_baru)
           .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
         
         if (sortedPositions.length > 0) {
           const newPosition = sortedPositions[0].jabatan_baru || data.position_name;
-          positionChanged = selectedEmployee && newPosition !== selectedEmployee.position_name;
+          positionChanged = !!(selectedEmployee && newPosition !== selectedEmployee.position_name);
           finalPositionName = newPosition;
-          logger.debug('Auto-updating position_name from latest position history:', finalPositionName);
-          if (positionChanged) {
-            logger.debug(`Position changed from ${selectedEmployee?.position_name} to ${finalPositionName}`);
-          }
         }
       }
 
@@ -667,14 +767,14 @@ export default function Employees() {
         employeeId = selectedEmployee.id;
 
         // Build notification message based on changes
-        const changes: string[] = [];
-        if (positionChanged) changes.push(`Jabatan: ${finalPositionName}`);
-        if (departmentChanged) changes.push(`Unit: ${finalDepartment}`);
+        const changeLabels: string[] = [];
+        if (positionChanged) changeLabels.push(`Jabatan: ${finalPositionName}`);
+        if (departmentChanged) changeLabels.push(`Unit: ${finalDepartment}`);
         
-        if (changes.length > 0) {
+        if (changeLabels.length > 0) {
           toast({ 
             title: 'Berhasil', 
-            description: `Data pegawai berhasil diperbarui. ${changes.join(' | ')}` 
+            description: `Data pegawai berhasil diperbarui. ${changeLabels.join(' | ')}` 
           });
         } else {
           toast({ title: 'Berhasil', description: 'Data pegawai berhasil diperbarui' });
@@ -683,7 +783,7 @@ export default function Employees() {
         // Kirim notifikasi jika yang melakukan perubahan adalah admin_unit
         if (role === 'admin_unit' && profile) {
           const empName = [data.front_title, data.name, data.back_title].filter(Boolean).join(' ');
-          const changeDesc = changes.length > 0 ? ` (${changes.join(', ')})` : '';
+          const changeDesc = changeLabels.length > 0 ? ` (${changeLabels.join(', ')})` : '';
           await createNotification({
             type: 'employee_updated',
             title: 'Data Pegawai Diperbarui',
@@ -834,8 +934,8 @@ export default function Employees() {
       }
 
       // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
-      if (changes.length > 0) {
-        await createAutoHistoryRecords(employeeId, changes, notes, link, effectiveDate);
+      if (detectedChanges.length > 0) {
+        await createAutoHistoryRecords(employeeId, detectedChanges, notes, link, effectiveDate);
       }
 
       // Refresh the employee data and history if we're editing (to show updated position_name in form)
@@ -1309,6 +1409,21 @@ export default function Employees() {
         isLoading={isSubmitting}
         employeeName={selectedEmployee ? formatDisplayName(selectedEmployee) : ''}
         department={selectedEmployee?.department || ''}
+      />
+
+      <DuplicateMutationDialog
+        open={duplicateDialogOpen}
+        duplicate={duplicateEmployee}
+        targetDepartment={pendingMutationData?.finalDepartment || ''}
+        onMerge={handleMergeDuplicate}
+        onKeepBoth={handleKeepBothDuplicate}
+        onCancel={() => {
+          setDuplicateDialogOpen(false);
+          setDuplicateEmployee(null);
+          setPendingMutationData(null);
+          setIsSubmitting(false);
+        }}
+        isLoading={isSubmitting}
       />
     </AppLayout>
   );
