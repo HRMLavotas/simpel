@@ -12,7 +12,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { profile, isAdminPusat, isAdminPimpinan } = useAuth();
+  const { profile, isAdminPusat, isAdminPimpinan, canViewAll } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { collapsed } = useSidebarContext();
 
@@ -35,7 +35,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             <h2 className="text-xs sm:text-sm font-medium text-foreground truncate">
-              {isAdminPusat || isAdminPimpinan ? 'Semua Unit Kerja' : profile?.department}
+              {canViewAll ? 'Semua Unit Kerja' : profile?.department}
             </h2>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

@@ -139,7 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdminPusat = role === 'admin_pusat';
   const isAdminPimpinan = role === 'admin_pimpinan';
-  const canViewAll = role === 'admin_pusat' || role === 'admin_pimpinan';
+  // Admin Pimpinan hanya bisa lihat semua unit jika departmentnya 'Pusat'
+  const canViewAll = role === 'admin_pusat' || (role === 'admin_pimpinan' && profile?.department === 'Pusat');
   const canEdit = role === 'admin_pusat' || role === 'admin_unit';
 
   return (

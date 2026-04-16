@@ -107,8 +107,10 @@ const buildFiltersForSelectedColumns = (selectedColumns: string[], existingFilte
 
 export default function DataBuilder() {
   const { toast } = useToast();
-  const { profile, role } = useAuth();
+  const { profile, role, canViewAll } = useAuth();
   const isAdminUnit = role === 'admin_unit';
+  // Restrict data to own department if not allowed to view all
+  const shouldFilterByDepartment = !canViewAll && profile?.department;
   const [selectedColumns, setSelectedColumns] = useState<string[]>(DEFAULT_SELECTED_COLUMNS);
   const [selectedRelatedTables, setSelectedRelatedTables] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterRule[]>(() => buildFiltersForSelectedColumns(DEFAULT_SELECTED_COLUMNS));
@@ -199,9 +201,9 @@ export default function DataBuilder() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = supabase.from('employees').select(selectStr);
         q = applyFilters(q as FilterableQuery);
-        // Admin Unit hanya bisa melihat data pegawai di unitnya sendiri
-        if (isAdminUnit && profile?.department) {
-          q = q.eq('department', profile.department);
+        // Batasi data ke unit kerja sendiri jika bukan admin yang bisa lihat semua
+        if (shouldFilterByDepartment) {
+          q = q.eq('department', profile!.department);
         }
         q = q.range(offset, offset + batchSize - 1).order('name');
         const { data: batch, error } = await q;
@@ -246,9 +248,9 @@ export default function DataBuilder() {
       return;
     }
 
-    // Validate admin_unit can only export their own department data
-    if (isAdminUnit && profile?.department) {
-      const hasOtherDept = allData.some(row => row.department && row.department !== profile.department);
+    // Batasi export ke unit kerja sendiri jika bukan admin yang bisa lihat semua
+    if (shouldFilterByDepartment) {
+      const hasOtherDept = allData.some(row => row.department && row.department !== profile!.department);
       if (hasOtherDept) {
         toast({ title: 'Akses ditolak', description: 'Anda hanya dapat mengexport data unit kerja Anda sendiri.', variant: 'destructive' });
         return;
