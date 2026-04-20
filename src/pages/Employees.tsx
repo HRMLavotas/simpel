@@ -1134,36 +1134,33 @@ export default function Employees() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
-              activeTab === 'asn' ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button className="text-xs sm:text-sm">
-                      <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-                      <span className="hidden sm:inline">Tambah Pegawai</span>
-                      <span className="sm:hidden">Tambah</span>
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Pilih Jenis Pegawai</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleAddEmployee}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Tambah Data ASN
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setNonAsnModalOpen(true)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Tambah Data Non-ASN
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button onClick={handleAddEmployee} className="text-xs sm:text-sm">
-                  <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Tambah Pegawai Non-ASN</span>
-                  <span className="sm:hidden">Tambah</span>
-                </Button>
-              )
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="text-xs sm:text-sm">
+                    <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Tambah Pegawai</span>
+                    <span className="sm:hidden">Tambah</span>
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Pilih Jenis Pegawai</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleAddEmployee}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Data ASN
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    setSelectedEmployee(null);
+                    setSelectedEducation([]);
+                    setSelectedPositionHistory([]);
+                    setNonAsnModalOpen(true);
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Data Non-ASN
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>

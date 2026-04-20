@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
+import { useNonAsnPositionOptions } from '@/hooks/useNonAsnPositionOptions';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
@@ -83,7 +84,9 @@ export function NonAsnFormModal({
   // Use validation hook
   const { validateNIK, nikValidation, resetNIKValidation } = useEmployeeValidation({ debounceMs: 500 });
 
-  // Fetch jabatan dari Peta Jabatan berdasarkan unit kerja
+  // Fetch jabatan Non-ASN dari data pegawai Non-ASN yang sudah ada di unit ini
+  const { positions: nonAsnPositions } = useNonAsnPositionOptions(formData.department || undefined);
+  // positionNames tetap dipakai untuk riwayat jabatan (dari position_references ASN)
   const { positions: positionOptions } = usePositionOptions(formData.department || undefined);
   const positionNames = positionOptions.map((p) => p.position_name);
 
@@ -454,22 +457,7 @@ export function NonAsnFormModal({
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Kepegawaian</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-          {/* Jabatan */}
-          <div className="space-y-2">
-            <Label htmlFor="position_name">Jabatan <span className="text-red-500">*</span></Label>
-            <PositionAutocomplete
-              id="position_name"
-              value={formData.position_name}
-              onChange={(v) => setFormData({ ...formData, position_name: v })}
-              options={positionNames}
-              placeholder="Pilih jabatan dari Peta Jabatan"
-            />
-            {positionNames.length > 0 && (
-              <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini</p>
-            )}
-          </div>
-
-          {/* Unit Kerja */}
+          {/* Unit Kerja - tampil pertama agar jabatan bisa difilter */}
           <div className="space-y-2">
             <Label htmlFor="department">Unit Kerja <span className="text-red-500">*</span></Label>
             <Select
@@ -488,6 +476,26 @@ export function NonAsnFormModal({
             </Select>
             {!isAdminPusat && (
               <p className="text-xs text-muted-foreground">Unit kerja otomatis sesuai dengan unit Anda</p>
+            )}
+          </div>
+
+          {/* Jabatan */}
+          <div className="space-y-2">
+            <Label htmlFor="position_name">Jabatan <span className="text-red-500">*</span></Label>
+            <PositionAutocomplete
+              id="position_name"
+              value={formData.position_name}
+              onChange={(v) => setFormData({ ...formData, position_name: v })}
+              options={nonAsnPositions}
+              placeholder={formData.department ? 'Pilih atau ketik jabatan Non-ASN' : 'Pilih unit kerja terlebih dahulu'}
+              disabled={!formData.department}
+              allowFreeInput
+            />
+            {formData.department && nonAsnPositions.length > 0 && (
+              <p className="text-xs text-muted-foreground">💡 Pilih dari jabatan Non-ASN yang sudah ada di unit ini, atau ketik jabatan baru</p>
+            )}
+            {formData.department && nonAsnPositions.length === 0 && (
+              <p className="text-xs text-muted-foreground">💡 Belum ada data jabatan Non-ASN di unit ini. Ketik nama jabatan baru.</p>
             )}
           </div>
 

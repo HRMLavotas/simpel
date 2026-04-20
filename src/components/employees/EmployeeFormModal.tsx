@@ -144,7 +144,9 @@ export function EmployeeFormModal({
   const { departments: dynamicDepartments } = useDepartments();
   const isEditing = !!employee;
 
-  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>('quick');
+  const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>(
+    isEditing ? 'quick' : 'main'
+  );
   
   // Track if changes were made via Quick Action (to skip change detection dialog)
   const quickActionUsedRef = useRef(false);
@@ -213,8 +215,11 @@ export function EmployeeFormModal({
       setIsEditingAdditionalPosition(false);
       setTempAdditionalPosition('');
       resetNIPValidation();
+    } else {
+      // Reset ke tab yang sesuai saat modal dibuka
+      setActiveTab(employee ? 'quick' : 'main');
     }
-  }, [open, resetNIPValidation]);
+  }, [open, employee, resetNIPValidation]);
 
   // Auto-detect changes and populate history - ONLY after initial load is complete
   useEffect(() => {
@@ -974,10 +979,17 @@ export function EmployeeFormModal({
                   value={form.watch('position_name') || ''}
                   onChange={(v) => form.setValue('position_name', v, { shouldValidate: true, shouldDirty: true })}
                   options={positionNames}
-                  placeholder="Ketik atau pilih jabatan dari Peta Jabatan"
+                  placeholder={watchedDepartment ? 'Pilih jabatan dari Peta Jabatan' : 'Pilih unit kerja terlebih dahulu'}
+                  disabled={!watchedDepartment}
                 />
-                {positionNames.length > 0 && (
+                {!watchedDepartment && (
+                  <p className="text-xs text-amber-600">⚠️ Pilih Unit Kerja terlebih dahulu untuk melihat daftar jabatan</p>
+                )}
+                {watchedDepartment && positionNames.length > 0 && (
                   <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini</p>
+                )}
+                {watchedDepartment && positionNames.length === 0 && (
+                  <p className="text-xs text-amber-600">⚠️ Belum ada jabatan di Peta Jabatan untuk unit ini</p>
                 )}
                 {hasPositionChanged && (
                   <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan akan otomatis menambahkan riwayat jabatan</p>
