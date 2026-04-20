@@ -65,6 +65,11 @@ export function PositionAutocomplete({
 
   // Mode input bebas: input teks + dropdown saran
   if (allowFreeInput) {
+    // Filter berdasarkan value saat ini (bukan search state terpisah)
+    const suggestions = value.trim()
+      ? options.filter((o) => o.toLowerCase().includes(value.toLowerCase()) && o !== value)
+      : options;
+
     return (
       <div ref={containerRef} className={cn('relative', className)}>
         <Input
@@ -72,7 +77,6 @@ export function PositionAutocomplete({
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
-            setSearch(e.target.value);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
@@ -80,24 +84,20 @@ export function PositionAutocomplete({
           disabled={disabled}
           autoComplete="off"
         />
-        {open && filtered.length > 0 && (
+        {open && suggestions.length > 0 && (
           <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
             <ul className="max-h-56 overflow-auto py-1">
-              {filtered.map((option) => (
+              {suggestions.map((option) => (
                 <li
                   key={option}
-                  className={cn(
-                    'flex items-center gap-2 cursor-pointer px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
-                    option === value && 'bg-accent text-accent-foreground'
-                  )}
+                  className="flex items-center gap-2 cursor-pointer px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     onChange(option);
                     setOpen(false);
-                    setSearch('');
                   }}
                 >
-                  <Check className={cn('h-4 w-4 shrink-0', option === value ? 'opacity-100' : 'opacity-0')} />
+                  <Check className="h-4 w-4 shrink-0 opacity-0" />
                   {option}
                 </li>
               ))}

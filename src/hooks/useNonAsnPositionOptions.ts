@@ -15,33 +15,36 @@ export function useNonAsnPositionOptions(department?: string) {
     setIsLoading(true);
 
     const fetch = async () => {
-      let query = supabase
-        .from('employees')
-        .select('position_name')
-        .eq('asn_status', 'Non ASN')
-        .not('position_name', 'is', null);
+      try {
+        let query = supabase
+          .from('employees')
+          .select('position_name')
+          .eq('asn_status', 'Non ASN')
+          .not('position_name', 'is', null);
 
-      if (department) {
-        query = query.eq('department', department);
+        if (department) {
+          query = query.eq('department', department);
+        }
+
+        const { data, error } = await query;
+        if (cancelled) return;
+
+        if (!error && data) {
+          const seen = new Set<string>();
+          const unique: string[] = [];
+          data.forEach((row) => {
+            const name = row.position_name?.trim();
+            if (name && !seen.has(name)) {
+              seen.add(name);
+              unique.push(name);
+            }
+          });
+          unique.sort((a, b) => a.localeCompare(b, 'id'));
+          setPositions(unique);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-
-      const { data, error } = await query;
-      if (cancelled) return;
-
-      if (!error && data) {
-        const seen = new Set<string>();
-        const unique: string[] = [];
-        data.forEach((row) => {
-          const name = row.position_name?.trim();
-          if (name && !seen.has(name)) {
-            seen.add(name);
-            unique.push(name);
-          }
-        });
-        unique.sort((a, b) => a.localeCompare(b, 'id'));
-        setPositions(unique);
-      }
-      setIsLoading(false);
     };
 
     fetch();
