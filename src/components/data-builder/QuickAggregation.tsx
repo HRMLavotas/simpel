@@ -2,12 +2,16 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileSpreadsheet, Download, Loader2, Zap, Filter } from 'lucide-react';
+import { FileSpreadsheet, Download, Loader2, Zap, Users, TrendingUp, Award, GraduationCap } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/lib/logger';
+
+// Chart colors
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 
 interface QuickAggregationProps {
   // No props needed - component will fetch its own data
@@ -140,6 +144,60 @@ function normalizeGender(gender: unknown): string {
   return 'Tidak Ada';
 }
 
+// Helper function to calculate age from birth_date
+function calculateAge(birthDate: unknown): number | null {
+  if (!birthDate) return null;
+  try {
+    const birth = new Date(String(birthDate));
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age > 0 && age < 100 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to categorize age
+function categorizeAge(age: number | null): string {
+  if (!age) return 'Tidak Ada';
+  if (age < 25) return '<25 tahun';
+  if (age < 35) return '25-34 tahun';
+  if (age < 45) return '35-44 tahun';
+  if (age < 55) return '45-54 tahun';
+  return '≥55 tahun';
+}
+
+// Helper function to calculate years of service
+function calculateYearsOfService(startDate: unknown): number | null {
+  if (!startDate) return null;
+  try {
+    const start = new Date(String(startDate));
+    const today = new Date();
+    const years = today.getFullYear() - start.getFullYear();
+    const monthDiff = today.getMonth() - start.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < start.getDate())) {
+      return years - 1;
+    }
+    return years >= 0 && years < 60 ? years : null;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to categorize years of service
+function categorizeYearsOfService(years: number | null): string {
+  if (!years && years !== 0) return 'Tidak Ada';
+  if (years < 5) return '<5 tahun';
+  if (years < 10) return '5-9 tahun';
+  if (years < 20) return '10-19 tahun';
+  if (years < 30) return '20-29 tahun';
+  return '≥30 tahun';
+}
+
 export function QuickAggregation({}: QuickAggregationProps) {
   const { toast } = useToast();
   const { profile, canViewAll } = useAuth();
@@ -163,7 +221,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
       while (true) {
         let query = supabase
           .from('employees')
-          .select('id, nip, name, rank_group, gender, department, asn_status, position_type, religion')
+          .select('id, nip, name, rank_group, gender, department, asn_status, position_type, religion, birth_date, tmt_cpns')
           .range(offset, offset + batchSize - 1)
           .order('name');
 
@@ -310,6 +368,36 @@ export function QuickAggregation({}: QuickAggregationProps) {
       religionCounts[religion] = (religionCounts[religion] || 0) + 1;
     });
 
+    // Age aggregation
+    const ageCounts: Record<string, number> = {};
+    let totalAge = 0;
+    let ageCount = 0;
+    data.forEach(row => {
+      const age = calculateAge(row.birth_date);
+      const ageCategory = categorizeAge(age);
+      ageCounts[ageCategory] = (ageCounts[ageCategory] || 0) + 1;
+      if (age) {
+        totalAge += age;
+        ageCount++;
+      }
+    });
+    const averageAge = ageCount > 0 ? (totalAge / ageCount).toFixed(1) : '0';
+
+    // Years of Service aggregation
+    const yearsOfServiceCounts: Record<string, number> = {};
+    let totalYears = 0;
+    let yearsCount = 0;
+    data.forEach(row => {
+      const years = calculateYearsOfService(row.tmt_cpns);
+      const yearsCategory = categorizeYearsOfService(years);
+      yearsOfServiceCounts[yearsCategory] = (yearsOfServiceCounts[yearsCategory] || 0) + 1;
+      if (years !== null) {
+        totalYears += years;
+        yearsCount++;
+      }
+    });
+    const averageYears = yearsCount > 0 ? (totalYears / yearsCount).toFixed(1) : '0';
+
     return {
       rank: Object.entries(rankCounts)
         .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
@@ -369,6 +457,20 @@ export function QuickAggregation({}: QuickAggregationProps) {
           const order = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu', 'Tidak Ada'];
           return order.indexOf(a.name) - order.indexOf(b.name);
         }),
+      age: Object.entries(ageCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['<25 tahun', '25-34 tahun', '35-44 tahun', '45-54 tahun', '≥55 tahun', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      yearsOfService: Object.entries(yearsOfServiceCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['<5 tahun', '5-9 tahun', '10-19 tahun', '20-29 tahun', '≥30 tahun', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      averageAge,
+      averageYears,
     };
   }, [data]);
 
@@ -454,7 +556,25 @@ export function QuickAggregation({}: QuickAggregationProps) {
       const wsReligion = XLSX.utils.json_to_sheet(religionData);
       XLSX.utils.book_append_sheet(wb, wsReligion, 'Agama');
 
-      // Sheet 9: Unit Kerja (only if not filtered by department)
+      // Sheet 9: Rentang Usia
+      const ageData = aggregations.age.map(item => ({
+        'Rentang Usia': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsAge = XLSX.utils.json_to_sheet(ageData);
+      XLSX.utils.book_append_sheet(wb, wsAge, 'Rentang Usia');
+
+      // Sheet 10: Masa Kerja
+      const yearsData = aggregations.yearsOfService.map(item => ({
+        'Masa Kerja': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsYears = XLSX.utils.json_to_sheet(yearsData);
+      XLSX.utils.book_append_sheet(wb, wsYears, 'Masa Kerja');
+
+      // Sheet 11: Unit Kerja (only if not filtered by department)
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
         const departmentData = aggregations.department.map(item => ({
           'Unit Kerja': item.name,
@@ -470,7 +590,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
       const fileName = `agregasi-cepat-${timestamp}.xlsx`;
       XLSX.writeFile(wb, fileName, { bookType: 'xlsx', compression: true });
 
-      const sheetCount = selectedDepartment === 'all' && aggregations.department.length > 1 ? 9 : 8;
+      const sheetCount = selectedDepartment === 'all' && aggregations.department.length > 1 ? 11 : 10;
       toast({
         title: 'Export berhasil',
         description: `File ${fileName} berhasil diunduh dengan ${data.length} pegawai (${sheetCount} sheet).`,
@@ -569,31 +689,60 @@ export function QuickAggregation({}: QuickAggregationProps) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm border-l-4 border-l-blue-500">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pegawai</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Total Pegawai
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{data.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Pegawai aktif</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-sm border-l-4 border-l-green-500">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Kategori Pangkat</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Rata-rata Usia
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{aggregations.rank.length}</p>
+            <p className="text-3xl font-bold">{aggregations.averageAge}</p>
+            <p className="text-xs text-muted-foreground mt-1">Tahun</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-sm border-l-4 border-l-purple-500">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Jenjang Pendidikan</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              Rata-rata Masa Kerja
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{aggregations.education.length}</p>
+            <p className="text-3xl font-bold">{aggregations.averageYears}</p>
+            <p className="text-xs text-muted-foreground mt-1">Tahun</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-l-4 border-l-orange-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Pendidikan S2/S3
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {aggregations.education.filter(e => e.name === 'S2' || e.name === 'S3').reduce((sum, e) => sum + e.count, 0)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {((aggregations.education.filter(e => e.name === 'S2' || e.name === 'S3').reduce((sum, e) => sum + e.count, 0) / data.length) * 100).toFixed(1)}% dari total
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -846,6 +995,76 @@ export function QuickAggregation({}: QuickAggregationProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Rentang Usia */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Rentang Usia</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Distribusi pegawai berdasarkan usia (Rata-rata: {aggregations.averageAge} tahun)</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Rentang Usia</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.age.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Masa Kerja */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Masa Kerja</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Distribusi pegawai berdasarkan masa kerja (Rata-rata: {aggregations.averageYears} tahun)</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Masa Kerja</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.yearsOfService.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Separator */}
@@ -915,6 +1134,8 @@ export function QuickAggregation({}: QuickAggregationProps) {
                 <li><strong>Pendidikan:</strong> Jenjang pendidikan tertinggi tanpa jurusan</li>
                 <li><strong>Jenis Kelamin:</strong> Distribusi Laki-laki dan Perempuan</li>
                 <li><strong>Agama:</strong> Distribusi agama pegawai</li>
+                <li><strong>Rentang Usia:</strong> Distribusi berdasarkan kelompok usia</li>
+                <li><strong>Masa Kerja:</strong> Distribusi berdasarkan lama bekerja</li>
                 <li><strong>Unit Kerja:</strong> Distribusi pegawai per unit (jika melihat semua unit)</li>
                 <li><strong>PPPK:</strong> Golongan V, VII, IX dikategorikan sebagai PPPK</li>
                 <li><strong>Non ASN:</strong> Tenaga Alih Daya dikategorikan sebagai Non ASN</li>
