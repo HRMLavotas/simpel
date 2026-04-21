@@ -121,6 +121,20 @@ function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedCha
   return changes;
 }
 
+/** Isi nilai "lama" dari entry sebelumnya berdasarkan urutan tanggal ascending */
+function inferOldValues(
+  rows: HistoryEntry[],
+  newField: string,
+  oldField: string
+): HistoryEntry[] {
+  return rows.map((row, i) => {
+    if (!row[oldField] && i > 0) {
+      return { ...row, [oldField]: rows[i - 1][newField] || '' };
+    }
+    return row;
+  });
+}
+
 export default function Employees() {
   const { profile, isAdminPusat, user, canEdit, canViewAll, role } = useAuth();
   const { toast } = useToast();
@@ -402,9 +416,18 @@ export default function Employees() {
           front_title: d.front_title || '', back_title: d.back_title || '',
         }))
       );
-      setSelectedMutationHistory(mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
-      setSelectedPositionHistory(mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
-      setSelectedRankHistory(mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      setSelectedMutationHistory(inferOldValues(
+        mapHistoryRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']),
+        'ke_unit', 'dari_unit'
+      ));
+      setSelectedPositionHistory(inferOldValues(
+        mapHistoryRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
+        'jabatan_baru', 'jabatan_lama'
+      ));
+      setSelectedRankHistory(inferOldValues(
+        mapHistoryRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
+        'pangkat_baru', 'pangkat_lama'
+      ));
       setSelectedCompetencyHistory(mapHistoryRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
       setSelectedTrainingHistory(mapHistoryRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
       
@@ -438,6 +461,7 @@ export default function Employees() {
     
     const rows = entries
       .filter(e => fieldKeys.some(k => e[k]))
+      .filter(e => e.id !== '__current__') // Jangan simpan entry placeholder "Data saat ini"
       .map((e) => {
         const row: Record<string, string | number | null> = { employee_id: employeeId };
         fieldKeys.forEach(k => {
@@ -445,6 +469,27 @@ export default function Employees() {
         });
         return row;
       });
+
+    // Infer nilai "lama" dari entry sebelumnya jika kosong
+    if (tableName === 'rank_history') {
+      rows.forEach((row, i) => {
+        if (!row.pangkat_lama && i > 0) {
+          row.pangkat_lama = rows[i - 1].pangkat_baru || null;
+        }
+      });
+    } else if (tableName === 'position_history') {
+      rows.forEach((row, i) => {
+        if (!row.jabatan_lama && i > 0) {
+          row.jabatan_lama = rows[i - 1].jabatan_baru || null;
+        }
+      });
+    } else if (tableName === 'mutation_history') {
+      rows.forEach((row, i) => {
+        if (!row.dari_unit && i > 0) {
+          row.dari_unit = rows[i - 1].ke_unit || null;
+        }
+      });
+    }
       
     logger.debug('Rows to insert:', rows);
     

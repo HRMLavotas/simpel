@@ -27,8 +27,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS, POSITION_TYPES } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
-import { cn } from '@/lib/utils';
+import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { useCallback } from 'react';
 
 interface PositionReference {
   id: string;
@@ -151,62 +152,7 @@ export default function PetaJabatan() {
   }, [activeTab]);
 
   // Real-time subscription for employee changes
-  useEffect(() => {
-    if (!selectedDepartment) return;
-
-    logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
-    
-    const channel = supabase
-      .channel(`employees-${selectedDepartment}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'employees'
-        },
-        (payload) => {
-          logger.debug('Employee change detected:', payload);
-          
-          // For INSERT and UPDATE: check new record
-          // For DELETE: check old record
-          // For UPDATE (pindah unit): check both old and new department
-          const newRecord = payload.new as any;
-          const oldRecord = payload.old as any;
-          
-          let shouldRefresh = false;
-          
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            // Check if new department matches current selected department
-            if (newRecord && newRecord.department === selectedDepartment) {
-              shouldRefresh = true;
-              logger.debug('New/Updated record is for current department');
-            }
-          }
-          
-          if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
-            // Check if old department matches current selected department
-            if (oldRecord && oldRecord.department === selectedDepartment) {
-              shouldRefresh = true;
-              logger.debug('Deleted/Old record was from current department');
-            }
-          }
-          
-          if (shouldRefresh) {
-            logger.debug('Refreshing Peta Jabatan data...');
-            fetchData();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      logger.debug('Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
-    };
-  }, [selectedDepartment]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       logger.debug('Fetching data for department:', selectedDepartment);
@@ -220,15 +166,25 @@ export default function PetaJabatan() {
       
       // Helper to fetch all records without 1000-row limit
       // Uses a factory function to create fresh query per batch (Supabase builder is mutable)
+      // WARNING: This can be slow for very large datasets (10,000+ records)
       const fetchAllUnlimited = async (buildQuery: () => any) => {
         const allData: any[] = [];
         let offset = 0;
         const batchSize = 1000;
+        const maxRecords = 50000; // Safety limit to prevent memory issues
+        
         while (true) {
           const { data, error } = await buildQuery().range(offset, offset + batchSize - 1);
           if (error) throw error;
           if (!data || data.length === 0) break;
           allData.push(...data);
+          
+          // Safety check for very large datasets
+          if (allData.length >= maxRecords) {
+            logger.warn(`Reached maximum record limit (${maxRecords}). Some data may not be loaded.`);
+            break;
+          }
+          
           if (data.length < batchSize) break;
           offset += batchSize;
         }
@@ -288,12 +244,78 @@ export default function PetaJabatan() {
       } else {
         setEducationData([]);
       }
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat data';
+      logger.error('Error fetching data:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedDepartment, toast]);
+
+  // Real-time subscription for employee changes
+  useEffect(() => {
+    if (!selectedDepartment) return;
+
+    logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
+    
+    const handleEmployeeChange = (payload: any) => {
+      logger.debug('Employee change detected:', payload);
+      
+      // For INSERT and UPDATE: check new record
+      // For DELETE: check old record
+      // For UPDATE (pindah unit): check both old and new department
+      const newRecord = payload.new as any;
+      const oldRecord = payload.old as any;
+      
+      let shouldRefresh = false;
+      
+      if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+        // Check if new department matches current selected department
+        if (newRecord && newRecord.department === selectedDepartment) {
+          shouldRefresh = true;
+          logger.debug('New/Updated record is for current department');
+        }
+      }
+      
+      if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
+        // Check if old department matches current selected department
+        if (oldRecord && oldRecord.department === selectedDepartment) {
+          shouldRefresh = true;
+          logger.debug('Deleted/Old record was from current department');
+        }
+      }
+      
+      if (shouldRefresh) {
+        logger.debug('Refreshing Peta Jabatan data...');
+        fetchData();
+      }
+    };
+    
+    const channel = supabase
+      .channel(`employees-${selectedDepartment}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employees'
+        },
+        handleEmployeeChange
+      )
+      .subscribe();
+
+    return () => {
+      logger.debug('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [selectedDepartment, fetchData]);
+
+  useEffect(() => {
+    if (selectedDepartment) {
+      fetchData();
+    }
+  }, [selectedDepartment, fetchData]);
 
   const getEmployeeEducation = (employeeId: string) => {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
@@ -377,8 +399,10 @@ export default function PetaJabatan() {
         canViewAll,
         department: profile?.department
       });
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat summary';
+      logger.error('Error fetching summary data:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
       setIsSummaryLoading(false);
     }
@@ -393,15 +417,12 @@ export default function PetaJabatan() {
       Fungsional: [],
       Pelaksana: [],
     };
-    
-    // Normalize: trim, lowercase, and collapse multiple spaces into one
-    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
 
     // Pre-group employees by their normalized position name for O(1) lookup
     const employeesByPosition = new Map<string, EmployeeMatch[]>();
     employees.forEach(emp => {
       if (emp.position_name) {
-        const norm = normalize(emp.position_name);
+        const norm = normalizeString(emp.position_name);
         const list = employeesByPosition.get(norm) || [];
         list.push(emp);
         employeesByPosition.set(norm, list);
@@ -409,7 +430,7 @@ export default function PetaJabatan() {
     });
 
     const getMatchingEmployees = (positionName: string) => {
-      const norm = normalize(positionName);
+      const norm = normalizeString(positionName);
       return employeesByPosition.get(norm) || [];
     };
     
@@ -494,8 +515,10 @@ export default function PetaJabatan() {
       }
       setShowModal(false);
       fetchData();
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan jabatan';
+      logger.error('Error saving position:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     }
   };
 
@@ -505,8 +528,10 @@ export default function PetaJabatan() {
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Jabatan berhasil dihapus' });
       fetchData();
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus jabatan';
+      logger.error('Error deleting position:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     }
   };
 
@@ -530,8 +555,10 @@ export default function PetaJabatan() {
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Pegawai Non-ASN berhasil dihapus' });
       fetchData();
-    } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Error', description: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus pegawai';
+      logger.error('Error deleting non-ASN employee:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     }
   };
 
@@ -681,7 +708,6 @@ export default function PetaJabatan() {
 
   const handleExportSummary = () => {
     const wb = XLSX.utils.book_new();
-    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
 
     // Sheet 1: Summary per Unit Kerja (only for Admin Pusat/Pimpinan)
     if (canViewAll) {
@@ -692,9 +718,9 @@ export default function PetaJabatan() {
           const deptPositions = allPositions.filter(p => p.department === dept);
           const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
           
-          const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
+          const positionNames = new Set(deptPositions.map(p => normalizeString(p.position_name)));
           const totalExisting = allEmployees.filter(emp => 
-            emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
+            emp.department === dept && emp.position_name && positionNames.has(normalizeString(emp.position_name))
           ).length;
           
           const gap = totalAbk - totalExisting;
@@ -729,7 +755,7 @@ export default function PetaJabatan() {
     }>();
 
     allPositions.forEach(pos => {
-      const normName = normalize(pos.position_name);
+      const normName = normalizeString(pos.position_name);
       const existing = positionGroups.get(normName);
       
       if (existing) {
@@ -747,7 +773,7 @@ export default function PetaJabatan() {
     // Count existing employees per position
     allEmployees.forEach(emp => {
       if (emp.position_name) {
-        const normName = normalize(emp.position_name);
+        const normName = normalizeString(emp.position_name);
         const group = positionGroups.get(normName);
         if (group) {
           group.totalExisting++;
@@ -793,9 +819,9 @@ export default function PetaJabatan() {
       const categoryPositions = allPositions.filter(p => p.position_category === category);
       const totalAbk = categoryPositions.reduce((sum, p) => sum + p.abk_count, 0);
       
-      const positionNames = new Set(categoryPositions.map(p => normalize(p.position_name)));
+      const positionNames = new Set(categoryPositions.map(p => normalizeString(p.position_name)));
       const totalExisting = allEmployees.filter(emp => 
-        emp.position_name && positionNames.has(normalize(emp.position_name))
+        emp.position_name && positionNames.has(normalizeString(emp.position_name))
       ).length;
       
       const gap = totalAbk - totalExisting;
@@ -836,7 +862,6 @@ export default function PetaJabatan() {
 
   const handleExportSummaryNonASN = () => {
     const wb = XLSX.utils.book_new();
-    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
 
     // Sheet 1: Summary per Unit Kerja (only for Admin Pusat/Pimpinan)
     if (canViewAll) {
@@ -882,7 +907,7 @@ export default function PetaJabatan() {
 
     allNonAsnEmployees.forEach(emp => {
       const posName = emp.position_name || 'Tidak Ada Jabatan';
-      const normName = normalize(posName);
+      const normName = normalizeString(posName);
       const existing = positionGroups.get(normName);
       
       const isTenagaAlihDaya = emp.rank_group === 'Tenaga Alih Daya' || !emp.rank_group;
@@ -1587,10 +1612,9 @@ export default function PetaJabatan() {
                     const totalAbk = categoryPositions.reduce((sum, p) => sum + p.abk_count, 0);
                     
                     // Count existing employees for this category
-                    const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
-                    const positionNames = new Set(categoryPositions.map(p => normalize(p.position_name)));
+                    const positionNames = new Set(categoryPositions.map(p => normalizeString(p.position_name)));
                     const totalExisting = allEmployees.filter(emp => 
-                      emp.position_name && positionNames.has(normalize(emp.position_name))
+                      emp.position_name && positionNames.has(normalizeString(emp.position_name))
                     ).length;
                     
                     const gap = totalAbk - totalExisting;
@@ -1668,10 +1692,9 @@ export default function PetaJabatan() {
                                 });
                                 const totalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
                                 
-                                const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
-                                const positionNames = new Set(deptPositions.map(p => normalize(p.position_name)));
+                                const positionNames = new Set(deptPositions.map(p => normalizeString(p.position_name)));
                                 const totalExisting = allEmployees.filter(emp => 
-                                  emp.department === dept && emp.position_name && positionNames.has(normalize(emp.position_name))
+                                  emp.department === dept && emp.position_name && positionNames.has(normalizeString(emp.position_name))
                                 ).length;
                                 
                                 const gap = totalAbk - totalExisting;
@@ -1773,7 +1796,6 @@ export default function PetaJabatan() {
                       </TableHeader>
                       <TableBody>
                         {(() => {
-                          const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
                           
                           // Group positions by normalized name across all departments
                           const positionGroups = new Map<string, {
@@ -1789,7 +1811,7 @@ export default function PetaJabatan() {
                               return;
                             }
 
-                            const normName = normalize(pos.position_name);
+                            const normName = normalizeString(pos.position_name);
                             const existing = positionGroups.get(normName);
                             
                             if (existing) {
@@ -1807,7 +1829,7 @@ export default function PetaJabatan() {
                           // Count existing employees per position
                           allEmployees.forEach(emp => {
                             if (emp.position_name) {
-                              const normName = normalize(emp.position_name);
+                              const normName = normalizeString(emp.position_name);
                               const group = positionGroups.get(normName);
                               if (group) {
                                 group.totalExisting++;
@@ -1831,7 +1853,7 @@ export default function PetaJabatan() {
                                 // Check if any employee in this position matches the search
                                 const employeeMatch = allEmployees.some(emp => {
                                   if (!emp.position_name) return false;
-                                  if (normalize(emp.position_name) !== normalize(item.displayName)) return false;
+                                  if (normalizeString(emp.position_name) !== normalizeString(item.displayName)) return false;
                                   const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
                                   return fullName.includes(query);
                                 });
@@ -1874,7 +1896,7 @@ export default function PetaJabatan() {
                             // Get employees for this position
                             const positionEmployees = allEmployees.filter(emp => {
                               if (!emp.position_name) return false;
-                              return normalize(emp.position_name) === normalize(item.displayName);
+                              return normalizeString(emp.position_name) === normalizeString(item.displayName);
                             });
 
                             const rows = [];
@@ -2203,11 +2225,9 @@ export default function PetaJabatan() {
                               employees: EmployeeMatch[];
                             }>();
 
-                            const normalize = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
-
                             allNonAsnEmployees.forEach(emp => {
                               const posName = emp.position_name || 'Tidak Ada Jabatan';
-                              const normName = normalize(posName);
+                              const normName = normalizeString(posName);
                               const existing = positionGroups.get(normName);
                               
                               const isTenagaAlihDaya = emp.rank_group === 'Tenaga Alih Daya' || !emp.rank_group;

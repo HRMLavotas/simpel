@@ -16,6 +16,7 @@ import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { useNonAsnPositionOptions } from '@/hooks/useNonAsnPositionOptions';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
+import { supabase } from '@/integrations/supabase/client';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
 import { EmployeeHistoryForm, type HistoryEntry, POSITION_HISTORY_FIELDS } from './EmployeeHistoryForm';
 import { logger } from '@/lib/logger';
@@ -41,8 +42,6 @@ interface NonAsnFormModalProps {
   editData?: any;
   userDepartment?: Department;
   isAdminPusat?: boolean;
-  initialEducation?: EducationEntry[];
-  initialPositionHistory?: HistoryEntry[];
 }
 
 const TYPE_NON_ASN_OPTIONS = [
@@ -57,8 +56,6 @@ export function NonAsnFormModal({
   editData,
   userDepartment,
   isAdminPusat = false,
-  initialEducation,
-  initialPositionHistory,
 }: NonAsnFormModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);

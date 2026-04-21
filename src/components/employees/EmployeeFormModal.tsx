@@ -169,8 +169,7 @@ export function EmployeeFormModal({
 
   // Fetch jabatan dari Peta Jabatan berdasarkan unit kerja yang dipilih
   const watchedDepartment = form.watch('department');
-  const { positions: positionOptions } = usePositionOptions(watchedDepartment || undefined);
-  const positionNames = positionOptions.map((p) => p.position_name);
+  const { positionNames, isLoading: isLoadingPositions, error: positionError } = usePositionOptions(watchedDepartment || undefined);
 
   // Track original values for change detection
   const [originalValues, setOriginalValues] = useState<{
@@ -223,22 +222,25 @@ export function EmployeeFormModal({
         const newRank = value.rank_group;
         
         if (oldRank && newRank && oldRank !== newRank) {
-          const alreadyExists = rankHistoryEntries.some(
-            entry => entry.pangkat_lama === oldRank && entry.pangkat_baru === newRank
-          );
+          setRankHistoryEntries(prev => {
+            const alreadyExists = prev.some(
+              entry => entry.pangkat_lama === oldRank && entry.pangkat_baru === newRank
+            );
 
-          if (!alreadyExists) {
-            const newEntry: HistoryEntry = {
-              tanggal: today,
-              pangkat_lama: oldRank,
-              pangkat_baru: newRank,
-              tmt: today,
-              nomor_sk: '',
-              keterangan: 'Perubahan data - Auto-generated',
-            };
-            setRankHistoryEntries(prev => [...prev, newEntry]);
-            toast({ title: '✅ Riwayat Kenaikan Pangkat otomatis ditambahkan', duration: 3000 });
-          }
+            if (!alreadyExists) {
+              const newEntry: HistoryEntry = {
+                tanggal: today,
+                pangkat_lama: oldRank,
+                pangkat_baru: newRank,
+                tmt: today,
+                nomor_sk: '',
+                keterangan: 'Perubahan data - Auto-generated',
+              };
+              toast({ title: '✅ Riwayat Kenaikan Pangkat otomatis ditambahkan', duration: 3000 });
+              return [...prev, newEntry];
+            }
+            return prev;
+          });
         }
       }
 
@@ -248,21 +250,24 @@ export function EmployeeFormModal({
         const newPosition = value.position_name;
         
         if (oldPosition && newPosition && oldPosition !== newPosition) {
-          const alreadyExists = positionHistoryEntries.some(
-            entry => entry.jabatan_lama === oldPosition && entry.jabatan_baru === newPosition
-          );
+          setPositionHistoryEntries(prev => {
+            const alreadyExists = prev.some(
+              entry => entry.jabatan_lama === oldPosition && entry.jabatan_baru === newPosition
+            );
 
-          if (!alreadyExists) {
-            const newEntry: HistoryEntry = {
-              tanggal: today,
-              jabatan_lama: oldPosition,
-              jabatan_baru: newPosition,
-              nomor_sk: '',
-              keterangan: 'Perubahan data - Auto-generated',
-            };
-            setPositionHistoryEntries(prev => [...prev, newEntry]);
-            toast({ title: '✅ Riwayat Jabatan otomatis ditambahkan', duration: 3000 });
-          }
+            if (!alreadyExists) {
+              const newEntry: HistoryEntry = {
+                tanggal: today,
+                jabatan_lama: oldPosition,
+                jabatan_baru: newPosition,
+                nomor_sk: '',
+                keterangan: 'Perubahan data - Auto-generated',
+              };
+              toast({ title: '✅ Riwayat Jabatan otomatis ditambahkan', duration: 3000 });
+              return [...prev, newEntry];
+            }
+            return prev;
+          });
         }
       }
 
@@ -272,27 +277,30 @@ export function EmployeeFormModal({
         const newDept = value.department;
         
         if (oldDept && newDept && oldDept !== newDept) {
-          const alreadyExists = mutationEntries.some(
-            entry => entry.dari_unit === oldDept && entry.ke_unit === newDept
-          );
+          setMutationEntries(prev => {
+            const alreadyExists = prev.some(
+              entry => entry.dari_unit === oldDept && entry.ke_unit === newDept
+            );
 
-          if (!alreadyExists) {
-            const newEntry: HistoryEntry = {
-              tanggal: today,
-              dari_unit: oldDept,
-              ke_unit: newDept,
-              nomor_sk: '',
-              keterangan: 'Mutasi - Auto-generated',
-            };
-            setMutationEntries(prev => [...prev, newEntry]);
-            toast({ title: '✅ Riwayat Mutasi otomatis ditambahkan', duration: 3000 });
-          }
+            if (!alreadyExists) {
+              const newEntry: HistoryEntry = {
+                tanggal: today,
+                dari_unit: oldDept,
+                ke_unit: newDept,
+                nomor_sk: '',
+                keterangan: 'Mutasi - Auto-generated',
+              };
+              toast({ title: '✅ Riwayat Mutasi otomatis ditambahkan', duration: 3000 });
+              return [...prev, newEntry];
+            }
+            return prev;
+          });
         }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [isEditing, employee, form, originalValues, toast, rankHistoryEntries, positionHistoryEntries, mutationEntries]);
+  }, [isEditing, employee, form, originalValues, toast]);
 
   // Detect changes to critical fields for warning display
   useEffect(() => {
@@ -342,26 +350,58 @@ export function EmployeeFormModal({
           try {
             // Parse birth date: YYYYMMDD
             const birthDateStr = cleanNIP.substring(0, 8);
-            const birthYear = birthDateStr.substring(0, 4);
-            const birthMonth = birthDateStr.substring(4, 6);
-            const birthDay = birthDateStr.substring(6, 8);
-            const birth_date = `${birthYear}-${birthMonth}-${birthDay}`;
+            const birthYear = parseInt(birthDateStr.substring(0, 4));
+            const birthMonth = parseInt(birthDateStr.substring(4, 6));
+            const birthDay = parseInt(birthDateStr.substring(6, 8));
+            
+            // Validate year range (1940-2010 reasonable for employees)
+            if (birthYear < 1940 || birthYear > 2010) {
+              logger.warn('Invalid birth year from NIP:', birthYear);
+              return;
+            }
+            
+            // Validate month (1-12)
+            if (birthMonth < 1 || birthMonth > 12) {
+              logger.warn('Invalid birth month from NIP:', birthMonth);
+              return;
+            }
+            
+            // Validate day (1-31)
+            if (birthDay < 1 || birthDay > 31) {
+              logger.warn('Invalid birth day from NIP:', birthDay);
+              return;
+            }
+            
+            const birth_date = `${birthYear}-${birthMonth.toString().padStart(2, '0')}-${birthDay.toString().padStart(2, '0')}`;
             
             // Parse TMT CPNS: YYYYMM
             const tmtCpnsStr = cleanNIP.substring(8, 14);
-            const tmtYear = tmtCpnsStr.substring(0, 4);
-            const tmtMonth = tmtCpnsStr.substring(4, 6);
-            const tmt_cpns = `${tmtYear}-${tmtMonth}-01`;
+            const tmtYear = parseInt(tmtCpnsStr.substring(0, 4));
+            const tmtMonth = parseInt(tmtCpnsStr.substring(4, 6));
+            
+            // Validate TMT year and month
+            if (tmtYear < 1970 || tmtYear > new Date().getFullYear() || tmtMonth < 1 || tmtMonth > 12) {
+              logger.warn('Invalid TMT CPNS from NIP:', { tmtYear, tmtMonth });
+              return;
+            }
+            
+            const tmt_cpns = `${tmtYear}-${tmtMonth.toString().padStart(2, '0')}-01`;
             
             // Parse gender: 1 = Laki-laki, 2 = Perempuan
             const genderCode = cleanNIP.substring(14, 15);
             const gender = genderCode === '1' ? 'Laki-laki' : genderCode === '2' ? 'Perempuan' : '';
             
-            // Validate dates
+            // Final validation with Date object
             const birthDateObj = new Date(birth_date);
             const tmtCpnsObj = new Date(tmt_cpns);
             
             if (!isNaN(birthDateObj.getTime()) && !isNaN(tmtCpnsObj.getTime())) {
+              // Validate that birth date is before TMT CPNS
+              if (birthDateObj >= tmtCpnsObj) {
+                logger.warn('Birth date must be before TMT CPNS');
+                return;
+              }
+              
               // Only fill if fields are empty
               if (!form.getValues('birth_date')) {
                 form.setValue('birth_date', birth_date);
@@ -512,6 +552,24 @@ export function EmployeeFormModal({
         return entry;
       });
 
+    // Isi nilai "lama" dari entry sebelumnya berdasarkan urutan tanggal
+    const inferOldValues = (
+      rows: HistoryEntry[],
+      newField: string,
+      oldField: string,
+      currentValue?: string
+    ): HistoryEntry[] => {
+      // rows sudah diurutkan ascending (terlama dulu)
+      return rows.map((row, i) => {
+        if (!row[oldField]) {
+          // Ambil dari pangkat_baru/jabatan_baru entry sebelumnya
+          const prev = i > 0 ? rows[i - 1][newField] : (currentValue || '');
+          return { ...row, [oldField]: prev || '' };
+        }
+        return row;
+      });
+    };
+
     Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
       supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
@@ -529,9 +587,34 @@ export function EmployeeFormModal({
         major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
         front_title: d.front_title || '', back_title: d.back_title || '',
       })));
-      setMutationEntries(mapRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
-      setPositionHistoryEntries(mapRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
-      setRankHistoryEntries(mapRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+
+      const mutationRows = mapRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']);
+      // Isi dari_unit dari ke_unit entry sebelumnya
+      const mutationWithOld = inferOldValues(mutationRows, 'ke_unit', 'dari_unit');
+      // Jika belum ada riwayat mutasi, inject unit kerja saat ini sebagai entry awal
+      if (mutationWithOld.length === 0 && employee.department) {
+        mutationWithOld.push({ id: '__current__', ke_unit: employee.department, keterangan: 'Data saat ini' });
+      }
+      setMutationEntries(mutationWithOld);
+
+      const positionRows = mapRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']);
+      // Isi jabatan_lama dari jabatan_baru entry sebelumnya
+      const positionWithOld = inferOldValues(positionRows, 'jabatan_baru', 'jabatan_lama');
+      // Jika belum ada riwayat jabatan, inject jabatan saat ini sebagai entry awal
+      if (positionWithOld.length === 0 && employee.position_name) {
+        positionWithOld.push({ id: '__current__', jabatan_baru: employee.position_name, unit_kerja: employee.department || '', keterangan: 'Data saat ini' });
+      }
+      setPositionHistoryEntries(positionWithOld);
+
+      const rankRows = mapRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']);
+      // Isi pangkat_lama dari pangkat_baru entry sebelumnya
+      const rankWithOld = inferOldValues(rankRows, 'pangkat_baru', 'pangkat_lama');
+      // Jika belum ada riwayat pangkat, inject pangkat saat ini sebagai entry awal
+      if (rankWithOld.length === 0 && employee.rank_group) {
+        rankWithOld.push({ id: '__current__', pangkat_baru: employee.rank_group, keterangan: 'Data saat ini' });
+      }
+      setRankHistoryEntries(rankWithOld);
+
       setCompetencyEntries(mapRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
       setTrainingEntries(mapRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
       setPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
@@ -698,27 +781,35 @@ export function EmployeeFormModal({
     // Update main form
     form.setValue('rank_group', newRank, { shouldValidate: true, shouldDirty: true });
     
-    // Check for duplicate before adding
+    // Check for duplicate with more strict criteria (including date and SK number)
     const isDuplicate = rankHistoryEntries.some(
       e => e.pangkat_lama === entry.pangkat_lama && 
            e.pangkat_baru === entry.pangkat_baru &&
-           e.tanggal === entry.tanggal
+           e.tanggal === entry.tanggal &&
+           e.nomor_sk === entry.nomor_sk
     );
     
     if (!isDuplicate) {
       // Add to rank history
       setRankHistoryEntries(prev => [...prev, entry]);
+      
+      // Show toast
+      toast({
+        title: '✅ Kenaikan Pangkat Berhasil',
+        description: `Pangkat diupdate menjadi ${newRank}`,
+        duration: 3000,
+      });
+    } else {
+      logger.warn('Duplicate rank history entry detected, skipping');
+      toast({
+        title: 'Info',
+        description: 'Riwayat pangkat sudah ada',
+        duration: 2000,
+      });
     }
     
     // Update original value to prevent duplicate auto-tracking
     setOriginalValues(prev => ({ ...prev, rank_group: newRank }));
-    
-    // Show toast
-    toast({
-      title: '✅ Kenaikan Pangkat Berhasil',
-      description: `Pangkat diupdate menjadi ${newRank}`,
-      duration: 3000,
-    });
   };
 
   const handleQuickPositionChange = (newPosition: string, entry: HistoryEntry) => {
@@ -729,27 +820,35 @@ export function EmployeeFormModal({
     // Update main form
     form.setValue('position_name', newPosition, { shouldValidate: true, shouldDirty: true });
     
-    // Check for duplicate before adding
+    // Check for duplicate with more strict criteria
     const isDuplicate = positionHistoryEntries.some(
       e => e.jabatan_lama === entry.jabatan_lama && 
            e.jabatan_baru === entry.jabatan_baru &&
-           e.tanggal === entry.tanggal
+           e.tanggal === entry.tanggal &&
+           e.nomor_sk === entry.nomor_sk
     );
     
     if (!isDuplicate) {
       // Add to position history
       setPositionHistoryEntries(prev => [...prev, entry]);
+      
+      // Show toast
+      toast({
+        title: '✅ Pergantian Jabatan Berhasil',
+        description: `Jabatan diupdate menjadi ${newPosition}`,
+        duration: 3000,
+      });
+    } else {
+      logger.warn('Duplicate position history entry detected, skipping');
+      toast({
+        title: 'Info',
+        description: 'Riwayat jabatan sudah ada',
+        duration: 2000,
+      });
     }
     
     // Update original value to prevent duplicate auto-tracking
     setOriginalValues(prev => ({ ...prev, position_name: newPosition }));
-    
-    // Show toast
-    toast({
-      title: '✅ Pergantian Jabatan Berhasil',
-      description: `Jabatan diupdate menjadi ${newPosition}`,
-      duration: 3000,
-    });
   };
 
   const handleQuickDepartmentChange = (newDepartment: string, newPosition: string, entry: HistoryEntry) => {
@@ -767,36 +866,45 @@ export function EmployeeFormModal({
       setOriginalValues(prev => ({ ...prev, department: newDepartment }));
     }
     
+    // Check for duplicate with more strict criteria
     const isDuplicate = mutationEntries.some(
       e => e.dari_unit === entry.dari_unit && 
            e.ke_unit === entry.ke_unit &&
-           e.tanggal === entry.tanggal
+           e.tanggal === entry.tanggal &&
+           e.nomor_sk === entry.nomor_sk
     );
     
     if (!isDuplicate) {
       setMutationEntries(prev => [...prev, entry]);
+      
+      // Jika jabatan juga berubah, tambah riwayat jabatan
+      if (newPosition && newPosition !== form.getValues('position_name')) {
+        const today = new Date().toISOString().split('T')[0];
+        const posEntry: HistoryEntry = {
+          tanggal: entry.tanggal || today,
+          jabatan_lama: form.getValues('position_name') || '',
+          jabatan_baru: newPosition,
+          nomor_sk: entry.nomor_sk || '',
+          keterangan: 'Perubahan jabatan saat mutasi - Quick Action',
+        };
+        setPositionHistoryEntries(prev => [...prev, posEntry]);
+      }
+      
+      toast({
+        title: '✅ Mutasi Berhasil',
+        description: newPosition
+          ? `Unit kerja → ${newDepartment} | Jabatan → ${newPosition}`
+          : `Unit kerja diupdate menjadi ${newDepartment}`,
+        duration: 3000,
+      });
+    } else {
+      logger.warn('Duplicate mutation entry detected, skipping');
+      toast({
+        title: 'Info',
+        description: 'Riwayat mutasi sudah ada',
+        duration: 2000,
+      });
     }
-
-    // Jika jabatan juga berubah, tambah riwayat jabatan
-    if (newPosition && newPosition !== form.getValues('position_name')) {
-      const today = new Date().toISOString().split('T')[0];
-      const posEntry: HistoryEntry = {
-        tanggal: entry.tanggal || today,
-        jabatan_lama: form.getValues('position_name') || '',
-        jabatan_baru: newPosition,
-        nomor_sk: entry.nomor_sk || '',
-        keterangan: 'Perubahan jabatan saat mutasi - Quick Action',
-      };
-      setPositionHistoryEntries(prev => [...prev, posEntry]);
-    }
-    
-    toast({
-      title: '✅ Mutasi Berhasil',
-      description: newPosition
-        ? `Unit kerja → ${newDepartment} | Jabatan → ${newPosition}`
-        : `Unit kerja diupdate menjadi ${newDepartment}`,
-      duration: 3000,
-    });
   };
 
   // Wrapper functions for history onChange to mark form as modified
@@ -992,17 +1100,23 @@ export function EmployeeFormModal({
                   value={form.watch('position_name') || ''}
                   onChange={(v) => form.setValue('position_name', v, { shouldValidate: true, shouldDirty: true })}
                   options={positionNames}
-                  placeholder={watchedDepartment ? 'Pilih jabatan dari Peta Jabatan' : 'Pilih unit kerja terlebih dahulu'}
-                  disabled={!watchedDepartment}
+                  placeholder={watchedDepartment ? (isLoadingPositions ? 'Memuat jabatan...' : 'Pilih jabatan dari Peta Jabatan') : 'Pilih unit kerja terlebih dahulu'}
+                  disabled={!watchedDepartment || isLoadingPositions}
                 />
                 {!watchedDepartment && (
                   <p className="text-xs text-amber-600">⚠️ Pilih Unit Kerja terlebih dahulu untuk melihat daftar jabatan</p>
                 )}
-                {watchedDepartment && positionNames.length > 0 && (
-                  <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini</p>
+                {positionError && (
+                  <p className="text-xs text-destructive">❌ Error memuat jabatan: {positionError}</p>
                 )}
-                {watchedDepartment && positionNames.length === 0 && (
+                {watchedDepartment && !isLoadingPositions && !positionError && positionNames.length > 0 && (
+                  <p className="text-xs text-muted-foreground">💡 Pilih dari daftar jabatan yang tersedia di Peta Jabatan unit ini ({positionNames.length} jabatan)</p>
+                )}
+                {watchedDepartment && !isLoadingPositions && !positionError && positionNames.length === 0 && (
                   <p className="text-xs text-amber-600">⚠️ Belum ada jabatan di Peta Jabatan untuk unit ini</p>
+                )}
+                {isLoadingPositions && (
+                  <p className="text-xs text-muted-foreground">⏳ Memuat daftar jabatan...</p>
                 )}
                 {hasPositionChanged && (
                   <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan akan otomatis menambahkan riwayat jabatan</p>
