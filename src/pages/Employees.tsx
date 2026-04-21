@@ -371,6 +371,13 @@ export default function Employees() {
   };
 
   const handleEditEmployee = async (employee: Employee) => {
+    logger.debug('=== handleEditEmployee CALLED ===');
+    logger.debug('Employee ID:', employee.id);
+    logger.debug('Employee Name:', employee.name);
+    logger.debug('Employee Rank Group:', employee.rank_group);
+    logger.debug('Employee ASN Status:', employee.asn_status);
+    logger.debug('Full Employee Object:', employee);
+    
     setSelectedEmployee(employee);
     
     try {

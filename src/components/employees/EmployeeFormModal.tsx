@@ -124,6 +124,7 @@ export function EmployeeFormModal({
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+  const [isFormReady, setIsFormReady] = useState(false);
   const isEditing = !!employee;
 
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>(
@@ -195,10 +196,13 @@ export function EmployeeFormModal({
       setHasAdditionalPositionChanged(false);
       setIsEditingAdditionalPosition(false);
       setTempAdditionalPosition('');
+      setIsFormReady(false);
       resetNIPValidation();
     } else {
       // Reset ke tab yang sesuai saat modal dibuka
       setActiveTab(employee ? 'quick' : 'main');
+      // Set form ready to false when opening
+      setIsFormReady(false);
     }
   }, [open, employee, resetNIPValidation]);
 
@@ -424,22 +428,14 @@ export function EmployeeFormModal({
     return () => subscription.unsubscribe();
   }, [form, validateNIP, resetNIPValidation, employee?.id]);
 
+  // Form reset useEffect - handles employee data loading
   useEffect(() => {
-    // Skip reset if user has modified the form (to prevent losing unsaved changes)
-    if (formModifiedRef.current && initialLoadCompleteRef.current) {
-      logger.debug('⚠️ Skipping form reset - user has unsaved changes');
-      return;
-    }
+    if (!open) return; // Only run when modal is open
     
     if (employee) {
-      logger.debug('=== EMPLOYEE DATA FOR EDIT ===');
-      logger.debug('Gender:', employee.gender);
-      logger.debug('Religion:', employee.religion);
-      logger.debug('ASN Status:', employee.asn_status);
-      logger.debug('Rank Group:', employee.rank_group);
-      logger.debug('Full employee:', employee);
+      console.log('Loading employee data:', employee.name, 'Rank:', employee.rank_group);
       
-      // Normalize gender value to match options exactly - handle all common variations
+      // Normalize gender
       let normalizedGender = employee.gender || '';
       if (normalizedGender) {
         const genderLower = normalizedGender.toLowerCase().trim();
@@ -450,37 +446,23 @@ export function EmployeeFormModal({
                    genderLower === 'female' || genderLower === 'wanita' || genderLower === '2') {
           normalizedGender = 'Perempuan';
         } else {
-          // If value doesn't match any known pattern, keep original but log warning
-          logger.warn('Unknown gender value:', normalizedGender);
-          normalizedGender = ''; // Reset to empty to force user selection
+          normalizedGender = '';
         }
       }
       
-      // Normalize religion value to match options exactly - handle all common variations
+      // Normalize religion
       let normalizedReligion = employee.religion || '';
       if (normalizedReligion) {
         const religionLower = normalizedReligion.toLowerCase().trim();
         const religionMap: Record<string, string> = {
-          'islam': 'Islam',
-          'kristen': 'Kristen',
-          'katolik': 'Katolik',
-          'hindu': 'Hindu',
-          'buddha': 'Buddha',
-          'budha': 'Buddha',
-          'konghucu': 'Konghucu',
-          'khonghucu': 'Konghucu',
+          'islam': 'Islam', 'kristen': 'Kristen', 'katolik': 'Katolik',
+          'hindu': 'Hindu', 'buddha': 'Buddha', 'budha': 'Buddha',
+          'konghucu': 'Konghucu', 'khonghucu': 'Konghucu',
         };
-        
         normalizedReligion = religionMap[religionLower] || '';
-        if (!normalizedReligion && employee.religion) {
-          logger.warn('Unknown religion value:', employee.religion);
-        }
       }
       
-      logger.debug('Normalized Gender:', normalizedGender);
-      logger.debug('Normalized Religion:', normalizedReligion);
-      
-      // Store original values for change detection
+      // Store original values
       setOriginalValues({
         rank_group: employee.rank_group || '',
         position_name: employee.position_name || '',
@@ -488,35 +470,48 @@ export function EmployeeFormModal({
         additional_position: employee.additional_position || '',
       });
       
+      // Reset form
       form.reset({
-        nip: employee.nip || '', name: employee.name,
-        front_title: employee.front_title || '', back_title: employee.back_title || '',
-        birth_place: employee.birth_place || '', birth_date: employee.birth_date || '',
-        gender: normalizedGender, religion: normalizedReligion,
+        nip: employee.nip || '',
+        name: employee.name,
+        front_title: employee.front_title || '',
+        back_title: employee.back_title || '',
+        birth_place: employee.birth_place || '',
+        birth_date: employee.birth_date || '',
+        gender: normalizedGender,
+        religion: normalizedReligion,
         position_type: employee.position_type || '',
-        position_name: employee.position_name || '', additional_position: employee.additional_position || '',
+        position_name: employee.position_name || '',
+        additional_position: employee.additional_position || '',
         asn_status: employee.asn_status || '',
-        rank_group: employee.rank_group || '', department: employee.department,
-        join_date: employee.join_date || '', tmt_cpns: employee.tmt_cpns || '',
-        tmt_pns: employee.tmt_pns || '', tmt_pensiun: employee.tmt_pensiun || '',
+        rank_group: employee.rank_group || '',
+        department: employee.department,
+        join_date: employee.join_date || '',
+        tmt_cpns: employee.tmt_cpns || '',
+        tmt_pns: employee.tmt_pns || '',
+        tmt_pensiun: employee.tmt_pensiun || '',
       });
       
-      // Debug: Check form values after reset
-      setTimeout(() => {
-        logger.debug('=== FORM VALUES AFTER RESET ===');
-        logger.debug('Gender:', form.getValues('gender'));
-        logger.debug('Religion:', form.getValues('religion'));
-        logger.debug('ASN Status:', form.getValues('asn_status'));
-        logger.debug('Rank Group:', form.getValues('rank_group'));
-      }, 100);
+      // Explicitly set rank_group to ensure it's set
+      if (employee.rank_group) {
+        setTimeout(() => {
+          form.setValue('rank_group', employee.rank_group!, { shouldValidate: false });
+          console.log('Rank group set to:', employee.rank_group);
+        }, 0);
+      }
       
-      // Mark initial load as complete
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
-    } else {
-      // Reset original values for new employee
-      setOriginalValues({ rank_group: '', position_name: '', department: '', additional_position: '' });
       
+      // Set form ready after ensuring all updates are done
+      setTimeout(() => {
+        setIsFormReady(true);
+        console.log('Form ready. Current rank:', form.getValues('rank_group'));
+      }, 100);
+      
+    } else {
+      // New employee
+      setOriginalValues({ rank_group: '', position_name: '', department: '', additional_position: '' });
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
         birth_place: '', birth_date: '', gender: '', religion: '',
@@ -534,12 +529,11 @@ export function EmployeeFormModal({
       setAssignmentNotes([]);
       setChangeNotes([]);
       setAdditionalPositionHistoryEntries([]);
-      
-      // Mark initial load as complete
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
+      setIsFormReady(true);
     }
-  }, [employee, profile, form]);
+  }, [employee?.id, open, profile, form]);
 
   // Fetch history dari DB setiap kali modal dibuka - useEffect terpisah di level komponen
   useEffect(() => {
@@ -1014,7 +1008,7 @@ export function EmployeeFormModal({
             <TabsContent value="quick" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {isEditing ? (
                 <>
-                  {isFetchingHistory ? (
+                  {!isFormReady || isFetchingHistory ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                       <span className="ml-2 text-muted-foreground">Memuat data...</span>
