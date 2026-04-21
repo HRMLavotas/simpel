@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDataAudit } from '@/hooks/useDataAudit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Search, Filter, CheckCircle2, XCircle, Edit } from 'lucide-react';
+import { AlertTriangle, Search, Filter, CheckCircle2, XCircle, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -29,6 +29,8 @@ export default function DataAudit() {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: auditData, isLoading, error } = useDataAudit();
 
@@ -56,6 +58,19 @@ export default function DataAudit() {
     
     return filtered;
   }, [auditData, searchQuery, filterIssue]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterIssue]);
 
   // Get unique issue types for filter
   const issueTypes = useMemo(() => {
@@ -262,11 +277,18 @@ export default function DataAudit() {
                 </Select>
               </div>
               
-              {/* Results count */}
+              {/* Results count and pagination info */}
               {!isLoading && filteredData.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Menampilkan {filteredData.length} dari {auditData?.length || 0} data bermasalah
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredData.length)} dari {filteredData.length} data bermasalah
+                  </p>
+                  {totalPages > 1 && (
+                    <p className="text-sm text-muted-foreground">
+                      Halaman {currentPage} dari {totalPages}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </CardHeader>
@@ -285,9 +307,10 @@ export default function DataAudit() {
                   <Skeleton key={i} className="h-24 w-full" />
                 ))}
               </div>
-            ) : filteredData && filteredData.length > 0 ? (
-              <div className="space-y-3">
-                {filteredData.map((employee) => (
+            ) : paginatedData && paginatedData.length > 0 ? (
+              <>
+                <div className="space-y-3">
+                  {paginatedData.map((employee) => (
                   <div
                     key={employee.id}
                     className="flex items-start justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors"
@@ -320,8 +343,70 @@ export default function DataAudit() {
                       Perbaiki
                     </Button>
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredData.length)} dari {filteredData.length} hasil
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Sebelumnya
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(page => {
+                            // Show first page, last page, current page, and pages around current
+                            return page === 1 || 
+                                   page === totalPages || 
+                                   (page >= currentPage - 1 && page <= currentPage + 1);
+                          })
+                          .map((page, index, array) => {
+                            // Add ellipsis if there's a gap
+                            const prevPage = array[index - 1];
+                            const showEllipsis = prevPage && page - prevPage > 1;
+                            
+                            return (
+                              <div key={page} className="flex items-center gap-1">
+                                {showEllipsis && (
+                                  <span className="px-2 text-muted-foreground">...</span>
+                                )}
+                                <Button
+                                  variant={currentPage === page ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setCurrentPage(page)}
+                                  className="min-w-[2.5rem]"
+                                >
+                                  {page}
+                                </Button>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Selanjutnya
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
