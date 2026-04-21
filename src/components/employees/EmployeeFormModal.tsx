@@ -435,6 +435,8 @@ export function EmployeeFormModal({
       logger.debug('=== EMPLOYEE DATA FOR EDIT ===');
       logger.debug('Gender:', employee.gender);
       logger.debug('Religion:', employee.religion);
+      logger.debug('ASN Status:', employee.asn_status);
+      logger.debug('Rank Group:', employee.rank_group);
       logger.debug('Full employee:', employee);
       
       // Normalize gender value to match options exactly - handle all common variations
@@ -504,6 +506,8 @@ export function EmployeeFormModal({
         logger.debug('=== FORM VALUES AFTER RESET ===');
         logger.debug('Gender:', form.getValues('gender'));
         logger.debug('Religion:', form.getValues('religion'));
+        logger.debug('ASN Status:', form.getValues('asn_status'));
+        logger.debug('Rank Group:', form.getValues('rank_group'));
       }, 100);
       
       // Mark initial load as complete
@@ -732,9 +736,11 @@ export function EmployeeFormModal({
     const currentValue = form.watch(fieldName) as string;
     const fieldId = `employee-${fieldName}`;
     
-    // Debug logging for gender and religion
-    if (fieldName === 'gender' || fieldName === 'religion') {
+    // Debug logging for gender, religion, and rank_group
+    if (fieldName === 'gender' || fieldName === 'religion' || fieldName === 'rank_group') {
       logger.debug(`${fieldName} - currentValue: "${currentValue}"`);
+      logger.debug(`${fieldName} - options:`, options);
+      logger.debug(`${fieldName} - value in options?`, options.includes(currentValue || ''));
     }
     
     return (
@@ -767,9 +773,37 @@ export function EmployeeFormModal({
 
   const getRankOptions = () => {
     const status = form.watch('asn_status');
-    if (status === 'PPPK') return RANK_GROUPS_PPPK as unknown as string[];
-    if (status === 'PNS') return RANK_GROUPS_PNS as unknown as string[];
-    return ['Tidak Ada'];
+    const currentRank = form.watch('rank_group');
+    
+    logger.debug('=== getRankOptions DEBUG ===');
+    logger.debug('ASN Status:', status);
+    logger.debug('Current Rank:', currentRank);
+    
+    let options: string[] = [];
+    
+    if (status === 'PPPK') {
+      options = RANK_GROUPS_PPPK as unknown as string[];
+      logger.debug('PPPK Options:', options);
+    } else if (status === 'PNS') {
+      options = RANK_GROUPS_PNS as unknown as string[];
+      logger.debug('PNS Options:', options);
+    } else if (status === 'Non ASN') {
+      // For Non ASN, provide common options
+      options = ['Tenaga Alih Daya', 'Tidak Ada'];
+      logger.debug('Non ASN Options:', options);
+    } else {
+      options = ['Tidak Ada'];
+      logger.debug('Default Options:', options);
+    }
+    
+    // If current rank exists but is not in options, add it to prevent losing the value
+    if (currentRank && !options.includes(currentRank)) {
+      logger.warn('Current rank not in options, adding it:', currentRank);
+      options = [currentRank, ...options];
+    }
+    
+    logger.debug('Current rank in options?', options.includes(currentRank || ''));
+    return options;
   };
 
   // Quick Action handlers
@@ -979,18 +1013,27 @@ export function EmployeeFormModal({
 
             <TabsContent value="quick" className="space-y-6 focus:outline-none focus-visible:outline-none">
               {isEditing ? (
-                <QuickActionForm
-                  currentRank={form.watch('rank_group') || ''}
-                  currentPosition={form.watch('position_name') || ''}
-                  currentDepartment={form.watch('department') || ''}
-                  asnStatus={form.watch('asn_status') || ''}
-                  departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
-                  allDepartments={dynamicDepartments.filter(Boolean)}
-                  positionOptions={positionNames}
-                  onRankChange={handleQuickRankChange}
-                  onPositionChange={handleQuickPositionChange}
-                  onDepartmentChange={handleQuickDepartmentChange}
-                />
+                <>
+                  {isFetchingHistory ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-muted-foreground">Memuat data...</span>
+                    </div>
+                  ) : (
+                    <QuickActionForm
+                      currentRank={form.watch('rank_group') || ''}
+                      currentPosition={form.watch('position_name') || ''}
+                      currentDepartment={form.watch('department') || ''}
+                      asnStatus={form.watch('asn_status') || ''}
+                      departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
+                      allDepartments={dynamicDepartments.filter(Boolean)}
+                      positionOptions={positionNames}
+                      onRankChange={handleQuickRankChange}
+                      onPositionChange={handleQuickPositionChange}
+                      onDepartmentChange={handleQuickDepartmentChange}
+                    />
+                  )}
+                </>
               ) : (
                 <Alert>
                   <AlertDescription>

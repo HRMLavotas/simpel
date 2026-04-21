@@ -54,6 +54,13 @@ export function QuickActionForm({
 }: QuickActionFormProps) {
   const [activeQuickTab, setActiveQuickTab] = useState<'rank' | 'mutation' | 'position'>('rank');
   
+  // Debug logging
+  console.log('=== QuickActionForm Props ===');
+  console.log('currentRank:', currentRank);
+  console.log('currentPosition:', currentPosition);
+  console.log('currentDepartment:', currentDepartment);
+  console.log('asnStatus:', asnStatus);
+  
   // Rank promotion state
   const [newRank, setNewRank] = useState('');
   const [rankDate, setRankDate] = useState(new Date().toISOString().split('T')[0]);
