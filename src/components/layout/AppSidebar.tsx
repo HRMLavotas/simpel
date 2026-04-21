@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Data Pegawai', href: '/employees', icon: Users },
+  { label: 'Audit Data', href: '/audit-data', icon: ClipboardCheck },
   { label: 'Import Data ASN', href: '/import', icon: Upload, adminPusatOnly: true },
   { label: 'Import Non-ASN', href: '/import-non-asn', icon: Upload, adminPusatOnly: true },
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },

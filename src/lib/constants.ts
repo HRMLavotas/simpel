@@ -149,10 +149,9 @@ export const RANK_GROUPS_PNS = [
   'Pembina Utama (IV/e)',
 ] as const;
 
-// PPPK ranks (I - XVII)
+// PPPK ranks (only III, V, VII, IX)
 export const RANK_GROUPS_PPPK = [
-  'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 
-  'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII',
+  'III', 'V', 'VII', 'IX',
 ] as const;
 
 // Combined rank groups for all (PNS full format + PPPK)

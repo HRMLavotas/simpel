@@ -14,6 +14,7 @@ import type { AppRole } from "@/lib/constants";
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Employees = lazy(() => import("./pages/Employees"));
+const DataAudit = lazy(() => import("./pages/DataAudit"));
 const Import = lazy(() => import("./pages/Import"));
 const ImportNonAsn = lazy(() => import("./pages/ImportNonAsn"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -90,6 +91,7 @@ const App = () => (
               <Route path="/auth" element={<PublicRoute><ErrorBoundary><Auth /></ErrorBoundary></PublicRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><ErrorBoundary><Dashboard /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/employees" element={<ProtectedRoute><ErrorBoundary><Employees /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/audit-data" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><DataAudit /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/import" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Import /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/import-non-asn" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ErrorBoundary><Profile /></ErrorBoundary></ProtectedRoute>} />
