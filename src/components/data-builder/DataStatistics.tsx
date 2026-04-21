@@ -18,17 +18,40 @@ const CHART_COLORS = [
   'hsl(200, 60%, 50%)',
 ];
 
-// Categorizable fields for statistics
-const STAT_FIELDS = [
-  { key: 'department', label: 'Unit Kerja', icon: Users },
-  { key: 'asn_status', label: 'Status ASN', icon: PieChart },
-  { key: 'position_type', label: 'Jenis Jabatan', icon: BarChart3 },
-  { key: 'position_sk', label: 'Jabatan Sesuai SK', icon: TrendingUp },
-  { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202 Tahun 2024', icon: TrendingUp },
-  { key: 'rank_group', label: 'Pangkat/Golongan', icon: BarChart3 },
-  { key: 'gender', label: 'Jenis Kelamin', icon: PieChart },
-  { key: 'religion', label: 'Agama', icon: PieChart },
+// Fields to exclude from statistics (technical/non-categorical fields)
+const EXCLUDE_FROM_STATS = [
+  'id',
+  'created_at',
+  'updated_at',
+  'import_order',
 ];
+
+// Date fields that should not be aggregated
+const DATE_FIELDS = [
+  'birth_date',
+  'join_date',
+  'tmt_cpns',
+  'tmt_pns',
+  'tmt_pensiun',
+];
+
+// Icon mapping for common field types
+const FIELD_ICONS: Record<string, typeof Users> = {
+  department: Users,
+  asn_status: PieChart,
+  position_type: BarChart3,
+  position_sk: TrendingUp,
+  position_name: TrendingUp,
+  additional_position: TrendingUp,
+  old_position: TrendingUp,
+  rank_group: BarChart3,
+  gender: PieChart,
+  religion: PieChart,
+  birth_place: Users,
+  front_title: Users,
+  back_title: Users,
+  keterangan_formasi: BarChart3,
+};
 
 interface DataStatisticsProps {
   data: Record<string, unknown>[];
@@ -92,11 +115,44 @@ const CustomYAxisTick = ({ x, y, payload }: YAxisTickProps) => {
 };
 
 export function DataStatistics({ data, selectedColumns }: DataStatisticsProps) {
-  // Only show stats for fields present in the data
+  // Generate stats for all selected columns that are categorical (not dates, IDs, etc)
   const availableStats = useMemo(() => {
-    // We need the raw data to have these fields — check against selected columns or data keys
-    const dataKeys = data.length > 0 ? Object.keys(data[0]) : [];
-    return STAT_FIELDS.filter(f => dataKeys.includes(f.key) || selectedColumns.includes(f.key));
+    if (data.length === 0) return [];
+    
+    const dataKeys = Object.keys(data[0]);
+    
+    // Get all fields from AVAILABLE_COLUMNS that match selected columns
+    const stats = selectedColumns
+      .map(colKey => {
+        const col = AVAILABLE_COLUMNS.find(c => c.key === colKey);
+        if (!col) return null;
+        
+        // Skip if field is excluded or is a date field
+        if (EXCLUDE_FROM_STATS.includes(col.dbField) || DATE_FIELDS.includes(col.dbField)) {
+          return null;
+        }
+        
+        // Skip if field is not in data
+        if (!dataKeys.includes(col.dbField)) {
+          return null;
+        }
+        
+        // Check if field has reasonable number of unique values (not too many like NIP/name)
+        const uniqueValues = new Set(data.map(row => String(row[col.dbField] ?? '')));
+        // Skip fields with too many unique values (likely identifiers) or too few (all same)
+        if (uniqueValues.size > 100 || uniqueValues.size <= 1) {
+          return null;
+        }
+        
+        return {
+          key: col.dbField,
+          label: col.label,
+          icon: FIELD_ICONS[col.dbField] || BarChart3,
+        };
+      })
+      .filter((stat): stat is { key: string; label: string; icon: typeof Users } => stat !== null);
+    
+    return stats;
   }, [data, selectedColumns]);
 
   const statsData = useMemo(() => {

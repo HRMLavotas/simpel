@@ -1,0 +1,928 @@
+import { useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileSpreadsheet, Download, Loader2, Zap, Filter } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
+
+interface QuickAggregationProps {
+  // No props needed - component will fetch its own data
+}
+
+// Helper function to normalize rank group for detailed view
+function normalizeRankGroup(rankGroup: string): string {
+  if (!rankGroup || rankGroup === '-') return 'Tidak Ada';
+  
+  const rg = String(rankGroup).trim();
+  
+  // Handle Non-ASN cases
+  if (rg.toLowerCase().includes('tenaga alih daya') || 
+      rg.toLowerCase().includes('non asn')) {
+    return 'Non ASN';
+  }
+  
+  // Handle PPPK cases (V, VII, IX, etc) - keep as is
+  if (/^(V|VII|IX|XI)$/i.test(rg)) {
+    return rg.toUpperCase();
+  }
+  
+  // Extract detailed rank (e.g., "III/a", "IV/b")
+  const detailMatch = rg.match(/\b(IV|III|II|I)\/(a|b|c|d|e)\b/i);
+  if (detailMatch) {
+    return `${detailMatch[1]}/${detailMatch[2]}`.toUpperCase();
+  }
+  
+  // If no detailed match, try to extract just the Roman numeral
+  const romanMatch = rg.match(/\b(IV|III|II|I)\b/i);
+  if (romanMatch) {
+    return romanMatch[1].toUpperCase();
+  }
+  
+  return rg;
+}
+
+// Helper function to extract main rank (I, II, III, IV) from rank_group
+function extractMainRank(rankGroup: string): string {
+  if (!rankGroup || rankGroup === '-') return 'Tidak Ada';
+  
+  // Handle Non-ASN cases
+  if (rankGroup.toLowerCase().includes('tenaga alih daya') || 
+      rankGroup.toLowerCase().includes('non asn')) {
+    return 'Non ASN';
+  }
+  
+  // Handle PPPK cases (V, VII, IX, etc)
+  if (/^(V|VII|IX|XI)$/i.test(rankGroup.trim())) {
+    return 'PPPK';
+  }
+  
+  // Extract Roman numerals (I, II, III, IV)
+  const match = rankGroup.match(/\b(IV|III|II|I)\b/);
+  if (match) {
+    return match[1];
+  }
+  
+  return 'Lainnya';
+}
+
+// Helper function to extract education level from education_history
+function extractEducationLevel(educationHistory: unknown): string {
+  if (!educationHistory) return 'Tidak Ada';
+  
+  try {
+    let histories: any[] = [];
+    
+    if (typeof educationHistory === 'string') {
+      histories = JSON.parse(educationHistory);
+    } else if (Array.isArray(educationHistory)) {
+      histories = educationHistory;
+    }
+    
+    if (!Array.isArray(histories) || histories.length === 0) {
+      return 'Tidak Ada';
+    }
+    
+    // Get the highest education level
+    const levels = histories.map(h => {
+      const level = String(h.level || h.jenjang || '').toUpperCase();
+      
+      // Normalize education levels
+      if (level.includes('S3') || level.includes('DOKTOR') || level.includes('DR')) return 'S3';
+      if (level.includes('S2') || level.includes('MAGISTER') || level.includes('MASTER')) return 'S2';
+      if (level.includes('S1') || level.includes('SARJANA') || level.includes('BACHELOR')) return 'S1';
+      if (level.includes('D4') || level.includes('D-IV')) return 'D4';
+      if (level.includes('D3') || level.includes('D-III')) return 'D3';
+      if (level.includes('D2') || level.includes('D-II')) return 'D2';
+      if (level.includes('D1') || level.includes('D-I')) return 'D1';
+      if (level.includes('SMA') || level.includes('SMK') || level.includes('MA')) return 'SMA/SMK';
+      if (level.includes('SMP') || level.includes('MTS')) return 'SMP';
+      if (level.includes('SD') || level.includes('MI')) return 'SD';
+      
+      return level || 'Lainnya';
+    });
+    
+    // Priority order for highest education
+    const priority = ['S3', 'S2', 'S1', 'D4', 'D3', 'D2', 'D1', 'SMA/SMK', 'SMP', 'SD'];
+    for (const level of priority) {
+      if (levels.includes(level)) return level;
+    }
+    
+    return levels[0] || 'Lainnya';
+  } catch (error) {
+    return 'Tidak Ada';
+  }
+}
+
+// Helper function to normalize ASN status
+function normalizeAsnStatus(status: unknown): string {
+  if (!status) return 'Tidak Ada';
+  const s = String(status).trim().toUpperCase();
+  
+  // Normalize variations - IMPORTANT: Check CPNS BEFORE PNS to avoid false matches
+  if (s === 'CPNS' || s.includes('CPNS')) return 'CPNS';
+  if (s === 'PNS' || s.includes('PNS')) return 'PNS';
+  if (s === 'PPPK' || s.includes('PPPK')) return 'PPPK';
+  if (s === 'NON ASN' || s.includes('NON') || s.includes('ALIH DAYA')) return 'Non ASN';
+  
+  return s || 'Tidak Ada';
+}
+
+// Helper function to normalize gender
+function normalizeGender(gender: unknown): string {
+  if (!gender) return 'Tidak Ada';
+  const g = String(gender).toLowerCase();
+  if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'Laki-laki';
+  if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female') return 'Perempuan';
+  return 'Tidak Ada';
+}
+
+export function QuickAggregation({}: QuickAggregationProps) {
+  const { toast } = useToast();
+  const { profile, canViewAll } = useAuth();
+  const shouldFilterByDepartment = !canViewAll && profile?.department;
+  
+  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  // Fetch data function
+  const fetchData = async (departmentFilter?: string) => {
+    setIsLoading(true);
+    try {
+      // Fetch ALL employees with pagination
+      const allEmployees: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+
+      while (true) {
+        let query = supabase
+          .from('employees')
+          .select('id, nip, name, rank_group, gender, department, asn_status, position_type, religion')
+          .range(offset, offset + batchSize - 1)
+          .order('name');
+
+        // Filter by department if needed
+        if (shouldFilterByDepartment) {
+          query = query.eq('department', profile!.department);
+        } else if (departmentFilter && departmentFilter !== 'all') {
+          query = query.eq('department', departmentFilter);
+        }
+
+        const { data: batch, error: empError } = await query;
+
+        if (empError) throw empError;
+        if (!batch || batch.length === 0) break;
+
+        allEmployees.push(...batch);
+
+        // If we got less than batchSize, we've reached the end
+        if (batch.length < batchSize) break;
+
+        offset += batchSize;
+      }
+
+      // Fetch education history for all employees
+      const employeeIds = allEmployees.map(e => e.id).filter(Boolean);
+      let educationData: Record<string, any[]> = {};
+
+      if (employeeIds.length > 0) {
+        // Fetch education in batches to avoid URL length limits
+        const eduBatchSize = 500;
+        for (let i = 0; i < employeeIds.length; i += eduBatchSize) {
+          const idBatch = employeeIds.slice(i, i + eduBatchSize);
+          
+          const { data: educations, error: eduError } = await supabase
+            .from('education_history')
+            .select('employee_id, level, institution_name, major, graduation_year')
+            .in('employee_id', idBatch);
+
+          if (!eduError && educations) {
+            // Group education by employee_id
+            educations.forEach(edu => {
+              if (!educationData[edu.employee_id]) {
+                educationData[edu.employee_id] = [];
+              }
+              educationData[edu.employee_id].push(edu);
+            });
+          }
+        }
+      }
+
+      // Merge education data with employees
+      const mergedData = allEmployees.map(emp => ({
+        ...emp,
+        education_history: educationData[emp.id] || [],
+      }));
+
+      setData(mergedData);
+      
+      // Extract unique departments for filter
+      if (!shouldFilterByDepartment) {
+        const uniqueDepts = [...new Set(allEmployees.map(e => e.department).filter(Boolean))].sort();
+        setDepartments(uniqueDepts as string[]);
+      }
+      
+      toast({
+        title: 'Data berhasil dimuat',
+        description: `${mergedData.length} pegawai dimuat untuk agregasi cepat.`,
+      });
+    } catch (error) {
+      logger.error('[QuickAggregation] Gagal mengambil data:', error);
+      toast({
+        title: 'Gagal mengambil data',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle department filter change
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    fetchData(value);
+  };
+
+  // Calculate aggregations
+  const aggregations = useMemo(() => {
+    if (data.length === 0) return null;
+
+    // Rank aggregation (I, II, III, IV)
+    const rankCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const mainRank = extractMainRank(String(row.rank_group || ''));
+      rankCounts[mainRank] = (rankCounts[mainRank] || 0) + 1;
+    });
+
+    // Detailed Rank aggregation (III/a, IV/b, etc)
+    const detailedRankCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const detailedRank = normalizeRankGroup(String(row.rank_group || ''));
+      detailedRankCounts[detailedRank] = (detailedRankCounts[detailedRank] || 0) + 1;
+    });
+
+    // Education aggregation
+    const educationCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const education = extractEducationLevel(row.education_history);
+      educationCounts[education] = (educationCounts[education] || 0) + 1;
+    });
+
+    // Gender aggregation
+    const genderCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const gender = normalizeGender(row.gender);
+      genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+    });
+
+    // ASN Status aggregation
+    const asnStatusCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const status = normalizeAsnStatus(row.asn_status);
+      asnStatusCounts[status] = (asnStatusCounts[status] || 0) + 1;
+    });
+
+    // Department aggregation
+    const departmentCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const dept = String(row.department || 'Tidak Ada');
+      departmentCounts[dept] = (departmentCounts[dept] || 0) + 1;
+    });
+
+    // Position Type aggregation
+    const positionTypeCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const posType = String(row.position_type || 'Tidak Ada');
+      positionTypeCounts[posType] = (positionTypeCounts[posType] || 0) + 1;
+    });
+
+    // Religion aggregation
+    const religionCounts: Record<string, number> = {};
+    data.forEach(row => {
+      const religion = String(row.religion || 'Tidak Ada');
+      religionCounts[religion] = (religionCounts[religion] || 0) + 1;
+    });
+
+    return {
+      rank: Object.entries(rankCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['I', 'II', 'III', 'IV', 'PPPK', 'Non ASN', 'Lainnya', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      detailedRank: Object.entries(detailedRankCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          // Custom sort for detailed ranks
+          const order = [
+            'I/a', 'I/b', 'I/c', 'I/d',
+            'II/a', 'II/b', 'II/c', 'II/d',
+            'III/a', 'III/b', 'III/c', 'III/d',
+            'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
+            'V', 'VII', 'IX', 'XI',
+            'Non ASN', 'Lainnya', 'Tidak Ada'
+          ];
+          const indexA = order.indexOf(a.name);
+          const indexB = order.indexOf(b.name);
+          if (indexA === -1 && indexB === -1) return a.name.localeCompare(b.name);
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        }),
+      education: Object.entries(educationCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['S3', 'S2', 'S1', 'D4', 'D3', 'D2', 'D1', 'SMA/SMK', 'SMP', 'SD', 'Lainnya', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      gender: Object.entries(genderCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['Laki-laki', 'Perempuan', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      asnStatus: Object.entries(asnStatusCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['PNS', 'CPNS', 'PPPK', 'Non ASN', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      department: Object.entries(departmentCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => b.count - a.count), // Sort by count descending
+      positionType: Object.entries(positionTypeCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['Struktural', 'Fungsional', 'Pelaksana', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+      religion: Object.entries(religionCounts)
+        .map(([name, count]) => ({ name, count, percentage: ((count / data.length) * 100).toFixed(1) }))
+        .sort((a, b) => {
+          const order = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu', 'Tidak Ada'];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }),
+    };
+  }, [data]);
+
+  const handleExport = () => {
+    if (!aggregations) {
+      toast({ title: 'Tidak ada data', description: 'Silakan muat data terlebih dahulu.', variant: 'destructive' });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // Sheet 1: Ringkasan
+      const summaryData = [
+        { Kategori: 'Total Pegawai', Nilai: data.length },
+        { Kategori: 'Tanggal Export', Nilai: new Date().toLocaleDateString('id-ID') },
+        { Kategori: 'Filter Unit Kerja', Nilai: selectedDepartment === 'all' ? 'Semua Unit' : selectedDepartment },
+      ];
+      const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+
+      // Sheet 2: Status ASN
+      const asnStatusData = aggregations.asnStatus.map(item => ({
+        'Status ASN': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsAsnStatus = XLSX.utils.json_to_sheet(asnStatusData);
+      XLSX.utils.book_append_sheet(wb, wsAsnStatus, 'Status ASN');
+
+      // Sheet 3: Pangkat/Golongan Utama
+      const rankData = aggregations.rank.map(item => ({
+        'Pangkat/Golongan': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsRank = XLSX.utils.json_to_sheet(rankData);
+      XLSX.utils.book_append_sheet(wb, wsRank, 'Pangkat Utama');
+
+      // Sheet 4: Pangkat/Golongan Detail
+      const detailedRankData = aggregations.detailedRank.map(item => ({
+        'Pangkat/Golongan': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsDetailedRank = XLSX.utils.json_to_sheet(detailedRankData);
+      XLSX.utils.book_append_sheet(wb, wsDetailedRank, 'Pangkat Detail');
+
+      // Sheet 5: Jenis Jabatan
+      const positionTypeData = aggregations.positionType.map(item => ({
+        'Jenis Jabatan': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsPositionType = XLSX.utils.json_to_sheet(positionTypeData);
+      XLSX.utils.book_append_sheet(wb, wsPositionType, 'Jenis Jabatan');
+
+      // Sheet 6: Pendidikan
+      const educationData = aggregations.education.map(item => ({
+        'Pendidikan': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsEducation = XLSX.utils.json_to_sheet(educationData);
+      XLSX.utils.book_append_sheet(wb, wsEducation, 'Pendidikan');
+
+      // Sheet 7: Jenis Kelamin
+      const genderData = aggregations.gender.map(item => ({
+        'Jenis Kelamin': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsGender = XLSX.utils.json_to_sheet(genderData);
+      XLSX.utils.book_append_sheet(wb, wsGender, 'Jenis Kelamin');
+
+      // Sheet 8: Agama
+      const religionData = aggregations.religion.map(item => ({
+        'Agama': item.name,
+        'Jumlah': item.count,
+        'Persentase': `${item.percentage}%`,
+      }));
+      const wsReligion = XLSX.utils.json_to_sheet(religionData);
+      XLSX.utils.book_append_sheet(wb, wsReligion, 'Agama');
+
+      // Sheet 9: Unit Kerja (only if not filtered by department)
+      if (selectedDepartment === 'all' && aggregations.department.length > 1) {
+        const departmentData = aggregations.department.map(item => ({
+          'Unit Kerja': item.name,
+          'Jumlah': item.count,
+          'Persentase': `${item.percentage}%`,
+        }));
+        const wsDepartment = XLSX.utils.json_to_sheet(departmentData);
+        XLSX.utils.book_append_sheet(wb, wsDepartment, 'Unit Kerja');
+      }
+
+      // Export
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const fileName = `agregasi-cepat-${timestamp}.xlsx`;
+      XLSX.writeFile(wb, fileName, { bookType: 'xlsx', compression: true });
+
+      const sheetCount = selectedDepartment === 'all' && aggregations.department.length > 1 ? 9 : 8;
+      toast({
+        title: 'Export berhasil',
+        description: `File ${fileName} berhasil diunduh dengan ${data.length} pegawai (${sheetCount} sheet).`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Export gagal',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan saat export.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <div className="text-center space-y-2">
+          <Zap className="h-12 w-12 text-primary mx-auto" />
+          <h3 className="text-lg font-semibold">Agregasi Data Cepat</h3>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Klik tombol di bawah untuk memuat data dan melihat ringkasan cepat untuk Pangkat Utama, Pendidikan, dan Jenis Kelamin.
+          </p>
+        </div>
+        <Button onClick={() => fetchData()} disabled={isLoading} size="lg" className="gap-2">
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Memuat Data...
+            </>
+          ) : (
+            <>
+              <Zap className="h-5 w-5" />
+              Tampilkan Agregasi Cepat
+            </>
+          )}
+        </Button>
+      </div>
+    );
+  }
+
+  if (!aggregations) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Filter and Export Button */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold">Agregasi Data Cepat</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Ringkasan lengkap untuk Status ASN, Pangkat, Jabatan, Pendidikan, Gender, dan Agama
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {!shouldFilterByDepartment && departments.length > 0 && (
+            <Select value={selectedDepartment} onValueChange={handleDepartmentChange}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Pilih Unit Kerja" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Unit Kerja</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={() => fetchData(selectedDepartment)} variant="outline" disabled={isLoading} className="gap-2">
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Memuat...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4" />
+                Refresh
+              </>
+            )}
+          </Button>
+          <Button onClick={handleExport} disabled={isExporting} className="gap-2">
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Export Excel
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pegawai</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{data.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Kategori Pangkat</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{aggregations.rank.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Jenjang Pendidikan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{aggregations.education.length}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Aggregation Tables */}
+      <div className="space-y-6">
+        {/* Pangkat/Golongan Utama */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Pangkat/Golongan Utama</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Tanpa sub-golongan (a/b/c/d)</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Pangkat</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.rank.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pendidikan */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Pendidikan Terakhir</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Tanpa jurusan/program studi</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Pendidikan</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.education.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Jenis Kelamin */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Jenis Kelamin</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Distribusi gender pegawai</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Jenis Kelamin</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.gender.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status ASN */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Status ASN</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">PNS, CPNS, PPPK, Non ASN</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Status ASN</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.asnStatus.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Jenis Jabatan */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Jenis Jabatan</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Struktural, Fungsional, Pelaksana</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Jenis Jabatan</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.positionType.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Agama */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-base">Agama</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Distribusi agama pegawai</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Agama</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.religion.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Unit Kerja - only show if viewing all departments */}
+        {selectedDepartment === 'all' && aggregations.department.length > 1 && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3 border-b">
+              <CardTitle className="text-base">Unit Kerja</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">Distribusi pegawai per unit kerja</p>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="rounded-lg border shadow-sm overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/80">
+                    <tr className="border-b">
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Unit Kerja</th>
+                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {aggregations.department.map((item, i) => (
+                      <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                        <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                      </tr>
+                    ))}
+                    <tr className="border-t-2 bg-muted/30 font-bold">
+                      <td className="px-4 py-3">Total</td>
+                      <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                      <td className="px-4 py-3 text-right">100%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Separator */}
+      <div className="border-t-2 border-dashed border-muted-foreground/30 my-8"></div>
+
+      {/* Pangkat/Golongan Detail - Separated Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-1 bg-primary rounded-full"></div>
+          <div>
+            <h3 className="text-lg font-semibold">Pangkat/Golongan Detail</h3>
+            <p className="text-sm text-muted-foreground">Breakdown lengkap dengan sub-golongan (I/a, II/b, III/c, IV/d, dll)</p>
+          </div>
+        </div>
+
+        <Card className="shadow-md border-primary/20">
+          <CardHeader className="pb-3 border-b bg-primary/5">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileSpreadsheet className="h-4 w-4 text-primary" />
+              Detail Pangkat/Golongan per Sub-Golongan
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Menampilkan distribusi pegawai berdasarkan pangkat/golongan lengkap termasuk sub-golongan
+            </p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="rounded-lg border shadow-sm overflow-hidden max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80 sticky top-0">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Pangkat/Golongan</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Persentase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aggregations.detailedRank.map((item, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-2.5 font-medium">{item.name}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-lg">{item.count}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">{item.percentage}%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 bg-muted/30 font-bold sticky bottom-0">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right text-lg">{data.length}</td>
+                    <td className="px-4 py-3 text-right">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Info Note */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-4">
+          <div className="flex gap-3">
+            <FileSpreadsheet className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-900">
+              <p className="font-medium mb-1">Catatan Agregasi Cepat:</p>
+              <ul className="list-disc list-inside space-y-1 text-blue-800">
+                <li><strong>Status ASN:</strong> PNS, CPNS, PPPK, dan Non ASN</li>
+                <li><strong>Pangkat Utama:</strong> Hanya golongan utama (I, II, III, IV) tanpa sub-golongan</li>
+                <li><strong>Jenis Jabatan:</strong> Struktural, Fungsional, dan Pelaksana</li>
+                <li><strong>Pendidikan:</strong> Jenjang pendidikan tertinggi tanpa jurusan</li>
+                <li><strong>Jenis Kelamin:</strong> Distribusi Laki-laki dan Perempuan</li>
+                <li><strong>Agama:</strong> Distribusi agama pegawai</li>
+                <li><strong>Unit Kerja:</strong> Distribusi pegawai per unit (jika melihat semua unit)</li>
+                <li><strong>PPPK:</strong> Golongan V, VII, IX dikategorikan sebagai PPPK</li>
+                <li><strong>Non ASN:</strong> Tenaga Alih Daya dikategorikan sebagai Non ASN</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

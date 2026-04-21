@@ -9,10 +9,11 @@ import { DataPreviewTableWithRelations } from '@/components/data-builder/DataPre
 import { DataStatistics } from '@/components/data-builder/DataStatistics';
 import { RelatedDataSelector, RELATED_DATA_TABLES } from '@/components/data-builder/RelatedDataSelector';
 import { QueryTemplates, QueryTemplate } from '@/components/data-builder/QueryTemplates';
+import { QuickAggregation } from '@/components/data-builder/QuickAggregation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database } from 'lucide-react';
+import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import * as XLSX from 'xlsx';
@@ -367,16 +368,41 @@ export default function DataBuilder() {
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(wb, wsSummary, summarySheetName);
 
-      const STAT_FIELDS = [
-        { key: 'department', label: 'Unit Kerja' },
-        { key: 'asn_status', label: 'Status ASN' },
-        { key: 'position_type', label: 'Jenis Jabatan' },
-        { key: 'rank_group', label: 'Pangkat/Golongan' },
-        { key: 'gender', label: 'Jenis Kelamin' },
-      ];
+      // Fields to exclude from statistics
+      const EXCLUDE_FROM_STATS = ['id', 'created_at', 'updated_at', 'import_order'];
+      const DATE_FIELDS = ['birth_date', 'join_date', 'tmt_cpns', 'tmt_pns', 'tmt_pensiun'];
 
       const dataKeys = allData.length > 0 ? Object.keys(allData[0]) : [];
-      const availableStats = STAT_FIELDS.filter(field => dataKeys.includes(field.key));
+      
+      // Generate stats for all selected columns that are categorical
+      const availableStats = selectedColumns
+        .map(colKey => {
+          const col = AVAILABLE_COLUMNS.find(c => c.key === colKey);
+          if (!col) return null;
+          
+          // Skip if field is excluded or is a date field
+          if (EXCLUDE_FROM_STATS.includes(col.dbField) || DATE_FIELDS.includes(col.dbField)) {
+            return null;
+          }
+          
+          // Skip if field is not in data
+          if (!dataKeys.includes(col.dbField)) {
+            return null;
+          }
+          
+          // Check if field has reasonable number of unique values
+          const uniqueValues = new Set(allData.map(row => String(row[col.dbField] ?? '')));
+          // Skip fields with too many unique values (likely identifiers) or too few (all same)
+          if (uniqueValues.size > 100 || uniqueValues.size <= 1) {
+            return null;
+          }
+          
+          return {
+            key: col.dbField,
+            label: col.label,
+          };
+        })
+        .filter((stat): stat is { key: string; label: string } => stat !== null);
 
       availableStats.forEach(stat => {
         const counts: Record<string, number> = {};
@@ -547,6 +573,10 @@ export default function DataBuilder() {
                   <BarChart3 className="h-4 w-4" />
                   Statistik
                 </TabsTrigger>
+                <TabsTrigger value="quick" className="gap-2">
+                  <Zap className="h-4 w-4" />
+                  Agregasi Cepat
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="table">
@@ -575,6 +605,10 @@ export default function DataBuilder() {
                 ) : (
                   <DataStatistics data={allData} selectedColumns={selectedColumns} />
                 )}
+              </TabsContent>
+
+              <TabsContent value="quick">
+                <QuickAggregation />
               </TabsContent>
             </Tabs>
           </CardContent>
