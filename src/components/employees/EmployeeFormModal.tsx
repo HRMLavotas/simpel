@@ -756,15 +756,21 @@ export function EmployeeFormModal({
     });
   };
 
-  const handleQuickDepartmentChange = (newDepartment: string, entry: HistoryEntry) => {
-    // Mark that Quick Action was used
+  const handleQuickDepartmentChange = (newDepartment: string, newPosition: string, entry: HistoryEntry) => {
     quickActionUsedRef.current = true;
-    formModifiedRef.current = true; // Mark form as modified
+    formModifiedRef.current = true;
     
-    // Update main form
+    // Update department
     form.setValue('department', newDepartment, { shouldValidate: true, shouldDirty: true });
+
+    // Update jabatan jika diisi
+    if (newPosition) {
+      form.setValue('position_name', newPosition, { shouldValidate: true, shouldDirty: true });
+      setOriginalValues(prev => ({ ...prev, department: newDepartment, position_name: newPosition }));
+    } else {
+      setOriginalValues(prev => ({ ...prev, department: newDepartment }));
+    }
     
-    // Check for duplicate before adding
     const isDuplicate = mutationEntries.some(
       e => e.dari_unit === entry.dari_unit && 
            e.ke_unit === entry.ke_unit &&
@@ -772,17 +778,27 @@ export function EmployeeFormModal({
     );
     
     if (!isDuplicate) {
-      // Add to mutation history
       setMutationEntries(prev => [...prev, entry]);
     }
+
+    // Jika jabatan juga berubah, tambah riwayat jabatan
+    if (newPosition && newPosition !== form.getValues('position_name')) {
+      const today = new Date().toISOString().split('T')[0];
+      const posEntry: HistoryEntry = {
+        tanggal: entry.tanggal || today,
+        jabatan_lama: form.getValues('position_name') || '',
+        jabatan_baru: newPosition,
+        nomor_sk: entry.nomor_sk || '',
+        keterangan: 'Perubahan jabatan saat mutasi - Quick Action',
+      };
+      setPositionHistoryEntries(prev => [...prev, posEntry]);
+    }
     
-    // Update original value to prevent duplicate auto-tracking
-    setOriginalValues(prev => ({ ...prev, department: newDepartment }));
-    
-    // Show toast
     toast({
       title: '✅ Mutasi Berhasil',
-      description: `Unit kerja diupdate menjadi ${newDepartment}`,
+      description: newPosition
+        ? `Unit kerja → ${newDepartment} | Jabatan → ${newPosition}`
+        : `Unit kerja diupdate menjadi ${newDepartment}`,
       duration: 3000,
     });
   };
@@ -865,6 +881,7 @@ export function EmployeeFormModal({
                   currentDepartment={form.watch('department') || ''}
                   asnStatus={form.watch('asn_status') || ''}
                   departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
+                  allDepartments={dynamicDepartments.filter(Boolean)}
                   positionOptions={positionNames}
                   onRankChange={handleQuickRankChange}
                   onPositionChange={handleQuickPositionChange}

@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, TrendingUp, MapPin, Briefcase } from 'lucide-react';
 import { RANK_GROUPS_PNS, RANK_GROUPS_PPPK } from '@/lib/constants';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
+import { usePositionOptions } from '@/hooks/usePositionOptions';
 import type { HistoryEntry } from './EmployeeHistoryForm';
 
 interface QuickActionFormProps {
@@ -25,16 +26,18 @@ interface QuickActionFormProps {
   currentDepartment: string;
   asnStatus: string;
   
-  // Departments list
+  // Departments list - untuk mutasi selalu semua unit
   departments: string[];
+  // Semua unit kerja (untuk dropdown tujuan mutasi)
+  allDepartments: string[];
 
-  // Position options from Peta Jabatan
+  // Position options from Peta Jabatan (unit saat ini)
   positionOptions?: string[];
   
   // Callbacks to update main form
   onRankChange: (newRank: string, entry: HistoryEntry) => void;
   onPositionChange: (newPosition: string, entry: HistoryEntry) => void;
-  onDepartmentChange: (newDepartment: string, entry: HistoryEntry) => void;
+  onDepartmentChange: (newDepartment: string, newPosition: string, entry: HistoryEntry) => void;
 }
 
 export function QuickActionForm({
@@ -43,6 +46,7 @@ export function QuickActionForm({
   currentDepartment,
   asnStatus,
   departments,
+  allDepartments,
   positionOptions = [],
   onRankChange,
   onPositionChange,
@@ -60,10 +64,15 @@ export function QuickActionForm({
   
   // Mutation state
   const [newDepartment, setNewDepartment] = useState('');
+  const [mutationPosition, setMutationPosition] = useState(''); // jabatan baru di unit tujuan
   const [mutationDate, setMutationDate] = useState(new Date().toISOString().split('T')[0]);
   const [mutationSK, setMutationSK] = useState('');
   const [mutationNotes, setMutationNotes] = useState('');
   const [mutationSuccess, setMutationSuccess] = useState(false);
+
+  // Fetch jabatan dari unit tujuan mutasi
+  const { positions: targetPositionOptions } = usePositionOptions(newDepartment || undefined);
+  const targetPositionNames = targetPositionOptions.map((p) => p.position_name);
   
   // Position change state
   const [newPosition, setNewPosition] = useState('');
@@ -117,7 +126,6 @@ export function QuickActionForm({
       return;
     }
     
-    // Validate: new department must be different from current
     if (newDepartment === currentDepartment) {
       alert('Unit kerja tujuan harus berbeda dari unit kerja saat ini');
       return;
@@ -127,18 +135,18 @@ export function QuickActionForm({
       tanggal: mutationDate,
       dari_unit: currentDepartment,
       ke_unit: newDepartment,
+      jabatan: mutationPosition || undefined,
       nomor_sk: mutationSK,
       keterangan: mutationNotes || 'Mutasi - Quick Action',
     };
     
-    onDepartmentChange(newDepartment, entry);
+    onDepartmentChange(newDepartment, mutationPosition, entry);
     
-    // Show success message
     setMutationSuccess(true);
     setTimeout(() => setMutationSuccess(false), 3000);
     
-    // Reset form
     setNewDepartment('');
+    setMutationPosition('');
     setMutationSK('');
     setMutationNotes('');
   };
@@ -337,16 +345,34 @@ export function QuickActionForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="quick-new-department">Unit Kerja Tujuan *</Label>
-                  <Select value={newDepartment} onValueChange={setNewDepartment}>
+                  <Select value={newDepartment} onValueChange={(v) => { setNewDepartment(v); setMutationPosition(''); }}>
                     <SelectTrigger id="quick-new-department">
                       <SelectValue placeholder="Pilih unit kerja tujuan" />
                     </SelectTrigger>
                     <SelectContent>
-                      {departments.map((dept) => (
+                      {allDepartments.map((dept) => (
                         <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="quick-mutation-position">Jabatan Baru di Unit Tujuan</Label>
+                  <PositionAutocomplete
+                    id="quick-mutation-position"
+                    value={mutationPosition}
+                    onChange={setMutationPosition}
+                    options={targetPositionNames}
+                    placeholder={newDepartment ? 'Pilih jabatan di unit tujuan' : 'Pilih unit kerja tujuan dulu'}
+                    disabled={!newDepartment}
+                  />
+                  {newDepartment && targetPositionNames.length > 0 && (
+                    <p className="text-xs text-muted-foreground">💡 Pilih dari jabatan yang tersedia di Peta Jabatan unit tujuan</p>
+                  )}
+                  {newDepartment && targetPositionNames.length === 0 && (
+                    <p className="text-xs text-amber-600">⚠️ Belum ada jabatan di Peta Jabatan untuk unit tujuan ini</p>
+                  )}
                 </div>
 
                 <div className="space-y-2 sm:col-span-2">
