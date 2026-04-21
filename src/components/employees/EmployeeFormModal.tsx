@@ -572,9 +572,9 @@ export function EmployeeFormModal({
 
     Promise.all([
       supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
-      supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+      supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+      supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
       supabase.from('competency_test_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
       supabase.from('training_history').select('*').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
       supabase.from('placement_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),

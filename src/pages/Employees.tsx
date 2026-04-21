@@ -397,9 +397,9 @@ export default function Employees() {
       // Fetch all related data
       const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, additionalPosRes] = await Promise.all([
         supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
-        supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-        supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-        supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+        supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+        supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
         supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
         supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
         supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
@@ -928,14 +928,24 @@ export default function Employees() {
       }
 
       // Refresh selectedEmployee dengan data terbaru dari DB
-      if (selectedEmployee) {
-        const { data: updatedEmployee } = await supabase
-          .from('employees')
-          .select('*')
-          .eq('id', employeeId)
-          .single();
-        if (updatedEmployee) {
-          setSelectedEmployee(updatedEmployee as Employee);
+      // Skip jika employee dimutasi keluar (department berubah dan bukan admin_pusat)
+      if (selectedEmployee && !(departmentChanged && !isAdminPusat)) {
+        try {
+          const { data: updatedEmployee, error: selectError } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('id', employeeId)
+            .single();
+          
+          // Ignore 403 error (RLS policy blocks access after mutation)
+          if (selectError && selectError.code !== 'PGRST301') {
+            logger.warn('Could not refresh employee data after save:', selectError);
+          } else if (updatedEmployee) {
+            setSelectedEmployee(updatedEmployee as Employee);
+          }
+        } catch (err) {
+          logger.warn('Error refreshing employee data:', err);
+          // Continue anyway - data was saved successfully
         }
       }
 
