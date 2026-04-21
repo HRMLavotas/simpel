@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -29,7 +29,6 @@ import { DEPARTMENTS, POSITION_TYPES } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
-import { useCallback } from 'react';
 
 interface PositionReference {
   id: string;

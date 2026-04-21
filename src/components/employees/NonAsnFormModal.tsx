@@ -16,7 +16,6 @@ import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { useNonAsnPositionOptions } from '@/hooks/useNonAsnPositionOptions';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
-import { supabase } from '@/integrations/supabase/client';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
 import { EmployeeHistoryForm, type HistoryEntry, POSITION_HISTORY_FIELDS } from './EmployeeHistoryForm';
 import { logger } from '@/lib/logger';
@@ -102,8 +101,9 @@ export function NonAsnFormModal({
         keterangan_penugasan: editData.keterangan_penugasan || '',
         keterangan_perubahan: editData.keterangan_perubahan || '',
       });
-      setEducationEntries(initialEducation || []);
-      setPositionHistoryEntries(initialPositionHistory || []);
+      // TODO: Load education and position history from database if needed
+      setEducationEntries([]);
+      setPositionHistoryEntries([]);
     } else {
       setFormData({
         nip: '',
@@ -127,7 +127,7 @@ export function NonAsnFormModal({
       resetNIKValidation();
       setActiveTab('main');
     }
-  }, [editData, userDepartment, open, resetNIKValidation, initialEducation, initialPositionHistory]);
+  }, [editData, userDepartment, open, resetNIKValidation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
