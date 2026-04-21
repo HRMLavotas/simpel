@@ -153,7 +153,8 @@ function ImportNonAsn() {
         const deptNames = (data || []).map(d => d.name);
         setAvailableDepartments(deptNames);
         logger.debug('Available departments from database:', deptNames);
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
         logger.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
         setAvailableDepartments([...DEPARTMENTS]);
@@ -351,7 +352,8 @@ function ImportNonAsn() {
           description: `${validCount} data valid, ${errorCount} error dari ${parsed.length} total`,
         });
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       toast({
         variant: 'destructive',
         title: 'Gagal membaca file',
@@ -462,7 +464,8 @@ function ImportNonAsn() {
 
           successCount++;
           existingNIKs.set(item.nik, { name: item.name, department: item.department }); // Add to map to prevent duplicates within the same import
-        } catch (error: any) {
+        } catch (err: unknown) {
+          const error = err instanceof Error ? err : new Error(String(err));
           errors.push({
             row: item.row || i + 2,
             error: error.message || 'Gagal menyimpan data',
@@ -489,7 +492,8 @@ function ImportNonAsn() {
           description: `Semua ${skippedCount} data sudah ada di database`,
         });
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       toast({
         variant: 'destructive',
         title: 'Import gagal',

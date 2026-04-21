@@ -245,7 +245,8 @@ export default function Import() {
         const deptNames = (data || []).map(d => d.name);
         setAvailableDepartments(deptNames);
         logger.debug('Available departments from database (Import ASN):', deptNames);
-      } catch (error: any) {
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
         logger.error('Error fetching departments:', error);
         // Fallback to constants if database fetch fails
         setAvailableDepartments([...DEPARTMENTS]);
@@ -721,8 +722,9 @@ export default function Import() {
               result.positions.success++;
             }
           }
-        } catch (err: any) {
-          result.positions.errors.push({ row: i + 2, error: err.message });
+        } catch (err: unknown) {
+          const error = err instanceof Error ? err : new Error(String(err));
+          result.positions.errors.push({ row: i + 2, error: error.message });
           result.positions.failed++;
         }
         
@@ -924,8 +926,9 @@ export default function Import() {
             else logger.debug('✅ Change note inserted');
           }
         }
-      } catch (err: any) {
-        result.employees.errors.push({ row: i + 2, error: err.message });
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        result.employees.errors.push({ row: i + 2, error: error.message });
         result.employees.failed++;
       }
       

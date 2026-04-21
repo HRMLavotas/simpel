@@ -122,7 +122,8 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
 
       handleClose();
       onSuccess();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Error creating admin:', error);
       toast({
         variant: 'destructive',

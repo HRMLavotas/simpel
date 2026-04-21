@@ -170,9 +170,10 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
       setAsnStats(finalAsnStats);
       setNonAsnStats(finalNonAsnStats);
       logger.debug('[PetaJabatanStats] Fetched OK', { asn: finalAsnStats.length, nonAsn: finalNonAsnStats.length });
-    } catch (err: any) {
-      logger.error('Error fetching PetaJabatanStats:', err);
-      setError(err.message || 'Gagal memuat data peta jabatan');
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Error fetching PetaJabatanStats:', error);
+      setError(error.message || 'Gagal memuat data peta jabatan');
     } finally {
       setIsLoading(false);
     }

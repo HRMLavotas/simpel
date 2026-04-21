@@ -56,7 +56,8 @@ export default function Profile() {
       });
 
       form.reset();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       toast({
         variant: 'destructive',
         title: 'Error',

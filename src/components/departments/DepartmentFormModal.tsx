@@ -111,7 +111,8 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
 
       handleClose();
       onSuccess();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Error saving department:', error);
       toast({
         variant: 'destructive',

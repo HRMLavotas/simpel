@@ -69,7 +69,8 @@ export function DeleteAdminDialog({ open, onOpenChange, admin, currentUserId, on
 
       onOpenChange(false);
       onSuccess();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Error deleting admin:', error);
       toast({
         variant: 'destructive',

@@ -310,7 +310,8 @@ export function NonAsnFormModal({
 
       onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Error saving Non-ASN:', error);
       toast({
         variant: 'destructive',
