@@ -30,6 +30,7 @@ import { Card } from '@/components/ui/card';
 import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
+import { supabase } from '@/integrations/supabase/client';
 import { EducationHistoryForm, type EducationEntry } from './EducationHistoryForm';
 import {
   EmployeeHistoryForm,
@@ -110,16 +111,6 @@ interface EmployeeFormModalProps {
   employee?: Employee | null;
   onSubmit: (data: EmployeeFormData) => Promise<void>;
   isLoading?: boolean;
-  initialEducation?: EducationEntry[];
-  initialMutationHistory?: HistoryEntry[];
-  initialPositionHistory?: HistoryEntry[];
-  initialRankHistory?: HistoryEntry[];
-  initialCompetencyTestHistory?: HistoryEntry[];
-  initialTrainingHistory?: HistoryEntry[];
-  initialPlacementNotes?: NoteEntry[];
-  initialAssignmentNotes?: NoteEntry[];
-  initialChangeNotes?: NoteEntry[];
-  initialAdditionalPositionHistory?: AdditionalPositionHistoryEntry[];
 }
 
 export function EmployeeFormModal({
@@ -128,20 +119,11 @@ export function EmployeeFormModal({
   employee,
   onSubmit,
   isLoading,
-  initialEducation,
-  initialMutationHistory,
-  initialPositionHistory,
-  initialRankHistory,
-  initialCompetencyTestHistory,
-  initialTrainingHistory,
-  initialPlacementNotes,
-  initialAssignmentNotes,
-  initialChangeNotes,
-  initialAdditionalPositionHistory,
 }: EmployeeFormModalProps) {
   const { profile, isAdminPusat } = useAuth();
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const isEditing = !!employee;
 
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes' | 'quick'>(
@@ -222,12 +204,16 @@ export function EmployeeFormModal({
   }, [open, employee, resetNIPValidation]);
 
   // Auto-detect changes and populate history - ONLY after initial load is complete
+  // SKIP jika perubahan berasal dari Quick Action (sudah ditangani oleh handler Quick Action)
   useEffect(() => {
     if (!isEditing || !employee || !initialLoadCompleteRef.current) return;
 
     const subscription = form.watch((value, { name: fieldName }) => {
-      // Mark form as modified when user changes fields
       formModifiedRef.current = true;
+
+      // Jika Quick Action yang mengubah field ini, skip auto-detect
+      // Quick Action sudah menambahkan entry riwayat sendiri
+      if (quickActionUsedRef.current) return;
       
       const today = new Date().toISOString().split('T')[0];
 
@@ -237,13 +223,11 @@ export function EmployeeFormModal({
         const newRank = value.rank_group;
         
         if (oldRank && newRank && oldRank !== newRank) {
-          // Check if this change already exists in history
           const alreadyExists = rankHistoryEntries.some(
             entry => entry.pangkat_lama === oldRank && entry.pangkat_baru === newRank
           );
 
           if (!alreadyExists) {
-            // Add new rank history entry
             const newEntry: HistoryEntry = {
               tanggal: today,
               pangkat_lama: oldRank,
@@ -253,12 +237,7 @@ export function EmployeeFormModal({
               keterangan: 'Perubahan data - Auto-generated',
             };
             setRankHistoryEntries(prev => [...prev, newEntry]);
-            
-            // Show toast notification
-            toast({
-              title: '✅ Riwayat Kenaikan Pangkat otomatis ditambahkan',
-              duration: 3000,
-            });
+            toast({ title: '✅ Riwayat Kenaikan Pangkat otomatis ditambahkan', duration: 3000 });
           }
         }
       }
@@ -282,12 +261,7 @@ export function EmployeeFormModal({
               keterangan: 'Perubahan data - Auto-generated',
             };
             setPositionHistoryEntries(prev => [...prev, newEntry]);
-            
-            // Show toast notification
-            toast({
-              title: '✅ Riwayat Jabatan otomatis ditambahkan',
-              duration: 3000,
-            });
+            toast({ title: '✅ Riwayat Jabatan otomatis ditambahkan', duration: 3000 });
           }
         }
       }
@@ -311,18 +285,10 @@ export function EmployeeFormModal({
               keterangan: 'Mutasi - Auto-generated',
             };
             setMutationEntries(prev => [...prev, newEntry]);
-            
-            // Show toast notification
-            toast({
-              title: '✅ Riwayat Mutasi otomatis ditambahkan',
-              duration: 3000,
-            });
+            toast({ title: '✅ Riwayat Mutasi otomatis ditambahkan', duration: 3000 });
           }
         }
       }
-
-      // NOTE: Additional Position tracking moved to handleSaveAdditionalPosition
-      // to prevent multiple triggers while typing
     });
 
     return () => subscription.unsubscribe();
@@ -500,21 +466,6 @@ export function EmployeeFormModal({
         logger.debug('Religion:', form.getValues('religion'));
       }, 100);
       
-      // Only reset history entries if form hasn't been modified by user
-      // This prevents losing user's changes (like deleted entries) when useEffect re-runs
-      if (!formModifiedRef.current || !initialLoadCompleteRef.current) {
-        setEducationEntries(initialEducation || []);
-        setMutationEntries(initialMutationHistory || []);
-        setPositionHistoryEntries(initialPositionHistory || []);
-        setRankHistoryEntries(initialRankHistory || []);
-        setCompetencyEntries(initialCompetencyTestHistory || []);
-        setTrainingEntries(initialTrainingHistory || []);
-        setPlacementNotes(initialPlacementNotes || []);
-        setAssignmentNotes(initialAssignmentNotes || []);
-        setChangeNotes(initialChangeNotes || []);
-        setAdditionalPositionHistoryEntries(initialAdditionalPositionHistory || []);
-      }
-      
       // Mark initial load as complete
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
@@ -544,7 +495,52 @@ export function EmployeeFormModal({
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
     }
-  }, [employee, profile, form, initialEducation, initialMutationHistory, initialPositionHistory, initialRankHistory, initialCompetencyTestHistory, initialTrainingHistory, initialPlacementNotes, initialAssignmentNotes, initialChangeNotes, initialAdditionalPositionHistory]);
+  }, [employee, profile, form]);
+
+  // Fetch history dari DB setiap kali modal dibuka - useEffect terpisah di level komponen
+  useEffect(() => {
+    if (!open || !employee?.id) return;
+    if (formModifiedRef.current && initialLoadCompleteRef.current) return;
+
+    setIsFetchingHistory(true);
+    const empId = employee.id;
+
+    const mapRows = (data: any[], fields: string[]) =>
+      (data || []).map((d: any) => {
+        const entry: HistoryEntry = { id: d.id };
+        fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
+        return entry;
+      });
+
+    Promise.all([
+      supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
+      supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('competency_test_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+      supabase.from('training_history').select('*').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+      supabase.from('placement_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+      supabase.from('assignment_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+      supabase.from('change_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+      supabase.from('additional_position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+    ]).then(([eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, addPosRes]) => {
+      setEducationEntries((eduRes.data || []).map((d: any) => ({
+        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+        front_title: d.front_title || '', back_title: d.back_title || '',
+      })));
+      setMutationEntries(mapRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']));
+      setPositionHistoryEntries(mapRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']));
+      setRankHistoryEntries(mapRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      setCompetencyEntries(mapRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+      setTrainingEntries(mapRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+      setPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+      setAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+      setChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+      setAdditionalPositionHistoryEntries(mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      setIsFetchingHistory(false);
+    }).catch(() => setIsFetchingHistory(false));
+  }, [open, employee?.id]);
 
   // Handle edit additional position
   const handleEditAdditionalPosition = () => {
