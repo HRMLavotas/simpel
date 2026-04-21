@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building } from 'lucide-react';
+import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ interface NavItem {
   icon: React.ElementType;
   adminPusatOnly?: boolean;
   hideForPimpinan?: boolean;
+  adminPusatOrPimpinan?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -22,6 +23,7 @@ const navItems: NavItem[] = [
   { label: 'Import Non-ASN', href: '/import-non-asn', icon: Upload, adminPusatOnly: true },
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
+  { label: 'Monitoring Unit', href: '/monitoring', icon: Activity, adminPusatOrPimpinan: true },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Profile', href: '/profile', icon: User },
@@ -41,6 +43,8 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
     if (item.adminPusatOnly && !isAdminPusat) return false;
     // Hide certain items for admin_pimpinan
     if (item.hideForPimpinan && isAdminPimpinan) return false;
+    // Show items for admin_pusat or admin_pimpinan
+    if (item.adminPusatOrPimpinan && !isAdminPusat && !isAdminPimpinan) return false;
     return true;
   });
 
