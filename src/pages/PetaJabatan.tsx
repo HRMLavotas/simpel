@@ -111,9 +111,11 @@ export default function PetaJabatan() {
   const [summarySearchQuery, setSummarySearchQuery] = useState('');
   const [summaryFilterCategory, setSummaryFilterCategory] = useState<string>('all');
   const [summaryFilterStatus, setSummaryFilterStatus] = useState<string>('all');
+  const [summaryFilterUnit, setSummaryFilterUnit] = useState<string>('all');
   
   // Summary Non-ASN filters
   const [summaryNonAsnSearchQuery, setSummaryNonAsnSearchQuery] = useState('');
+  const [summaryNonAsnFilterUnit, setSummaryNonAsnFilterUnit] = useState<string>('all');
   
   // Expandable rows state for summary per jabatan
   const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
@@ -845,6 +847,107 @@ export default function PetaJabatan() {
     ];
     XLSX.utils.book_append_sheet(wb, ws3, 'Summary per Kategori');
 
+    // Sheet 4: Detail Jabatan per Unit Kerja (only for Admin Pusat/Pimpinan)
+    if (canViewAll) {
+      const detailRows: Record<string, string | number>[] = [];
+      let detailNo = 1;
+
+      dynamicDepartments
+        .filter(d => d !== 'Pusat')
+        .forEach(dept => {
+          const deptPositions = allPositions.filter(p => p.department === dept);
+          if (deptPositions.length === 0) return;
+
+          // Header baris unit kerja
+          detailRows.push({
+            'No': '',
+            'Unit Kerja': dept.toUpperCase(),
+            'Kategori': '',
+            'Nama Jabatan': '',
+            'ABK': '',
+            'Existing': '',
+            'Gap': '',
+            '% Terisi': '',
+            'Status': '',
+          });
+
+          // Kelompokkan per kategori dalam unit ini
+          POSITION_CATEGORIES.forEach(category => {
+            const catPositions = deptPositions
+              .filter(p => p.position_category === category)
+              .sort((a, b) => a.position_order - b.position_order || a.position_name.localeCompare(b.position_name));
+
+            if (catPositions.length === 0) return;
+
+            catPositions.forEach(pos => {
+              // Hitung existing untuk jabatan ini di unit ini
+              const existing = allEmployees.filter(emp =>
+                emp.department === dept &&
+                emp.position_name &&
+                normalizeString(emp.position_name) === normalizeString(pos.position_name)
+              ).length;
+
+              const gap = pos.abk_count - existing;
+              const percentage = pos.abk_count > 0
+                ? ((existing / pos.abk_count) * 100).toFixed(1)
+                : '0';
+
+              detailRows.push({
+                'No': detailNo++,
+                'Unit Kerja': dept,
+                'Kategori': category,
+                'Nama Jabatan': pos.position_name,
+                'ABK': pos.abk_count,
+                'Existing': existing,
+                'Gap': gap,
+                '% Terisi': `${percentage}%`,
+                'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+              });
+            });
+          });
+
+          // Baris subtotal per unit
+          const unitTotalAbk = deptPositions.reduce((sum, p) => sum + p.abk_count, 0);
+          const unitPosNames = new Set(deptPositions.map(p => normalizeString(p.position_name)));
+          const unitTotalExisting = allEmployees.filter(emp =>
+            emp.department === dept &&
+            emp.position_name &&
+            unitPosNames.has(normalizeString(emp.position_name))
+          ).length;
+          const unitGap = unitTotalAbk - unitTotalExisting;
+          const unitPct = unitTotalAbk > 0
+            ? ((unitTotalExisting / unitTotalAbk) * 100).toFixed(1)
+            : '0';
+
+          detailRows.push({
+            'No': '',
+            'Unit Kerja': `SUBTOTAL ${dept}`,
+            'Kategori': '',
+            'Nama Jabatan': `${deptPositions.length} jabatan`,
+            'ABK': unitTotalAbk,
+            'Existing': unitTotalExisting,
+            'Gap': unitGap,
+            '% Terisi': `${unitPct}%`,
+            'Status': unitGap > 0 ? `Kurang ${unitGap}` : unitGap < 0 ? `Lebih ${Math.abs(unitGap)}` : 'Sesuai',
+          });
+
+          // Baris kosong pemisah antar unit
+          detailRows.push({
+            'No': '', 'Unit Kerja': '', 'Kategori': '', 'Nama Jabatan': '',
+            'ABK': '', 'Existing': '', 'Gap': '', '% Terisi': '', 'Status': '',
+          });
+        });
+
+      if (detailRows.length > 0) {
+        const ws4 = XLSX.utils.json_to_sheet(detailRows);
+        ws4['!cols'] = [
+          { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 42 },
+          { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 15 },
+        ];
+        XLSX.utils.book_append_sheet(wb, ws4, 'Detail Jabatan per Unit');
+      }
+    }
+
     // Generate filename based on role
     const filename = canViewAll 
       ? `Summary_Peta_Jabatan_Semua_Unit.xlsx`
@@ -852,7 +955,7 @@ export default function PetaJabatan() {
     
     XLSX.writeFile(wb, filename);
     
-    const sheetCount = canViewAll ? 3 : 2; // Admin Unit doesn't have "Summary per Unit" sheet
+    const sheetCount = canViewAll ? 4 : 2; // Admin Unit doesn't have "Summary per Unit" & "Detail per Unit" sheets
     toast({ 
       title: 'Berhasil', 
       description: `Summary Peta Jabatan berhasil di-export (${sheetCount} sheets)` 
@@ -1547,9 +1650,9 @@ export default function PetaJabatan() {
               </div>
 
               {/* Summary Filters */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
                 {/* Search */}
-                <div className="relative flex-1">
+                <div className="relative flex-1 min-w-[200px]">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder={canViewAll ? "Cari unit kerja, jabatan, atau nama pegawai..." : "Cari jabatan atau nama pegawai..."}
@@ -1568,6 +1671,21 @@ export default function PetaJabatan() {
                     </Button>
                   )}
                 </div>
+
+                {/* Unit Kerja Filter - only for Admin Pusat/Pimpinan */}
+                {canViewAll && (
+                  <Select value={summaryFilterUnit} onValueChange={setSummaryFilterUnit}>
+                    <SelectTrigger id="summary-unit-filter" className="w-full sm:w-[220px]">
+                      <SelectValue placeholder="Semua Unit Kerja" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Unit Kerja</SelectItem>
+                      {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
+                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 {/* Category Filter */}
                 <Select value={summaryFilterCategory} onValueChange={setSummaryFilterCategory}>
@@ -1607,14 +1725,19 @@ export default function PetaJabatan() {
                 {/* Summary Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {POSITION_CATEGORIES.map(category => {
-                    const categoryPositions = allPositions.filter(p => p.position_category === category);
+                    const categoryPositions = allPositions.filter(p => {
+                      const matchCategory = p.position_category === category;
+                      const matchUnit = !canViewAll || summaryFilterUnit === 'all' || p.department === summaryFilterUnit;
+                      return matchCategory && matchUnit;
+                    });
                     const totalAbk = categoryPositions.reduce((sum, p) => sum + p.abk_count, 0);
                     
                     // Count existing employees for this category
                     const positionNames = new Set(categoryPositions.map(p => normalizeString(p.position_name)));
-                    const totalExisting = allEmployees.filter(emp => 
-                      emp.position_name && positionNames.has(normalizeString(emp.position_name))
-                    ).length;
+                    const totalExisting = allEmployees.filter(emp => {
+                      const matchUnit = !canViewAll || summaryFilterUnit === 'all' || emp.department === summaryFilterUnit;
+                      return matchUnit && emp.position_name && positionNames.has(normalizeString(emp.position_name));
+                    }).length;
                     
                     const gap = totalAbk - totalExisting;
                     const percentage = totalAbk > 0 ? ((totalExisting / totalAbk) * 100).toFixed(1) : '0';
@@ -1661,8 +1784,8 @@ export default function PetaJabatan() {
                   })}
                 </div>
 
-                {/* Summary Table by Department - Only show for Admin Pusat/Pimpinan */}
-                {canViewAll && (
+                {/* Summary Table by Department - Only show for Admin Pusat/Pimpinan when no specific unit is selected */}
+                {canViewAll && summaryFilterUnit === 'all' && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
                     <div className="rounded-lg border overflow-x-auto">
@@ -1777,7 +1900,14 @@ export default function PetaJabatan() {
 
                 {/* Summary Table by Position */}
                 <div className="space-y-2">
-                  <h3 className="text-sm font-semibold">Summary per Jabatan</h3>
+                  <h3 className="text-sm font-semibold">
+                    Summary per Jabatan
+                    {canViewAll && summaryFilterUnit !== 'all' && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        — {summaryFilterUnit}
+                      </span>
+                    )}
+                  </h3>
                   <div className="rounded-lg border overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -1796,7 +1926,7 @@ export default function PetaJabatan() {
                       <TableBody>
                         {(() => {
                           
-                          // Group positions by normalized name across all departments
+                          // Group positions by normalized name across all departments (or filtered unit)
                           const positionGroups = new Map<string, {
                             category: string;
                             displayName: string;
@@ -1807,6 +1937,10 @@ export default function PetaJabatan() {
                           allPositions.forEach(pos => {
                             // Apply category filter
                             if (summaryFilterCategory !== 'all' && pos.position_category !== summaryFilterCategory) {
+                              return;
+                            }
+                            // Apply unit filter
+                            if (canViewAll && summaryFilterUnit !== 'all' && pos.department !== summaryFilterUnit) {
                               return;
                             }
 
@@ -1825,9 +1959,13 @@ export default function PetaJabatan() {
                             }
                           });
 
-                          // Count existing employees per position
+                          // Count existing employees per position (respecting unit filter)
                           allEmployees.forEach(emp => {
                             if (emp.position_name) {
+                              // Apply unit filter on employees too
+                              if (canViewAll && summaryFilterUnit !== 'all' && emp.department !== summaryFilterUnit) {
+                                return;
+                              }
                               const normName = normalizeString(emp.position_name);
                               const group = positionGroups.get(normName);
                               if (group) {
@@ -1892,9 +2030,10 @@ export default function PetaJabatan() {
                           return sortedPositions.flatMap((item, idx) => {
                             const isExpanded = expandedPositions.has(item.displayName);
                             
-                            // Get employees for this position
+                            // Get employees for this position (respecting unit filter)
                             const positionEmployees = allEmployees.filter(emp => {
                               if (!emp.position_name) return false;
+                              if (canViewAll && summaryFilterUnit !== 'all' && emp.department !== summaryFilterUnit) return false;
                               return normalizeString(emp.position_name) === normalizeString(item.displayName);
                             });
 
@@ -2049,6 +2188,21 @@ export default function PetaJabatan() {
                     )}
                   </div>
                   
+                  {/* Unit Kerja Filter - only for Admin Pusat/Pimpinan */}
+                  {canViewAll && (
+                    <Select value={summaryNonAsnFilterUnit} onValueChange={setSummaryNonAsnFilterUnit}>
+                      <SelectTrigger id="summary-non-asn-unit-filter" className="w-full sm:w-[220px]">
+                        <SelectValue placeholder="Semua Unit Kerja" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Unit Kerja</SelectItem>
+                        {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
                   {/* Export Button */}
                   <Button 
                     variant="outline" 
@@ -2080,9 +2234,11 @@ export default function PetaJabatan() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{allNonAsnEmployees.length}</div>
+                      <div className="text-2xl font-bold">
+                        {allNonAsnEmployees.filter(e => !canViewAll || summaryNonAsnFilterUnit === 'all' || e.department === summaryNonAsnFilterUnit).length}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {canViewAll ? 'Dari semua unit kerja' : 'Di unit kerja Anda'}
+                        {canViewAll && summaryNonAsnFilterUnit !== 'all' ? summaryNonAsnFilterUnit : canViewAll ? 'Dari semua unit kerja' : 'Di unit kerja Anda'}
                       </p>
                     </CardContent>
                   </Card>
@@ -2095,12 +2251,18 @@ export default function PetaJabatan() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">
-                        {allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {((allNonAsnEmployees.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}% dari total
-                      </p>
+                      {(() => {
+                        const filtered = allNonAsnEmployees.filter(e => !canViewAll || summaryNonAsnFilterUnit === 'all' || e.department === summaryNonAsnFilterUnit);
+                        const count = filtered.filter(e => e.rank_group === 'Tenaga Alih Daya' || !e.rank_group).length;
+                        return (
+                          <>
+                            <div className="text-2xl font-bold">{count}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {((count / (filtered.length || 1)) * 100).toFixed(1)}% dari total
+                            </p>
+                          </>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
 
@@ -2112,18 +2274,24 @@ export default function PetaJabatan() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">
-                        {allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {((allNonAsnEmployees.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length / (allNonAsnEmployees.length || 1)) * 100).toFixed(1)}% dari total
-                      </p>
+                      {(() => {
+                        const filtered = allNonAsnEmployees.filter(e => !canViewAll || summaryNonAsnFilterUnit === 'all' || e.department === summaryNonAsnFilterUnit);
+                        const count = filtered.filter(e => e.rank_group && e.rank_group !== 'Tenaga Alih Daya').length;
+                        return (
+                          <>
+                            <div className="text-2xl font-bold">{count}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {((count / (filtered.length || 1)) * 100).toFixed(1)}% dari total
+                            </p>
+                          </>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Table: Summary Non-ASN per Unit (only for Admin Pusat/Pimpinan) */}
-                {canViewAll && allNonAsnEmployees.length > 0 && (
+                {/* Table: Summary Non-ASN per Unit (only for Admin Pusat/Pimpinan, only when no specific unit selected) */}
+                {canViewAll && summaryNonAsnFilterUnit === 'all' && allNonAsnEmployees.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
                     <div className="rounded-lg border overflow-x-auto">
@@ -2198,7 +2366,14 @@ export default function PetaJabatan() {
                 {/* Table: Summary Non-ASN per Jabatan */}
                 {allNonAsnEmployees.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="text-sm font-semibold">Summary per Jabatan</h3>
+                    <h3 className="text-sm font-semibold">
+                      Summary per Jabatan
+                      {canViewAll && summaryNonAsnFilterUnit !== 'all' && (
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          — {summaryNonAsnFilterUnit}
+                        </span>
+                      )}
+                    </h3>
                     <div className="rounded-lg border overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -2209,12 +2384,12 @@ export default function PetaJabatan() {
                             <TableHead className="text-center">Total Pegawai</TableHead>
                             <TableHead className="text-center">Tenaga Alih Daya</TableHead>
                             <TableHead className="text-center">Lainnya</TableHead>
-                            {canViewAll && <TableHead className="text-center">Jumlah Unit</TableHead>}
+                            {canViewAll && summaryNonAsnFilterUnit === 'all' && <TableHead className="text-center">Jumlah Unit</TableHead>}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {(() => {
-                            // Group Non-ASN by position
+                            // Group Non-ASN by position (respecting unit filter)
                             const positionGroups = new Map<string, {
                               displayName: string;
                               total: number;
@@ -2224,7 +2399,9 @@ export default function PetaJabatan() {
                               employees: EmployeeMatch[];
                             }>();
 
-                            allNonAsnEmployees.forEach(emp => {
+                            allNonAsnEmployees
+                              .filter(emp => !canViewAll || summaryNonAsnFilterUnit === 'all' || emp.department === summaryNonAsnFilterUnit)
+                              .forEach(emp => {
                               const posName = emp.position_name || 'Tidak Ada Jabatan';
                               const normName = normalizeString(posName);
                               const existing = positionGroups.get(normName);
@@ -2274,7 +2451,7 @@ export default function PetaJabatan() {
                             if (sortedPositions.length === 0) {
                               return (
                                 <TableRow>
-                                  <TableCell colSpan={canViewAll ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                                  <TableCell colSpan={canViewAll && summaryNonAsnFilterUnit === 'all' ? 7 : 6} className="text-center py-8 text-muted-foreground">
                                     {summaryNonAsnSearchQuery.trim() 
                                       ? `Tidak ada jabatan atau pegawai yang cocok dengan "${summaryNonAsnSearchQuery}"`
                                       : 'Belum ada data pegawai Non-ASN'
@@ -2311,7 +2488,7 @@ export default function PetaJabatan() {
                                   <TableCell className="text-center font-medium">{pos.total}</TableCell>
                                   <TableCell className="text-center">{pos.tenagaAlihDaya}</TableCell>
                                   <TableCell className="text-center">{pos.lainnya}</TableCell>
-                                  {canViewAll && <TableCell className="text-center">{pos.departments.size}</TableCell>}
+                                  {canViewAll && summaryNonAsnFilterUnit === 'all' && <TableCell className="text-center">{pos.departments.size}</TableCell>}
                                 </TableRow>
                               );
 
@@ -2319,7 +2496,7 @@ export default function PetaJabatan() {
                               if (isExpanded && positionEmployees.length > 0) {
                                 rows.push(
                                   <TableRow key={`${normName}-expanded`} className="bg-muted/20">
-                                    <TableCell colSpan={canViewAll ? 7 : 6} className="p-0">
+                                    <TableCell colSpan={canViewAll && summaryNonAsnFilterUnit === 'all' ? 7 : 6} className="p-0">
                                       <div className="px-4 py-3">
                                         <div className="text-xs font-semibold text-muted-foreground mb-2">
                                           Daftar Pemangku ({positionEmployees.length} orang):
