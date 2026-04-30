@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { label: 'Monitoring Unit', href: '/monitoring', icon: Activity, adminPusatOrPimpinan: true },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOnly: true, hideForPimpinan: true },
+  { label: 'Info Sistem', href: '/system-info', icon: Info },
   { label: 'Profile', href: '/profile', icon: User },
 ];
 

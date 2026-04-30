@@ -1160,18 +1160,21 @@ export function EmployeeFormModal({
                 )}
               </div>
 
-              {/* NEW: Jabatan Tambahan (Opsional) */}
+              {/* NEW: Jabatan Tambahan / PLT (Opsional) */}
               <div className="space-y-2">
                 <Label htmlFor="additional_position">
-                  Jabatan Tambahan 
+                  Jabatan Tambahan / PLT
                   <span className="text-xs text-muted-foreground ml-2">(Opsional)</span>
                 </Label>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Isi jika pegawai menjabat sebagai Pelaksana Tugas (PLT) atau memiliki jabatan tambahan lain. Contoh: <span className="font-medium">PLT Direktur</span>, <span className="font-medium">PLT Kepala Bagian Umum</span>. Tidak mempengaruhi data di Peta Jabatan.
+                </p>
                 <div className="flex gap-2">
                   {isEditingAdditionalPosition ? (
                     <>
                       <Input 
                         id="additional_position_temp"
-                        placeholder="Contoh: Subkoordinator Bidang Data dan Informasi" 
+                        placeholder="Contoh: PLT Direktur, PLT Kepala Bagian Umum" 
                         value={tempAdditionalPosition}
                         onChange={(e) => setTempAdditionalPosition(e.target.value)}
                         className="flex-1"

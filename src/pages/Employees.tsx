@@ -209,6 +209,7 @@ export default function Employees() {
     logger.debug('=== FETCHING EMPLOYEES ===');
     try {
       // Fetch position_references untuk membangun urutan jabatan persis seperti Peta Jabatan
+      // Key: "department|||normName" agar setiap unit punya urutan jabatan sendiri
       const CATEGORY_ORDER: Record<string, number> = { 'Struktural': 1, 'Fungsional': 2, 'Pelaksana': 3 };
       const posOrderMap = new Map<string, { categoryOrder: number; positionOrder: number }>();
 
@@ -232,14 +233,10 @@ export default function Employees() {
         if (!posBatch || posBatch.length === 0) break;
 
         posBatch.forEach(pos => {
-          const normName = pos.position_name.trim().toLowerCase();
-          // Simpan urutan terkecil jika jabatan yang sama muncul di beberapa unit
-          const existing = posOrderMap.get(normName);
+          // Key per unit + nama jabatan agar urutan tiap unit independen
+          const deptKey = `${pos.department}|||${pos.position_name.trim().toLowerCase()}`;
           const catOrder = CATEGORY_ORDER[pos.position_category] ?? 99;
-          if (!existing || catOrder < existing.categoryOrder ||
-              (catOrder === existing.categoryOrder && pos.position_order < existing.positionOrder)) {
-            posOrderMap.set(normName, { categoryOrder: catOrder, positionOrder: pos.position_order });
-          }
+          posOrderMap.set(deptKey, { categoryOrder: catOrder, positionOrder: pos.position_order });
         });
 
         if (posBatch.length < 1000) break;
@@ -280,17 +277,20 @@ export default function Employees() {
       // Sort pegawai persis seperti urutan Peta Jabatan:
       // 1. department (A-Z)
       // 2. position_category order (Struktural → Fungsional → Pelaksana → lainnya)
-      // 3. position_order dari position_references (urutan jabatan dalam kategori)
+      // 3. position_order dari position_references (urutan jabatan dalam kategori, per unit)
       // 4. nama sebagai tiebreaker
       const sortedData = (allData || []).sort((a, b) => {
         // Sort by department first
         const deptCompare = (a.department || '').localeCompare(b.department || '');
         if (deptCompare !== 0) return deptCompare;
 
+        // Lookup menggunakan key department + nama jabatan
+        const deptA = (a.department || '').trim();
+        const deptB = (b.department || '').trim();
         const normA = (a.position_name || '').trim().toLowerCase();
         const normB = (b.position_name || '').trim().toLowerCase();
-        const posA = posOrderMap.get(normA);
-        const posB = posOrderMap.get(normB);
+        const posA = posOrderMap.get(`${deptA}|||${normA}`);
+        const posB = posOrderMap.get(`${deptB}|||${normB}`);
 
         // Kategori order
         const catA = posA?.categoryOrder ?? 99;
@@ -1096,12 +1096,13 @@ export default function Employees() {
       return `"${str}"`;
     };
 
-    const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk', 'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan'];
+    const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Jabatan Tambahan / PLT', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk', 'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan'];
     const csvContent = [
       headers.map(csvCell).join(','),
       ...filteredEmployees.map(emp => [
         csvCell(emp.nip), csvCell(emp.front_title), csvCell(emp.name), csvCell(emp.back_title),
-        csvCell(emp.position_type), csvCell(emp.position_name), csvCell(emp.asn_status),
+        csvCell(emp.position_type), csvCell(emp.position_name), csvCell(emp.additional_position),
+        csvCell(emp.asn_status),
         csvCell(emp.rank_group), csvCell(emp.department), csvCell(emp.join_date),
         csvCell(emp.keterangan_formasi), csvCell(emp.keterangan_penempatan),
         csvCell(emp.keterangan_penugasan), csvCell(emp.keterangan_perubahan),
@@ -1280,7 +1281,21 @@ export default function Employees() {
                         <TableRow key={employee.id} className="animate-fade-in">
                           <TableCell className="font-mono text-sm">{employee.nip || '-'}</TableCell>
                           <TableCell className="font-medium">{formatDisplayName(employee)}</TableCell>
-                          <TableCell className="hidden md:table-cell text-muted-foreground">{employee.position_name || '-'}</TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground">
+                            <div className="flex flex-col gap-0.5">
+                              <span>{employee.position_name || '-'}</span>
+                              {employee.additional_position && (
+                                <span className={cn(
+                                  'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit',
+                                  employee.additional_position.toUpperCase().includes('PLT')
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                )}>
+                                  {employee.additional_position}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>{getStatusBadge(employee.asn_status)}</TableCell>
                           <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
                           {canViewAll && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}

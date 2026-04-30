@@ -23,6 +23,7 @@ const Departments = lazy(() => import("./pages/Departments"));
 const DataBuilder = lazy(() => import("./pages/DataBuilder"));
 const PetaJabatan = lazy(() => import("./pages/PetaJabatan"));
 const UnitActivityMonitoring = lazy(() => import("./pages/UnitActivityMonitoring"));
+const SystemInfo = lazy(() => import("./pages/SystemInfo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/peta-jabatan" element={<ProtectedRoute><ErrorBoundary><PetaJabatan /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat', 'admin_pimpinan']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan']}><ErrorBoundary><UnitActivityMonitoring /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/system-info" element={<ProtectedRoute><ErrorBoundary><SystemInfo /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
