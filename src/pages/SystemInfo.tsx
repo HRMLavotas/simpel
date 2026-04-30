@@ -20,9 +20,18 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.7.0',
+    version: '2.8.0',
     date: '30 April 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Auto-update detection — aplikasi mendeteksi versi baru secara otomatis setiap 5 menit dan saat tab kembali aktif. Banner notifikasi muncul di atas halaman dengan tombol "Perbarui Sekarang".' },
+      { type: 'improvement', text: 'Cache header Vercel dioptimalkan: index.html selalu fresh (no-cache), file JS/CSS di-cache permanen (immutable) karena sudah menggunakan content hash.' },
+      { type: 'improvement', text: 'User tidak perlu lagi clear cache browser secara manual untuk mendapatkan versi terbaru aplikasi.' },
+    ],
+  },
+  {
+    version: '2.7.0',
+    date: '30 April 2026',
     changes: [
       { type: 'feature', text: 'Fitur PLT (Pelaksana Tugas): field "Jabatan Tambahan / PLT" di form pegawai kini mendukung pencatatan jabatan PLT. Contoh: PLT Direktur, PLT Kepala Bagian Umum.' },
       { type: 'improvement', text: 'Data Pegawai: kolom Jabatan menampilkan badge PLT (kuning) atau jabatan tambahan (biru) di bawah jabatan definitif secara langsung di tabel.' },
@@ -211,7 +220,9 @@ const FEATURES_OVERVIEW = [
       'Kelola akun admin (admin pusat, admin unit, admin pimpinan)',
       'Kelola unit kerja (departemen)',
       'Notifikasi real-time untuk perubahan data',
+      'Auto-update detection — banner notifikasi muncul otomatis saat ada versi baru, tanpa perlu clear cache manual',
       'Profil pengguna',
+      'Menu Informasi Sistem — riwayat versi, fitur, dan perbaikan aplikasi',
     ],
   },
 ];

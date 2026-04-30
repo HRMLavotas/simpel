@@ -33,8 +33,9 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'rank_group', label: 'Pangkat/Golongan', dbField: 'rank_group', category: 'employment', description: 'Contoh: III/a, IV/b' },
   { key: 'position_type', label: 'Jenis Jabatan', dbField: 'position_type', category: 'position', description: 'Struktural, Fungsional, atau Pelaksana' },
   { key: 'position_sk', label: 'Jabatan Sesuai SK', dbField: 'position_sk', category: 'position', description: 'Jabatan spesifik/tugas aktual pegawai' },
-  { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202/2024', dbField: 'position_name', category: 'position', description: 'Jabatan standar/klasifikasi' },
+  { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202/2024', dbField: 'position_name', category: 'position', description: 'Jabatan standar/klasifikasi. Filter pada kolom ini otomatis mencari juga di Jabatan Tambahan/PLT — pegawai PLT akan muncul tanpa perlu memilih kolom PLT.' },
   { key: 'additional_position', label: 'Jabatan Tambahan / PLT', dbField: 'additional_position', category: 'position', description: 'Jabatan tambahan atau Pelaksana Tugas (PLT). Contoh: PLT Direktur, PLT Kepala Bagian. Tidak mempengaruhi Peta Jabatan.' },
+  { key: 'position_name_or_plt', label: 'Jabatan (termasuk PLT)', dbField: 'position_name_or_plt', category: 'position', description: 'Filter sekaligus di Jabatan Kepmen 202/2024 DAN Jabatan Tambahan/PLT. Gunakan ini jika ingin data PLT muncul bersama jabatan definitif.' },
   { key: 'old_position', label: 'Jabatan Lama', dbField: 'old_position', category: 'position', description: 'Jabatan sebelum perubahan' },
   { key: 'department', label: 'Unit Kerja', dbField: 'department', category: 'employment', description: 'Nama unit kerja/dinas' },
   

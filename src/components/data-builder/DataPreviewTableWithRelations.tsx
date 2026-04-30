@@ -205,11 +205,30 @@ export function DataPreviewTableWithRelations({
                     <TableCell className="text-muted-foreground tabular-nums">
                       {(currentPage - 1) * pageSize + idx + 1}
                     </TableCell>
-                    {columns.map(col => (
-                      <TableCell key={col.key} className="max-w-[min(280px,40vw)] truncate" title={formatEmployeeCellValue(row[col.dbField], col.dbField)}>
-                        {formatEmployeeCellValue(row[col.dbField], col.dbField)}
-                      </TableCell>
-                    ))}
+                    {columns.map(col => {
+                      // Kolom position_name: tampilkan PLT sebagai badge jika ada
+                      if (col.dbField === 'position_name') {
+                        const posName = formatEmployeeCellValue(row[col.dbField], col.dbField);
+                        const plt = row['additional_position'] as string | null;
+                        return (
+                          <TableCell key={col.key} className="max-w-[min(280px,40vw)]">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="truncate" title={posName}>{posName}</span>
+                              {plt && (
+                                <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 whitespace-nowrap">
+                                  {plt}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      return (
+                        <TableCell key={col.key} className="max-w-[min(280px,40vw)] truncate" title={formatEmployeeCellValue(row[col.dbField], col.dbField)}>
+                          {formatEmployeeCellValue(row[col.dbField], col.dbField)}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
 
                   {isExpanded && (

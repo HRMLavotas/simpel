@@ -137,24 +137,61 @@ export default function DataBuilder() {
   const buildQuery = useCallback(() => {
     const dbFields = selectedColumns
       .map(key => AVAILABLE_COLUMNS.find(c => c.key === key)?.dbField)
-      .filter(Boolean) as string[];
+      .filter(Boolean)
+      // Field virtual bukan kolom database — jangan masukkan ke SELECT
+      .filter(f => f !== 'position_name_or_plt') as string[];
 
-    const merged = [...new Set([...EMPLOYEE_BASE_SELECT_FIELDS, ...dbFields])];
+    // Tambahkan field yang digunakan sebagai filter agar tidak error saat filter aktif
+    // tapi kolom tidak dipilih di ColumnSelector
+    const filterFields = filters
+      .filter(isFilterRuleActive)
+      .map(f => f.field)
+      .filter(f => f && f !== 'position_name_or_plt'); // field virtual dikecualikan
+
+    // Field virtual position_name_or_plt butuh kedua field aslinya di-select
+    const hasVirtualFilter = filters.some(f => f.field === 'position_name_or_plt' && isFilterRuleActive(f));
+    // Filter position_name juga mencari di additional_position — pastikan field itu di-select
+    const hasPositionNameFilter = filters.some(f => f.field === 'position_name' && isFilterRuleActive(f));
+    // Kolom position_name dipilih → additional_position juga perlu di-fetch untuk tampilan badge PLT
+    const hasPositionNameColumn = selectedColumns.includes('position_name');
+    const virtualDeps = [
+      ...(hasVirtualFilter ? ['position_name', 'additional_position'] : []),
+      ...(hasPositionNameFilter || hasPositionNameColumn ? ['additional_position'] : []),
+    ];
+
+    const merged = [...new Set([...EMPLOYEE_BASE_SELECT_FIELDS, ...dbFields, ...filterFields, ...virtualDeps])];
     const selectStr = merged.join(',');
     return { selectStr, dbFields: merged };
-  }, [selectedColumns]);
+  }, [selectedColumns, filters]);
 
   const applyFilters = (query: FilterableQuery) => {
     let q = query;
 
-    // Kelompokkan filter aktif per field agar bisa digabung dengan OR per field
-    // Ini mencegah kondisi AND yang saling bertentangan ketika user menambah
-    // banyak advanced filter untuk field yang sama (misal: rank_group = III/a OR IV/a)
     const activeFilters = filters.filter(isFilterRuleActive);
+
+    // Pisahkan filter virtual (position_name_or_plt) dari filter biasa
+    // Field virtual ini mencari di position_name OR additional_position sekaligus
+    const virtualFilters = activeFilters.filter(f => f.field === 'position_name_or_plt');
+    const regularFilters = activeFilters.filter(f => f.field !== 'position_name_or_plt');
+
+    // Terapkan filter virtual: setiap kondisi jadi OR antara position_name dan additional_position
+    for (const filter of virtualFilters) {
+      const value = filter.value.trim();
+      if (!value) continue;
+      const escaped = value.replace(/"/g, '\\"');
+
+      if (filter.operator === 'ilike' || filter.operator === 'exact_word') {
+        q = q.or(`position_name.ilike."%${escaped}%",additional_position.ilike."%${escaped}%"`);
+      } else if (filter.operator === 'exact_match') {
+        q = q.or(`position_name.ilike."${escaped}",additional_position.ilike."${escaped}"`);
+      } else if (filter.operator === 'eq') {
+        q = q.or(`position_name.eq."${escaped}",additional_position.eq."${escaped}"`);
+      }
+    }
 
     // Kumpulkan semua nilai 'in' per field — gabungkan jadi satu .in() call
     const inValuesByField = new Map<string, string[]>();
-    for (const filter of activeFilters) {
+    for (const filter of regularFilters) {
       if (filter.operator !== 'in') continue;
       const vals = filter.values?.filter(Boolean) ?? [];
       if (vals.length === 0) continue;
@@ -162,15 +199,13 @@ export default function DataBuilder() {
       inValuesByField.set(filter.field, [...new Set([...existing, ...vals])]);
     }
 
-    // Terapkan satu .in() per field (union semua nilai dari semua filter 'in' pada field yang sama)
     for (const [field, vals] of inValuesByField) {
       q = q.in(field, vals);
     }
 
-    // Kumpulkan filter text (eq, ilike, exact_word) per field
-    // Jika satu field punya lebih dari satu kondisi text → gabung dengan OR via .or()
+    // Kumpulkan filter text per field
     const textFiltersByField = new Map<string, Array<{ operator: string; value: string }>>();
-    for (const filter of activeFilters) {
+    for (const filter of regularFilters) {
       if (filter.operator === 'in') continue;
       const value = filter.value.trim();
       if (!value) continue;
@@ -179,29 +214,43 @@ export default function DataBuilder() {
     }
 
     for (const [field, conditions] of textFiltersByField) {
-      if (conditions.length === 1) {
-        // Satu kondisi — terapkan langsung
+      // Filter pada position_name otomatis mencari juga di additional_position (OR)
+      // sehingga pegawai PLT muncul tanpa perlu memilih kolom additional_position
+      const includeAdditional = field === 'position_name';
+
+      if (conditions.length === 1 && !includeAdditional) {
         const { operator, value } = conditions[0];
         if (operator === 'exact_word' || operator === 'ilike') {
           q = q.ilike(field, `%${value}%`);
         } else if (operator === 'exact_match') {
-          // ilike tanpa wildcard = full string match, case-insensitive
           q = q.ilike(field, value);
         } else if (operator === 'eq') {
           q = q.eq(field, value);
         }
       } else {
-        // Lebih dari satu kondisi pada field yang sama → gabung dengan OR
-        // Format PostgREST: field.ilike.%val1%,field.ilike.%val2%
-        const orParts = conditions.map(({ operator, value }) => {
+        // Gabung dengan OR — termasuk additional_position jika field adalah position_name
+        const orParts: string[] = [];
+
+        for (const { operator, value } of conditions) {
+          const escaped = value.replace(/"/g, '\\"');
           if (operator === 'exact_word' || operator === 'ilike') {
-            return `${field}.ilike.%${value}%`;
+            orParts.push(`${field}.ilike."%${escaped}%"`);
+            if (includeAdditional) {
+              orParts.push(`additional_position.ilike."%${escaped}%"`);
+            }
           } else if (operator === 'exact_match') {
-            return `${field}.ilike.${value}`;
+            orParts.push(`${field}.ilike."${escaped}"`);
+            if (includeAdditional) {
+              orParts.push(`additional_position.ilike."${escaped}"`);
+            }
           } else {
-            return `${field}.eq.${value}`;
+            orParts.push(`${field}.eq."${escaped}"`);
+            if (includeAdditional) {
+              orParts.push(`additional_position.eq."${escaped}"`);
+            }
           }
-        });
+        }
+
         q = q.or(orParts.join(','));
       }
     }
@@ -212,7 +261,12 @@ export default function DataBuilder() {
   const applyClientSideFilters = (rows: Record<string, unknown>[]) => {
     let filtered = rows;
 
-    const exactWordFilters = filters.filter(filter => filter.operator === 'exact_word' && isFilterRuleActive(filter));
+    // Field virtual position_name_or_plt sudah ditangani di server-side, skip di client
+    const exactWordFilters = filters.filter(
+      filter => filter.operator === 'exact_word' &&
+                filter.field !== 'position_name_or_plt' &&
+                isFilterRuleActive(filter)
+    );
     if (exactWordFilters.length === 0) return filtered;
 
     // Kelompokkan exact_word filters per field — antar field = AND, dalam field = OR
@@ -332,6 +386,11 @@ export default function DataBuilder() {
           // Kolom 'name' → tampilkan nama lengkap dengan gelar depan/belakang
           if (col.dbField === 'name') {
             obj[col.label] = formatFullName(row);
+          } else if (col.dbField === 'position_name') {
+            // Jika ada additional_position (PLT), tampilkan sebagai keterangan tambahan
+            const posName = (raw as string) ?? '-';
+            const plt = row['additional_position'] as string | null;
+            obj[col.label] = plt ? `${posName} (PLT: ${plt})` : posName;
           } else if (col.category === 'dates' && raw != null && raw !== '') {
             obj[col.label] = formatEmployeeCellValue(raw, col.dbField);
           } else {
