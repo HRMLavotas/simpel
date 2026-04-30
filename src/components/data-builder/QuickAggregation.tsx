@@ -198,6 +198,54 @@ function categorizeYearsOfService(years: number | null): string {
   return '≥30 tahun';
 }
 
+// Urutan resmi unit kerja sesuai format laporan resmi (Tabel Dukungan Personil)
+const OFFICIAL_DEPT_ORDER: string[] = [
+  'Setditjen Binalavotas',
+  'Direktorat Bina Stankomproglat',
+  'Direktorat Bina Intala',
+  'Direktorat Bina Peningkatan Produktivitas',
+  'Direktorat Bina Lemlatvok',
+  'Direktorat Bina Penyelenggaraan Latvogan',
+  'Set. BNSP',
+  'BBPVP Medan',
+  'BBPVP Serang',
+  'BBPVP Bekasi',
+  'BBPVP Bandung',
+  'BBPVP Semarang',
+  'BBPVP Makassar',
+  'BPVP Banda Aceh',
+  'BPVP Padang',
+  'BPVP Surakarta',
+  'BPVP Samarinda',
+  'BPVP Kendari',
+  'BPVP Ternate',
+  'BPVP Ambon',
+  'BPVP Sorong',
+  'BPVP Bandung Barat',
+  'BPVP Lombok Timur',
+  'BPVP Bantaeng',
+  'BPVP Sidoarjo',
+  'BPVP Banyuwangi',
+  'BPVP Pangkep',
+  'BPVP Belitung',
+  'Satpel Sawahlunto',
+  'Satpel Sofifi',
+  'Satpel Pekanbaru',
+  'Satpel Lubuklinggau',
+  'Satpel Lampung',
+  'Satpel Bengkulu',
+  'Satpel Mamuju',
+  'Satpel Majene',
+  'Satpel Palu',
+  'Satpel Bantul',
+  'Satpel Kupang',
+  'Satpel Jambi',
+  'Satpel Jayapura',
+  'Workshop Prabumulih',
+  'Workshop Batam',
+  'Workshop Gorontalo',
+];
+
 export function QuickAggregation({}: QuickAggregationProps) {
   const { toast } = useToast();
   const { profile, canViewAll } = useAuth();
@@ -583,6 +631,123 @@ export function QuickAggregation({}: QuickAggregationProps) {
         }));
         const wsDepartment = XLSX.utils.json_to_sheet(departmentData);
         XLSX.utils.book_append_sheet(wb, wsDepartment, 'Unit Kerja');
+      }
+
+      // Sheet 12: Tabel Golongan per Unit Kerja (format resmi)
+      // Kolom: No | Unit Kerja | PNS I | PNS II | PNS III | PNS IV | PPPK III | PPPK IV | PPPK VII | PPPK IX | Total | L | P | Total JK
+      if (selectedDepartment === 'all' && aggregations.department.length > 1) {
+        // Kelompokkan data per unit kerja
+        const deptMap = new Map<string, typeof data>();
+        data.forEach(emp => {
+          const dept = String(emp.department || 'Tidak Ada');
+          if (!deptMap.has(dept)) deptMap.set(dept, []);
+          deptMap.get(dept)!.push(emp);
+        });
+
+        // Urutkan unit kerja sesuai urutan resmi laporan
+        // Unit yang tidak ada di daftar resmi diletakkan di akhir secara alphabetical
+        const deptSet = new Set(deptMap.keys());
+        const sortedDepts = [
+          ...OFFICIAL_DEPT_ORDER.filter(d => deptSet.has(d)),
+          ...[...deptSet].filter(d => !OFFICIAL_DEPT_ORDER.includes(d)).sort(),
+        ];
+
+        const golonganRows: Record<string, string | number>[] = [];
+        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, pppk_III: 0, pppk_IV: 0, pppk_VII: 0, pppk_IX: 0, total: 0, L: 0, P: 0 };
+
+        sortedDepts.forEach((dept, idx) => {
+          const emps = deptMap.get(dept) || [];
+
+          // Hitung PNS per golongan utama
+          const pns_I   = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'I').length;
+          const pns_II  = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'II').length;
+          const pns_III = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'III').length;
+          const pns_IV  = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'IV').length;
+
+          // Hitung PPPK per golongan (V=III, VII=VII, IX=IX, XI=IV)
+          const pppk_III = emps.filter(e => {
+            const s = normalizeAsnStatus(e.asn_status);
+            const rg = String(e.rank_group || '').trim().toUpperCase();
+            return (s === 'PPPK' || s === 'CPNS') && rg === 'V';
+          }).length;
+          const pppk_IV = emps.filter(e => {
+            const s = normalizeAsnStatus(e.asn_status);
+            const rg = String(e.rank_group || '').trim().toUpperCase();
+            return (s === 'PPPK' || s === 'CPNS') && rg === 'XI';
+          }).length;
+          const pppk_VII = emps.filter(e => {
+            const s = normalizeAsnStatus(e.asn_status);
+            const rg = String(e.rank_group || '').trim().toUpperCase();
+            return (s === 'PPPK' || s === 'CPNS') && rg === 'VII';
+          }).length;
+          const pppk_IX = emps.filter(e => {
+            const s = normalizeAsnStatus(e.asn_status);
+            const rg = String(e.rank_group || '').trim().toUpperCase();
+            return (s === 'PPPK' || s === 'CPNS') && rg === 'IX';
+          }).length;
+
+          // Hitung jenis kelamin (exclude Non ASN)
+          const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
+          const L = asnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
+          const P = asnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
+          const total = pns_I + pns_II + pns_III + pns_IV + pppk_III + pppk_IV + pppk_VII + pppk_IX;
+
+          golonganRows.push({
+            'No': idx + 1,
+            'Unit Kerja': dept,
+            'PNS I': pns_I,
+            'PNS II': pns_II,
+            'PNS III': pns_III,
+            'PNS IV': pns_IV,
+            'PPPK III': pppk_III,
+            'PPPK IV': pppk_IV,
+            'PPPK VII': pppk_VII,
+            'PPPK IX': pppk_IX,
+            'Total': total,
+            'L': L,
+            'P': P,
+            'Total JK': L + P,
+          });
+
+          totals.pns_I   += pns_I;
+          totals.pns_II  += pns_II;
+          totals.pns_III += pns_III;
+          totals.pns_IV  += pns_IV;
+          totals.pppk_III += pppk_III;
+          totals.pppk_IV  += pppk_IV;
+          totals.pppk_VII += pppk_VII;
+          totals.pppk_IX  += pppk_IX;
+          totals.total   += total;
+          totals.L       += L;
+          totals.P       += P;
+        });
+
+        // Baris JUMLAH
+        golonganRows.push({
+          'No': '',
+          'Unit Kerja': 'JUMLAH',
+          'PNS I': totals.pns_I,
+          'PNS II': totals.pns_II,
+          'PNS III': totals.pns_III,
+          'PNS IV': totals.pns_IV,
+          'PPPK III': totals.pppk_III,
+          'PPPK IV': totals.pppk_IV,
+          'PPPK VII': totals.pppk_VII,
+          'PPPK IX': totals.pppk_IX,
+          'Total': totals.total,
+          'L': totals.L,
+          'P': totals.P,
+          'Total JK': totals.L + totals.P,
+        });
+
+        const wsGolongan = XLSX.utils.json_to_sheet(golonganRows);
+        wsGolongan['!cols'] = [
+          { wch: 5 }, { wch: 30 },
+          { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+          { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 },
+          { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 10 },
+        ];
+        XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
       }
 
       // Export
