@@ -659,8 +659,12 @@ export function QuickAggregation({}: QuickAggregationProps) {
           const emps = deptMap.get(dept) || [];
 
           // Hitung PNS per golongan utama (I, II, III, IV)
-          // PNS selalu punya sub-golongan: I/a, II/b, III/c, IV/d, atau format panjang "Penata Muda (III/a)"
-          const isPns = (e: any) => normalizeAsnStatus(e.asn_status) === 'PNS';
+          // CPNS dihitung bersama PNS karena CPNS adalah calon PNS dengan golongan PNS
+          // PNS/CPNS selalu punya sub-golongan: I/a, II/b, III/c, IV/d, atau format panjang "Penata Muda (III/a)"
+          const isPnsOrCpns = (e: any) => {
+            const s = normalizeAsnStatus(e.asn_status);
+            return s === 'PNS' || s === 'CPNS';
+          };
           const getPnsGolongan = (rankGroup: string): string => {
             const rg = String(rankGroup || '').trim();
             // Format sub-golongan: III/a, IV/b, dll
@@ -671,34 +675,27 @@ export function QuickAggregation({}: QuickAggregationProps) {
             if (longMatch) return longMatch[1].toUpperCase();
             return 'lainnya';
           };
-          const pns_I   = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'I').length;
-          const pns_II  = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
-          const pns_III = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
-          const pns_IV  = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
+          const pns_I   = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'I').length;
+          const pns_II  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
+          const pns_III = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
+          const pns_IV  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
 
           // Hitung PPPK per golongan: III, V, VII, IX
-          // PPPK golongan III → rank_group = 'III' (tanpa sub-golongan, beda dari PNS III/a)
+          // PPPK golongan III → rank_group = 'III' murni (tanpa sub-golongan)
           // PPPK golongan V, VII, IX → rank_group = 'V', 'VII', 'IX'
-          const isPppkOrCpns = (e: any) => {
-            const s = normalizeAsnStatus(e.asn_status);
-            return s === 'PPPK' || s === 'CPNS';
-          };
+          const isPppk = (e: any) => normalizeAsnStatus(e.asn_status) === 'PPPK';
           const getPppkGolongan = (rankGroup: string): string => {
             const rg = String(rankGroup || '').trim().toUpperCase();
-            // Hanya cocokkan angka romawi murni (tanpa sub-golongan /)
             if (rg === 'III') return 'III';
             if (rg === 'V')   return 'V';
             if (rg === 'VII') return 'VII';
             if (rg === 'IX')  return 'IX';
-            // Format lama dengan sub-golongan (data anomali) → tetap petakan ke golongan terdekat
-            if (/\bIII\//.test(rg) || /\(III\//.test(rg)) return 'III';
-            if (/\bII\//.test(rg)  || /\(II\//.test(rg))  return 'III'; // II/c CPNS → golongan III
             return 'lainnya';
           };
-          const pppk_III = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'III').length;
-          const pppk_V   = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
-          const pppk_VII = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
-          const pppk_IX  = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
+          const pppk_III = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'III').length;
+          const pppk_V   = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
+          const pppk_VII = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
+          const pppk_IX  = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
 
           // Hitung jenis kelamin (exclude Non ASN)
           const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
