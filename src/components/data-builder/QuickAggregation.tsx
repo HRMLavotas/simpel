@@ -762,10 +762,19 @@ export function QuickAggregation({}: QuickAggregationProps) {
       }
 
       // Sheet 13: Tabel Pendidikan per Unit Kerja (format resmi)
-      // Kolom: No | Unit Kerja | Jml Peg | SD | SMP | SMA | D1 | D2 | D3 | D4 | S1 | S2 | S3 | Jml Peg
+      // Format: Header dokumen + tabel dengan kolom JML PEG ganda
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
         const EDU_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
         const EDU_LABELS = ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+
+        // Generate dynamic month and year
+        const now = new Date();
+        const monthNames = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 
+                           'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+        const currentMonth = monthNames[now.getMonth()];
+        const currentYear = now.getFullYear();
+        const titleText = `REKAP PEGAWAI DITJEN BULAN ${currentMonth} ${currentYear}`;
+        const subtitleText = 'Dukungan Personil Berdasarkan Tingkat Pendidikan';
 
         // Kelompokkan data per unit kerja
         const deptEduMap = new Map<string, typeof data>();
@@ -781,7 +790,8 @@ export function QuickAggregation({}: QuickAggregationProps) {
           ...[...deptEduSet].filter(d => !OFFICIAL_DEPT_ORDER.includes(d)).sort(),
         ];
 
-        const eduRows: Record<string, string | number>[] = [];
+        // Build data rows
+        const dataRows: any[][] = [];
         const eduTotals: Record<string, number> = { total: 0 };
         EDU_LABELS.forEach(l => { eduTotals[l] = 0; });
 
@@ -791,44 +801,67 @@ export function QuickAggregation({}: QuickAggregationProps) {
           const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
           const total = asnEmps.length;
 
-          const row: Record<string, string | number> = {
-            'No': idx + 1,
-            'Unit Kerja': dept,
-            'Jml Peg': total,
-          };
+          const row: any[] = [idx + 1, dept, total];
 
           EDU_LEVELS.forEach((level, i) => {
-            const label = EDU_LABELS[i];
             const count = asnEmps.filter(e => {
               const edu = extractEducationLevel(e.education_history);
               return edu === level;
             }).length;
-            row[label] = count;
-            eduTotals[label] = (eduTotals[label] || 0) + count;
+            row.push(count);
+            eduTotals[EDU_LABELS[i]] = (eduTotals[EDU_LABELS[i]] || 0) + count;
           });
 
-          row['Jml Peg (2)'] = total;
+          row.push(total); // JML PEG kedua
           eduTotals['total'] += total;
-          eduRows.push(row);
+          dataRows.push(row);
         });
 
         // Baris JUMLAH
-        const jumlahRow: Record<string, string | number> = {
-          'No': '',
-          'Unit Kerja': 'JUMLAH',
-          'Jml Peg': eduTotals['total'],
-        };
-        EDU_LABELS.forEach(l => { jumlahRow[l] = eduTotals[l]; });
-        jumlahRow['Jml Peg (2)'] = eduTotals['total'];
-        eduRows.push(jumlahRow);
+        const jumlahRow: any[] = ['', 'JUMLAH', eduTotals['total']];
+        EDU_LABELS.forEach(l => { jumlahRow.push(eduTotals[l]); });
+        jumlahRow.push(eduTotals['total']); // JML PEG kedua
+        dataRows.push(jumlahRow);
 
-        const wsEdu = XLSX.utils.json_to_sheet(eduRows);
-        wsEdu['!cols'] = [
-          { wch: 5 }, { wch: 32 }, { wch: 8 },
-          { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 },
-          { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 },
-          { wch: 8 },
+        // Build worksheet using aoa_to_sheet for proper structure
+        // Row 1: Title (merged)
+        // Row 2: Subtitle (merged)
+        // Row 3: Column headers
+        // Row 4+: Data rows
+        const aoaData: any[][] = [
+          [titleText], // Row 1 - will be merged across all columns
+          [subtitleText], // Row 2 - will be merged across all columns
+          ['NO.', 'UNIT KERJA', 'JML PEG', 'SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3', 'JML PEG'], // Row 3 - headers
+          ...dataRows // Row 4+ - data
         ];
+
+        const wsEdu = XLSX.utils.aoa_to_sheet(aoaData);
+
+        // Set column widths
+        wsEdu['!cols'] = [
+          { wch: 5 },  // NO.
+          { wch: 32 }, // UNIT KERJA
+          { wch: 8 },  // JML PEG
+          { wch: 6 },  // SD
+          { wch: 6 },  // SMP
+          { wch: 6 },  // SMA
+          { wch: 6 },  // D1
+          { wch: 6 },  // D2
+          { wch: 6 },  // D3
+          { wch: 6 },  // D4
+          { wch: 6 },  // S1
+          { wch: 6 },  // S2
+          { wch: 6 },  // S3
+          { wch: 8 },  // JML PEG
+        ];
+
+        // Set merged cells for title and subtitle (A1:N1 and A2:N2)
+        // 14 columns total (A to N)
+        wsEdu['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } }, // Row 1 (title) merged A1:N1
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } }, // Row 2 (subtitle) merged A2:N2
+        ];
+
         XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
 
         // Sheet 14: Perbandingan dengan data referensi Maret 2026
