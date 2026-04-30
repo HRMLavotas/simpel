@@ -761,6 +761,148 @@ export function QuickAggregation({}: QuickAggregationProps) {
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
       }
 
+      // Sheet 13: Tabel Pendidikan per Unit Kerja (format resmi)
+      // Kolom: No | Unit Kerja | Jml Peg | SD | SMP | SMA | D1 | D2 | D3 | D4 | S1 | S2 | S3 | Jml Peg
+      if (selectedDepartment === 'all' && aggregations.department.length > 1) {
+        const EDU_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+        const EDU_LABELS = ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+
+        // Kelompokkan data per unit kerja
+        const deptEduMap = new Map<string, typeof data>();
+        data.forEach(emp => {
+          const dept = String(emp.department || 'Tidak Ada');
+          if (!deptEduMap.has(dept)) deptEduMap.set(dept, []);
+          deptEduMap.get(dept)!.push(emp);
+        });
+
+        const deptEduSet = new Set(deptEduMap.keys());
+        const sortedEduDepts = [
+          ...OFFICIAL_DEPT_ORDER.filter(d => deptEduSet.has(d)),
+          ...[...deptEduSet].filter(d => !OFFICIAL_DEPT_ORDER.includes(d)).sort(),
+        ];
+
+        const eduRows: Record<string, string | number>[] = [];
+        const eduTotals: Record<string, number> = { total: 0 };
+        EDU_LABELS.forEach(l => { eduTotals[l] = 0; });
+
+        sortedEduDepts.forEach((dept, idx) => {
+          const emps = deptEduMap.get(dept) || [];
+          // Hanya ASN (exclude Non ASN)
+          const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
+          const total = asnEmps.length;
+
+          const row: Record<string, string | number> = {
+            'No': idx + 1,
+            'Unit Kerja': dept,
+            'Jml Peg': total,
+          };
+
+          EDU_LEVELS.forEach((level, i) => {
+            const label = EDU_LABELS[i];
+            const count = asnEmps.filter(e => {
+              const edu = extractEducationLevel(e.education_history);
+              return edu === level;
+            }).length;
+            row[label] = count;
+            eduTotals[label] = (eduTotals[label] || 0) + count;
+          });
+
+          row['Jml Peg (2)'] = total;
+          eduTotals['total'] += total;
+          eduRows.push(row);
+        });
+
+        // Baris JUMLAH
+        const jumlahRow: Record<string, string | number> = {
+          'No': '',
+          'Unit Kerja': 'JUMLAH',
+          'Jml Peg': eduTotals['total'],
+        };
+        EDU_LABELS.forEach(l => { jumlahRow[l] = eduTotals[l]; });
+        jumlahRow['Jml Peg (2)'] = eduTotals['total'];
+        eduRows.push(jumlahRow);
+
+        const wsEdu = XLSX.utils.json_to_sheet(eduRows);
+        wsEdu['!cols'] = [
+          { wch: 5 }, { wch: 32 }, { wch: 8 },
+          { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 },
+          { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 },
+          { wch: 8 },
+        ];
+        XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
+
+        // Sheet 14: Perbandingan dengan data referensi Maret 2026
+        // Data referensi dari dokumen resmi
+        const REF_MARET_2026: Record<string, { total: number; SD: number; SMP: number; SMA: number; D1: number; D2: number; D3: number; D4: number; S1: number; S2: number; S3: number }> = {
+          'Setditjen Binalavotas':                    { total: 96,  SD:0, SMP:0, SMA:4,  D1:0, D2:0, D3:10, D4:4,  S1:58,  S2:20, S3:0 },
+          'Direktorat Bina Stankomproglat':           { total: 52,  SD:0, SMP:0, SMA:3,  D1:0, D2:0, D3:7,  D4:2,  S1:26,  S2:13, S3:1 },
+          'Direktorat Bina Lemlatvok':                { total: 59,  SD:0, SMP:0, SMA:1,  D1:0, D2:0, D3:7,  D4:0,  S1:37,  S2:14, S3:0 },
+          'Direktorat Bina Penyelenggaraan Latvogan': { total: 50,  SD:0, SMP:0, SMA:1,  D1:0, D2:0, D3:5,  D4:1,  S1:29,  S2:14, S3:0 },
+          'Direktorat Bina Intala':                   { total: 50,  SD:0, SMP:0, SMA:1,  D1:0, D2:0, D3:3,  D4:0,  S1:35,  S2:11, S3:0 },
+          'Direktorat Bina Peningkatan Produktivitas':{ total: 45,  SD:0, SMP:0, SMA:0,  D1:0, D2:0, D3:3,  D4:0,  S1:24,  S2:16, S3:2 },
+          'Sekretariat BNSP':                         { total: 70,  SD:0, SMP:0, SMA:1,  D1:2, D2:0, D3:7,  D4:4,  S1:40,  S2:16, S3:0 },
+          'BBPVP Bekasi':                             { total: 202, SD:0, SMP:1, SMA:5,  D1:0, D2:0, D3:23, D4:8,  S1:127, S2:38, S3:0 },
+          'BBPVP Bandung':                            { total: 148, SD:0, SMP:0, SMA:10, D1:0, D2:0, D3:23, D4:6,  S1:89,  S2:20, S3:0 },
+          'BBPVP Serang':                             { total: 155, SD:0, SMP:0, SMA:11, D1:0, D2:0, D3:11, D4:2,  S1:104, S2:27, S3:0 },
+          'BBPVP Medan':                              { total: 131, SD:0, SMP:1, SMA:8,  D1:0, D2:0, D3:10, D4:13, S1:82,  S2:17, S3:0 },
+          'BBPVP Semarang':                           { total: 168, SD:1, SMP:1, SMA:9,  D1:0, D2:0, D3:18, D4:5,  S1:107, S2:27, S3:0 },
+          'BBPVP Makassar':                           { total: 173, SD:0, SMP:1, SMA:12, D1:0, D2:0, D3:16, D4:3,  S1:111, S2:29, S3:1 },
+          'BPVP Surakarta':                           { total: 122, SD:1, SMP:0, SMA:5,  D1:0, D2:1, D3:11, D4:3,  S1:77,  S2:23, S3:1 },
+          'BPVP Ambon':                               { total: 71,  SD:0, SMP:0, SMA:9,  D1:0, D2:0, D3:11, D4:4,  S1:46,  S2:1,  S3:0 },
+          'BPVP Ternate':                             { total: 77,  SD:0, SMP:0, SMA:4,  D1:0, D2:0, D3:4,  D4:7,  S1:57,  S2:5,  S3:0 },
+          'BPVP Banda Aceh':                          { total: 90,  SD:0, SMP:0, SMA:4,  D1:0, D2:0, D3:8,  D4:4,  S1:63,  S2:11, S3:0 },
+          'BPVP Sorong':                              { total: 68,  SD:0, SMP:0, SMA:3,  D1:0, D2:0, D3:4,  D4:3,  S1:53,  S2:5,  S3:0 },
+          'BPVP Kendari':                             { total: 84,  SD:0, SMP:0, SMA:3,  D1:0, D2:0, D3:5,  D4:3,  S1:67,  S2:6,  S3:0 },
+          'BPVP Samarinda':                           { total: 74,  SD:0, SMP:0, SMA:2,  D1:0, D2:0, D3:7,  D4:10, S1:53,  S2:2,  S3:0 },
+          'BPVP Padang':                              { total: 113, SD:1, SMP:1, SMA:4,  D1:0, D2:0, D3:13, D4:5,  S1:75,  S2:14, S3:0 },
+          'BPVP Bandung Barat':                       { total: 63,  SD:0, SMP:0, SMA:2,  D1:0, D2:0, D3:4,  D4:3,  S1:51,  S2:3,  S3:0 },
+          'BPVP Lombok Timur':                        { total: 96,  SD:0, SMP:0, SMA:11, D1:0, D2:0, D3:15, D4:8,  S1:55,  S2:7,  S3:0 },
+          'BPVP Bantaeng':                            { total: 58,  SD:0, SMP:0, SMA:1,  D1:0, D2:0, D3:8,  D4:6,  S1:40,  S2:3,  S3:0 },
+          'BPVP Banyuwangi':                          { total: 55,  SD:0, SMP:0, SMA:5,  D1:0, D2:0, D3:3,  D4:3,  S1:36,  S2:8,  S3:0 },
+          'BPVP Sidoarjo':                            { total: 72,  SD:0, SMP:0, SMA:3,  D1:0, D2:0, D3:10, D4:7,  S1:44,  S2:8,  S3:0 },
+          'BPVP Pangkep':                             { total: 52,  SD:0, SMP:0, SMA:2,  D1:0, D2:0, D3:8,  D4:6,  S1:33,  S2:3,  S3:0 },
+          'BPVP Belitung':                            { total: 43,  SD:0, SMP:0, SMA:0,  D1:0, D2:0, D3:7,  D4:9,  S1:26,  S2:1,  S3:0 },
+        };
+
+        const compareRows: Record<string, string | number>[] = [];
+        const compareFields = ['total', 'SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'] as const;
+
+        sortedEduDepts.forEach((dept, idx) => {
+          const emps = deptEduMap.get(dept) || [];
+          const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
+          const ref = REF_MARET_2026[dept];
+          if (!ref) return; // skip unit yang tidak ada di referensi
+
+          const current: Record<string, number> = { total: asnEmps.length };
+          EDU_LEVELS.forEach((level, i) => {
+            current[EDU_LABELS[i]] = asnEmps.filter(e => extractEducationLevel(e.education_history) === level).length;
+          });
+
+          const row: Record<string, string | number> = {
+            'No': idx + 1,
+            'Unit Kerja': dept,
+          };
+
+          compareFields.forEach(f => {
+            const label = f === 'total' ? 'Jml Peg' : f;
+            const cur = current[f === 'total' ? 'total' : f] ?? 0;
+            const refVal = ref[f] ?? 0;
+            const selisih = cur - refVal;
+            row[`${label} (DB)`] = cur;
+            row[`${label} (Ref Mar)`] = refVal;
+            row[`${label} (Selisih)`] = selisih === 0 ? 0 : selisih > 0 ? `+${selisih}` : selisih;
+          });
+
+          compareRows.push(row);
+        });
+
+        if (compareRows.length > 0) {
+          const wsCompare = XLSX.utils.json_to_sheet(compareRows);
+          wsCompare['!cols'] = [{ wch: 5 }, { wch: 30 }, ...Array(compareFields.length * 3).fill({ wch: 10 })];
+          XLSX.utils.book_append_sheet(wb, wsCompare, 'Perbandingan Pendidikan');
+        }
+      }
+
       // Export
       const timestamp = new Date().toISOString().slice(0, 10);
       const fileName = `agregasi-cepat-${timestamp}.xlsx`;
