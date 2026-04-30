@@ -664,33 +664,21 @@ export function QuickAggregation({}: QuickAggregationProps) {
           const pns_III = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'III').length;
           const pns_IV  = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'IV').length;
 
-          // Hitung PPPK per golongan (V=III, VII=VII, IX=IX, XI=IV)
-          const pppk_III = emps.filter(e => {
+          // Hitung PPPK per golongan: V, VII, IX, XI
+          const isPppk = (e: any) => {
             const s = normalizeAsnStatus(e.asn_status);
-            const rg = String(e.rank_group || '').trim().toUpperCase();
-            return (s === 'PPPK' || s === 'CPNS') && rg === 'V';
-          }).length;
-          const pppk_IV = emps.filter(e => {
-            const s = normalizeAsnStatus(e.asn_status);
-            const rg = String(e.rank_group || '').trim().toUpperCase();
-            return (s === 'PPPK' || s === 'CPNS') && rg === 'XI';
-          }).length;
-          const pppk_VII = emps.filter(e => {
-            const s = normalizeAsnStatus(e.asn_status);
-            const rg = String(e.rank_group || '').trim().toUpperCase();
-            return (s === 'PPPK' || s === 'CPNS') && rg === 'VII';
-          }).length;
-          const pppk_IX = emps.filter(e => {
-            const s = normalizeAsnStatus(e.asn_status);
-            const rg = String(e.rank_group || '').trim().toUpperCase();
-            return (s === 'PPPK' || s === 'CPNS') && rg === 'IX';
-          }).length;
+            return s === 'PPPK' || s === 'CPNS';
+          };
+          const pppk_V   = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'V').length;
+          const pppk_VII = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'VII').length;
+          const pppk_IX  = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'IX').length;
+          const pppk_XI  = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'XI').length;
 
           // Hitung jenis kelamin (exclude Non ASN)
           const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
           const L = asnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
           const P = asnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
-          const total = pns_I + pns_II + pns_III + pns_IV + pppk_III + pppk_IV + pppk_VII + pppk_IX;
+          const total = pns_I + pns_II + pns_III + pns_IV + pppk_V + pppk_VII + pppk_IX + pppk_XI;
 
           golonganRows.push({
             'No': idx + 1,
@@ -699,10 +687,10 @@ export function QuickAggregation({}: QuickAggregationProps) {
             'PNS II': pns_II,
             'PNS III': pns_III,
             'PNS IV': pns_IV,
-            'PPPK III': pppk_III,
-            'PPPK IV': pppk_IV,
+            'PPPK V': pppk_V,
             'PPPK VII': pppk_VII,
             'PPPK IX': pppk_IX,
+            'PPPK XI': pppk_XI,
             'Total': total,
             'L': L,
             'P': P,
@@ -713,8 +701,8 @@ export function QuickAggregation({}: QuickAggregationProps) {
           totals.pns_II  += pns_II;
           totals.pns_III += pns_III;
           totals.pns_IV  += pns_IV;
-          totals.pppk_III += pppk_III;
-          totals.pppk_IV  += pppk_IV;
+          totals.pppk_III += pppk_V;
+          totals.pppk_IV  += pppk_XI;
           totals.pppk_VII += pppk_VII;
           totals.pppk_IX  += pppk_IX;
           totals.total   += total;
@@ -730,10 +718,10 @@ export function QuickAggregation({}: QuickAggregationProps) {
           'PNS II': totals.pns_II,
           'PNS III': totals.pns_III,
           'PNS IV': totals.pns_IV,
-          'PPPK III': totals.pppk_III,
-          'PPPK IV': totals.pppk_IV,
+          'PPPK V': totals.pppk_III,
           'PPPK VII': totals.pppk_VII,
           'PPPK IX': totals.pppk_IX,
+          'PPPK XI': totals.pppk_IV,
           'Total': totals.total,
           'L': totals.L,
           'P': totals.P,
