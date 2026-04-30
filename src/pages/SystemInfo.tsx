@@ -20,9 +20,21 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.8.0',
+    version: '2.9.0',
     date: '30 April 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Data Builder: filter pada kolom "Jabatan Sesuai Kepmen 202/2024" kini otomatis mencari juga di kolom "Jabatan Tambahan/PLT" — pegawai PLT muncul tanpa perlu memilih kolom PLT.' },
+      { type: 'improvement', text: 'Data Builder: tabel preview menampilkan badge PLT (kuning) di bawah jabatan definitif jika pegawai memiliki jabatan PLT.' },
+      { type: 'improvement', text: 'Data Builder: export Excel kolom Jabatan menyertakan keterangan PLT dalam satu cell — contoh: "Kepala Subbagian Umum (PLT: Plt. Kepala)".' },
+      { type: 'feature', text: 'Data Builder: kolom virtual "Jabatan (termasuk PLT)" tersedia untuk filter sekaligus di jabatan definitif dan jabatan PLT.' },
+      { type: 'fix', text: 'Data Builder: perbaikan filter dengan nilai yang mengandung karakter spesial (titik, koma, tanda kurung) — nilai kini di-quote agar tidak merusak parsing query PostgREST.' },
+      { type: 'fix', text: 'Data Builder: field yang digunakan sebagai filter kini selalu ikut di-fetch meskipun kolom tidak dipilih di ColumnSelector.' },
+    ],
+  },
+  {
+    version: '2.8.0',
+    date: '30 April 2026',
     changes: [
       { type: 'feature', text: 'Auto-update detection — aplikasi mendeteksi versi baru secara otomatis setiap 5 menit dan saat tab kembali aktif. Banner notifikasi muncul di atas halaman dengan tombol "Perbarui Sekarang".' },
       { type: 'improvement', text: 'Cache header Vercel dioptimalkan: index.html selalu fresh (no-cache), file JS/CSS di-cache permanen (immutable) karena sudah menggunakan content hash.' },
@@ -179,10 +191,13 @@ const FEATURES_OVERVIEW = [
     items: [
       'Query builder fleksibel — pilih kolom dan filter sesuai kebutuhan',
       'Filter canggih: Sama dengan (case-sensitive), Persis sama dengan (case-insensitive), Mengandung, Mengandung kata utuh, Salah satu dari',
+      'Filter kolom Jabatan otomatis mencari di jabatan PLT — pegawai PLT muncul tanpa perlu memilih kolom PLT',
+      'Tabel preview menampilkan badge PLT di bawah jabatan definitif',
+      'Export Excel: jabatan PLT ditampilkan dalam satu cell bersama jabatan definitif',
       'Advanced filter per kolom dengan logika OR dalam satu field, maksimal 5 kondisi per kolom',
       'Template query tersimpan untuk penggunaan berulang',
       'Agregasi cepat (Quick Aggregation) — hitung jumlah per kombinasi field',
-      'Export ke Excel dengan nama lengkap (gelar depan + nama + gelar belakang) dan kolom Jabatan Tambahan / PLT',
+      'Export ke Excel dengan nama lengkap (gelar depan + nama + gelar belakang)',
       'Data selalu diurutkan berdasarkan Unit Kerja lalu Nama',
     ],
   },
