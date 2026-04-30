@@ -20,12 +20,25 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.6.0',
+    version: '2.7.0',
     date: '30 April 2026',
     label: 'Terbaru',
     changes: [
+      { type: 'feature', text: 'Fitur PLT (Pelaksana Tugas): field "Jabatan Tambahan / PLT" di form pegawai kini mendukung pencatatan jabatan PLT. Contoh: PLT Direktur, PLT Kepala Bagian Umum.' },
+      { type: 'improvement', text: 'Data Pegawai: kolom Jabatan menampilkan badge PLT (kuning) atau jabatan tambahan (biru) di bawah jabatan definitif secara langsung di tabel.' },
+      { type: 'improvement', text: 'Data Pegawai: export CSV kini menyertakan kolom "Jabatan Tambahan / PLT".' },
+      { type: 'improvement', text: 'Data Builder: kolom "Jabatan Tambahan / PLT" tersedia untuk dipilih dan diexport, deskripsi diperbarui.' },
+      { type: 'fix', text: 'Peta Jabatan tidak terpengaruh oleh data PLT — matching pegawai ke jabatan tetap hanya berdasarkan jabatan definitif (position_name).' },
+      { type: 'fix', text: 'Data Pegawai: perbaikan urutan tampil untuk admin pusat — pegawai kini diurutkan berdasarkan unit kerja + urutan jabatan per unit (bukan lintas unit).' },
+      { type: 'fix', text: 'Peta Jabatan: perbaikan urutan jabatan Direktur di 4 unit Direktorat — Direktur kini selalu di urutan 1 Struktural.' },
+    ],
+  },
+  {
+    version: '2.6.0',
+    date: '30 April 2026',
+    changes: [
       { type: 'feature', text: 'Menu Informasi Sistem — riwayat update, fitur, dan perbaikan aplikasi dapat diakses semua pengguna.' },
-      { type: 'feature', text: 'Peta Jabatan: logika reorder jabatan — mengubah urutan jabatan kini menggeser jabatan lain secara otomatis (shift up/down). Perubahan lintas kategori juga ditangani.' },
+      { type: 'feature', text: 'Peta Jabatan: logika reorder jabatan — mengubah urutan jabatan kini menggeser jabatan lain secara otomatis (shift up/down). Perubahan lintas kategori juga ditangani dengan benar.' },
       { type: 'feature', text: 'Peta Jabatan: tombol "Perbaiki Urutan" untuk admin pusat — memperbaiki position_order semua jabatan sekaligus berdasarkan urutan tampil saat ini.' },
       { type: 'improvement', text: 'Peta Jabatan: field Urutan di modal edit kini menampilkan nilai aktual dan batas maksimal urutan dalam kategori secara dinamis.' },
       { type: 'feature', text: 'Data Pegawai: urutan tampil kini mengikuti urutan Peta Jabatan (department → kategori → position_order) bukan lagi import_order.' },
@@ -132,7 +145,9 @@ const FEATURES_OVERVIEW = [
       'Riwayat mutasi, jabatan, pangkat, pendidikan, kompetensi, dan pelatihan',
       'Detail lengkap pegawai dengan catatan penempatan dan penugasan',
       'Filter berdasarkan unit kerja, status ASN, dan pencarian nama/NIP',
-      'Urutan tampil mengikuti struktur Peta Jabatan',
+      'Urutan tampil mengikuti struktur Peta Jabatan per unit kerja',
+      'Pencatatan Pelaksana Tugas (PLT) — badge PLT tampil langsung di tabel, tidak mempengaruhi Peta Jabatan',
+      'Export CSV menyertakan kolom Jabatan Tambahan / PLT',
     ],
   },
   {
@@ -140,12 +155,13 @@ const FEATURES_OVERVIEW = [
     icon: '🗺️',
     items: [
       'Daftar jabatan sesuai Kepmen 202 Tahun 2024 per unit kerja',
-      'Matching otomatis pegawai ke jabatan (Struktural, Fungsional, Pelaksana)',
+      'Matching otomatis pegawai ke jabatan definitif (Struktural, Fungsional, Pelaksana) — tidak terpengaruh data PLT',
       'Formasi Non-ASN per unit kerja',
       'Summary ASN dan Non-ASN dengan statistik ABK vs Existing',
       'Filter per unit kerja untuk admin pusat',
       'Export ke Excel (multi-sheet: per unit, per jabatan, per kategori, detail per unit)',
-      'Manajemen urutan jabatan dengan reorder otomatis',
+      'Manajemen urutan jabatan dengan reorder otomatis — mengubah urutan menggeser jabatan lain secara otomatis',
+      'Tombol "Perbaiki Urutan" untuk normalisasi urutan semua jabatan sekaligus',
     ],
   },
   {
@@ -153,12 +169,12 @@ const FEATURES_OVERVIEW = [
     icon: '🔧',
     items: [
       'Query builder fleksibel — pilih kolom dan filter sesuai kebutuhan',
-      'Filter canggih: Sama dengan, Mengandung, Persis sama dengan, Mengandung kata utuh, Salah satu dari',
-      'Advanced filter per kolom dengan logika OR dalam satu field',
+      'Filter canggih: Sama dengan (case-sensitive), Persis sama dengan (case-insensitive), Mengandung, Mengandung kata utuh, Salah satu dari',
+      'Advanced filter per kolom dengan logika OR dalam satu field, maksimal 5 kondisi per kolom',
       'Template query tersimpan untuk penggunaan berulang',
       'Agregasi cepat (Quick Aggregation) — hitung jumlah per kombinasi field',
-      'Export ke Excel dengan nama lengkap (gelar depan + nama + gelar belakang)',
-      'Data selalu diurutkan berdasarkan Unit Kerja',
+      'Export ke Excel dengan nama lengkap (gelar depan + nama + gelar belakang) dan kolom Jabatan Tambahan / PLT',
+      'Data selalu diurutkan berdasarkan Unit Kerja lalu Nama',
     ],
   },
   {
