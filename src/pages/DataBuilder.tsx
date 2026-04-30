@@ -46,12 +46,19 @@ function allocateExcelSheetName(raw: string, used: Set<string>): string {
 const RELATED_EXPORT_ID_CHUNK = 120;
 
 /** Field inti pegawai — selalu di-select agar relasi, pagination, dan export konsisten */
-const EMPLOYEE_BASE_SELECT_FIELDS = ['id', 'nip', 'name', 'department'] as const;
+const EMPLOYEE_BASE_SELECT_FIELDS = ['id', 'nip', 'name', 'front_title', 'back_title', 'department'] as const;
+
+/** Gabungkan gelar depan + nama + gelar belakang dari satu baris data */
+function formatFullName(row: Record<string, unknown>): string {
+  const parts = [row['front_title'], row['name'], row['back_title']].filter(Boolean);
+  return parts.length > 0 ? parts.join(' ') : '-';
+}
 
 type FilterableQuery = {
   eq: (field: string, value: string) => FilterableQuery;
   ilike: (field: string, value: string) => FilterableQuery;
   in: (field: string, values: string[]) => FilterableQuery;
+  or: (filters: string) => FilterableQuery;
 };
 
 const PAGE_SIZE = 50;
@@ -139,29 +146,66 @@ export default function DataBuilder() {
 
   const applyFilters = (query: FilterableQuery) => {
     let q = query;
-    for (const filter of filters) {
-      if (!isFilterRuleActive(filter)) continue;
 
-      if (filter.operator === 'in') {
-        const vals = filter.values?.filter(Boolean) ?? [];
-        if (vals.length === 0) continue;
-        q = q.in(filter.field, vals);
-        continue;
-      }
+    // Kelompokkan filter aktif per field agar bisa digabung dengan OR per field
+    // Ini mencegah kondisi AND yang saling bertentangan ketika user menambah
+    // banyak advanced filter untuk field yang sama (misal: rank_group = III/a OR IV/a)
+    const activeFilters = filters.filter(isFilterRuleActive);
 
+    // Kumpulkan semua nilai 'in' per field — gabungkan jadi satu .in() call
+    const inValuesByField = new Map<string, string[]>();
+    for (const filter of activeFilters) {
+      if (filter.operator !== 'in') continue;
+      const vals = filter.values?.filter(Boolean) ?? [];
+      if (vals.length === 0) continue;
+      const existing = inValuesByField.get(filter.field) ?? [];
+      inValuesByField.set(filter.field, [...new Set([...existing, ...vals])]);
+    }
+
+    // Terapkan satu .in() per field (union semua nilai dari semua filter 'in' pada field yang sama)
+    for (const [field, vals] of inValuesByField) {
+      q = q.in(field, vals);
+    }
+
+    // Kumpulkan filter text (eq, ilike, exact_word) per field
+    // Jika satu field punya lebih dari satu kondisi text → gabung dengan OR via .or()
+    const textFiltersByField = new Map<string, Array<{ operator: string; value: string }>>();
+    for (const filter of activeFilters) {
+      if (filter.operator === 'in') continue;
       const value = filter.value.trim();
       if (!value) continue;
+      const existing = textFiltersByField.get(filter.field) ?? [];
+      textFiltersByField.set(filter.field, [...existing, { operator: filter.operator, value }]);
+    }
 
-      if (filter.operator === 'exact_word') {
-        // Pre-filter pada level server (Supabase) dengan ilike untuk menghindari O.O.M (Out of Memory)
-        // Kueri akan sangat spesifik (tersaring substring) sebelum di-refine lebih lanjut di client-side dengan RegExp \b
-        q = q.ilike(filter.field, `%${value}%`);
-      } else if (filter.operator === 'eq') {
-        q = q.eq(filter.field, value);
-      } else if (filter.operator === 'ilike') {
-        q = q.ilike(filter.field, `%${value}%`);
+    for (const [field, conditions] of textFiltersByField) {
+      if (conditions.length === 1) {
+        // Satu kondisi — terapkan langsung
+        const { operator, value } = conditions[0];
+        if (operator === 'exact_word' || operator === 'ilike') {
+          q = q.ilike(field, `%${value}%`);
+        } else if (operator === 'exact_match') {
+          // ilike tanpa wildcard = full string match, case-insensitive
+          q = q.ilike(field, value);
+        } else if (operator === 'eq') {
+          q = q.eq(field, value);
+        }
+      } else {
+        // Lebih dari satu kondisi pada field yang sama → gabung dengan OR
+        // Format PostgREST: field.ilike.%val1%,field.ilike.%val2%
+        const orParts = conditions.map(({ operator, value }) => {
+          if (operator === 'exact_word' || operator === 'ilike') {
+            return `${field}.ilike.%${value}%`;
+          } else if (operator === 'exact_match') {
+            return `${field}.ilike.${value}`;
+          } else {
+            return `${field}.eq.${value}`;
+          }
+        });
+        q = q.or(orParts.join(','));
       }
     }
+
     return q;
   };
 
@@ -169,13 +213,21 @@ export default function DataBuilder() {
     let filtered = rows;
 
     const exactWordFilters = filters.filter(filter => filter.operator === 'exact_word' && isFilterRuleActive(filter));
+    if (exactWordFilters.length === 0) return filtered;
 
+    // Kelompokkan exact_word filters per field — antar field = AND, dalam field = OR
+    const byField = new Map<string, string[]>();
     for (const filter of exactWordFilters) {
-      const searchValue = escapeRegExp(filter.value.trim().toLowerCase());
+      const existing = byField.get(filter.field) ?? [];
+      byField.set(filter.field, [...existing, filter.value.trim()]);
+    }
+
+    for (const [field, values] of byField) {
+      const regexes = values.map(v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i'));
       filtered = filtered.filter(row => {
-        const fieldValue = String(row[filter.field] || '').toLowerCase();
-        const regex = new RegExp(`\\b${searchValue}\\b`, 'i');
-        return regex.test(fieldValue);
+        const fieldValue = String(row[field] || '').toLowerCase();
+        // Dalam satu field: OR — cocok jika salah satu regex match
+        return regexes.some(regex => regex.test(fieldValue));
       });
     }
 
@@ -206,7 +258,7 @@ export default function DataBuilder() {
         if (shouldFilterByDepartment) {
           q = q.eq('department', profile!.department);
         }
-        q = q.range(offset, offset + batchSize - 1).order('name');
+        q = q.range(offset, offset + batchSize - 1).order('department').order('name');
         const { data: batch, error } = await q;
         if (error) throw error;
         if (!batch || batch.length === 0) break;
@@ -277,7 +329,10 @@ export default function DataBuilder() {
         const obj: Record<string, unknown> = { No: idx + 1 };
         columns.forEach(col => {
           const raw = row[col.dbField];
-          if (col.category === 'dates' && raw != null && raw !== '') {
+          // Kolom 'name' → tampilkan nama lengkap dengan gelar depan/belakang
+          if (col.dbField === 'name') {
+            obj[col.label] = formatFullName(row);
+          } else if (col.category === 'dates' && raw != null && raw !== '') {
             obj[col.label] = formatEmployeeCellValue(raw, col.dbField);
           } else {
             obj[col.label] = raw ?? '-';
@@ -338,7 +393,7 @@ export default function DataBuilder() {
             const obj: Record<string, unknown> = {
               No: idx + 1,
               NIP: employee?.nip || '-',
-              Nama: employee?.name || '-',
+              Nama: employee ? formatFullName(employee) : '-',
               'Unit Kerja': employee?.department || '-',
             };
 

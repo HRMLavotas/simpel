@@ -470,7 +470,11 @@ export default function PetaJabatan() {
     setFormName('');
     setFormGrade('');
     setFormAbk('0');
-    setFormOrder('0');
+    // Auto-assign urutan berikutnya dalam kategori Struktural
+    const nextOrder = positions
+      .filter(p => p.position_category === 'Struktural')
+      .reduce((max, p) => Math.max(max, p.position_order), 0) + 1;
+    setFormOrder(nextOrder.toString());
     setShowModal(true);
   };
 
@@ -480,7 +484,17 @@ export default function PetaJabatan() {
     setFormName(pos.position_name);
     setFormGrade(pos.grade?.toString() || '');
     setFormAbk(pos.abk_count.toString());
-    setFormOrder(pos.position_order.toString());
+    // Gunakan urutan aktual dari posisi jabatan dalam daftar yang ditampilkan
+    // Jika position_order masih 0, hitung dari posisi dalam array yang sudah terurut
+    let order = pos.position_order;
+    if (order === 0) {
+      const sameCategoryPositions = positions
+        .filter(p => p.position_category === pos.position_category)
+        .sort((a, b) => a.position_order - b.position_order || a.position_name.localeCompare(b.position_name));
+      const idx = sameCategoryPositions.findIndex(p => p.id === pos.id);
+      order = idx >= 0 ? idx + 1 : 1;
+    }
+    setFormOrder(order.toString());
     setShowModal(true);
   };
 
@@ -490,30 +504,139 @@ export default function PetaJabatan() {
       return;
     }
 
+    const newOrder = parseInt(formOrder) || 1;
+
+    // Validasi: urutan tidak boleh lintas kategori
+    // Hitung batas maksimal urutan dalam kategori yang dipilih
+    // (kecuali jabatan yang sedang diedit itu sendiri)
+    const sameCategoryPositions = positions
+      .filter(p => p.position_category === formCategory && p.id !== editingPosition?.id)
+      .sort((a, b) => a.position_order - b.position_order);
+
+    const maxOrder = sameCategoryPositions.length + 1; // +1 karena jabatan ini sendiri ikut dihitung
+    const clampedOrder = Math.max(1, Math.min(newOrder, maxOrder));
+
+    if (clampedOrder !== newOrder) {
+      toast({
+        variant: 'destructive',
+        title: 'Urutan tidak valid',
+        description: `Urutan untuk kategori ${formCategory} harus antara 1 sampai ${maxOrder}.`,
+      });
+      setFormOrder(clampedOrder.toString());
+      return;
+    }
+
     const data = {
       department: selectedDepartment,
       position_category: formCategory,
       position_name: formName.trim(),
       grade: formGrade ? parseInt(formGrade) : null,
       abk_count: parseInt(formAbk) || 0,
-      position_order: parseInt(formOrder) || 0,
+      position_order: clampedOrder,
     };
 
     try {
       if (editingPosition) {
+        const oldOrder = editingPosition.position_order;
+        const oldCategory = editingPosition.position_category;
+        const categoryChanged = oldCategory !== formCategory;
+
+        // Kumpulkan semua update yang perlu dilakukan (reorder)
+        const updates: { id: string; position_order: number }[] = [];
+
+        if (categoryChanged) {
+          // Kategori berubah: 
+          // 1. Geser jabatan di kategori LAMA (tutup gap yang ditinggalkan)
+          const oldCatPositions = positions
+            .filter(p => p.position_category === oldCategory && p.id !== editingPosition.id)
+            .sort((a, b) => a.position_order - b.position_order);
+
+          oldCatPositions.forEach((pos, idx) => {
+            const expectedOrder = idx + 1;
+            if (pos.position_order !== expectedOrder) {
+              updates.push({ id: pos.id, position_order: expectedOrder });
+            }
+          });
+
+          // 2. Geser jabatan di kategori BARU (buka slot untuk jabatan yang masuk)
+          const newCatPositions = positions
+            .filter(p => p.position_category === formCategory)
+            .sort((a, b) => a.position_order - b.position_order);
+
+          newCatPositions.forEach(pos => {
+            if (pos.position_order >= clampedOrder) {
+              updates.push({ id: pos.id, position_order: pos.position_order + 1 });
+            }
+          });
+        } else {
+          // Kategori sama, hanya urutan berubah
+          if (oldOrder !== clampedOrder) {
+            const otherPositions = positions
+              .filter(p => p.position_category === formCategory && p.id !== editingPosition.id)
+              .sort((a, b) => a.position_order - b.position_order);
+
+            if (clampedOrder > oldOrder) {
+              // Geser turun: jabatan di antara oldOrder+1 s/d clampedOrder naik satu
+              otherPositions.forEach(pos => {
+                if (pos.position_order > oldOrder && pos.position_order <= clampedOrder) {
+                  updates.push({ id: pos.id, position_order: pos.position_order - 1 });
+                }
+              });
+            } else {
+              // Geser naik: jabatan di antara clampedOrder s/d oldOrder-1 turun satu
+              otherPositions.forEach(pos => {
+                if (pos.position_order >= clampedOrder && pos.position_order < oldOrder) {
+                  updates.push({ id: pos.id, position_order: pos.position_order + 1 });
+                }
+              });
+            }
+          }
+        }
+
+        // Jalankan semua update geser terlebih dahulu
+        for (const u of updates) {
+          const { error } = await supabase
+            .from('position_references')
+            .update({ position_order: u.position_order })
+            .eq('id', u.id);
+          if (error) throw error;
+        }
+
+        // Update jabatan yang diedit
         const { error } = await supabase
           .from('position_references')
           .update(data)
           .eq('id', editingPosition.id);
         if (error) throw error;
-        toast({ title: 'Berhasil', description: 'Jabatan berhasil diperbarui' });
+
+        const desc = categoryChanged
+          ? `Jabatan dipindah ke kategori ${formCategory} urutan ${clampedOrder}`
+          : oldOrder !== clampedOrder
+            ? `Urutan diubah dari ${oldOrder} ke ${clampedOrder}, ${updates.length} jabatan lain digeser`
+            : 'Jabatan berhasil diperbarui';
+
+        toast({ title: 'Berhasil', description: desc });
       } else {
+        // Tambah baru: geser jabatan yang ada di posisi >= clampedOrder ke bawah
+        const toShift = positions
+          .filter(p => p.position_category === formCategory && p.position_order >= clampedOrder)
+          .sort((a, b) => b.position_order - a.position_order); // update dari bawah ke atas agar tidak konflik
+
+        for (const pos of toShift) {
+          const { error } = await supabase
+            .from('position_references')
+            .update({ position_order: pos.position_order + 1 })
+            .eq('id', pos.id);
+          if (error) throw error;
+        }
+
         const { error } = await supabase
           .from('position_references')
           .insert(data);
         if (error) throw error;
-        toast({ title: 'Berhasil', description: 'Jabatan berhasil ditambahkan' });
+        toast({ title: 'Berhasil', description: `Jabatan ditambahkan di urutan ${clampedOrder}` });
       }
+
       setShowModal(false);
       fetchData();
     } catch (err: unknown) {
@@ -532,6 +655,42 @@ export default function PetaJabatan() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus jabatan';
       logger.error('Error deleting position:', err);
+      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
+    }
+  };
+
+  // Perbaiki position_order semua jabatan di unit yang sedang aktif
+  // berdasarkan urutan tampil saat ini (category → posisi dalam kategori)
+  const handleFixPositionOrder = async () => {
+    if (!positions.length) return;
+
+    try {
+      // Kelompokkan per kategori, urutkan seperti yang ditampilkan sekarang
+      const updates: { id: string; position_order: number }[] = [];
+      POSITION_CATEGORIES.forEach(category => {
+        const catPositions = positions
+          .filter(p => p.position_category === category)
+          .sort((a, b) => a.position_order - b.position_order || a.position_name.localeCompare(b.position_name));
+
+        catPositions.forEach((pos, idx) => {
+          updates.push({ id: pos.id, position_order: idx + 1 });
+        });
+      });
+
+      // Update satu per satu (Supabase tidak support bulk update via JS client)
+      for (const { id, position_order } of updates) {
+        const { error } = await supabase
+          .from('position_references')
+          .update({ position_order })
+          .eq('id', id);
+        if (error) throw error;
+      }
+
+      toast({ title: 'Berhasil', description: `Urutan ${updates.length} jabatan berhasil diperbaiki` });
+      fetchData();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memperbaiki urutan';
+      logger.error('Error fixing position order:', err);
       toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     }
   };
@@ -1175,10 +1334,21 @@ export default function PetaJabatan() {
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
             {isAdminPusat && (
-              <Button onClick={openAddModal} className="text-xs sm:text-sm">
-                <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleFixPositionOrder}
+                  disabled={isLoading || positions.length === 0}
+                  className="text-xs sm:text-sm"
+                  title="Perbaiki urutan semua jabatan berdasarkan urutan tampil saat ini"
+                >
+                  <span className="hidden sm:inline">Perbaiki Urutan</span><span className="sm:hidden">Urutan</span>
+                </Button>
+                <Button onClick={openAddModal} className="text-xs sm:text-sm">
+                  <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -2557,7 +2727,19 @@ export default function PetaJabatan() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="form-category">Kategori Jabatan</Label>
-              <Select value={formCategory} onValueChange={setFormCategory}>
+              <Select
+                value={formCategory}
+                onValueChange={cat => {
+                  setFormCategory(cat);
+                  // Saat tambah baru, auto-update urutan sesuai kategori yang dipilih
+                  if (!editingPosition) {
+                    const nextOrder = positions
+                      .filter(p => p.position_category === cat)
+                      .reduce((max, p) => Math.max(max, p.position_order), 0) + 1;
+                    setFormOrder(nextOrder.toString());
+                  }
+                }}
+              >
                 <SelectTrigger id="form-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {POSITION_CATEGORIES.map(c => (
@@ -2580,8 +2762,35 @@ export default function PetaJabatan() {
                 <Input type="number" value={formAbk} onChange={e => setFormAbk(e.target.value)} placeholder="0" />
               </div>
               <div className="space-y-2">
-                <Label>Urutan</Label>
-                <Input type="number" value={formOrder} onChange={e => setFormOrder(e.target.value)} placeholder="0" />
+                <Label>
+                  Urutan
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (dalam kategori)
+                  </span>
+                </Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={(() => {
+                    const count = positions.filter(p =>
+                      p.position_category === formCategory &&
+                      p.id !== editingPosition?.id
+                    ).length + 1;
+                    return count;
+                  })()}
+                  value={formOrder}
+                  onChange={e => setFormOrder(e.target.value)}
+                  placeholder="1"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {(() => {
+                    const count = positions.filter(p =>
+                      p.position_category === formCategory &&
+                      p.id !== editingPosition?.id
+                    ).length + 1;
+                    return `Urutan 1–${count} dalam ${formCategory}. Jabatan lain akan digeser otomatis.`;
+                  })()}
+                </p>
               </div>
             </div>
           </div>

@@ -14,15 +14,16 @@ export interface FilterRule {
   id: string;
   kind: 'general' | 'advanced';
   field: string;
-  operator: 'eq' | 'ilike' | 'exact_word' | 'in';
+  operator: 'eq' | 'ilike' | 'exact_word' | 'exact_match' | 'in';
   value: string;
   values?: string[];
 }
 
 const OPERATORS = [
-  { value: 'eq', label: 'Sama dengan' },
+  { value: 'eq', label: 'Sama dengan (case-sensitive)' },
+  { value: 'exact_match', label: 'Persis sama dengan' },
   { value: 'ilike', label: 'Mengandung' },
-  { value: 'exact_word', label: 'Hanya Mengandung' },
+  { value: 'exact_word', label: 'Mengandung kata utuh' },
   { value: 'in', label: 'Salah satu dari' },
 ] as const;
 
@@ -41,6 +42,7 @@ const FILTER_OPTIONS: Record<string, string[]> = {
 
 const getAvailableOperators = (field: string) => {
   if (FILTER_OPTIONS[field] || field === 'department') return OPERATORS;
+  // Field text bebas: semua operator kecuali 'in'
   return OPERATORS.filter(operator => operator.value !== 'in');
 };
 
@@ -106,6 +108,17 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
     );
   };
 
+  const getOperatorHint = (operator: FilterRule['operator']): string => {
+    switch (operator) {
+      case 'exact_match': return 'Nilai harus persis sama (tidak peduli huruf besar/kecil). Contoh: "Kepala" tidak akan cocok dengan "Kepala Bagian Umum".';
+      case 'eq': return 'Nilai harus persis sama termasuk huruf besar/kecil.';
+      case 'ilike': return 'Nilai mengandung teks yang diketik di mana saja. Contoh: "Kepala" cocok dengan "Kepala Bagian Umum".';
+      case 'exact_word': return 'Nilai mengandung kata utuh yang diketik. Contoh: "Kepala" cocok dengan "Kepala Bagian" tapi tidak dengan "Kepaladinasan".';
+      case 'in': return 'Nilai cocok dengan salah satu pilihan yang dipilih.';
+      default: return '';
+    }
+  };
+
   const clearFilter = (id: string) => {
     updateFilter(id, { value: '', values: [] });
   };
@@ -123,6 +136,9 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
   };
 
   const addAdvancedFilter = (field: string) => {
+    const MAX_ADVANCED_FILTERS_PER_FIELD = 5;
+    const currentCount = filters.filter(f => f.kind === 'advanced' && f.field === field).length;
+    if (currentCount >= MAX_ADVANCED_FILTERS_PER_FIELD) return; // tombol sudah disabled, guard ekstra
     onChange([...filters, createFilter(field, 'advanced')]);
   };
 
@@ -137,7 +153,7 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
       <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={filter.operator} onValueChange={value => setFilterOperator(filter.id, value as FilterRule['operator'])}>
-            <SelectTrigger id={`filter-operator-${filter.id}`} className="w-[180px]">
+            <SelectTrigger id={`filter-operator-${filter.id}`} className="w-[200px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -169,6 +185,13 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
             </Button>
           ) : null}
         </div>
+
+        {/* Hint teks penjelasan operator */}
+        {!isMultiSelect && (
+          <p className="text-xs text-muted-foreground pl-1 italic">
+            {getOperatorHint(filter.operator)}
+          </p>
+        )}
 
         {isMultiSelect && availableOptions.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pl-2">
@@ -247,7 +270,14 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-medium text-muted-foreground">Advanced Filter</div>
-                    <Button variant="outline" size="sm" onClick={() => addAdvancedFilter(column.dbField)} className="gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addAdvancedFilter(column.dbField)}
+                      disabled={advancedFilters.length >= 5}
+                      className="gap-1"
+                      title={advancedFilters.length >= 5 ? 'Maksimal 5 advanced filter per kolom' : undefined}
+                    >
                       <Plus className="h-4 w-4" /> Tambah Advanced Filter
                     </Button>
                   </div>
@@ -260,6 +290,12 @@ export function FilterBuilder({ selectedColumns, filters, onChange }: FilterBuil
                           {renderFilterEditor(filter, { removable: true })}
                         </div>
                       ))}
+                      <p className="text-xs text-muted-foreground pl-1">
+                        💡 Beberapa kondisi pada kolom yang sama digabung dengan <strong>OR</strong> — data ditampilkan jika cocok dengan salah satu kondisi.
+                        {advancedFilters.length >= 5 && (
+                          <span className="ml-1 text-orange-600">Batas maksimal 5 kondisi tercapai.</span>
+                        )}
+                      </p>
                     </div>
                   ) : (
                     <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">

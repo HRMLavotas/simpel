@@ -146,6 +146,10 @@ export default function Employees() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Map urutan jabatan dari position_references: normalisedName → { categoryOrder, positionOrder, department }
+  // Digunakan untuk mengurutkan pegawai persis seperti urutan di Peta Jabatan
+  const [positionOrderMap, setPositionOrderMap] = useState<Map<string, { categoryOrder: number; positionOrder: number }>>(new Map());
   
   // Collapse state for each category
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
@@ -204,6 +208,46 @@ export default function Employees() {
     setIsLoading(true);
     logger.debug('=== FETCHING EMPLOYEES ===');
     try {
+      // Fetch position_references untuk membangun urutan jabatan persis seperti Peta Jabatan
+      const CATEGORY_ORDER: Record<string, number> = { 'Struktural': 1, 'Fungsional': 2, 'Pelaksana': 3 };
+      const posOrderMap = new Map<string, { categoryOrder: number; positionOrder: number }>();
+
+      let posOffset = 0;
+      while (true) {
+        let posQuery = supabase
+          .from('position_references')
+          .select('position_name, position_category, position_order, department')
+          .range(posOffset, posOffset + 999);
+
+        // Admin unit hanya perlu urutan jabatan unit mereka sendiri
+        if (!canViewAll && profile.department) {
+          posQuery = posQuery.eq('department', profile.department);
+        }
+
+        const { data: posBatch, error: posError } = await posQuery
+          .order('position_category')
+          .order('position_order');
+
+        if (posError) throw posError;
+        if (!posBatch || posBatch.length === 0) break;
+
+        posBatch.forEach(pos => {
+          const normName = pos.position_name.trim().toLowerCase();
+          // Simpan urutan terkecil jika jabatan yang sama muncul di beberapa unit
+          const existing = posOrderMap.get(normName);
+          const catOrder = CATEGORY_ORDER[pos.position_category] ?? 99;
+          if (!existing || catOrder < existing.categoryOrder ||
+              (catOrder === existing.categoryOrder && pos.position_order < existing.positionOrder)) {
+            posOrderMap.set(normName, { categoryOrder: catOrder, positionOrder: pos.position_order });
+          }
+        });
+
+        if (posBatch.length < 1000) break;
+        posOffset += 1000;
+      }
+
+      setPositionOrderMap(posOrderMap);
+
       // Fetch employees - filter by department for admin_unit (RLS handles this server-side too)
       const allData: Employee[] = [];
       let offset = 0;
@@ -214,7 +258,8 @@ export default function Employees() {
           .from('employees')
           .select('*')
           .range(offset, offset + batchSize - 1)
-          .order('import_order', { ascending: true, nullsFirst: false });
+          .order('department')
+          .order('name');
 
         // For admin_unit, restrict to their department (belt-and-suspenders with RLS)
         if (!canViewAll && profile.department) {
@@ -232,34 +277,37 @@ export default function Employees() {
         offset += batchSize;
       }
       
-      const data = allData;
-      
-      logger.debug('Fetched employees count:', data.length);
-      
-      // Sort by position_type category first, then by import_order
-      const sortedData = (data || []).sort((a, b) => {
-        // Define category order
-        const categoryOrder: Record<string, number> = {
-          'Struktural': 1,
-          'Fungsional': 2,
-          'Pelaksana': 3,
-        };
-        
-        const catA = categoryOrder[a.position_type || ''] || 999;
-        const catB = categoryOrder[b.position_type || ''] || 999;
-        
-        if (catA !== catB) {
-          return catA - catB;
-        }
-        
-        // If same category, sort by import_order
-        const orderA = a.import_order || 999999;
-        const orderB = b.import_order || 999999;
-        return orderA - orderB;
+      // Sort pegawai persis seperti urutan Peta Jabatan:
+      // 1. department (A-Z)
+      // 2. position_category order (Struktural → Fungsional → Pelaksana → lainnya)
+      // 3. position_order dari position_references (urutan jabatan dalam kategori)
+      // 4. nama sebagai tiebreaker
+      const sortedData = (allData || []).sort((a, b) => {
+        // Sort by department first
+        const deptCompare = (a.department || '').localeCompare(b.department || '');
+        if (deptCompare !== 0) return deptCompare;
+
+        const normA = (a.position_name || '').trim().toLowerCase();
+        const normB = (b.position_name || '').trim().toLowerCase();
+        const posA = posOrderMap.get(normA);
+        const posB = posOrderMap.get(normB);
+
+        // Kategori order
+        const catA = posA?.categoryOrder ?? 99;
+        const catB = posB?.categoryOrder ?? 99;
+        if (catA !== catB) return catA - catB;
+
+        // Position order dalam kategori
+        const ordA = posA?.positionOrder ?? 999999;
+        const ordB = posB?.positionOrder ?? 999999;
+        if (ordA !== ordB) return ordA - ordB;
+
+        // Tiebreaker: nama
+        return (a.name || '').localeCompare(b.name || '');
       });
       
       setEmployees(sortedData);
-      logger.debug('Employees state updated');
+      logger.debug('Employees state updated, count:', sortedData.length);
     } catch (error) {
       logger.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
