@@ -41,6 +41,21 @@ export class ErrorBoundary extends Component<Props, State> {
     logger.error('Uncaught error:', error);
     logger.error('Error info:', errorInfo);
 
+    // Auto-reload for chunk loading errors caused by stale deployments.
+    // This happens when Vercel deploys a new build and the browser still
+    // holds references to old JS chunk filenames that no longer exist.
+    const isChunkLoadError =
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Importing a module script failed') ||
+      error.name === 'ChunkLoadError';
+
+    if (isChunkLoadError) {
+      logger.warn('Chunk load error detected — reloading page to pick up new deployment.');
+      // Small delay so the log above has time to flush
+      setTimeout(() => window.location.reload(), 500);
+      return;
+    }
+
     // Update state with error info
     this.setState({
       error,
@@ -69,6 +84,16 @@ export class ErrorBoundary extends Component<Props, State> {
   private getErrorSuggestions(error: Error): string[] {
     const suggestions: string[] = [];
     const errorMessage = error.message.toLowerCase();
+
+    if (
+      errorMessage.includes('failed to fetch dynamically imported module') ||
+      errorMessage.includes('importing a module script failed') ||
+      error.name === 'ChunkLoadError'
+    ) {
+      suggestions.push('Aplikasi baru saja diperbarui — halaman akan dimuat ulang otomatis');
+      suggestions.push('Jika tidak otomatis, tekan Ctrl+Shift+R (atau Cmd+Shift+R di Mac)');
+      return suggestions;
+    }
 
     if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
       suggestions.push('Periksa koneksi internet Anda');
