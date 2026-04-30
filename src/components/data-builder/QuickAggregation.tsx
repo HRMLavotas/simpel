@@ -658,27 +658,53 @@ export function QuickAggregation({}: QuickAggregationProps) {
         sortedDepts.forEach((dept, idx) => {
           const emps = deptMap.get(dept) || [];
 
-          // Hitung PNS per golongan utama
-          const pns_I   = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'I').length;
-          const pns_II  = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'II').length;
-          const pns_III = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'III').length;
-          const pns_IV  = emps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS' && extractMainRank(String(e.rank_group || '')) === 'IV').length;
+          // Hitung PNS per golongan utama (I, II, III, IV)
+          // PNS selalu punya sub-golongan: I/a, II/b, III/c, IV/d, atau format panjang "Penata Muda (III/a)"
+          const isPns = (e: any) => normalizeAsnStatus(e.asn_status) === 'PNS';
+          const getPnsGolongan = (rankGroup: string): string => {
+            const rg = String(rankGroup || '').trim();
+            // Format sub-golongan: III/a, IV/b, dll
+            const subMatch = rg.match(/\b(IV|III|II|I)\/(a|b|c|d|e)\b/i);
+            if (subMatch) return subMatch[1].toUpperCase();
+            // Format panjang: "Penata Muda (III/a)", "Pembina (IV/a)", dll
+            const longMatch = rg.match(/\((IV|III|II|I)\//i);
+            if (longMatch) return longMatch[1].toUpperCase();
+            return 'lainnya';
+          };
+          const pns_I   = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'I').length;
+          const pns_II  = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
+          const pns_III = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
+          const pns_IV  = emps.filter(e => isPns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
 
-          // Hitung PPPK per golongan: V, VII, IX, XI
-          const isPppk = (e: any) => {
+          // Hitung PPPK per golongan: III, V, VII, IX
+          // PPPK golongan III → rank_group = 'III' (tanpa sub-golongan, beda dari PNS III/a)
+          // PPPK golongan V, VII, IX → rank_group = 'V', 'VII', 'IX'
+          const isPppkOrCpns = (e: any) => {
             const s = normalizeAsnStatus(e.asn_status);
             return s === 'PPPK' || s === 'CPNS';
           };
-          const pppk_V   = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'V').length;
-          const pppk_VII = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'VII').length;
-          const pppk_IX  = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'IX').length;
-          const pppk_XI  = emps.filter(e => isPppk(e) && String(e.rank_group || '').trim().toUpperCase() === 'XI').length;
+          const getPppkGolongan = (rankGroup: string): string => {
+            const rg = String(rankGroup || '').trim().toUpperCase();
+            // Hanya cocokkan angka romawi murni (tanpa sub-golongan /)
+            if (rg === 'III') return 'III';
+            if (rg === 'V')   return 'V';
+            if (rg === 'VII') return 'VII';
+            if (rg === 'IX')  return 'IX';
+            // Format lama dengan sub-golongan (data anomali) → tetap petakan ke golongan terdekat
+            if (/\bIII\//.test(rg) || /\(III\//.test(rg)) return 'III';
+            if (/\bII\//.test(rg)  || /\(II\//.test(rg))  return 'III'; // II/c CPNS → golongan III
+            return 'lainnya';
+          };
+          const pppk_III = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'III').length;
+          const pppk_V   = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
+          const pppk_VII = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
+          const pppk_IX  = emps.filter(e => isPppkOrCpns(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
 
           // Hitung jenis kelamin (exclude Non ASN)
           const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
           const L = asnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
           const P = asnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
-          const total = pns_I + pns_II + pns_III + pns_IV + pppk_V + pppk_VII + pppk_IX + pppk_XI;
+          const total = pns_I + pns_II + pns_III + pns_IV + pppk_III + pppk_V + pppk_VII + pppk_IX;
 
           golonganRows.push({
             'No': idx + 1,
@@ -687,10 +713,10 @@ export function QuickAggregation({}: QuickAggregationProps) {
             'PNS II': pns_II,
             'PNS III': pns_III,
             'PNS IV': pns_IV,
+            'PPPK III': pppk_III,
             'PPPK V': pppk_V,
             'PPPK VII': pppk_VII,
             'PPPK IX': pppk_IX,
-            'PPPK XI': pppk_XI,
             'Total': total,
             'L': L,
             'P': P,
@@ -701,8 +727,8 @@ export function QuickAggregation({}: QuickAggregationProps) {
           totals.pns_II  += pns_II;
           totals.pns_III += pns_III;
           totals.pns_IV  += pns_IV;
-          totals.pppk_III += pppk_V;
-          totals.pppk_IV  += pppk_XI;
+          totals.pppk_III += pppk_III;
+          totals.pppk_IV  += pppk_V;
           totals.pppk_VII += pppk_VII;
           totals.pppk_IX  += pppk_IX;
           totals.total   += total;
@@ -718,10 +744,10 @@ export function QuickAggregation({}: QuickAggregationProps) {
           'PNS II': totals.pns_II,
           'PNS III': totals.pns_III,
           'PNS IV': totals.pns_IV,
-          'PPPK V': totals.pppk_III,
+          'PPPK III': totals.pppk_III,
+          'PPPK V': totals.pppk_IV,
           'PPPK VII': totals.pppk_VII,
           'PPPK IX': totals.pppk_IX,
-          'PPPK XI': totals.pppk_IV,
           'Total': totals.total,
           'L': totals.L,
           'P': totals.P,
