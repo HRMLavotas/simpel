@@ -51,6 +51,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { HistoryRowData, NoteData, Employee } from '@/types/employee';
 import { createNotification } from '@/hooks/useNotifications';
+import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -1090,34 +1091,90 @@ export default function Employees() {
   };
 
   const handleExport = () => {
-    // Helper to escape CSV cell values (wrap in quotes and escape internal quotes)
-    const csvCell = (val: string | null | undefined) => {
-      const str = (val ?? '').replace(/"/g, '""');
-      return `"${str}"`;
-    };
+    const now = new Date();
+    const timestamp = format(now, 'yyyy-MM-dd');
 
-    const headers = ['NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang', 'Jenis Jabatan', 'Nama Jabatan', 'Jabatan Tambahan / PLT', 'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk', 'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan'];
-    const csvContent = [
-      headers.map(csvCell).join(','),
-      ...filteredEmployees.map(emp => [
-        csvCell(emp.nip), csvCell(emp.front_title), csvCell(emp.name), csvCell(emp.back_title),
-        csvCell(emp.position_type), csvCell(emp.position_name), csvCell(emp.additional_position),
-        csvCell(emp.asn_status),
-        csvCell(emp.rank_group), csvCell(emp.department), csvCell(emp.join_date),
-        csvCell(emp.keterangan_formasi), csvCell(emp.keterangan_penempatan),
-        csvCell(emp.keterangan_penugasan), csvCell(emp.keterangan_perubahan),
-      ].join(','))
-    ].join('\n');
+    const wb = XLSX.utils.book_new();
 
-    // Add BOM for Excel to properly detect UTF-8
-    const bom = '\uFEFF';
-    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.download = `data-pegawai-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    // ── Sheet 1: Data Pegawai ──────────────────────────────────────────────
+    const headers = [
+      'No', 'NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang',
+      'Jenis Jabatan', 'Nama Jabatan', 'Jabatan Tambahan / PLT',
+      'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk',
+      'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan',
+    ];
+
+    const rows = filteredEmployees.map((emp, idx) => [
+      idx + 1,
+      emp.nip || '',
+      emp.front_title || '',
+      emp.name || '',
+      emp.back_title || '',
+      emp.position_type || '',
+      emp.position_name || '',
+      emp.additional_position || '',
+      emp.asn_status || '',
+      emp.rank_group || '',
+      emp.department || '',
+      emp.join_date || '',
+      emp.keterangan_formasi || '',
+      emp.keterangan_penempatan || '',
+      emp.keterangan_penugasan || '',
+      emp.keterangan_perubahan || '',
+    ]);
+
+    const aoaData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(aoaData);
+
+    // Lebar kolom
+    ws['!cols'] = [
+      { wch: 5 },  // No
+      { wch: 20 }, // NIP
+      { wch: 10 }, // Gelar Depan
+      { wch: 30 }, // Nama
+      { wch: 15 }, // Gelar Belakang
+      { wch: 15 }, // Jenis Jabatan
+      { wch: 35 }, // Nama Jabatan
+      { wch: 25 }, // Jabatan Tambahan
+      { wch: 10 }, // Status ASN
+      { wch: 25 }, // Golongan
+      { wch: 30 }, // Unit Kerja
+      { wch: 14 }, // Tanggal Masuk
+      { wch: 25 }, // Ket. Formasi
+      { wch: 25 }, // Ket. Penempatan
+      { wch: 25 }, // Ket. Penugasan
+      { wch: 25 }, // Ket. Perubahan
+    ];
+
+    // Freeze baris header
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Data Pegawai');
+
+    // ── Sheet 2: Ringkasan ─────────────────────────────────────────────────
+    const asnCount = filteredEmployees.filter(e => e.asn_status === 'PNS' || e.asn_status === 'CPNS').length;
+    const pppkCount = filteredEmployees.filter(e => e.asn_status === 'PPPK').length;
+    const nonAsnCount = filteredEmployees.filter(e => e.asn_status === 'Non ASN').length;
+
+    const summaryData = [
+      ['Ringkasan Data Pegawai'],
+      [],
+      ['Tanggal Export', timestamp],
+      ['Total Pegawai', filteredEmployees.length],
+      [],
+      ['Berdasarkan Status ASN'],
+      ['PNS / CPNS', asnCount],
+      ['PPPK', pppkCount],
+      ['Non ASN', nonAsnCount],
+    ];
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{ wch: 25 }, { wch: 20 }];
+    wsSummary['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+
+    // Download
+    XLSX.writeFile(wb, `data-pegawai-${timestamp}.xlsx`, { bookType: 'xlsx', compression: true });
   };
 
   const getStatusBadge = (status: string | null) => {
@@ -1142,7 +1199,7 @@ export default function Employees() {
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
-              <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">Export</span>
+              <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export Excel</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
               <DropdownMenu>
