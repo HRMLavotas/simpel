@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { queryClient } from "@/lib/query-client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { lazy, Suspense } from "react";
 import type { AppRole } from "@/lib/constants";
 
@@ -78,6 +79,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AppUpdateBanner />
       <BrowserRouter
         future={{
           v7_startTransition: true,
