@@ -844,7 +844,7 @@ export default function PetaJabatan() {
           'Formasi': idx === 0 ? formasi : '',
           'Existing': idx === 0 ? existing : '',
           'Nama Pemangku': fullName,
-          'NIP': emp.nip || '-',
+          'NIK': emp.nip || '-',
           'Type Non ASN': emp.rank_group || 'Tenaga Alih Daya',
           'Jenis Kelamin': emp.gender || '-',
           'Keterangan Penugasan': emp.keterangan_penugasan || '-',
@@ -1451,7 +1451,7 @@ export default function PetaJabatan() {
                   <TableBody>
                     {tableRows.map((row, idx) => {
                       if (row.type === 'category') {
-                        const categoryPositions = groupedPositions[row.category!] || [];
+                        const categoryPositions = groupsData[row.category!] || [];
                         const totalEmployees = categoryPositions.reduce((sum, pos) => {
                           return sum + getMatchingEmployees(pos.position_name).length;
                         }, 0);

@@ -1174,7 +1174,7 @@ export default function Employees() {
 
     // ── Sheet 1: Data Pegawai ──────────────────────────────────────────────
     const headers = [
-      'No', 'NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang',
+      'No', activeTab === 'non-asn' ? 'NIK' : 'NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang',
       'Jenis Jabatan', 'Nama Jabatan', 'Jabatan Tambahan / PLT',
       'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk',
       'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan',
@@ -1312,7 +1312,7 @@ export default function Employees() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cari nama, NIP, atau jabatan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+            <Input placeholder={activeTab === 'non-asn' ? 'Cari nama, NIK, atau jabatan...' : 'Cari nama, NIP, atau jabatan...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger id="status-filter" className="w-full sm:w-[180px]"><SelectValue placeholder="Status ASN" /></SelectTrigger>
@@ -1362,7 +1362,7 @@ export default function Employees() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[140px]">NIP</TableHead>
+                <TableHead className="w-[140px]">{activeTab === 'non-asn' ? 'NIK' : 'NIP'}</TableHead>
                 <TableHead>Nama</TableHead>
                 <TableHead className="hidden md:table-cell">Jabatan</TableHead>
                 <TableHead>Status ASN</TableHead>
@@ -1412,7 +1412,14 @@ export default function Employees() {
                       {/* Employee Rows - Only show if not collapsed */}
                       {!collapsedCategories[group.category] && group.employees.map((employee) => (
                         <TableRow key={employee.id} className="animate-fade-in">
-                          <TableCell className="font-mono text-sm">{employee.nip || '-'}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            <div className="flex flex-col gap-0.5">
+                              <span>{employee.nip || '-'}</span>
+                              {employee.asn_status === 'Non ASN' && employee.nip && (
+                                <span className="text-[10px] text-muted-foreground">NIK</span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="font-medium">
                             <div className="flex flex-col gap-0.5">
                               <span>{formatDisplayName(employee)}</span>

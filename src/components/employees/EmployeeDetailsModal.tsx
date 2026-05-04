@@ -294,7 +294,7 @@ export function EmployeeDetailsModal({
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">Data Pribadi</h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <ReadOnlyField label="NIP (Opsional)" value={employee.nip || '-'} />
+                  <ReadOnlyField label={employee.asn_status === 'Non ASN' ? 'NIK' : 'NIP'} value={employee.nip || '-'} />
                   <ReadOnlyField label="Nama Lengkap" value={employee.name} />
                   <ReadOnlyField label="Gelar Depan" value={employee.front_title || '-'} />
                   <ReadOnlyField label="Gelar Belakang" value={employee.back_title || '-'} />
