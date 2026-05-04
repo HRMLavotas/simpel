@@ -53,7 +53,7 @@ import { HistoryRowData, NoteData, Employee } from '@/types/employee';
 import { createNotification } from '@/hooks/useNotifications';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 200;
 
 const formatDisplayName = (emp: Employee) => {
   const parts: string[] = [];
@@ -384,52 +384,72 @@ export default function Employees() {
     return filtered;
   }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, showDepartmentFilter]);
 
-  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
-  const paginatedEmployees = filteredEmployees.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  // Pagination: jika filter department spesifik aktif atau admin_unit (satu unit),
+  // tampilkan semua tanpa pagination agar grouping tidak terpotong.
+  // Pagination hanya aktif saat admin pusat melihat SEMUA unit sekaligus.
+  const isPaginationActive = canViewAll && (departmentFilter === 'all') && !searchQuery;
 
-  // Group employees by position_type for display with category headers
+  const totalPages = isPaginationActive
+    ? Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE)
+    : 1;
+
+  const paginatedEmployees = isPaginationActive
+    ? filteredEmployees.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+      )
+    : filteredEmployees;
+
+  // Group employees by position_category dari position_references (sama persis dengan Peta Jabatan)
   const groupedEmployees = useMemo(() => {
-    const groups: { category: string; employees: Employee[] }[] = [];
-    let currentCategory = '';
-    let currentGroup: Employee[] = [];
+    const CATEGORY_ORDER: Record<string, number> = {
+      'Struktural': 1,
+      'Fungsional': 2,
+      'Pelaksana': 3,
+      'Non ASN': 4,
+      'Lainnya': 5,
+    };
 
+    // Reverse map: categoryOrder → category name
+    const CATEGORY_NAME: Record<number, string> = { 1: 'Struktural', 2: 'Fungsional', 3: 'Pelaksana' };
+
+    // Tentukan kategori pegawai berdasarkan position_references (sama seperti Peta Jabatan)
+    // bukan dari field position_type di tabel employees
+    const getCategory = (emp: Employee): string => {
+      if (activeTab === 'non-asn') return 'Non ASN';
+
+      // Lookup dari positionOrderMap menggunakan dept + position_name
+      const deptKey = `${(emp.department || '').trim()}|||${(emp.position_name || '').trim().toLowerCase()}`;
+      const posRef = positionOrderMap.get(deptKey);
+      if (posRef) {
+        return CATEGORY_NAME[posRef.categoryOrder] ?? 'Lainnya';
+      }
+
+      // Fallback: gunakan position_type jika ada di positionOrderMap
+      const cat = emp.position_type;
+      if (cat && ['Struktural', 'Fungsional', 'Pelaksana'].includes(cat)) return cat;
+
+      return 'Lainnya';
+    };
+
+    // Collect all employees into a map per category (preserving order within each category)
+    const categoryMap = new Map<string, Employee[]>();
     paginatedEmployees.forEach((emp) => {
-      // For Non ASN, use a special category or skip grouping
-      let category = emp.position_type;
-      
-      // If position_type is not one of the standard categories, treat as "Lainnya" for ASN
-      // or skip grouping for Non ASN (they don't need category headers)
-      if (activeTab === 'non-asn') {
-        // Non ASN: no grouping needed, just add to a single group
-        category = 'Non ASN';
-      } else if (!category || !['Struktural', 'Fungsional', 'Pelaksana'].includes(category)) {
-        // ASN without valid position_type: skip
-        return;
-      }
-      
-      if (category !== currentCategory) {
-        // Save previous group if exists
-        if (currentGroup.length > 0) {
-          groups.push({ category: currentCategory, employees: currentGroup });
-        }
-        // Start new group
-        currentCategory = category;
-        currentGroup = [emp];
-      } else {
-        currentGroup.push(emp);
-      }
+      const cat = getCategory(emp);
+      if (!categoryMap.has(cat)) categoryMap.set(cat, []);
+      categoryMap.get(cat)!.push(emp);
     });
 
-    // Add last group
-    if (currentGroup.length > 0) {
-      groups.push({ category: currentCategory, employees: currentGroup });
-    }
+    // Sort categories by defined order
+    const sortedCategories = Array.from(categoryMap.keys()).sort(
+      (a, b) => (CATEGORY_ORDER[a] ?? 99) - (CATEGORY_ORDER[b] ?? 99)
+    );
 
-    return groups;
-  }, [paginatedEmployees, activeTab]);
+    return sortedCategories.map(cat => ({
+      category: cat,
+      employees: categoryMap.get(cat)!,
+    }));
+  }, [paginatedEmployees, activeTab, positionOrderMap]);
 
   useEffect(() => { setCurrentPage(1); }, [activeTab, searchQuery, statusFilter, departmentFilter]);
 
@@ -843,6 +863,9 @@ export default function Employees() {
         tmt_cpns: data.tmt_cpns || null,
         tmt_pns: data.tmt_pns || null,
         tmt_pensiun: data.tmt_pensiun || null,
+        phone: data.phone || null,
+        mobile_phone: data.mobile_phone || null,
+        address: data.address || null,
       };
 
       let employeeId: string;

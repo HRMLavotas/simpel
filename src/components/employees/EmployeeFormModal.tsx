@@ -68,6 +68,9 @@ const employeeSchema = z.object({
   tmt_cpns: z.string().optional().or(z.literal('')),
   tmt_pns: z.string().optional().or(z.literal('')),
   tmt_pensiun: z.string().optional().or(z.literal('')),
+  phone: z.string().max(50).optional().or(z.literal('')),
+  mobile_phone: z.string().max(50).optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
 });
 
 export type EmployeeFormData = z.infer<typeof employeeSchema> & {
@@ -105,6 +108,9 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  phone: string | null;
+  mobile_phone: string | null;
+  address: string | null;
 }
 
 interface EmployeeFormModalProps {
@@ -167,6 +173,7 @@ export function EmployeeFormModal({
       position_type: '', position_name: '', additional_position: '', kejuruan: '',
       asn_status: '', rank_group: '', department: profile?.department || '',
       join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+      phone: '', mobile_phone: '', address: '',
     },
   });
 
@@ -493,6 +500,9 @@ export function EmployeeFormModal({
         tmt_cpns: employee.tmt_cpns || '',
         tmt_pns: employee.tmt_pns || '',
         tmt_pensiun: employee.tmt_pensiun || '',
+        phone: employee.phone || '',
+        mobile_phone: employee.mobile_phone || '',
+        address: employee.address || '',
       });
       
       // Explicitly set rank_group to ensure it's set
@@ -521,6 +531,7 @@ export function EmployeeFormModal({
         position_type: '', position_name: '', additional_position: '', kejuruan: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
         join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+        phone: '', mobile_phone: '', address: '',
       });
       setEducationEntries([]);
       setMutationEntries([]);
@@ -1344,6 +1355,46 @@ export function EmployeeFormModal({
               <div className="space-y-2">
                 <Label htmlFor="tmt_pensiun">TMT Pensiun</Label>
                 <Input id="tmt_pensiun" type="date" {...form.register('tmt_pensiun')} />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Contact & Address Section */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Kontak &amp; Alamat</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="mobile_phone">Nomor HP</Label>
+                <Input
+                  id="mobile_phone"
+                  placeholder="Contoh: 081234567890"
+                  {...form.register('mobile_phone')}
+                />
+                {form.formState.errors.mobile_phone && (
+                  <p className="text-xs text-destructive">{form.formState.errors.mobile_phone.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Nomor Telepon</Label>
+                <Input
+                  id="phone"
+                  placeholder="Contoh: 02112345678"
+                  {...form.register('phone')}
+                />
+                {form.formState.errors.phone && (
+                  <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
+                )}
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="address">Alamat</Label>
+                <Textarea
+                  id="address"
+                  placeholder="Alamat tempat tinggal lengkap"
+                  rows={3}
+                  {...form.register('address')}
+                />
               </div>
             </div>
           </div>

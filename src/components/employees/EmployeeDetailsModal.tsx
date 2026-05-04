@@ -29,6 +29,9 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  phone: string | null;
+  mobile_phone: string | null;
+  address: string | null;
 }
 
 interface EducationEntry {
@@ -342,6 +345,20 @@ export function EmployeeDetailsModal({
                   <ReadOnlyField label="TMT CPNS" value={formatDate(employee.tmt_cpns)} />
                   <ReadOnlyField label="TMT PNS" value={formatDate(employee.tmt_pns)} />
                   <ReadOnlyField label="TMT Pensiun" value={formatDate(employee.tmt_pensiun)} />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Contact & Address Section */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Kontak &amp; Alamat</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ReadOnlyField label="Nomor HP" value={employee.mobile_phone || '-'} />
+                  <ReadOnlyField label="Nomor Telepon" value={employee.phone || '-'} />
+                  <div className="sm:col-span-2">
+                    <ReadOnlyField label="Alamat" value={employee.address || '-'} />
+                  </div>
                 </div>
               </div>
             </TabsContent>
