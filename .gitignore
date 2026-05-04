@@ -42,3 +42,7 @@ check_*.js
 check_*.sql
 instruktur_tanpa_kejuruan.csv
 temp_*.json
+
+# Kiro IDE settings (contains secrets)
+.kiro/settings/
+.kiro/settings/mcp.json
