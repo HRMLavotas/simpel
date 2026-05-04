@@ -397,12 +397,18 @@ export default function Employees() {
     let currentGroup: Employee[] = [];
 
     paginatedEmployees.forEach((emp) => {
-      // Skip employees without valid position_type (should not happen with proper data)
-      if (!emp.position_type || !['Struktural', 'Fungsional', 'Pelaksana'].includes(emp.position_type)) {
+      // For Non ASN, use a special category or skip grouping
+      let category = emp.position_type;
+      
+      // If position_type is not one of the standard categories, treat as "Lainnya" for ASN
+      // or skip grouping for Non ASN (they don't need category headers)
+      if (activeTab === 'non-asn') {
+        // Non ASN: no grouping needed, just add to a single group
+        category = 'Non ASN';
+      } else if (!category || !['Struktural', 'Fungsional', 'Pelaksana'].includes(category)) {
+        // ASN without valid position_type: skip
         return;
       }
-      
-      const category = emp.position_type;
       
       if (category !== currentCategory) {
         // Save previous group if exists
@@ -423,7 +429,7 @@ export default function Employees() {
     }
 
     return groups;
-  }, [paginatedEmployees]);
+  }, [paginatedEmployees, activeTab]);
 
   useEffect(() => { setCurrentPage(1); }, [activeTab, searchQuery, statusFilter, departmentFilter]);
 
