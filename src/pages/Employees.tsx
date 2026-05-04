@@ -157,7 +157,6 @@ export default function Employees() {
     'Struktural': false,
     'Fungsional': false,
     'Pelaksana': false,
-    'Lainnya': false,
   });
   
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -356,7 +355,12 @@ export default function Employees() {
     let currentGroup: Employee[] = [];
 
     paginatedEmployees.forEach((emp) => {
-      const category = emp.position_type || 'Lainnya';
+      // Skip employees without valid position_type (should not happen with proper data)
+      if (!emp.position_type || !['Struktural', 'Fungsional', 'Pelaksana'].includes(emp.position_type)) {
+        return;
+      }
+      
+      const category = emp.position_type;
       
       if (category !== currentCategory) {
         // Save previous group if exists
