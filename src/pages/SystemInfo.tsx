@@ -20,9 +20,21 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.10.0',
+    date: '4 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Data Pegawai: field "Kejuruan" untuk jabatan Instruktur — mencatat bidang keahlian instruktur seperti Otomotif, TIK, Las, Manufaktur, Refrigerasi, dll (40+ pilihan kejuruan).' },
+      { type: 'improvement', text: 'Form Pegawai: field Kejuruan hanya aktif jika jabatan adalah Instruktur (Instruktur Ahli Utama/Madya/Muda/Pertama, Instruktur Penyelia/Mahir/Terampil/Pelaksana).' },
+      { type: 'improvement', text: 'Detail Pegawai: field Kejuruan ditampilkan di section Data Kepegawaian dengan label khusus "(Instruktur)".' },
+      { type: 'fix', text: 'Data Pegawai: menghilangkan kategori "LAINNYA" yang tidak seharusnya muncul — kini hanya menampilkan 3 kategori standar: Struktural, Fungsional, dan Pelaksana.' },
+      { type: 'improvement', text: 'Data Pegawai: pegawai dengan jenis jabatan tidak valid akan di-skip dari tampilan untuk menjaga konsistensi data.' },
+      { type: 'improvement', text: 'Data Pegawai: validasi jenis jabatan diperkuat — hanya menerima nilai Struktural, Fungsional, atau Pelaksana.' },
+    ],
+  },
+  {
     version: '2.9.0',
     date: '30 April 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Data Builder: filter pada kolom "Jabatan Sesuai Kepmen 202/2024" kini otomatis mencari juga di kolom "Jabatan Tambahan/PLT" — pegawai PLT muncul tanpa perlu memilih kolom PLT.' },
       { type: 'improvement', text: 'Data Builder: tabel preview menampilkan badge PLT (kuning) di bawah jabatan definitif jika pegawai memiliki jabatan PLT.' },
@@ -168,6 +180,7 @@ const FEATURES_OVERVIEW = [
       'Filter berdasarkan unit kerja, status ASN, dan pencarian nama/NIP',
       'Urutan tampil mengikuti struktur Peta Jabatan per unit kerja',
       'Pencatatan Pelaksana Tugas (PLT) — badge PLT tampil langsung di tabel, tidak mempengaruhi Peta Jabatan',
+      'Field Kejuruan untuk jabatan Instruktur — mencatat bidang keahlian (Otomotif, TIK, Las, Manufaktur, dll)',
       'Export CSV menyertakan kolom Jabatan Tambahan / PLT',
     ],
   },
