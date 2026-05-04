@@ -124,6 +124,7 @@ export default function DataAudit() {
           position_type: data.position_type || null,
           position_name: data.position_name || null,
           additional_position: data.additional_position || null,
+          kejuruan: data.kejuruan || null,
           asn_status: data.asn_status,
           rank_group: data.rank_group || null,
           department: data.department,

@@ -23,3 +23,22 @@ dist-ssr
 *.sln
 *.sw?
 **/tempobook/**
+
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Migration helper scripts (contain sensitive data)
+apply_*.mjs
+check_*.mjs
+fetch_*.mjs
+update_*.mjs
+run_*.mjs
+run-*.js
+verify_*.mjs
+query_*.mjs
+check_*.js
+check_*.sql
+instruktur_tanpa_kejuruan.csv
+temp_*.json

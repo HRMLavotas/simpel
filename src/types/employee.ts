@@ -28,6 +28,7 @@ export interface Employee {
   keterangan_penempatan: string | null;
   keterangan_penugasan: string | null;
   keterangan_perubahan: string | null;
+  kejuruan: string | null; // Kejuruan instruktur (hanya untuk jabatan Instruktur)
   import_order: number | null;
   created_at: string;
   updated_at: string;
@@ -95,6 +96,7 @@ export interface EmployeeFormData {
   tmt_cpns?: string;
   tmt_pns?: string;
   tmt_pensiun?: string;
+  kejuruan?: string; // Kejuruan instruktur (hanya untuk jabatan Instruktur)
 }
 
 export interface ImportError {

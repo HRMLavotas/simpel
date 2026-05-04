@@ -21,6 +21,7 @@ interface Employee {
   position_type: string | null;
   position_name: string | null;
   additional_position: string | null;
+  kejuruan: string | null;
   asn_status: string | null;
   rank_group: string | null;
   department: string;
@@ -318,6 +319,14 @@ export function EmployeeDetailsModal({
                       </span>
                     } 
                     value={employee.additional_position || '-'} 
+                  />
+                  <ReadOnlyField 
+                    label={
+                      <span>
+                        Kejuruan <span className="text-xs text-muted-foreground ml-2">(Instruktur)</span>
+                      </span>
+                    } 
+                    value={employee.kejuruan || '-'} 
                   />
                   <ReadOnlyField label="Unit Kerja" value={employee.department} />
                 </div>

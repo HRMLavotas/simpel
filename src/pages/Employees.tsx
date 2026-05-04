@@ -783,6 +783,7 @@ export default function Employees() {
         position_type: data.position_type || null,
         position_name: finalPositionName, // Use the latest position from position_history
         additional_position: data.additional_position || null,
+        kejuruan: data.kejuruan || null,
         asn_status: data.asn_status,
         rank_group: data.rank_group || null,
         department: finalDepartment, // Use the latest department from mutation

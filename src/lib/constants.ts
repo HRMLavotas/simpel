@@ -206,6 +206,80 @@ export function normalizeImportValue<T extends string>(
   return trimmed;
 }
 
+// Instruktur position name prefixes - used to detect if a position is an Instruktur role
+export const INSTRUKTUR_POSITION_PREFIXES = [
+  'Instruktur Ahli Utama',
+  'Instruktur Ahli Madya',
+  'Instruktur Ahli Muda',
+  'Instruktur Ahli Pertama',
+  'Instruktur Penyelia',
+  'Instruktur Mahir',
+  'Instruktur Terampil',
+  'Instruktur Pelaksana',
+] as const;
+
+/**
+ * Returns true if the given position name is an Instruktur position.
+ */
+export function isInstrukturPosition(positionName: string | null | undefined): boolean {
+  if (!positionName) return false;
+  const lower = positionName.toLowerCase();
+  return INSTRUKTUR_POSITION_PREFIXES.some(prefix => lower.startsWith(prefix.toLowerCase()));
+}
+
+// Kejuruan options for Instruktur
+export const KEJURUAN_OPTIONS = [
+  'Bahasa',
+  'Bahasa Asing',
+  'Bahasa Jepang',
+  'Bangunan',
+  'Bisnis dan Manajemen',
+  'Bisnis Manajemen',
+  'Elektronika',
+  'Fashion Technology',
+  'Garmen',
+  'Garmen Apparel',
+  'Garmen/Fashion Designer',
+  'Industri Kreatif',
+  'Konstruksi',
+  'Las',
+  'Listrik',
+  'Manufaktur',
+  'Mekanisasi Pertanian',
+  'Metodologi',
+  'Metodologi Pelatihan',
+  'Motor Tempel',
+  'Otomotif',
+  'Pariwisata',
+  'Perikanan',
+  'Pertanian',
+  'Peternakan',
+  'PLTS',
+  'Processing',
+  'Produktivitas',
+  'Refrigerasi',
+  'Refrigeration',
+  'Tata Kecantikan',
+  'Tatarias Kecantikan',
+  'Teknik Bangunan',
+  'Teknik Elektronika',
+  'Teknik Las',
+  'Teknik Listrik',
+  'Teknik Manufaktur',
+  'Teknik Mekanik',
+  'Teknik Otomotif',
+  'Teknik Refrigasi',
+  'Teknologi Informasi dan Komunikasi',
+  'Teknologi Mekanik',
+  'Teknologi Pelatihan',
+  'Teknologi Pengolahan Agroindustri',
+  'TIK',
+  'Underwater Service',
+  'Welding',
+] as const;
+
+export type Kejuruan = typeof KEJURUAN_OPTIONS[number];
+
 // App roles
 export type AppRole = 'admin_unit' | 'admin_pusat' | 'admin_pimpinan';
 

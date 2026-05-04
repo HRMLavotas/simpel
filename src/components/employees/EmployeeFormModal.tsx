@@ -27,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
-import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS } from '@/lib/constants';
+import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS, KEJURUAN_OPTIONS, isInstrukturPosition } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,6 +60,7 @@ const employeeSchema = z.object({
   position_type: z.string().optional().or(z.literal('')),
   position_name: z.string().max(255).optional().or(z.literal('')),
   additional_position: z.string().max(255).optional().or(z.literal('')),
+  kejuruan: z.string().max(100).optional().or(z.literal('')),
   asn_status: z.string().min(1, 'Status ASN wajib dipilih'),
   rank_group: z.string().optional().or(z.literal('')),
   department: z.string().min(1, 'Unit kerja wajib dipilih'),
@@ -96,6 +97,7 @@ interface Employee {
   position_type: string | null;
   position_name: string | null;
   additional_position: string | null;
+  kejuruan: string | null;
   asn_status: string | null;
   rank_group: string | null;
   department: string;
@@ -162,7 +164,7 @@ export function EmployeeFormModal({
     defaultValues: {
       nip: '', name: '', front_title: '', back_title: '',
       birth_place: '', birth_date: '', gender: '', religion: '',
-      position_type: '', position_name: '', additional_position: '',
+      position_type: '', position_name: '', additional_position: '', kejuruan: '',
       asn_status: '', rank_group: '', department: profile?.department || '',
       join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
     },
@@ -483,6 +485,7 @@ export function EmployeeFormModal({
         position_type: employee.position_type || '',
         position_name: employee.position_name || '',
         additional_position: employee.additional_position || '',
+        kejuruan: employee.kejuruan || '',
         asn_status: employee.asn_status || '',
         rank_group: employee.rank_group || '',
         department: employee.department,
@@ -515,7 +518,7 @@ export function EmployeeFormModal({
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
         birth_place: '', birth_date: '', gender: '', religion: '',
-        position_type: '', position_name: '', additional_position: '',
+        position_type: '', position_name: '', additional_position: '', kejuruan: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
         join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
       });
@@ -1240,6 +1243,43 @@ export function EmployeeFormModal({
                   <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan</p>
                 )}
               </div>
+
+              {/* Kejuruan - hanya aktif jika jabatan adalah Instruktur */}
+              {(() => {
+                const currentPosition = form.watch('position_name') || '';
+                const isInstruktur = isInstrukturPosition(currentPosition);
+                return (
+                  <div className="space-y-2">
+                    <Label htmlFor="kejuruan">
+                      Kejuruan
+                      {isInstruktur && <span className="text-xs text-destructive ml-1">*</span>}
+                      {!isInstruktur && <span className="text-xs text-muted-foreground ml-2">(Khusus Instruktur)</span>}
+                    </Label>
+                    <Select
+                      value={form.watch('kejuruan') || ''}
+                      onValueChange={(v) => form.setValue('kejuruan', v, { shouldValidate: true, shouldDirty: true })}
+                      disabled={!isInstruktur}
+                    >
+                      <SelectTrigger id="kejuruan" className={!isInstruktur ? 'opacity-50' : ''}>
+                        <SelectValue placeholder={isInstruktur ? 'Pilih kejuruan...' : 'Tidak berlaku (bukan jabatan Instruktur)'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {KEJURUAN_OPTIONS.map((k) => (
+                          <SelectItem key={k} value={k}>{k}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isInstruktur ? (
+                      <p className="text-xs text-muted-foreground">💡 Pilih kejuruan sesuai bidang keahlian instruktur</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Field ini hanya aktif jika jabatan adalah Instruktur</p>
+                    )}
+                    {form.formState.errors.kejuruan && (
+                      <p className="text-xs text-destructive">{form.formState.errors.kejuruan.message}</p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Unlocked Field: Unit Kerja */}
               <div className="space-y-2">
