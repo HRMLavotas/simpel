@@ -20,9 +20,22 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.10.0',
+    version: '2.11.0',
     date: '4 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Akses Unit Binaan: Admin unit pembina kini dapat mengakses dan mengelola data pegawai di unit binaan (Satpel/Workshop) — 10 unit pembina dapat mengelola 26 unit binaan dengan total 1.605 pegawai.' },
+      { type: 'feature', text: 'Data Pegawai: dropdown unit kerja otomatis muncul untuk admin unit yang memiliki unit binaan — memudahkan navigasi antara unit utama dan unit binaan.' },
+      { type: 'feature', text: 'Mapping Unit Pembina: BBPVP Serang (3 unit binaan), BBPVP Bekasi (2 unit), BBPVP Makassar (6 unit), BBPVP Medan (2 unit), BPVP Surakarta (1 unit), BPVP Padang (2 unit), BPVP Lombok Timur (2 unit), BPVP Ternate (3 unit), BPVP Sorong (1 unit), BPVP Samarinda (2 unit).' },
+      { type: 'improvement', text: 'Database: fungsi get_accessible_departments() untuk mengelola akses multi-unit secara terpusat — memudahkan maintenance dan konsistensi akses.' },
+      { type: 'improvement', text: 'RLS Policies: semua tabel (employees, position_references, history tables) diupdate untuk mendukung akses unit binaan secara otomatis.' },
+      { type: 'fix', text: 'Data Pegawai: perbaikan grouping logic untuk Non ASN — data Non ASN kini muncul di tab terpisah tanpa filter position_type yang tidak relevan.' },
+      { type: 'fix', text: 'Admin Pusat: perbaikan filter unit kerja — admin pusat kembali dapat mengakses semua unit kerja tanpa pembatasan.' },
+    ],
+  },
+  {
+    version: '2.10.0',
+    date: '4 Mei 2026',
     changes: [
       { type: 'feature', text: 'Data Pegawai: field "Kejuruan" untuk jabatan Instruktur — mencatat bidang keahlian instruktur seperti Otomotif, TIK, Las, Manufaktur, Refrigerasi, dll (40+ pilihan kejuruan).' },
       { type: 'feature', text: 'Data Builder: kolom "Kejuruan" tersedia untuk dipilih, difilter, dan diexport — mendukung 47 pilihan kejuruan dengan operator filter lengkap (sama dengan, mengandung, salah satu dari).' },
@@ -179,6 +192,8 @@ const FEATURES_OVERVIEW = [
       'Riwayat mutasi, jabatan, pangkat, pendidikan, kompetensi, dan pelatihan',
       'Detail lengkap pegawai dengan catatan penempatan dan penugasan',
       'Filter berdasarkan unit kerja, status ASN, dan pencarian nama/NIP',
+      'Akses Unit Binaan — admin unit pembina dapat mengelola data pegawai di unit binaan (Satpel/Workshop)',
+      'Dropdown unit kerja otomatis untuk admin unit dengan unit binaan — navigasi mudah antara unit utama dan unit binaan',
       'Urutan tampil mengikuti struktur Peta Jabatan per unit kerja',
       'Pencatatan Pelaksana Tugas (PLT) — badge PLT tampil langsung di tabel, tidak mempengaruhi Peta Jabatan',
       'Field Kejuruan untuk jabatan Instruktur — mencatat bidang keahlian (Otomotif, TIK, Las, Manufaktur, dll)',
