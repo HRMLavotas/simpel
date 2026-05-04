@@ -50,6 +50,7 @@ interface EmployeeMatch {
   rank_group?: string | null;
   gender: string | null;
   position_name?: string | null;
+  additional_position?: string | null;
   department?: string | null;
   keterangan_formasi?: string | null;
   keterangan_penempatan?: string | null;
@@ -204,7 +205,7 @@ export default function PetaJabatan() {
         fetchAllUnlimited(() =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('department', selectedDepartment)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
         ),
@@ -1516,7 +1517,21 @@ export default function PetaJabatan() {
                               </TableCell>
                             </>
                           )}
-                          <TableCell className="text-sm">{fullName}</TableCell>
+                          <TableCell className="text-sm">
+                            <div className="flex flex-col gap-0.5">
+                              <span>{fullName}</span>
+                              {emp?.additional_position && (
+                                <span className={cn(
+                                  'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit',
+                                  emp.additional_position.toUpperCase().includes('PLT')
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                )}>
+                                  {emp.additional_position}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-center text-sm">{emp?.asn_status || '-'}</TableCell>
                           {row.isFirst && (
                             <TableCell rowSpan={row.rowSpan} className="align-top text-xs">
