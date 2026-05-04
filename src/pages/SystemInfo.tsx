@@ -25,6 +25,7 @@ const RELEASES: Release[] = [
     label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Data Pegawai: field "Kejuruan" untuk jabatan Instruktur — mencatat bidang keahlian instruktur seperti Otomotif, TIK, Las, Manufaktur, Refrigerasi, dll (40+ pilihan kejuruan).' },
+      { type: 'feature', text: 'Data Builder: kolom "Kejuruan" tersedia untuk dipilih, difilter, dan diexport — mendukung 47 pilihan kejuruan dengan operator filter lengkap (sama dengan, mengandung, salah satu dari).' },
       { type: 'improvement', text: 'Form Pegawai: field Kejuruan hanya aktif jika jabatan adalah Instruktur (Instruktur Ahli Utama/Madya/Muda/Pertama, Instruktur Penyelia/Mahir/Terampil/Pelaksana).' },
       { type: 'improvement', text: 'Detail Pegawai: field Kejuruan ditampilkan di section Data Kepegawaian dengan label khusus "(Instruktur)".' },
       { type: 'fix', text: 'Data Pegawai: menghilangkan kategori "LAINNYA" yang tidak seharusnya muncul — kini hanya menampilkan 3 kategori standar: Struktural, Fungsional, dan Pelaksana.' },
@@ -205,6 +206,7 @@ const FEATURES_OVERVIEW = [
       'Query builder fleksibel — pilih kolom dan filter sesuai kebutuhan',
       'Filter canggih: Sama dengan (case-sensitive), Persis sama dengan (case-insensitive), Mengandung, Mengandung kata utuh, Salah satu dari',
       'Filter kolom Jabatan otomatis mencari di jabatan PLT — pegawai PLT muncul tanpa perlu memilih kolom PLT',
+      'Kolom Kejuruan tersedia untuk instruktur — pilih, filter, dan export data kejuruan (47 pilihan kejuruan)',
       'Tabel preview menampilkan badge PLT di bawah jabatan definitif',
       'Export Excel: jabatan PLT ditampilkan dalam satu cell bersama jabatan definitif',
       'Advanced filter per kolom dengan logika OR dalam satu field, maksimal 5 kondisi per kolom',

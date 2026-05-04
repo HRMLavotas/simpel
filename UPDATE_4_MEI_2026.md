@@ -48,6 +48,10 @@
 - `src/lib/constants.ts` - Menambahkan `KEJURUAN_OPTIONS` dan helper `isInstrukturPosition()`
 - `src/components/employees/EmployeeFormModal.tsx` - Menambahkan field Kejuruan dengan validasi
 - `src/components/employees/EmployeeDetailsModal.tsx` - Menampilkan field Kejuruan
+- `src/components/data-builder/ColumnSelector.tsx` - Menambahkan kolom Kejuruan ke Data Builder
+- `src/components/data-builder/FilterBuilder.tsx` - Menambahkan filter Kejuruan dengan 47 pilihan
+- `src/pages/DataBuilder.tsx` - Menambahkan Kejuruan ke FILTER_OPTIONS
+- `src/components/data-builder/QuickAggregation.tsx` - Menambahkan kejuruan ke query select
 - `src/types/employee.ts` - Menambahkan property `kejuruan`
 - `src/pages/Employees.tsx` - Menyertakan kejuruan saat save
 - `src/pages/DataAudit.tsx` - Menyertakan kejuruan saat audit
@@ -137,18 +141,40 @@ Peningkatan:
 5. ✅ Simpan pegawai dengan kejuruan → data tersimpan
 6. ✅ Buka detail pegawai → field Kejuruan ditampilkan dengan label "(Instruktur)"
 
-### Test 2: Menu Data Pegawai
+### Test 2: Data Builder - Kolom Kejuruan
+1. ✅ Buka Data Builder
+2. ✅ Expand kategori "Jabatan" di Column Selector
+3. ✅ Centang checkbox "Kejuruan"
+4. ✅ Tooltip menampilkan deskripsi yang benar
+5. ✅ Preview tabel menampilkan kolom Kejuruan
+
+### Test 3: Data Builder - Filter Kejuruan
+1. ✅ Tambah filter baru
+2. ✅ Pilih field "Kejuruan"
+3. ✅ Operator "Salah satu dari" menampilkan 47 pilihan kejuruan
+4. ✅ Pilih beberapa kejuruan (contoh: Otomotif, TIK, Las)
+5. ✅ Preview menampilkan data instruktur dengan kejuruan yang dipilih
+
+### Test 4: Data Builder - Export dengan Kejuruan
+1. ✅ Pilih kolom: Nama, NIP, Jabatan, Kejuruan, Unit Kerja
+2. ✅ Filter: Jabatan mengandung "Instruktur"
+3. ✅ Export ke Excel
+4. ✅ Kolom Kejuruan muncul di Excel
+5. ✅ Data kejuruan ditampilkan dengan benar
+6. ✅ Nilai kosong ditampilkan sebagai "-"
+
+### Test 5: Menu Data Pegawai
 1. ✅ Buka menu Data Pegawai
 2. ✅ Periksa header kategori yang muncul
 3. ✅ Seharusnya hanya ada: STRUKTURAL, FUNGSIONAL, PELAKSANA
 4. ✅ Tidak ada kategori LAINNYA
 
-### Test 3: Menu Informasi Sistem
+### Test 6: Menu Informasi Sistem
 1. ✅ Buka menu Informasi Sistem
 2. ✅ Periksa versi terbaru adalah 2.10.0
-3. ✅ Periksa changelog versi 2.10.0 muncul dengan benar (3 fitur baru + 3 peningkatan + 1 perbaikan)
+3. ✅ Periksa changelog versi 2.10.0 muncul dengan benar (2 fitur baru + 4 peningkatan + 1 perbaikan)
 4. ✅ Label "Terbaru" ada di versi 2.10.0
-5. ✅ Tab "Fitur Aplikasi" menampilkan info tentang field Kejuruan
+5. ✅ Tab "Fitur Aplikasi" menampilkan info tentang field Kejuruan di Data Pegawai dan Data Builder
 
 ---
 
@@ -156,6 +182,7 @@ Peningkatan:
 
 File dokumentasi yang dibuat:
 - ✅ `FIX_LAINNYA_POSITION_TYPE.md` - Dokumentasi lengkap perbaikan kategori LAINNYA
+- ✅ `DATA_BUILDER_KEJURUAN_FEATURE.md` - Dokumentasi lengkap fitur Kejuruan di Data Builder
 - ✅ `check_position_type.mjs` - Script untuk memeriksa pegawai dengan position_type kosong
 - ✅ `check_invalid_position_type.mjs` - Script untuk memeriksa pegawai dengan position_type tidak standar
 - ✅ `apply_kejuruan_migration.mjs` - Script untuk menambahkan kolom kejuruan ke database
@@ -178,20 +205,21 @@ Setelah commit dan deploy:
 ## 📊 Statistik Update
 
 **Versi 2.10.0:**
-- ✅ 1 Fitur Baru (Field Kejuruan)
+- ✅ 2 Fitur Baru (Field Kejuruan di Data Pegawai + Data Builder)
 - ✅ 4 Peningkatan (Validasi dan UX)
 - ✅ 1 Perbaikan (Kategori LAINNYA)
-- ✅ Total: 6 perubahan
+- ✅ Total: 7 perubahan
 
 **File yang Dimodifikasi:**
-- 7 file source code (.tsx, .ts)
+- 10 file source code (.tsx, .ts)
 - 1 file migration SQL
 - 3 file script (.mjs)
-- 2 file dokumentasi (.md)
+- 3 file dokumentasi (.md)
 
 **Impact:**
 - 200+ instruktur dapat mencatat kejuruan mereka
-- 40+ pilihan kejuruan tersedia
+- 47 pilihan kejuruan tersedia
+- Data Builder mendukung filter dan export kejuruan
 - Konsistensi data jenis jabatan terjaga
 - User experience lebih baik dengan validasi yang lebih ketat
 

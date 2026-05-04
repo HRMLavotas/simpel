@@ -36,6 +36,7 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'position_name', label: 'Jabatan Sesuai Kepmen 202/2024', dbField: 'position_name', category: 'position', description: 'Jabatan standar/klasifikasi. Filter pada kolom ini otomatis mencari juga di Jabatan Tambahan/PLT — pegawai PLT akan muncul tanpa perlu memilih kolom PLT.' },
   { key: 'additional_position', label: 'Jabatan Tambahan / PLT', dbField: 'additional_position', category: 'position', description: 'Jabatan tambahan atau Pelaksana Tugas (PLT). Contoh: PLT Direktur, PLT Kepala Bagian. Tidak mempengaruhi Peta Jabatan.' },
   { key: 'position_name_or_plt', label: 'Jabatan (termasuk PLT)', dbField: 'position_name_or_plt', category: 'position', description: 'Filter sekaligus di Jabatan Kepmen 202/2024 DAN Jabatan Tambahan/PLT. Gunakan ini jika ingin data PLT muncul bersama jabatan definitif.' },
+  { key: 'kejuruan', label: 'Kejuruan', dbField: 'kejuruan', category: 'position', description: 'Bidang keahlian instruktur (hanya untuk jabatan Instruktur). Contoh: Otomotif, TIK, Las, Manufaktur, Refrigerasi.' },
   { key: 'old_position', label: 'Jabatan Lama', dbField: 'old_position', category: 'position', description: 'Jabatan sebelum perubahan' },
   { key: 'department', label: 'Unit Kerja', dbField: 'department', category: 'employment', description: 'Nama unit kerja/dinas' },
   

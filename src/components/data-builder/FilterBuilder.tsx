@@ -38,6 +38,19 @@ const FILTER_OPTIONS: Record<string, string[]> = {
     'III/a', 'III/b', 'III/c', 'III/d',
     'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
   ],
+  kejuruan: [
+    'Bahasa', 'Bahasa Asing', 'Bahasa Jepang', 'Bangunan', 'Bisnis dan Manajemen',
+    'Bisnis Manajemen', 'Elektronika', 'Fashion Technology', 'Garmen', 'Garmen Apparel',
+    'Garmen/Fashion Designer', 'Industri Kreatif', 'Konstruksi', 'Las', 'Listrik',
+    'Manufaktur', 'Mekanisasi Pertanian', 'Metodologi', 'Metodologi Pelatihan',
+    'Motor Tempel', 'Otomotif', 'Pariwisata', 'Perikanan', 'Pertanian', 'Peternakan',
+    'PLTS', 'Processing', 'Produktivitas', 'Refrigerasi', 'Refrigeration',
+    'Tata Kecantikan', 'Tatarias Kecantikan', 'Teknik Bangunan', 'Teknik Elektronika',
+    'Teknik Las', 'Teknik Listrik', 'Teknik Manufaktur', 'Teknik Mekanik',
+    'Teknik Otomotif', 'Teknik Refrigasi', 'Teknologi Informasi dan Komunikasi',
+    'Teknologi Mekanik', 'Teknologi Pelatihan', 'Teknologi Pengolahan Agroindustri',
+    'TIK', 'Underwater Service', 'Welding',
+  ],
 };
 
 const getAvailableOperators = (field: string) => {

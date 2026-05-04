@@ -269,7 +269,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
       while (true) {
         let query = supabase
           .from('employees')
-          .select('id, nip, name, rank_group, gender, department, asn_status, position_type, religion, birth_date, tmt_cpns')
+          .select('id, nip, name, rank_group, gender, department, asn_status, position_type, religion, birth_date, tmt_cpns, kejuruan')
           .range(offset, offset + batchSize - 1)
           .order('name');
 
