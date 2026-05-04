@@ -29,6 +29,10 @@ export interface Employee {
   keterangan_penugasan: string | null;
   keterangan_perubahan: string | null;
   kejuruan: string | null; // Kejuruan instruktur (hanya untuk jabatan Instruktur)
+  address: string | null; // Alamat tempat tinggal
+  phone: string | null; // Nomor telepon
+  mobile_phone: string | null; // Nomor HP
+  tmt_gol: string | null; // TMT Golongan/Pangkat terakhir
   import_order: number | null;
   created_at: string;
   updated_at: string;

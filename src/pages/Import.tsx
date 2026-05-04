@@ -196,6 +196,57 @@ interface ParsedEmployee {
   error?: string;
 }
 
+// ============ DAFTAR PEGAWAI IMPORT ============
+// Format: No | NIP | Nama | Tempat Lahir | Alamat | Tgl. Lahir | Jenis Kelamin | Agama
+//         | Telepon | No. HP | TMT GOL | Pendidikan Terakhir (Jenjang/Jurusan/Nama Sekolah)
+//         | TMT CPNS | TMT PNS
+
+interface ParsedDaftarPegawai {
+  nip: string;
+  name: string;
+  front_title: string;
+  back_title: string;
+  birth_place: string;
+  birth_date: string;
+  gender: string;
+  religion: string;
+  address: string;
+  phone: string;
+  mobile_phone: string;
+  tmt_gol: string;
+  tmt_cpns: string;
+  tmt_pns: string;
+  education_level: string;
+  education_major: string;
+  education_institution: string;
+  row: number;
+  error?: string;
+}
+
+// Parse tanggal dari format DD-MM-YYYY atau YYYY-MM-DD ke YYYY-MM-DD
+const parseDateStr = (raw: string | null): string => {
+  if (!raw || raw === '-' || raw === '0') return '';
+  const s = raw.trim();
+  // DD-MM-YYYY
+  const dmyMatch = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dmyMatch) return `${dmyMatch[3]}-${dmyMatch[2].padStart(2,'0')}-${dmyMatch[1].padStart(2,'0')}`;
+  // YYYY-MM-DD already
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // DD/MM/YYYY
+  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) return `${slashMatch[3]}-${slashMatch[2].padStart(2,'0')}-${slashMatch[1].padStart(2,'0')}`;
+  // MM-YYYY (for TMT GOL like "01-03-2026")
+  return s;
+};
+
+// Normalize phone: strip non-digit except leading +, trim
+const normalizePhone = (raw: string | null): string => {
+  if (!raw || raw === '-' || raw === '0' || raw === '0000' || raw === '000000000000') return '';
+  const s = raw.trim();
+  if (s === '-' || s === '0' || s.length < 5) return '';
+  return s;
+};
+
 // ============ POSITION IMPORT ============
 
 interface ParsedPosition {
@@ -224,6 +275,14 @@ export default function Import() {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
+
+  // ---- Daftar Pegawai state ----
+  const daftarFileRef = useRef<HTMLInputElement>(null);
+  const [daftarFile, setDaftarFile] = useState<File | null>(null);
+  const [daftarData, setDaftarData] = useState<ParsedDaftarPegawai[]>([]);
+  const [daftarProcessing, setDaftarProcessing] = useState(false);
+  const [daftarProgress, setDaftarProgress] = useState(0);
+  const [daftarResult, setDaftarResult] = useState<{ success: number; failed: number; updated: number; errors: { row: number; nip: string; error: string }[] } | null>(null);
   
   // Department selection
   const userDept = profile?.department || '';
@@ -255,6 +314,261 @@ export default function Import() {
     
     fetchDepartments();
   }, []);
+
+  // ======== DAFTAR PEGAWAI PARSING ========
+
+  const parseDaftarPegawai = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const workbook = XLSX.read(e.target?.result, { type: 'binary' });
+      const ws = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { raw: false, defval: '' });
+
+      if (rows.length === 0) {
+        toast({ variant: 'destructive', title: 'File kosong', description: 'Tidak ada data ditemukan' });
+        return;
+      }
+
+      const parsed: ParsedDaftarPegawai[] = [];
+
+      rows.forEach((row, idx) => {
+        // Cari NIP — kolom utama identifier
+        const nip = findCol(row, 'NIP', 'nip', 'Nip').replace(/\s/g, '').trim();
+        const namaRaw = findCol(row, 'Nama', 'nama', 'Nama Lengkap', 'NAMA').trim();
+
+        // Skip baris header atau kosong
+        if (!nip || !namaRaw || nip.toLowerCase() === 'nip' || namaRaw.toLowerCase() === 'nama') return;
+        if (!/^\d{15,18}$/.test(nip)) return; // NIP harus 15-18 digit angka
+
+        const parsedName = parseName(namaRaw);
+
+        // Pendidikan terakhir — bisa 3 kolom terpisah atau 1 kolom gabungan
+        const jenjang = findCol(row,
+          'Jenjang', 'jenjang', 'Pendidikan Terakhir', 'Pendidikan',
+          'Jenjang Pendidikan', 'Tingkat Pendidikan'
+        ).trim();
+        const jurusan = findCol(row,
+          'Jurusan', 'jurusan', 'Bidang Studi', 'Program Studi', 'Prodi'
+        ).trim();
+        const namaSekolah = findCol(row,
+          'Nama Sekolah', 'nama sekolah', 'Institusi', 'Universitas',
+          'Perguruan Tinggi', 'Sekolah', 'Lembaga Pendidikan'
+        ).trim();
+
+        // Jika jenjang kosong tapi ada kolom "Pendidikan Terakhir" gabungan, parse
+        let eduLevel = jenjang;
+        let eduMajor = jurusan;
+        if (!eduLevel) {
+          const combined = findCol(row, 'Pendidikan Terakhir', 'Pendidikan').trim();
+          const parsed = parseEducation(combined);
+          if (parsed) { eduLevel = parsed.level; eduMajor = parsed.major !== 'Tidak Ada' ? parsed.major : ''; }
+        }
+
+        // Tanggal lahir
+        const tglLahirRaw = findCol(row,
+          'Tgl. Lahir', 'Tgl Lahir', 'Tanggal Lahir', 'tgl_lahir', 'birth_date', 'Tgl.Lahir'
+        );
+        // TMT GOL
+        const tmtGolRaw = findCol(row,
+          'TMT GOL', 'TMT Gol', 'Tmt Gol', 'TMT Golongan', 'tmt_gol', 'TMT GOL.'
+        );
+        // TMT CPNS
+        const tmtCpnsRaw = findCol(row,
+          'TMT CPNS', 'Tmt Cpns', 'tmt_cpns', 'TMT CPNS.'
+        );
+        // TMT PNS
+        const tmtPnsRaw = findCol(row,
+          'TMT PNS', 'Tmt Pns', 'tmt_pns', 'TMT PNS.'
+        );
+
+        // Gender
+        let gender = findCol(row, 'Jenis Kelamin', 'jenis_kelamin', 'Gender', 'L/P').trim();
+        if (gender === 'L') gender = 'Laki-laki';
+        else if (gender === 'P') gender = 'Perempuan';
+        else if (gender.toLowerCase() === 'laki-laki' || gender.toLowerCase() === 'laki laki') gender = 'Laki-laki';
+        else if (gender.toLowerCase() === 'perempuan') gender = 'Perempuan';
+
+        // Fallback gender dari NIP
+        if (!gender) {
+          const nipData = parseNIP(nip);
+          if (nipData?.gender) gender = nipData.gender;
+        }
+
+        const entry: ParsedDaftarPegawai = {
+          nip,
+          name: parsedName.name || namaRaw,
+          front_title: parsedName.front_title,
+          back_title: parsedName.back_title,
+          birth_place: findCol(row, 'Tempat Lahir', 'tempat_lahir', 'Tempat Lahir', 'Kota Lahir').trim(),
+          birth_date: parseDateStr(tglLahirRaw),
+          gender,
+          religion: findCol(row, 'Agama', 'agama', 'Religion').trim(),
+          address: findCol(row, 'Alamat', 'alamat', 'Alamat Lengkap', 'Address').trim(),
+          phone: normalizePhone(findCol(row, 'Telepon', 'telepon', 'Telp', 'No. Telp', 'No Telp', 'Phone')),
+          mobile_phone: normalizePhone(findCol(row, 'No. HP', 'No HP', 'HP', 'Handphone', 'no_hp', 'Nomor HP', 'No.HP')),
+          tmt_gol: parseDateStr(tmtGolRaw),
+          tmt_cpns: parseDateStr(tmtCpnsRaw),
+          tmt_pns: parseDateStr(tmtPnsRaw),
+          education_level: eduLevel,
+          education_major: eduMajor,
+          education_institution: namaSekolah,
+          row: idx + 2,
+        };
+
+        if (!entry.nip) entry.error = 'NIP tidak ditemukan';
+        else if (!entry.name) entry.error = 'Nama tidak ditemukan';
+
+        parsed.push(entry);
+      });
+
+      if (parsed.length === 0) {
+        toast({ variant: 'destructive', title: 'Tidak ada data valid', description: 'Pastikan file menggunakan format Daftar Pegawai dengan kolom NIP dan Nama' });
+        return;
+      }
+
+      setDaftarData(parsed);
+      toast({ title: `${parsed.length} data terdeteksi`, description: `${parsed.filter(p => !p.error).length} siap diimport` });
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleImportDaftarPegawai = async () => {
+    const valid = daftarData.filter(r => !r.error);
+    if (valid.length === 0) {
+      toast({ variant: 'destructive', title: 'Tidak ada data valid' });
+      return;
+    }
+
+    setDaftarProcessing(true);
+    setDaftarProgress(0);
+
+    const res = { success: 0, failed: 0, updated: 0, errors: [] as { row: number; nip: string; error: string }[] };
+
+    for (let i = 0; i < valid.length; i++) {
+      const row = valid[i];
+      try {
+        // Cari pegawai berdasarkan NIP
+        const { data: existing } = await supabase
+          .from('employees')
+          .select('id, name')
+          .eq('nip', row.nip)
+          .maybeSingle();
+
+        const updatePayload: Record<string, string | null> = {
+          birth_place: row.birth_place || null,
+          birth_date: row.birth_date || null,
+          gender: row.gender || null,
+          religion: row.religion || null,
+          address: row.address || null,
+          phone: row.phone || null,
+          mobile_phone: row.mobile_phone || null,
+          tmt_gol: row.tmt_gol || null,
+          tmt_cpns: row.tmt_cpns || null,
+          tmt_pns: row.tmt_pns || null,
+          front_title: row.front_title || null,
+          back_title: row.back_title || null,
+        };
+
+        // Hapus key dengan nilai null agar tidak overwrite data yang sudah ada dengan null
+        // Kecuali jika ada nilai baru yang valid
+        const cleanPayload = Object.fromEntries(
+          Object.entries(updatePayload).filter(([, v]) => v !== null && v !== '')
+        );
+
+        if (existing) {
+          // Update pegawai yang sudah ada
+          const { error } = await supabase
+            .from('employees')
+            .update(cleanPayload)
+            .eq('id', existing.id);
+
+          if (error) {
+            res.errors.push({ row: row.row, nip: row.nip, error: error.message });
+            res.failed++;
+          } else {
+            res.updated++;
+            res.success++;
+
+            // Update/insert education history jika ada data pendidikan
+            if (row.education_level) {
+              // Cek apakah sudah ada education history
+              const { data: existingEdu } = await supabase
+                .from('education_history')
+                .select('id')
+                .eq('employee_id', existing.id)
+                .order('graduation_year', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              const eduPayload = {
+                employee_id: existing.id,
+                level: row.education_level,
+                major: row.education_major || null,
+                institution_name: row.education_institution || null,
+              };
+
+              if (existingEdu) {
+                await supabase.from('education_history').update(eduPayload).eq('id', existingEdu.id);
+              } else {
+                await supabase.from('education_history').insert(eduPayload);
+              }
+            }
+          }
+        } else {
+          // NIP tidak ditemukan — insert pegawai baru (minimal)
+          const { data: inserted, error } = await supabase
+            .from('employees')
+            .insert({
+              nip: row.nip,
+              name: row.name,
+              front_title: row.front_title || null,
+              back_title: row.back_title || null,
+              department: selectedDepartment || 'Tidak Diketahui',
+              ...cleanPayload,
+            })
+            .select('id')
+            .single();
+
+          if (error) {
+            res.errors.push({ row: row.row, nip: row.nip, error: `NIP tidak ditemukan di database, gagal insert: ${error.message}` });
+            res.failed++;
+          } else {
+            res.success++;
+            if (row.education_level && inserted?.id) {
+              await supabase.from('education_history').insert({
+                employee_id: inserted.id,
+                level: row.education_level,
+                major: row.education_major || null,
+                institution_name: row.education_institution || null,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        res.errors.push({ row: row.row, nip: row.nip, error: error.message });
+        res.failed++;
+      }
+
+      setDaftarProgress(Math.round(((i + 1) / valid.length) * 100));
+    }
+
+    setDaftarResult(res);
+    setDaftarProcessing(false);
+    toast({
+      variant: res.success > 0 ? 'default' : 'destructive',
+      title: res.success > 0 ? 'Import Selesai' : 'Import Gagal',
+      description: `${res.updated} diperbarui, ${res.success - res.updated} baru${res.failed > 0 ? `, ${res.failed} gagal` : ''}`,
+    });
+  };
+
+  const resetDaftar = () => {
+    setDaftarFile(null);
+    setDaftarData([]);
+    setDaftarResult(null);
+    setDaftarProgress(0);
+    if (daftarFileRef.current) daftarFileRef.current.value = '';
+  };
 
   // ======== UNIFIED PARSING ========
 
@@ -1112,6 +1426,185 @@ export default function Import() {
           <p className="page-description">
             Import data pegawai dan peta jabatan sekaligus dari satu file Excel
           </p>
+        </div>
+
+        {/* ===== SECTION: IMPORT DAFTAR PEGAWAI ===== */}
+        <Card className="border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-600" />
+              Import dari Daftar Pegawai
+            </CardTitle>
+            <CardDescription>
+              Update data personal pegawai (alamat, telepon, pendidikan, TMT, dll) dari file Excel format Daftar Pegawai.
+              Pencocokan dilakukan berdasarkan <strong>NIP</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-4">
+                {/* File upload */}
+                {!daftarFile ? (
+                  <div
+                    className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-blue-500 hover:bg-blue-50"
+                    onClick={() => daftarFileRef.current?.click()}
+                  >
+                    <Upload className="mx-auto h-10 w-10 text-blue-400" />
+                    <p className="mt-3 text-sm font-medium text-blue-700">Klik untuk upload Daftar Pegawai</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Format Excel (.xlsx) — kolom: No, NIP, Nama, Tempat Lahir, Alamat, Tgl. Lahir, Jenis Kelamin, Agama, Telepon, No. HP, TMT GOL, Pendidikan Terakhir, TMT CPNS, TMT PNS</p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-blue-600" />
+                      <div>
+                        <p className="font-medium">{daftarFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {daftarData.filter(d => !d.error).length} valid · {daftarData.filter(d => d.error).length} error dari {daftarData.length} baris
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={resetDaftar}><X className="h-4 w-4" /></Button>
+                  </div>
+                )}
+                <input
+                  ref={daftarFileRef}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setDaftarFile(f);
+                    setDaftarResult(null);
+                    parseDaftarPegawai(f);
+                  }}
+                />
+
+                {/* Progress */}
+                {daftarProcessing && (
+                  <div className="space-y-2">
+                    <Progress value={daftarProgress} />
+                    <p className="text-sm text-muted-foreground text-center">Memproses... {daftarProgress}%</p>
+                  </div>
+                )}
+
+                {/* Result */}
+                {daftarResult && (
+                  <Alert variant={daftarResult.success > 0 ? 'default' : 'destructive'}>
+                    {daftarResult.success > 0 ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    <AlertTitle>Hasil Import Daftar Pegawai</AlertTitle>
+                    <AlertDescription>
+                      <span className="text-green-700 font-medium">{daftarResult.updated} diperbarui</span>
+                      {daftarResult.success - daftarResult.updated > 0 && <span className="ml-2 text-blue-700">{daftarResult.success - daftarResult.updated} baru ditambahkan</span>}
+                      {daftarResult.failed > 0 && <span className="ml-2 text-destructive">{daftarResult.failed} gagal</span>}
+                      {daftarResult.errors.length > 0 && (
+                        <ul className="mt-2 list-disc list-inside text-xs space-y-1">
+                          {daftarResult.errors.slice(0, 5).map((err, i) => (
+                            <li key={i}>Baris {err.row} (NIP {err.nip}): {err.error}</li>
+                          ))}
+                          {daftarResult.errors.length > 5 && <li>...dan {daftarResult.errors.length - 5} error lainnya</li>}
+                        </ul>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Action buttons */}
+                {daftarData.length > 0 && !daftarProcessing && !daftarResult && (
+                  <Button
+                    onClick={handleImportDaftarPegawai}
+                    disabled={daftarData.filter(d => !d.error).length === 0}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Update {daftarData.filter(d => !d.error).length} Data Pegawai
+                  </Button>
+                )}
+              </div>
+
+              {/* Info panel */}
+              <div className="space-y-3 text-sm">
+                <p className="font-medium text-blue-800">Field yang akan diperbarui:</p>
+                <ul className="space-y-1 text-muted-foreground">
+                  {[
+                    ['Tempat & Tanggal Lahir', 'birth_place, birth_date'],
+                    ['Jenis Kelamin', 'gender'],
+                    ['Agama', 'religion'],
+                    ['Alamat', 'address ✨ baru'],
+                    ['Telepon & No. HP', 'phone, mobile_phone ✨ baru'],
+                    ['TMT Golongan', 'tmt_gol ✨ baru'],
+                    ['TMT CPNS & PNS', 'tmt_cpns, tmt_pns'],
+                    ['Gelar Depan & Belakang', 'front_title, back_title'],
+                    ['Pendidikan Terakhir', 'education_history'],
+                  ].map(([label, field]) => (
+                    <li key={label} className="flex justify-between gap-2">
+                      <span>{label}</span>
+                      <span className="font-mono text-xs text-blue-600">{field}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                  <p className="font-medium">⚠️ Catatan:</p>
+                  <p>Hanya field yang memiliki nilai baru yang akan diperbarui. Field kosong di Excel tidak akan menghapus data yang sudah ada.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview table */}
+            {daftarData.length > 0 && (
+              <div className="rounded-lg border overflow-x-auto max-h-72 overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>NIP</TableHead>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Tgl Lahir</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Agama</TableHead>
+                      <TableHead>Alamat</TableHead>
+                      <TableHead>No. HP</TableHead>
+                      <TableHead>TMT Gol</TableHead>
+                      <TableHead>Pendidikan</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {daftarData.map((row, idx) => (
+                      <TableRow key={idx} className={cn(row.error && 'bg-destructive/5')}>
+                        <TableCell className="text-xs text-muted-foreground">{row.row}</TableCell>
+                        <TableCell className="font-mono text-xs">{row.nip}</TableCell>
+                        <TableCell className="text-sm max-w-[160px] truncate" title={[row.front_title, row.name, row.back_title].filter(Boolean).join(' ')}>
+                          {[row.front_title, row.name, row.back_title].filter(Boolean).join(' ')}
+                        </TableCell>
+                        <TableCell className="text-xs">{row.birth_date || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.gender || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.religion || '-'}</TableCell>
+                        <TableCell className="text-xs max-w-[120px] truncate" title={row.address}>{row.address || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.mobile_phone || '-'}</TableCell>
+                        <TableCell className="text-xs">{row.tmt_gol || '-'}</TableCell>
+                        <TableCell className="text-xs">{[row.education_level, row.education_major].filter(Boolean).join(' - ') || '-'}</TableCell>
+                        <TableCell>
+                          {row.error
+                            ? <span className="text-xs text-destructive">{row.error}</span>
+                            : <CheckCircle className="h-4 w-4 text-green-600" />}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ===== DIVIDER ===== */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">atau import stankom ASN</span>
+          </div>
         </div>
 
         {/* Department Selector */}
