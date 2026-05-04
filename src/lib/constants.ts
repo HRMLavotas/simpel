@@ -41,6 +41,14 @@ export const DEPARTMENTS = [
   'Satpel Kupang',
   'Satpel Jambi',
   'Satpel Jayapura',
+  'Satpel Kotawaringin Timur',
+  'Satpel Bali',
+  'Satpel Morowali',
+  'Satpel Morowali Utara',
+  'Satpel Minahasa Utara',
+  'Satpel Halmahera Selatan',
+  'Satpel Tanah Bumbu',
+  'Satpel Bulungan',
   'Workshop Prabumulih',
   'Workshop Batam',
   'Workshop Gorontalo',
@@ -314,3 +322,123 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   admin_pusat: 'Admin Pusat',
   admin_pimpinan: 'Admin Pimpinan',
 };
+
+// Unit Pembina Mapping - Satpel/Workshop dan unit pembinanya
+export const UNIT_PEMBINA_MAPPING: Record<string, string> = {
+  // BBPVP Serang
+  'Satpel Lubuklinggau': 'BBPVP Serang',
+  'Satpel Lampung': 'BBPVP Serang',
+  'Workshop Prabumulih': 'BBPVP Serang',
+  
+  // BBPVP Bekasi
+  'Satpel Bengkulu': 'BBPVP Bekasi',
+  'Satpel Kotawaringin Timur': 'BBPVP Bekasi',
+  
+  // BBPVP Makassar
+  'Satpel Majene': 'BBPVP Makassar',
+  'Satpel Mamuju': 'BBPVP Makassar',
+  'Satpel Palu': 'BBPVP Makassar',
+  'Workshop Gorontalo': 'BBPVP Makassar',
+  'Satpel Morowali': 'BBPVP Makassar',
+  'Satpel Morowali Utara': 'BBPVP Makassar',
+  
+  // BBPVP Medan
+  'Satpel Pekanbaru': 'BBPVP Medan',
+  'Workshop Batam': 'BBPVP Medan',
+  
+  // BPVP Surakarta
+  'Satpel Bantul': 'BPVP Surakarta',
+  
+  // BPVP Padang
+  'Satpel Jambi': 'BPVP Padang',
+  'Satpel Sawahlunto': 'BPVP Padang',
+  
+  // BPVP Lombok Timur
+  'Satpel Kupang': 'BPVP Lombok Timur',
+  'Satpel Bali': 'BPVP Lombok Timur',
+  
+  // BPVP Ternate
+  'Satpel Sofifi': 'BPVP Ternate',
+  'Satpel Minahasa Utara': 'BPVP Ternate',
+  'Satpel Halmahera Selatan': 'BPVP Ternate',
+  
+  // BPVP Sorong
+  'Satpel Jayapura': 'BPVP Sorong',
+  
+  // BPVP Samarinda
+  'Satpel Tanah Bumbu': 'BPVP Samarinda',
+  'Satpel Bulungan': 'BPVP Samarinda',
+  
+  // BPVP Sorong
+  'Satpel Jayapura': 'BPVP Sorong',
+};
+
+/**
+ * Get unit pembina (parent unit) for a Satpel/Workshop
+ * @param department - Department name
+ * @returns Unit pembina name or null if not a Satpel/Workshop
+ */
+export function getUnitPembina(department: string): string | null {
+  return UNIT_PEMBINA_MAPPING[department] || null;
+}
+
+/**
+ * Check if a department is a Satpel or Workshop
+ * @param department - Department name
+ * @returns true if Satpel or Workshop
+ */
+export function isSatpelOrWorkshop(department: string): boolean {
+  return department.startsWith('Satpel ') || department.startsWith('Workshop ');
+}
+
+/**
+ * Get all Satpel/Workshop units under a unit pembina
+ * @param pembina - Unit pembina name
+ * @returns Array of Satpel/Workshop names
+ */
+export function getSatpelsByPembina(pembina: string): string[] {
+  return Object.entries(UNIT_PEMBINA_MAPPING)
+    .filter(([_, parent]) => parent === pembina)
+    .map(([satpel]) => satpel);
+}
+
+/**
+ * Get all departments accessible by a user based on their role and department
+ * @param userDepartment - User's department
+ * @param role - User's role
+ * @returns Array of accessible department names
+ */
+export function getAccessibleDepartments(
+  userDepartment: string,
+  role: AppRole
+): string[] {
+  // Admin pusat and pimpinan can access all departments
+  if (role === 'admin_pusat' || role === 'admin_pimpinan') {
+    return DEPARTMENTS as unknown as string[];
+  }
+  
+  // Admin unit: own department + Satpel/Workshop under their supervision
+  const accessible = [userDepartment];
+  
+  // If this is a unit pembina, add Satpel/Workshop under supervision
+  const satpels = getSatpelsByPembina(userDepartment);
+  accessible.push(...satpels);
+  
+  return accessible;
+}
+
+/**
+ * Check if a user can access a specific department
+ * @param userDepartment - User's department
+ * @param role - User's role
+ * @param targetDepartment - Department to check access for
+ * @returns true if user can access the department
+ */
+export function canAccessDepartment(
+  userDepartment: string,
+  role: AppRole,
+  targetDepartment: string
+): boolean {
+  const accessible = getAccessibleDepartments(userDepartment, role);
+  return accessible.includes(targetDepartment);
+}

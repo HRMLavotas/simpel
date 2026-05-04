@@ -43,7 +43,7 @@ import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ASN_STATUS_OPTIONS } from '@/lib/constants';
+import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -148,6 +148,30 @@ export default function Employees() {
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Check if admin unit has supervised units (Satpel/Workshop)
+  const hasSupervisedUnits = useMemo(() => {
+    if (!profile || role !== 'admin_unit') return false;
+    const satpels = getSatpelsByPembina(profile.department);
+    return satpels.length > 0;
+  }, [profile, role]);
+
+  // Get accessible departments for dropdown (own unit + supervised units)
+  const accessibleDepartments = useMemo(() => {
+    if (!profile) return [];
+    if (canViewAll) return dynamicDepartments.filter(d => d !== 'Pusat');
+    
+    // For admin_unit with supervised units
+    if (role === 'admin_unit' && hasSupervisedUnits) {
+      const satpels = getSatpelsByPembina(profile.department);
+      return [profile.department, ...satpels];
+    }
+    
+    return [];
+  }, [profile, canViewAll, role, hasSupervisedUnits, dynamicDepartments]);
+
+  // Show department filter if canViewAll OR admin_unit with supervised units
+  const showDepartmentFilter = canViewAll || (role === 'admin_unit' && hasSupervisedUnits);
+
   // Map urutan jabatan dari position_references: normalisedName → { categoryOrder, positionOrder, department }
   // Digunakan untuk mengurutkan pegawai persis seperti urutan di Peta Jabatan
   const [positionOrderMap, setPositionOrderMap] = useState<Map<string, { categoryOrder: number; positionOrder: number }>>(new Map());
@@ -195,7 +219,7 @@ export default function Employees() {
 
   useEffect(() => {
     fetchEmployees();
-  }, [profile, canViewAll]);
+  }, [profile, canViewAll, hasSupervisedUnits]);
 
   const fetchEmployees = async (skipIfModalOpen = false) => {
     // Skip refresh if modal is open and user is editing
@@ -220,9 +244,17 @@ export default function Employees() {
           .select('position_name, position_category, position_order, department')
           .range(posOffset, posOffset + 999);
 
-        // Admin unit hanya perlu urutan jabatan unit mereka sendiri
+        // Admin unit needs position order for their own unit + supervised units
         if (!canViewAll && profile.department) {
-          posQuery = posQuery.eq('department', profile.department);
+          if (hasSupervisedUnits) {
+            // Include own department + supervised Satpel/Workshop
+            const satpels = getSatpelsByPembina(profile.department);
+            const accessibleDepts = [profile.department, ...satpels];
+            posQuery = posQuery.in('department', accessibleDepts);
+          } else {
+            // Only own department
+            posQuery = posQuery.eq('department', profile.department);
+          }
         }
 
         const { data: posBatch, error: posError } = await posQuery
@@ -258,9 +290,17 @@ export default function Employees() {
           .order('department')
           .order('name');
 
-        // For admin_unit, restrict to their department (belt-and-suspenders with RLS)
+        // For admin_unit, restrict to their accessible departments (own + supervised units)
         if (!canViewAll && profile.department) {
-          query = query.eq('department', profile.department);
+          if (hasSupervisedUnits) {
+            // Include own department + supervised Satpel/Workshop
+            const satpels = getSatpelsByPembina(profile.department);
+            const accessibleDepts = [profile.department, ...satpels];
+            query = query.in('department', accessibleDepts);
+          } else {
+            // Only own department
+            query = query.eq('department', profile.department);
+          }
         }
 
         const { data: batch, error } = await query;
@@ -329,7 +369,8 @@ export default function Employees() {
         (emp.nip && emp.nip.includes(searchQuery)) ||
         (emp.position_name && emp.position_name.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesStatus = statusFilter === 'all' || emp.asn_status === statusFilter;
-      const matchesDepartment = !canViewAll || departmentFilter === 'all' || emp.department === departmentFilter;
+      // Apply department filter if dropdown is shown
+      const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || emp.department === departmentFilter;
       return matchesTab && matchesSearch && matchesStatus && matchesDepartment;
     });
     
@@ -337,10 +378,11 @@ export default function Employees() {
     logger.debug('Active tab:', activeTab);
     logger.debug('Total employees:', employees.length);
     logger.debug('Department filter:', departmentFilter);
+    logger.debug('Show department filter:', showDepartmentFilter);
     logger.debug('Filtered count:', filtered.length);
     
     return filtered;
-  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, canViewAll]);
+  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, showDepartmentFilter]);
 
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
   const paginatedEmployees = filteredEmployees.slice(
@@ -1250,12 +1292,12 @@ export default function Employees() {
               {ASN_STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
-          {canViewAll && (
+          {showDepartmentFilter && (
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
               <SelectTrigger id="department-filter" className="w-full sm:w-[240px]"><SelectValue placeholder="Unit Kerja" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                {dynamicDepartments.filter(d => d !== 'Pusat').map((dept) => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                <SelectItem value="all">Semua Unit</SelectItem>
+                {accessibleDepartments.map((dept) => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
@@ -1268,7 +1310,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !canViewAll || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
                   return e.asn_status !== 'Non ASN' && matchesStatus && matchesDepartment;
                 }).length})
               </span>
@@ -1278,7 +1320,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !canViewAll || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
                   return e.asn_status === 'Non ASN' && matchesStatus && matchesDepartment;
                 }).length})
               </span>

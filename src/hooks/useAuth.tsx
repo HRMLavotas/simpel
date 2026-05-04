@@ -9,6 +9,7 @@ interface Profile {
   email: string;
   full_name: string;
   department: string;
+  app_role: AppRole;
 }
 
 interface AuthContextType {
@@ -80,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
 
       // Fetch role
       const { data: roleData, error: roleError } = await supabase
@@ -90,7 +90,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (roleError) throw roleError;
-      setRole(roleData?.role as AppRole ?? null);
+      
+      const userRole = roleData?.role as AppRole ?? null;
+      setRole(userRole);
+      
+      // Combine profile with role
+      if (profileData && userRole) {
+        setProfile({
+          ...profileData,
+          app_role: userRole
+        });
+      } else {
+        setProfile(profileData);
+      }
     } catch (error) {
       logger.error('Error fetching user data:', error);
     } finally {
