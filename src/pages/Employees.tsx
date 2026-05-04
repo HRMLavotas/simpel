@@ -1413,7 +1413,22 @@ export default function Employees() {
                       {!collapsedCategories[group.category] && group.employees.map((employee) => (
                         <TableRow key={employee.id} className="animate-fade-in">
                           <TableCell className="font-mono text-sm">{employee.nip || '-'}</TableCell>
-                          <TableCell className="font-medium">{formatDisplayName(employee)}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex flex-col gap-0.5">
+                              <span>{formatDisplayName(employee)}</span>
+                              {/* Badge jabatan tambahan — tampil di semua ukuran layar */}
+                              {employee.additional_position && (
+                                <span className={cn(
+                                  'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit md:hidden',
+                                  employee.additional_position.toUpperCase().includes('PLT')
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                )}>
+                                  {employee.additional_position}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="hidden md:table-cell text-muted-foreground">
                             <div className="flex flex-col gap-0.5">
                               <span>{employee.position_name || '-'}</span>
