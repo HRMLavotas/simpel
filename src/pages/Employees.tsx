@@ -58,7 +58,7 @@ import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { HistoryRowData, NoteData, Employee } from '@/types/employee';
+import { HistoryRowData, Employee } from '@/types/employee';
 import { createNotification } from '@/hooks/useNotifications';
 import * as XLSX from 'xlsx';
 
@@ -255,7 +255,10 @@ export default function Employees() {
       const posOrderMap = new Map<string, { categoryOrder: number; positionOrder: number }>();
 
       let posOffset = 0;
-      while (true) {
+      const MAX_POS_ITERATIONS = 50; // Safety limit: max 50.000 position records
+      let posIterations = 0;
+      while (posIterations < MAX_POS_ITERATIONS) {
+        posIterations++;
         let posQuery = supabase
           .from('position_references')
           .select('position_name, position_category, position_order, department')
@@ -291,6 +294,9 @@ export default function Employees() {
         if (posBatch.length < 1000) break;
         posOffset += 1000;
       }
+      if (posIterations >= MAX_POS_ITERATIONS) {
+        logger.warn('[Employees] fetchPositionReferences reached max iterations limit');
+      }
 
       setPositionOrderMap(posOrderMap);
 
@@ -298,8 +304,11 @@ export default function Employees() {
       const allData: Employee[] = [];
       let offset = 0;
       const batchSize = 1000;
+      const MAX_EMP_ITERATIONS = 50; // Safety limit: max 50.000 employee records
+      let empIterations = 0;
 
-      while (true) {
+      while (empIterations < MAX_EMP_ITERATIONS) {
+        empIterations++;
         let query = supabase
           .from('employees')
           .select('*')
@@ -329,6 +338,9 @@ export default function Employees() {
         
         if (batch.length < batchSize) break;
         offset += batchSize;
+      }
+      if (empIterations >= MAX_EMP_ITERATIONS) {
+        logger.warn('[Employees] fetchEmployees reached max iterations limit');
       }
       
       // Sort pegawai persis seperti urutan Peta Jabatan:
@@ -554,7 +566,7 @@ export default function Employees() {
       ]);
 
       setSelectedEducation(
-        (eduRes.data || []).map((d: any) => ({
+        (eduRes.data || []).map((d) => ({
           id: d.id, level: d.level || '', institution_name: d.institution_name || '',
           major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
           front_title: d.front_title || '', back_title: d.back_title || '',

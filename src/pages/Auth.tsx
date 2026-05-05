@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +25,21 @@ export default function Auth() {
   const [forgotSent, setForgotSent] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  // Countdown state untuk membuat tombol reactive saat cooldown aktif
+  const [, setTick] = useState(0);
+
+  // Tick setiap detik saat cooldown aktif agar tombol dan teks terupdate
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+      if (Date.now() >= cooldownUntil) {
+        setCooldownUntil(null);
+        clearInterval(interval);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownUntil]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn } = useAuth();
@@ -64,8 +79,6 @@ export default function Auth() {
           title: 'Terlalu Banyak Percobaan',
           description: 'Terlalu banyak percobaan login. Tunggu 30 detik sebelum mencoba lagi.',
         });
-        // Auto-clear cooldown setelah 30 detik
-        setTimeout(() => setCooldownUntil(null), 30_000);
         return;
       }
 
@@ -216,7 +229,7 @@ export default function Auth() {
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : cooldownUntil && Date.now() < cooldownUntil ? (
-                  'Tunggu sebentar...'
+                  `Tunggu ${Math.ceil((cooldownUntil - Date.now()) / 1000)} detik...`
                 ) : (
                   <>Masuk <ArrowRight className="ml-2 h-4 w-4" /></>
                 )}

@@ -16,7 +16,20 @@ export default defineConfig(({ mode }) => ({
     // @ts-ignore
     allowedHosts: process.env.TEMPO === "true" ? true : undefined,
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    mode === "development" && componentTagger(),
+    // Inject app version as meta tag into index.html so the update checker can read it
+    {
+      name: 'inject-app-version',
+      transformIndexHtml(html) {
+        return html.replace(
+          '<meta name="author" content="Lavotas" />',
+          `<meta name="author" content="Lavotas" />\n    <meta name="app-version" content="${packageVersion}" />`
+        );
+      },
+    },
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

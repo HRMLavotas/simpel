@@ -58,6 +58,7 @@ export default function Profile() {
     if (profile?.full_name) {
       profileForm.reset({ full_name: profile.full_name });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.full_name]);
 
   const handleChangePassword = async (data: PasswordFormData) => {

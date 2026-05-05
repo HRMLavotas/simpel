@@ -18,35 +18,46 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 menit
 const SESSION_KEY = 'app_build_hash';
 
-async function fetchBuildHash(): Promise<string | null> {
+interface FetchResult {
+  hash: string | null;
+  version: string | null;
+}
+
+async function fetchBuildInfo(): Promise<FetchResult> {
   try {
     // Tambahkan timestamp agar browser tidak cache request ini
     const res = await fetch(`/?_check=${Date.now()}`, {
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { hash: null, version: null };
     const html = await res.text();
 
     // Ambil semua src script — ini berisi content hash dari build terbaru
     // Contoh: <script type="module" crossorigin src="/assets/index-Bx3kP9.js">
     const matches = html.match(/src="\/assets\/[^"]+\.js"/g);
-    if (!matches || matches.length === 0) return null;
+    const hash = matches && matches.length > 0 ? matches.sort().join('|') : null;
 
-    // Gabungkan semua script src sebagai fingerprint build
-    return matches.sort().join('|');
+    // Baca versi dari meta tag yang di-inject saat build
+    // Contoh: <meta name="app-version" content="2.15.0" />
+    const versionMatch = html.match(/<meta\s+name="app-version"\s+content="([^"]+)"/);
+    const version = versionMatch ? versionMatch[1] : null;
+
+    return { hash, version };
   } catch {
-    return null;
+    return { hash: null, version: null };
   }
 }
 
 export function useAppUpdate() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [isUpToDate, setIsUpToDate] = useState<boolean | null>(null); // null = belum dicek
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentHashRef = useRef<string | null>(null);
 
   const checkForUpdate = useCallback(async () => {
-    const latestHash = await fetchBuildHash();
+    const { hash: latestHash, version: serverVersion } = await fetchBuildInfo();
     if (!latestHash) return;
 
     if (!currentHashRef.current) {
@@ -58,8 +69,12 @@ export function useAppUpdate() {
 
     if (latestHash !== currentHashRef.current) {
       setUpdateAvailable(true);
+      setIsUpToDate(false);
+      if (serverVersion) setLatestVersion(serverVersion);
       // Hentikan polling setelah update terdeteksi
       if (intervalRef.current) clearInterval(intervalRef.current);
+    } else {
+      setIsUpToDate(true);
     }
   }, []);
 
@@ -97,5 +112,5 @@ export function useAppUpdate() {
     window.location.reload();
   }, []);
 
-  return { updateAvailable, applyUpdate };
+  return { updateAvailable, latestVersion, isUpToDate, applyUpdate, checkForUpdate };
 }

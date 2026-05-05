@@ -2,9 +2,11 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Info, Wrench, Sparkles, CheckCircle2, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, Wrench, Sparkles, CheckCircle2, Clock, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useAppUpdate } from '@/hooks/useAppUpdate';
 
 interface ChangeItem {
   type: 'fix' | 'feature' | 'improvement';
@@ -20,9 +22,21 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.14.0',
+    version: '2.15.0',
     date: '5 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'fix', text: 'Auth: cooldown login kini menampilkan countdown mundur yang akurat (misal "Tunggu 28 detik...") — sebelumnya tombol hanya menampilkan "Tunggu sebentar..." tanpa update.' },
+      { type: 'fix', text: 'Auth: cooldown timer menggunakan useEffect + setInterval agar tombol reaktif setiap detik, bukan hanya saat re-render.' },
+      { type: 'fix', text: 'Data Pegawai: hapus import NoteData yang tidak digunakan dari @/types/employee.' },
+      { type: 'fix', text: 'Data Pegawai: tambah batas maksimal iterasi (50x) pada loop fetch position_references dan employees untuk mencegah infinite loop.' },
+      { type: 'fix', text: 'Data Pegawai: ganti (d: any) dengan tipe yang proper di handleViewDetails untuk education history.' },
+      { type: 'fix', text: 'Profile: perbaikan dependency array useEffect untuk profileForm.reset — sebelumnya profileForm tidak masuk dependency.' },
+    ],
+  },
+  {
+    version: '2.14.0',
+    date: '5 Mei 2026',
     changes: [
       { type: 'fix', text: 'useAuth: perbaikan race condition — flag isFetching mencegah double-fetch profile saat onAuthStateChange dan getSession terpanggil bersamaan.' },
       { type: 'fix', text: 'ResetPassword: tambah .catch() pada getSession() — network error kini ditangani dengan pesan yang jelas dan redirect ke halaman login.' },
@@ -401,35 +415,91 @@ function ReleaseCard({ release, defaultOpen }: { release: Release; defaultOpen?:
 
 export default function SystemInfo() {
   const [activeTab, setActiveTab] = useState<'changelog' | 'features'>('changelog');
+  const { updateAvailable, latestVersion, isUpToDate, applyUpdate, checkForUpdate } = useAppUpdate();
+  const [isChecking, setIsChecking] = useState(false);
+  const [justChecked, setJustChecked] = useState(false);
 
   const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : RELEASES[0].version;
   const totalFeatures = RELEASES.flatMap(r => r.changes).filter(c => c.type === 'feature').length;
   const totalFixes = RELEASES.flatMap(r => r.changes).filter(c => c.type === 'fix').length;
+
+  const handleManualCheck = async () => {
+    if (updateAvailable) {
+      applyUpdate();
+      return;
+    }
+    setIsChecking(true);
+    setJustChecked(false);
+    await checkForUpdate();
+    setIsChecking(false);
+    setJustChecked(true);
+    // Reset "sudah terkini" badge setelah 5 detik
+    setTimeout(() => setJustChecked(false), 5000);
+  };
 
   return (
     <AppLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="page-header">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 flex-shrink-0 mt-0.5">
-              <Info className="h-5 w-5 text-primary" />
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 flex-shrink-0 mt-0.5">
+                <Info className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="page-title">Informasi Sistem</h1>
+                <p className="page-description">
+                  Riwayat pembaruan, fitur, dan perbaikan aplikasi SIMPEL.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="page-title">Informasi Sistem</h1>
-              <p className="page-description">
-                Riwayat pembaruan, fitur, dan perbaikan aplikasi SIMPEL.
-              </p>
-            </div>
+            <Button
+              variant={updateAvailable ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleManualCheck}
+              disabled={isChecking}
+              className="flex-shrink-0 gap-2"
+            >
+              <RefreshCw className={cn('h-4 w-4', isChecking && 'animate-spin')} />
+              {updateAvailable ? 'Perbarui Sekarang' : isChecking ? 'Memeriksa...' : 'Periksa Pembaruan'}
+            </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="shadow-sm">
+          {/* Versi Saat Ini — menampilkan status update */}
+          <Card className={cn(
+            'shadow-sm col-span-2 sm:col-span-1',
+            updateAvailable && 'border-orange-300 dark:border-orange-700',
+            isUpToDate === true && justChecked && 'border-green-300 dark:border-green-700',
+          )}>
             <CardContent className="pt-4 pb-3 px-4">
-              <div className="text-2xl font-bold text-primary">{currentVersion}</div>
+              <div className="flex items-start justify-between gap-1">
+                <div className={cn(
+                  'text-2xl font-bold',
+                  updateAvailable ? 'text-orange-500 dark:text-orange-400' : 'text-primary',
+                )}>
+                  {currentVersion}
+                </div>
+                {updateAvailable && (
+                  <span className="text-[10px] font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 px-1.5 py-0.5 rounded-full whitespace-nowrap mt-1">
+                    Versi Lama
+                  </span>
+                )}
+                {isUpToDate === true && justChecked && !updateAvailable && (
+                  <span className="text-[10px] font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded-full whitespace-nowrap mt-1">
+                    ✓ Terkini
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-muted-foreground mt-0.5">Versi Saat Ini</div>
+              {updateAvailable && latestVersion && (
+                <div className="text-xs text-orange-600 dark:text-orange-400 mt-1 font-medium">
+                  Tersedia: v{latestVersion}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="shadow-sm">
