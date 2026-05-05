@@ -24,6 +24,7 @@ interface AuthContextType {
   canEdit: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,6 +126,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    await fetchUserData(user.id);
+  };
+
   const isAdminPusat = role === 'admin_pusat';
   const isAdminPimpinan = role === 'admin_pimpinan';
   // Admin Pimpinan hanya bisa lihat semua unit jika departmentnya 'Pusat'
@@ -144,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       canEdit,
       signIn,
       signOut,
+      refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>

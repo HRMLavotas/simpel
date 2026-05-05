@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDataAudit } from '@/hooks/useDataAudit';
+import { type AuditEmployee, type AuditIssue } from '@/hooks/useDataAudit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertTriangle, Search, CheckCircle2, XCircle, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -18,16 +19,21 @@ import { EmployeeFormModal } from '@/components/employees/EmployeeFormModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { useDepartments } from '@/hooks/useDepartments';
 
 export default function DataAudit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAdminPusat } = useAuth();
+  const { departments } = useDepartments();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterIssue, setFilterIssue] = useState<string>('all');
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<AuditEmployee | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const itemsPerPage = 10;
 
   const { data: auditResult, isLoading, error } = useDataAudit();
@@ -39,6 +45,11 @@ export default function DataAudit() {
     if (!auditData) return [];
     
     let filtered = [...auditData];
+
+    // Filter by department (admin pusat only)
+    if (isAdminPusat && departmentFilter !== 'all') {
+      filtered = filtered.filter(d => d.department === departmentFilter);
+    }
     
     // Apply search
     if (searchQuery) {
@@ -52,12 +63,12 @@ export default function DataAudit() {
     // Apply issue filter
     if (filterIssue !== 'all') {
       filtered = filtered.filter(d => 
-        d.issues.some((issue: any) => issue.type === filterIssue)
+        d.issues.some((issue: AuditIssue) => issue.type === filterIssue)
       );
     }
     
     return filtered;
-  }, [auditData, searchQuery, filterIssue]);
+  }, [auditData, searchQuery, filterIssue, departmentFilter, isAdminPusat]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -70,14 +81,14 @@ export default function DataAudit() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterIssue]);
+  }, [searchQuery, filterIssue, departmentFilter]);
 
   // Get unique issue types for filter
   const issueTypes = useMemo(() => {
     if (!auditData) return [];
     const types = new Set<string>();
     auditData.forEach(d => {
-      d.issues.forEach((issue: any) => types.add(issue.type));
+      d.issues.forEach((issue: AuditIssue) => types.add(issue.type));
     });
     return Array.from(types).sort();
   }, [auditData]);
@@ -100,12 +111,12 @@ export default function DataAudit() {
     return labelMap[type] || type;
   };
 
-  const handleEditEmployee = (employee: any) => {
+  const handleEditEmployee = (employee: AuditEmployee) => {
     setSelectedEmployee(employee);
     setIsEditModalOpen(true);
   };
 
-  const handleSubmitEdit = async (data: any) => {
+  const handleSubmitEdit = async (data: Record<string, unknown>) => {
     if (!selectedEmployee) return;
     
     setIsSubmitting(true);
@@ -113,25 +124,25 @@ export default function DataAudit() {
       const { error } = await supabase
         .from('employees')
         .update({
-          nip: data.nip || null,
-          name: data.name,
-          front_title: data.front_title || null,
-          back_title: data.back_title || null,
-          birth_place: data.birth_place || null,
-          birth_date: data.birth_date || null,
-          gender: data.gender || null,
-          religion: data.religion || null,
-          position_type: data.position_type || null,
-          position_name: data.position_name || null,
-          additional_position: data.additional_position || null,
-          kejuruan: data.kejuruan || null,
-          asn_status: data.asn_status,
-          rank_group: data.rank_group || null,
-          department: data.department,
-          join_date: data.join_date || null,
-          tmt_cpns: data.tmt_cpns || null,
-          tmt_pns: data.tmt_pns || null,
-          tmt_pensiun: data.tmt_pensiun || null,
+          nip: (data.nip as string) || null,
+          name: data.name as string,
+          front_title: (data.front_title as string) || null,
+          back_title: (data.back_title as string) || null,
+          birth_place: (data.birth_place as string) || null,
+          birth_date: (data.birth_date as string) || null,
+          gender: (data.gender as string) || null,
+          religion: (data.religion as string) || null,
+          position_type: (data.position_type as string) || null,
+          position_name: (data.position_name as string) || null,
+          additional_position: (data.additional_position as string) || null,
+          kejuruan: (data.kejuruan as string) || null,
+          asn_status: data.asn_status as string,
+          rank_group: (data.rank_group as string) || null,
+          department: data.department as string,
+          join_date: (data.join_date as string) || null,
+          tmt_cpns: (data.tmt_cpns as string) || null,
+          tmt_pns: (data.tmt_pns as string) || null,
+          tmt_pensiun: (data.tmt_pensiun as string) || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', selectedEmployee.id);
@@ -146,10 +157,11 @@ export default function DataAudit() {
       queryClient.invalidateQueries({ queryKey: ['data-audit'] });
       setIsEditModalOpen(false);
       setSelectedEmployee(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : 'Terjadi kesalahan saat memperbarui data';
       toast({
         title: 'Gagal',
-        description: error.message || 'Terjadi kesalahan saat memperbarui data',
+        description: errMsg,
         variant: 'destructive',
       });
     } finally {
@@ -263,6 +275,19 @@ export default function DataAudit() {
                     className="pl-9"
                   />
                 </div>
+                {isAdminPusat && (
+                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Semua Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Unit</SelectItem>
+                      {departments.filter(d => d !== 'Pusat').map(dept => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Select value={filterIssue} onValueChange={setFilterIssue}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue />
@@ -325,7 +350,7 @@ export default function DataAudit() {
                         <p className="text-sm text-muted-foreground">NIP: {employee.nip}</p>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        {employee.issues.map((issue: any, idx: number) => (
+                        {employee.issues.map((issue: AuditIssue, idx: number) => (
                           <Badge 
                             key={idx} 
                             className={`${getIssueBadgeColor(issue.type)} text-white`}

@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface AuditIssue {
+export interface AuditIssue {
   type: 'missing_field' | 'invalid_format' | 'incomplete_data';
   field: string;
   message: string;
 }
 
-interface AuditEmployee {
+export interface AuditEmployee {
   id: string;
   nip: string | null;
   name: string;

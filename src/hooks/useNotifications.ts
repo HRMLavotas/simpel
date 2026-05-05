@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface Notification {
   id: string;
@@ -28,16 +29,28 @@ export function useNotifications() {
     if (!role || !profile) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
+      // Filter eksplisit berdasarkan role (defense in depth, RLS juga sudah handle ini)
+      if (role === 'admin_unit') {
+        query = query
+          .eq('recipient_role', 'admin_unit')
+          .eq('recipient_department', profile.department);
+      } else if (role === 'admin_pusat') {
+        query = query.eq('recipient_role', 'admin_pusat');
+      } else if (role === 'admin_pimpinan') {
+        query = query.eq('recipient_role', 'admin_pimpinan');
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setNotifications((data as Notification[]) || []);
     } catch (err) {
-      console.error('[useNotifications] fetch error:', err);
+      logger.error('[useNotifications] fetch error:', err);
     } finally {
       setIsLoading(false);
     }

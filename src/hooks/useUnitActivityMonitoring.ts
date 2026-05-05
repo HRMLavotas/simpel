@@ -28,7 +28,7 @@ export function useUnitActivitySummary(selectedMonth?: string) {
   return useQuery({
     queryKey: ['unit-activity-summary', selectedMonth],
     queryFn: async () => {
-      logger.log('Fetching unit activity summary', { selectedMonth });
+      logger.debug('Fetching unit activity summary', { selectedMonth });
       
       let query = supabase
         .from('unit_activity_summary')
@@ -48,7 +48,7 @@ export function useUnitActivitySummary(selectedMonth?: string) {
         throw error;
       }
 
-      logger.log('Unit activity summary fetched', { count: data?.length });
+      logger.debug('Unit activity summary fetched', { count: data?.length });
       return data as UnitActivitySummary[];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -59,7 +59,7 @@ export function useUnitMonthlyDetails(department: string, month: string) {
   return useQuery({
     queryKey: ['unit-monthly-details', department, month],
     queryFn: async () => {
-      logger.log('Fetching unit monthly details', { department, month });
+      logger.debug('Fetching unit monthly details', { department, month });
       
       const { data, error } = await supabase.rpc('get_unit_monthly_details', {
         p_department: department,
@@ -71,7 +71,7 @@ export function useUnitMonthlyDetails(department: string, month: string) {
         throw error;
       }
 
-      logger.log('Unit monthly details fetched', { count: data?.length });
+      logger.debug('Unit monthly details fetched', { count: data?.length });
       return data as UnitMonthlyDetail[];
     },
     enabled: !!department && !!month,

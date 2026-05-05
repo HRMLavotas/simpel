@@ -34,7 +34,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function Profile() {
-  const { profile, role, isAdminPusat, isAdminPimpinan, user } = useAuth();
+  const { profile, role, isAdminPusat, isAdminPimpinan, user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
@@ -97,8 +97,7 @@ export default function Profile() {
         .eq('id', profile!.id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Nama berhasil diperbarui' });
-      // Refresh auth context
-      window.location.reload();
+      await refreshProfile();
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       toast({ variant: 'destructive', title: 'Error', description: error.message });

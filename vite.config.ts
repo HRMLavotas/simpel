@@ -2,6 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { readFileSync } from "fs";
+
+const packageVersion = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf-8")
+).version;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,6 +21,9 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(packageVersion),
   },
   build: {
     rollupOptions: {

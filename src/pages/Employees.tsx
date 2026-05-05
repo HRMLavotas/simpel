@@ -53,6 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
+import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
@@ -152,6 +153,7 @@ export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -380,9 +382,9 @@ export default function Employees() {
       
       const displayName = formatDisplayName(emp).toLowerCase();
       const matchesSearch = 
-        displayName.includes(searchQuery.toLowerCase()) ||
-        (emp.nip && emp.nip.includes(searchQuery)) ||
-        (emp.position_name && emp.position_name.toLowerCase().includes(searchQuery.toLowerCase()));
+        displayName.includes(debouncedSearchQuery.toLowerCase()) ||
+        (emp.nip && emp.nip.includes(debouncedSearchQuery)) ||
+        (emp.position_name && emp.position_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
       const matchesStatus = statusFilter === 'all' || emp.asn_status === statusFilter;
       // Apply department filter if dropdown is shown
       const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || emp.department === departmentFilter;
@@ -397,12 +399,12 @@ export default function Employees() {
     logger.debug('Filtered count:', filtered.length);
     
     return filtered;
-  }, [employees, activeTab, searchQuery, statusFilter, departmentFilter, showDepartmentFilter]);
+  }, [employees, activeTab, debouncedSearchQuery, statusFilter, departmentFilter, showDepartmentFilter]);
 
   // Pagination: jika filter department spesifik aktif atau admin_unit (satu unit),
   // tampilkan semua tanpa pagination agar grouping tidak terpotong.
   // Pagination hanya aktif saat admin pusat melihat SEMUA unit sekaligus.
-  const isPaginationActive = canViewAll && (departmentFilter === 'all') && !searchQuery;
+  const isPaginationActive = canViewAll && (departmentFilter === 'all') && !debouncedSearchQuery;
 
   const totalPages = isPaginationActive
     ? Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE)
@@ -466,7 +468,7 @@ export default function Employees() {
     }));
   }, [paginatedEmployees, activeTab, positionOrderMap]);
 
-  useEffect(() => { setCurrentPage(1); }, [activeTab, searchQuery, statusFilter, departmentFilter]);
+  useEffect(() => { setCurrentPage(1); }, [activeTab, debouncedSearchQuery, statusFilter, departmentFilter]);
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories(prev => ({

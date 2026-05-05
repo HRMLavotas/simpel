@@ -376,7 +376,7 @@ function ReleaseCard({ release, defaultOpen }: { release: Release; defaultOpen?:
 export default function SystemInfo() {
   const [activeTab, setActiveTab] = useState<'changelog' | 'features'>('changelog');
 
-  const currentVersion = RELEASES[0].version;
+  const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : RELEASES[0].version;
   const totalFeatures = RELEASES.flatMap(r => r.changes).filter(c => c.type === 'feature').length;
   const totalFixes = RELEASES.flatMap(r => r.changes).filter(c => c.type === 'fix').length;
 

@@ -554,87 +554,101 @@ export function EmployeeFormModal({
     if (!open || !employee?.id) return;
     if (formModifiedRef.current && initialLoadCompleteRef.current) return;
 
-    setIsFetchingHistory(true);
-    const empId = employee.id;
+    const loadHistory = async () => {
+      setIsFetchingHistory(true);
+      const empId = employee.id;
 
-    const mapRows = (data: any[], fields: string[]) =>
-      (data || []).map((d: any) => {
-        const entry: HistoryEntry = { id: d.id };
-        fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
-        return entry;
-      });
+      const mapRows = (data: any[], fields: string[]) =>
+        (data || []).map((d: any) => {
+          const entry: HistoryEntry = { id: d.id };
+          fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
+          return entry;
+        });
 
-    // Isi nilai "lama" dari entry sebelumnya berdasarkan urutan tanggal
-    const inferOldValues = (
-      rows: HistoryEntry[],
-      newField: string,
-      oldField: string,
-      currentValue?: string
-    ): HistoryEntry[] => {
-      // rows sudah diurutkan ascending (terlama dulu)
-      return rows.map((row, i) => {
-        if (!row[oldField]) {
-          // Ambil dari pangkat_baru/jabatan_baru entry sebelumnya
-          const prev = i > 0 ? rows[i - 1][newField] : (currentValue || '');
-          return { ...row, [oldField]: prev || '' };
+      // Isi nilai "lama" dari entry sebelumnya berdasarkan urutan tanggal
+      const inferOldValues = (
+        rows: HistoryEntry[],
+        newField: string,
+        oldField: string,
+        currentValue?: string
+      ): HistoryEntry[] => {
+        // rows sudah diurutkan ascending (terlama dulu)
+        return rows.map((row, i) => {
+          if (!row[oldField]) {
+            // Ambil dari pangkat_baru/jabatan_baru entry sebelumnya
+            const prev = i > 0 ? rows[i - 1][newField] : (currentValue || '');
+            return { ...row, [oldField]: prev || '' };
+          }
+          return row;
+        });
+      };
+
+      try {
+        const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, addPosRes] = await Promise.all([
+          supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
+          supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('competency_test_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+          supabase.from('training_history').select('*').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+          supabase.from('placement_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('assignment_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('change_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('additional_position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+        ]);
+
+        setEducationEntries((eduRes.data || []).map((d: any) => ({
+          id: d.id, level: d.level || '', institution_name: d.institution_name || '',
+          major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
+          front_title: d.front_title || '', back_title: d.back_title || '',
+        })));
+
+        const mutationRows = mapRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']);
+        // Isi dari_unit dari ke_unit entry sebelumnya
+        const mutationWithOld = inferOldValues(mutationRows, 'ke_unit', 'dari_unit');
+        // Jika belum ada riwayat mutasi, inject unit kerja saat ini sebagai entry awal
+        if (mutationWithOld.length === 0 && employee.department) {
+          mutationWithOld.push({ id: '__current__', ke_unit: employee.department, keterangan: 'Data saat ini' });
         }
-        return row;
-      });
+        setMutationEntries(mutationWithOld);
+
+        const positionRows = mapRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']);
+        // Isi jabatan_lama dari jabatan_baru entry sebelumnya
+        const positionWithOld = inferOldValues(positionRows, 'jabatan_baru', 'jabatan_lama');
+        // Jika belum ada riwayat jabatan, inject jabatan saat ini sebagai entry awal
+        if (positionWithOld.length === 0 && employee.position_name) {
+          positionWithOld.push({ id: '__current__', jabatan_baru: employee.position_name, unit_kerja: employee.department || '', keterangan: 'Data saat ini' });
+        }
+        setPositionHistoryEntries(positionWithOld);
+
+        const rankRows = mapRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']);
+        // Isi pangkat_lama dari pangkat_baru entry sebelumnya
+        const rankWithOld = inferOldValues(rankRows, 'pangkat_baru', 'pangkat_lama');
+        // Jika belum ada riwayat pangkat, inject pangkat saat ini sebagai entry awal
+        if (rankWithOld.length === 0 && employee.rank_group) {
+          rankWithOld.push({ id: '__current__', pangkat_baru: employee.rank_group, keterangan: 'Data saat ini' });
+        }
+        setRankHistoryEntries(rankWithOld);
+
+        setCompetencyEntries(mapRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
+        setTrainingEntries(mapRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
+        setPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+        setAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+        setChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+        setAdditionalPositionHistoryEntries(mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
+      } catch (err) {
+        logger.error('[EmployeeFormModal] Error fetching history data:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Peringatan',
+          description: 'Gagal memuat riwayat pegawai. Data riwayat mungkin tidak lengkap.',
+        });
+      } finally {
+        setIsFetchingHistory(false);
+      }
     };
 
-    Promise.all([
-      supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
-      supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-      supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-      supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-      supabase.from('competency_test_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
-      supabase.from('training_history').select('*').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
-      supabase.from('placement_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-      supabase.from('assignment_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-      supabase.from('change_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-      supabase.from('additional_position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
-    ]).then(([eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, addPosRes]) => {
-      setEducationEntries((eduRes.data || []).map((d: any) => ({
-        id: d.id, level: d.level || '', institution_name: d.institution_name || '',
-        major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
-        front_title: d.front_title || '', back_title: d.back_title || '',
-      })));
-
-      const mutationRows = mapRows(mutRes.data || [], ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']);
-      // Isi dari_unit dari ke_unit entry sebelumnya
-      const mutationWithOld = inferOldValues(mutationRows, 'ke_unit', 'dari_unit');
-      // Jika belum ada riwayat mutasi, inject unit kerja saat ini sebagai entry awal
-      if (mutationWithOld.length === 0 && employee.department) {
-        mutationWithOld.push({ id: '__current__', ke_unit: employee.department, keterangan: 'Data saat ini' });
-      }
-      setMutationEntries(mutationWithOld);
-
-      const positionRows = mapRows(posRes.data || [], ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']);
-      // Isi jabatan_lama dari jabatan_baru entry sebelumnya
-      const positionWithOld = inferOldValues(positionRows, 'jabatan_baru', 'jabatan_lama');
-      // Jika belum ada riwayat jabatan, inject jabatan saat ini sebagai entry awal
-      if (positionWithOld.length === 0 && employee.position_name) {
-        positionWithOld.push({ id: '__current__', jabatan_baru: employee.position_name, unit_kerja: employee.department || '', keterangan: 'Data saat ini' });
-      }
-      setPositionHistoryEntries(positionWithOld);
-
-      const rankRows = mapRows(rankRes.data || [], ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']);
-      // Isi pangkat_lama dari pangkat_baru entry sebelumnya
-      const rankWithOld = inferOldValues(rankRows, 'pangkat_baru', 'pangkat_lama');
-      // Jika belum ada riwayat pangkat, inject pangkat saat ini sebagai entry awal
-      if (rankWithOld.length === 0 && employee.rank_group) {
-        rankWithOld.push({ id: '__current__', pangkat_baru: employee.rank_group, keterangan: 'Data saat ini' });
-      }
-      setRankHistoryEntries(rankWithOld);
-
-      setCompetencyEntries(mapRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
-      setTrainingEntries(mapRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
-      setPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-      setAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-      setChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-      setAdditionalPositionHistoryEntries(mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
-      setIsFetchingHistory(false);
-    }).catch(() => setIsFetchingHistory(false));
+    loadHistory();
   }, [open, employee?.id]);
 
   // Handle edit additional position
