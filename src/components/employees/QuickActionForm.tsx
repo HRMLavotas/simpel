@@ -17,6 +17,15 @@ import { CheckCircle2, TrendingUp, MapPin, Briefcase } from 'lucide-react';
 import { RANK_GROUPS_PNS, RANK_GROUPS_PPPK } from '@/lib/constants';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { HistoryEntry } from './EmployeeHistoryForm';
 
 interface QuickActionFormProps {
@@ -53,14 +62,8 @@ export function QuickActionForm({
   onDepartmentChange,
 }: QuickActionFormProps) {
   const [activeQuickTab, setActiveQuickTab] = useState<'rank' | 'mutation' | 'position'>('rank');
-  
-  // Debug logging
-  console.log('=== QuickActionForm Props ===');
-  console.log('currentRank:', currentRank);
-  console.log('currentPosition:', currentPosition);
-  console.log('currentDepartment:', currentDepartment);
-  console.log('asnStatus:', asnStatus);
-  
+  const { toast } = useToast();
+
   // Rank promotion state
   const [newRank, setNewRank] = useState('');
   const [rankDate, setRankDate] = useState(new Date().toISOString().split('T')[0]);
@@ -76,6 +79,14 @@ export function QuickActionForm({
   const [mutationSK, setMutationSK] = useState('');
   const [mutationNotes, setMutationNotes] = useState('');
   const [mutationSuccess, setMutationSuccess] = useState(false);
+
+  // Mutation confirmation state
+  const [showMutationConfirm, setShowMutationConfirm] = useState(false);
+  const [pendingMutation, setPendingMutation] = useState<{
+    department: string;
+    position: string;
+    entry: HistoryEntry;
+  } | null>(null);
 
   // Fetch jabatan dari unit tujuan mutasi
   const { positions: targetPositionOptions } = usePositionOptions(newDepartment || undefined);
@@ -96,13 +107,13 @@ export function QuickActionForm({
 
   const handleRankPromotion = () => {
     if (!newRank) {
-      alert('Pilih pangkat baru terlebih dahulu');
+      toast({ variant: 'destructive', title: 'Pilih pangkat baru terlebih dahulu' });
       return;
     }
     
     // Validate: new rank must be different from current
     if (newRank === currentRank) {
-      alert('Pangkat baru harus berbeda dari pangkat saat ini');
+      toast({ variant: 'destructive', title: 'Pangkat baru harus berbeda dari pangkat saat ini' });
       return;
     }
     
@@ -129,12 +140,12 @@ export function QuickActionForm({
 
   const handleMutation = () => {
     if (!newDepartment) {
-      alert('Pilih unit kerja tujuan terlebih dahulu');
+      toast({ variant: 'destructive', title: 'Pilih unit kerja tujuan terlebih dahulu' });
       return;
     }
     
     if (newDepartment === currentDepartment) {
-      alert('Unit kerja tujuan harus berbeda dari unit kerja saat ini');
+      toast({ variant: 'destructive', title: 'Unit kerja tujuan harus berbeda dari unit kerja saat ini' });
       return;
     }
     
@@ -147,11 +158,18 @@ export function QuickActionForm({
       keterangan: mutationNotes || 'Mutasi - Quick Action',
     };
     
-    onDepartmentChange(newDepartment, mutationPosition, entry);
-    
+    // Tampilkan konfirmasi sebelum apply
+    setPendingMutation({ department: newDepartment, position: mutationPosition, entry });
+    setShowMutationConfirm(true);
+  };
+
+  const confirmMutation = () => {
+    if (!pendingMutation) return;
+    onDepartmentChange(pendingMutation.department, pendingMutation.position, pendingMutation.entry);
+    setShowMutationConfirm(false);
+    setPendingMutation(null);
     setMutationSuccess(true);
     setTimeout(() => setMutationSuccess(false), 3000);
-    
     setNewDepartment('');
     setMutationPosition('');
     setMutationSK('');
@@ -160,13 +178,13 @@ export function QuickActionForm({
 
   const handlePositionChange = () => {
     if (!newPosition) {
-      alert('Isi nama jabatan baru terlebih dahulu');
+      toast({ variant: 'destructive', title: 'Isi nama jabatan baru terlebih dahulu' });
       return;
     }
     
     // Validate: new position must be different from current
     if (newPosition.trim() === currentPosition.trim()) {
-      alert('Jabatan baru harus berbeda dari jabatan saat ini');
+      toast({ variant: 'destructive', title: 'Jabatan baru harus berbeda dari jabatan saat ini' });
       return;
     }
     
@@ -514,6 +532,42 @@ export function QuickActionForm({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Konfirmasi Mutasi */}
+      <Dialog open={showMutationConfirm} onOpenChange={setShowMutationConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Mutasi</DialogTitle>
+            <DialogDescription>
+              Pegawai akan dipindahkan ke unit kerja baru. Tindakan ini akan dicatat sebagai riwayat mutasi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Dari Unit:</span>
+              <span className="font-medium">{currentDepartment}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ke Unit:</span>
+              <span className="font-medium">{pendingMutation?.department}</span>
+            </div>
+            {pendingMutation?.position && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Jabatan Baru:</span>
+                <span className="font-medium">{pendingMutation.position}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setShowMutationConfirm(false); setPendingMutation(null); }}>
+              Batal
+            </Button>
+            <Button onClick={confirmMutation}>
+              Ya, Terapkan Mutasi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

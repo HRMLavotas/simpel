@@ -20,9 +20,35 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.12.1',
+    version: '2.14.0',
     date: '5 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'fix', text: 'useAuth: perbaikan race condition — flag isFetching mencegah double-fetch profile saat onAuthStateChange dan getSession terpanggil bersamaan.' },
+      { type: 'fix', text: 'ResetPassword: tambah .catch() pada getSession() — network error kini ditangani dengan pesan yang jelas dan redirect ke halaman login.' },
+      { type: 'fix', text: 'useDataAudit: ganti parameter any dengan interface RawEmployeeAuditData yang proper — type safety lebih baik.' },
+      { type: 'fix', text: 'EmployeeDetailsModal: logger.debug dipindah dari render function ke useEffect — tidak lagi log setiap render. Tab juga di-reset ke Data Utama saat pegawai berubah.' },
+      { type: 'fix', text: 'usePetaJabatanStats: while(true) diganti dengan batas maksimal 50 iterasi (50.000 records) untuk mencegah infinite loop.' },
+      { type: 'feature', text: 'Login: cooldown UI setelah 5 kali gagal login — tombol dinonaktifkan 30 detik untuk mencegah brute force.' },
+      { type: 'improvement', text: 'Kelola Admin: info box peringatan bahwa admin baru perlu konfirmasi email sebelum bisa login. Deteksi email duplikat lebih akurat.' },
+      { type: 'improvement', text: 'Quick Action Mutasi: dialog konfirmasi sebelum mutasi diterapkan — menampilkan detail dari/ke unit dan jabatan baru.' },
+    ],
+  },
+  {
+    version: '2.13.0',
+    date: '5 Mei 2026',
+    changes: [
+      { type: 'fix', text: 'QuickActionForm: hapus 5 console.log debug yang tertinggal di production code.' },
+      { type: 'fix', text: 'QuickActionForm: ganti 5 alert() browser native dengan toast notification yang konsisten dengan UI aplikasi.' },
+      { type: 'fix', text: 'EmployeeFormModal: ganti 3 console.log dengan logger.debug() agar tidak muncul di production.' },
+      { type: 'fix', text: 'GlobalEmployeeSearch: ganti console.error dengan logger.error() dan hapus import Badge yang tidak digunakan.' },
+      { type: 'fix', text: 'useNotifications: ganti console.error dengan logger.error() di fungsi createNotification.' },
+      { type: 'improvement', text: 'QuickActionForm: tambah import useToast untuk mendukung toast notification pada validasi form.' },
+    ],
+  },
+  {
+    version: '2.12.1',
+    date: '5 Mei 2026',
     changes: [
       { type: 'fix', text: 'useAuth: hapus fungsi signUp dan deklarasinya dari AuthContextType — tidak digunakan sejak halaman signup dihapus.' },
       { type: 'fix', text: 'Monitoring Unit: filter bulan menggunakan format date yang salah (toISOString() menghasilkan UTC penuh) — diperbaiki menggunakan nilai yyyy-MM-dd langsung.' },

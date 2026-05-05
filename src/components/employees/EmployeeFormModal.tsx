@@ -442,7 +442,7 @@ export function EmployeeFormModal({
     if (!open) return; // Only run when modal is open
     
     if (employee) {
-      console.log('Loading employee data:', employee.name, 'Rank:', employee.rank_group);
+      logger.debug('Loading employee data:', employee.name, 'Rank:', employee.rank_group);
       
       // Normalize gender
       let normalizedGender = employee.gender || '';
@@ -509,7 +509,7 @@ export function EmployeeFormModal({
       if (employee.rank_group) {
         setTimeout(() => {
           form.setValue('rank_group', employee.rank_group!, { shouldValidate: false });
-          console.log('Rank group set to:', employee.rank_group);
+          logger.debug('Rank group set to:', employee.rank_group);
         }, 0);
       }
       
@@ -519,7 +519,7 @@ export function EmployeeFormModal({
       // Set form ready after ensuring all updates are done
       setTimeout(() => {
         setIsFormReady(true);
-        console.log('Form ready. Current rank:', form.getValues('rank_group'));
+        logger.debug('Form ready. Current rank:', form.getValues('rank_group'));
       }, 100);
       
     } else {

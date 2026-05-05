@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 const resetSchema = z.object({
   newPassword: z.string().min(6, 'Password minimal 6 karakter'),
@@ -36,18 +37,28 @@ export default function ResetPassword() {
 
   useEffect(() => {
     // Check if we have a valid recovery session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsValidSession(true);
-      } else {
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session) {
+          setIsValidSession(true);
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Link Tidak Valid',
+            description: 'Link reset password sudah kadaluarsa atau tidak valid.',
+          });
+          navigate('/auth');
+        }
+      })
+      .catch((err) => {
+        logger.error('Error checking session:', err);
         toast({
           variant: 'destructive',
-          title: 'Link Tidak Valid',
-          description: 'Link reset password sudah kadaluarsa atau tidak valid.',
+          title: 'Terjadi Kesalahan',
+          description: 'Gagal memverifikasi sesi. Silakan coba lagi.',
         });
         navigate('/auth');
-      }
-    });
+      });
   }, [navigate, toast]);
 
   const handleReset = async (data: ResetFormData) => {

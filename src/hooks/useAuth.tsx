@@ -37,16 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Flag untuk mencegah double-fetch profile (race condition antara onAuthStateChange dan getSession)
+    let isFetching = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Defer profile fetch with setTimeout to prevent deadlock
+
         if (session?.user) {
+          // Defer dengan setTimeout untuk mencegah deadlock Supabase
           setTimeout(() => {
-            fetchUserData(session.user.id);
+            if (!isFetching) {
+              isFetching = true;
+              fetchUserData(session.user.id).finally(() => { isFetching = false; });
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -56,16 +61,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
+    // Cek existing session — hanya fetch jika onAuthStateChange belum trigger
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserData(session.user.id);
-      } else {
+
+      if (session?.user && !isFetching) {
+        isFetching = true;
+        fetchUserData(session.user.id).finally(() => { isFetching = false; });
+      } else if (!session?.user) {
         setIsLoading(false);
       }
+    }).catch((err) => {
+      logger.error('Error getting session:', err);
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();

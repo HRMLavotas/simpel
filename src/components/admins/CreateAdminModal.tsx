@@ -110,7 +110,15 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
       });
 
       if (signUpError) {
+        if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
+          throw new Error('Email sudah terdaftar. Gunakan email lain atau edit admin yang sudah ada.');
+        }
         throw new Error(signUpError.message);
+      }
+
+      // Cek apakah user berhasil dibuat (bukan hanya email konfirmasi)
+      if (!data?.user) {
+        throw new Error('Gagal membuat akun. Email mungkin sudah terdaftar.');
       }
 
       logger.debug('SignUp response:', data);
@@ -245,6 +253,10 @@ export function CreateAdminModal({ open, onOpenChange, onSuccess }: CreateAdminM
             {errors.role && (
               <p className="text-sm text-destructive">{errors.role}</p>
             )}
+          </div>
+
+          <div className="rounded-lg border border-dashed bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-700 dark:text-amber-400">
+            <strong>Catatan:</strong> Admin baru akan menerima email konfirmasi. Mereka perlu mengklik link di email sebelum bisa login. Pastikan email yang dimasukkan valid dan dapat diakses.
           </div>
 
           <DialogFooter className="pt-4">

@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import { type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
 
@@ -266,10 +266,15 @@ export function EmployeeDetailsModal({
 }: EmployeeDetailsModalProps) {
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes'>('main');
 
-  if (!employee) return null;
+  // Reset tab ke 'main' saat employee berubah
+  useEffect(() => {
+    if (employee) {
+      setActiveTab('main');
+      logger.debug('=== EMPLOYEE DETAILS MODAL ===', employee.name);
+    }
+  }, [employee?.id]);
 
-  logger.debug('=== EMPLOYEE DETAILS MODAL ===');
-  logger.debug('Employee:', employee);
+  if (!employee) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

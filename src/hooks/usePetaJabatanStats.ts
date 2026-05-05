@@ -56,13 +56,19 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
         const allData: any[] = [];
         let offset = 0;
         const batchSize = 1000;
-        while (true) {
+        const MAX_ITERATIONS = 50; // Safety limit: max 50.000 records
+        let iterations = 0;
+        while (iterations < MAX_ITERATIONS) {
+          iterations++;
           const { data, error } = await buildQuery().range(offset, offset + batchSize - 1);
           if (error) throw error;
           if (!data || data.length === 0) break;
           allData.push(...data);
           if (data.length < batchSize) break;
           offset += batchSize;
+        }
+        if (iterations >= MAX_ITERATIONS) {
+          logger.warn('[PetaJabatanStats] fetchAllUnlimited reached max iterations limit');
         }
         return { data: allData, error: null };
       };

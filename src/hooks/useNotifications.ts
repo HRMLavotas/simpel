@@ -171,6 +171,6 @@ export async function createNotification(params: {
 
   if (notificationsToInsert.length > 0) {
     const { error } = await supabase.from('notifications').insert(notificationsToInsert);
-    if (error) console.error('[createNotification] error:', error);
+    if (error) logger.error('[createNotification] error:', error);
   }
 }

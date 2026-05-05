@@ -23,6 +23,8 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn } = useAuth();
@@ -33,10 +35,40 @@ export default function Auth() {
   });
 
   const handleLogin = async (data: LoginFormData) => {
+    // Cek cooldown
+    if (cooldownUntil && Date.now() < cooldownUntil) {
+      const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      toast({
+        variant: 'destructive',
+        title: 'Terlalu Banyak Percobaan',
+        description: `Tunggu ${remaining} detik sebelum mencoba lagi.`,
+      });
+      return;
+    }
+
     setIsLoading(true);
     const { error } = await signIn(data.email, data.password);
     setIsLoading(false);
+
     if (error) {
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+
+      // Setelah 5 kali gagal, cooldown 30 detik
+      if (newAttempts >= 5) {
+        const until = Date.now() + 30_000;
+        setCooldownUntil(until);
+        setLoginAttempts(0);
+        toast({
+          variant: 'destructive',
+          title: 'Terlalu Banyak Percobaan',
+          description: 'Terlalu banyak percobaan login. Tunggu 30 detik sebelum mencoba lagi.',
+        });
+        // Auto-clear cooldown setelah 30 detik
+        setTimeout(() => setCooldownUntil(null), 30_000);
+        return;
+      }
+
       toast({
         variant: 'destructive',
         title: 'Login Gagal',
@@ -44,6 +76,10 @@ export default function Auth() {
       });
       return;
     }
+
+    // Reset attempts on success
+    setLoginAttempts(0);
+    setCooldownUntil(null);
     toast({ title: 'Login Berhasil', description: 'Selamat datang kembali!' });
     navigate('/dashboard');
   };
@@ -176,9 +212,11 @@ export default function Auth() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || (cooldownUntil !== null && Date.now() < cooldownUntil)}>
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : cooldownUntil && Date.now() < cooldownUntil ? (
+                  'Tunggu sebentar...'
                 ) : (
                   <>Masuk <ArrowRight className="ml-2 h-4 w-4" /></>
                 )}

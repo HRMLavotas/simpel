@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { Search, X, User, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface SearchResult {
   id: string;
@@ -61,7 +61,7 @@ export function GlobalEmployeeSearch({ open, onOpenChange, onSelectEmployee }: G
       if (error) throw error;
       setResults((data || []) as SearchResult[]);
     } catch (err) {
-      console.error('[GlobalEmployeeSearch] error:', err);
+      logger.error('[GlobalEmployeeSearch] error:', err);
       setResults([]);
     } finally {
       setIsSearching(false);

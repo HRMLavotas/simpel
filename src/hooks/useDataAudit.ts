@@ -23,6 +23,21 @@ export interface AuditEmployee {
   issues: AuditIssue[];
 }
 
+// Tipe untuk raw data dari Supabase query
+interface RawEmployeeAuditData {
+  id: string;
+  nip: string | null;
+  name: string;
+  department: string;
+  asn_status: string | null;
+  rank_group: string | null;
+  position_name: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  birth_place: string | null;
+  religion: string | null;
+}
+
 // Validasi format pangkat
 const isValidRankFormat = (rank: string | null): boolean => {
   if (!rank) return false;
@@ -55,7 +70,7 @@ const isValidNIPFormat = (nip: string | null): boolean => {
 };
 
 // Audit satu employee
-const auditEmployee = (employee: any): AuditEmployee => {
+const auditEmployee = (employee: RawEmployeeAuditData): AuditEmployee => {
   const issues: AuditIssue[] = [];
 
   // Check NIP format
