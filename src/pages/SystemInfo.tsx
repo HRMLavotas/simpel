@@ -22,9 +22,23 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.15.0',
+    version: '2.16.0',
     date: '5 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Data Pegawai: field baru Nomor HP, Nomor Telepon, dan Alamat — ditampilkan di detail pegawai pada section "Kontak & Alamat".' },
+      { type: 'feature', text: 'Data Pegawai: field TMT Golongan (tmt_gol) — mencatat tanggal mulai berlaku golongan/pangkat terakhir.' },
+      { type: 'feature', text: 'Import Data: tab baru "Daftar Pegawai" — import data kontak dan alamat pegawai dari format Excel daftar pegawai (NIP, Nama, Tempat/Tgl Lahir, Alamat, Telepon, No. HP, TMT Gol, Pendidikan Terakhir). Hanya field yang terisi yang diperbarui, field kosong tidak menghapus data yang sudah ada.' },
+      { type: 'feature', text: 'Import Data: import Daftar Pegawai juga memperbarui riwayat pendidikan (education_history) secara otomatis dari kolom Pendidikan Terakhir di Excel.' },
+      { type: 'improvement', text: 'Detail Pegawai: label NIP berubah menjadi NIK untuk pegawai Non ASN.' },
+      { type: 'improvement', text: 'Informasi Sistem: tombol "Periksa Pembaruan" di pojok kanan atas — user dapat memeriksa update secara manual tanpa menunggu banner otomatis.' },
+      { type: 'improvement', text: 'Informasi Sistem: card "Versi Saat Ini" menampilkan badge "Versi Lama" dan nomor versi terbaru saat ada update tersedia, serta badge "✓ Terkini" setelah cek manual berhasil.' },
+      { type: 'fix', text: 'Informasi Sistem: versi yang ditampilkan di card kini sinkron dengan package.json — sebelumnya selalu menampilkan 0.0.0.' },
+    ],
+  },
+  {
+    version: '2.15.0',
+    date: '5 Mei 2026',
     changes: [
       { type: 'fix', text: 'Auth: cooldown login kini menampilkan countdown mundur yang akurat (misal "Tunggu 28 detik...") — sebelumnya tombol hanya menampilkan "Tunggu sebentar..." tanpa update.' },
       { type: 'fix', text: 'Auth: cooldown timer menggunakan useEffect + setInterval agar tombol reaktif setiap detik, bukan hanya saat re-render.' },
