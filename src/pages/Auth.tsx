@@ -3,97 +3,71 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Building2, Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Building2, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { DEPARTMENTS } from '@/lib/constants';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid'),
-  password: z.string().min(6, 'Password minimal 6 karakter')
-});
-const signupSchema = z.object({
-  email: z.string().email('Email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
-  fullName: z.string().min(3, 'Nama minimal 3 karakter'),
-  department: z.string().min(1, 'Pilih unit kerja')
 });
 type LoginFormData = z.infer<typeof loginSchema>;
-type SignupFormData = z.infer<typeof signupSchema>;
+
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<'login' | 'forgot'>('login');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
-  const {
-    signIn,
-    signUp
-  } = useAuth();
+  const { toast } = useToast();
+  const { signIn } = useAuth();
+
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: ''
-    }
+    defaultValues: { email: '', password: '' },
   });
-  const signupForm = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      fullName: '',
-      department: '',
-    }
-  });
+
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    const {
-      error
-    } = await signIn(data.email, data.password);
+    const { error } = await signIn(data.email, data.password);
     setIsLoading(false);
     if (error) {
       toast({
         variant: 'destructive',
         title: 'Login Gagal',
-        description: error.message === 'Invalid login credentials' ? 'Email atau password salah' : error.message
+        description: error.message === 'Invalid login credentials' ? 'Email atau password salah' : error.message,
       });
       return;
     }
-    toast({
-      title: 'Login Berhasil',
-      description: 'Selamat datang kembali!'
-    });
+    toast({ title: 'Login Berhasil', description: 'Selamat datang kembali!' });
     navigate('/dashboard');
   };
-  const handleSignup = async (data: SignupFormData) => {
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
     setIsLoading(true);
-    const {
-      error
-    } = await signUp(data.email, data.password, data.fullName, data.department);
-    setIsLoading(false);
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Registrasi Gagal',
-        description: error.message.includes('already registered') ? 'Email sudah terdaftar' : error.message
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      return;
+      if (error) throw error;
+      setForgotSent(true);
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast({ variant: 'destructive', title: 'Gagal', description: error.message });
+    } finally {
+      setIsLoading(false);
     }
-    toast({
-      title: 'Registrasi Berhasil',
-      description: 'Akun berhasil dibuat. Silakan login.'
-    });
-    setIsLogin(true);
-    signupForm.reset();
   };
-  return <div className="min-h-screen flex">
+
+  return (
+    <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
         <div>
@@ -114,7 +88,7 @@ export default function Auth() {
             Pegawai dengan Mudah
           </h2>
           <p className="text-lg text-sidebar-foreground/70 max-w-md">
-            Sistem terintegrasi untuk pengelolaan data pegawai di seluruh unit kerja 
+            Sistem terintegrasi untuk pengelolaan data pegawai di seluruh unit kerja
             Ditjen Binalavotas Kementerian Ketenagakerjaan.
           </p>
           <div className="flex gap-8 pt-4">
@@ -134,7 +108,7 @@ export default function Auth() {
         </div>
 
         <p className="text-xs text-sidebar-foreground/40">
-          © 2024 Ditjen Binalavotas - Kementerian Ketenagakerjaan RI 
+          © 2024 Ditjen Binalavotas - Kementerian Ketenagakerjaan RI
         </p>
       </div>
 
@@ -149,33 +123,45 @@ export default function Auth() {
               <span className="text-lg font-bold">SIMPEL</span>
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              {isLogin ? 'Masuk ke Akun Anda' : 'Buat Akun Baru'}
+              {mode === 'login' ? 'Masuk ke Akun Anda' : 'Reset Password'}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              {isLogin ? 'Masukkan email dan password untuk melanjutkan' : 'Lengkapi data berikut untuk membuat akun admin unit'}
+              {mode === 'login'
+                ? 'Masukkan email dan password untuk melanjutkan'
+                : 'Masukkan email Anda untuk menerima link reset password'}
             </p>
           </div>
 
-          {isLogin ? <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
+          {/* Login Form */}
+          {mode === 'login' && (
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="admin@kemenperin.go.id" className="pl-10 input-focus" {...loginForm.register('email')} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@kemenperin.go.id"
+                    className="pl-10 input-focus"
+                    {...loginForm.register('email')}
+                  />
                 </div>
-                {loginForm.formState.errors.email && <p className="text-xs text-destructive">{loginForm.formState.errors.email.message}</p>}
+                {loginForm.formState.errors.email && (
+                  <p className="text-xs text-destructive">{loginForm.formState.errors.email.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    className="pl-10 pr-10 input-focus" 
-                    {...loginForm.register('password')} 
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 input-focus"
+                    {...loginForm.register('password')}
                   />
                   <button
                     type="button"
@@ -185,84 +171,91 @@ export default function Auth() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {loginForm.formState.errors.password && <p className="text-xs text-destructive">{loginForm.formState.errors.password.message}</p>}
+                {loginForm.formState.errors.password && (
+                  <p className="text-xs text-destructive">{loginForm.formState.errors.password.message}</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
-                    Masuk <ArrowRight className="ml-2 h-4 w-4" />
-                  </>}
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>Masuk <ArrowRight className="ml-2 h-4 w-4" /></>
+                )}
               </Button>
-            </form> : <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nama Lengkap</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="fullName" placeholder="Nama lengkap" className="pl-10 input-focus" {...signupForm.register('fullName')} />
-                </div>
-                {signupForm.formState.errors.fullName && <p className="text-xs text-destructive">{signupForm.formState.errors.fullName.message}</p>}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="signup-email" type="email" placeholder="admin@kemenperin.go.id" className="pl-10 input-focus" {...signupForm.register('email')} />
-                </div>
-                {signupForm.formState.errors.email && <p className="text-xs text-destructive">{signupForm.formState.errors.email.message}</p>}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setMode('forgot')}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Lupa password?
+                </button>
               </div>
+            </form>
+          )}
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    id="signup-password" 
-                    type={showSignupPassword ? "text" : "password"} 
-                    placeholder="Minimal 6 karakter" 
-                    className="pl-10 pr-10 input-focus" 
-                    {...signupForm.register('password')} 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSignupPassword(!showSignupPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          {/* Forgot Password Form */}
+          {mode === 'forgot' && (
+            <div className="space-y-5">
+              {forgotSent ? (
+                <div className="rounded-xl border bg-card p-6 text-center space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mx-auto">
+                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold">Email Terkirim</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Link reset password telah dikirim ke <strong>{forgotEmail}</strong>.
+                    Periksa inbox atau folder spam Anda.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => { setMode('login'); setForgotSent(false); }}
                   >
-                    {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                    Kembali ke Login
+                  </Button>
                 </div>
-                {signupForm.formState.errors.password && <p className="text-xs text-destructive">{signupForm.formState.errors.password.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="signup-department">Unit Kerja</Label>
-                <Select onValueChange={value => signupForm.setValue('department', value)} defaultValue="">
-                  <SelectTrigger id="signup-department" className="input-focus">
-                    <SelectValue placeholder="Pilih unit kerja" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {signupForm.formState.errors.department && <p className="text-xs text-destructive">{signupForm.formState.errors.department.message}</p>}
-              </div>
-
-              <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
-                Akun baru akan dibuat sebagai <span className="font-medium text-foreground">Admin Unit</span>.
-                Untuk akun Admin Pusat atau Admin Pimpinan, gunakan menu kelola admin.
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
-                    Daftar <ArrowRight className="ml-2 h-4 w-4" />
-                  </>}
-              </Button>
-            </form>}
-
-          <div className="text-center">
-            
-          </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="admin@kemenperin.go.id"
+                        className="pl-10"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>Kirim Link Reset <ArrowRight className="ml-2 h-4 w-4" /></>
+                    )}
+                  </Button>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      ← Kembali ke Login
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

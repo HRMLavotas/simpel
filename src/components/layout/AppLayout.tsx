@@ -1,11 +1,13 @@
 import { ReactNode, useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Sun, Moon, Search } from 'lucide-react';
 import { AppSidebar } from './AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useSidebarContext } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useTheme } from 'next-themes';
+import { GlobalEmployeeSearch } from '@/components/employees/GlobalEmployeeSearch';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -14,7 +16,9 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { profile, isAdminPusat, isAdminPimpinan, canViewAll } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const { collapsed } = useSidebarContext();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,6 +44,32 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <NotificationBell />
+            {/* Global search - only for admin_pusat and admin_pimpinan */}
+            {canViewAll && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+                onClick={() => setGlobalSearchOpen(true)}
+                title="Cari Pegawai (Semua Unit)"
+              >
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            )}
+            {/* Dark mode toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              title={theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
+            </Button>
             <div className="hidden md:block text-right">
               <p className="text-xs font-medium text-foreground truncate max-w-[120px] lg:max-w-[160px]">{profile?.full_name || 'Admin'}</p>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
@@ -57,6 +87,12 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Global Employee Search Dialog */}
+      <GlobalEmployeeSearch
+        open={globalSearchOpen}
+        onOpenChange={setGlobalSearchOpen}
+      />
     </div>
   );
 }

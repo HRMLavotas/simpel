@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Save, Lock } from 'lucide-react';
+import { Loader2, Save, Lock, User } from 'lucide-react';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,10 +28,16 @@ const passwordSchema = z.object({
 
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
+const profileSchema = z.object({
+  full_name: z.string().min(3, 'Nama minimal 3 karakter'),
+});
+type ProfileFormData = z.infer<typeof profileSchema>;
+
 export default function Profile() {
   const { profile, role, isAdminPusat, isAdminPimpinan, user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const form = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -39,6 +47,18 @@ export default function Profile() {
       confirmPassword: '',
     },
   });
+
+  const profileForm = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { full_name: profile?.full_name || '' },
+  });
+
+  // Reset form when profile loads
+  useEffect(() => {
+    if (profile?.full_name) {
+      profileForm.reset({ full_name: profile.full_name });
+    }
+  }, [profile?.full_name]);
 
   const handleChangePassword = async (data: PasswordFormData) => {
     setIsLoading(true);
@@ -65,6 +85,25 @@ export default function Profile() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (data: ProfileFormData) => {
+    setIsUpdatingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: data.full_name })
+        .eq('id', profile!.id);
+      if (error) throw error;
+      toast({ title: 'Berhasil', description: 'Nama berhasil diperbarui' });
+      // Refresh auth context
+      window.location.reload();
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -108,7 +147,48 @@ export default function Profile() {
                   </Badge>
                 </div>
               </div>
+              {user?.last_sign_in_at && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Login Terakhir</Label>
+                  <p className="mt-1 font-medium text-sm">
+                    {format(new Date(user.last_sign_in_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                  </p>
+                </div>
+              )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Edit Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Edit Profil
+            </CardTitle>
+            <CardDescription>Perbarui informasi profil Anda</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="full_name">Nama Lengkap</Label>
+                <Input
+                  id="full_name"
+                  placeholder="Nama lengkap"
+                  {...profileForm.register('full_name')}
+                />
+                {profileForm.formState.errors.full_name && (
+                  <p className="text-xs text-destructive">{profileForm.formState.errors.full_name.message}</p>
+                )}
+              </div>
+              <Button type="submit" disabled={isUpdatingProfile}>
+                {isUpdatingProfile ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>
+                ) : (
+                  <><Save className="mr-2 h-4 w-4" />Simpan Perubahan</>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

@@ -368,9 +368,6 @@ export const UNIT_PEMBINA_MAPPING: Record<string, string> = {
   // BPVP Samarinda
   'Satpel Tanah Bumbu': 'BPVP Samarinda',
   'Satpel Bulungan': 'BPVP Samarinda',
-  
-  // BPVP Sorong
-  'Satpel Jayapura': 'BPVP Sorong',
 };
 
 /**

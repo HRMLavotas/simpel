@@ -20,9 +20,38 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.12.1',
+    date: '5 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'fix', text: 'useAuth: hapus fungsi signUp dan deklarasinya dari AuthContextType — tidak digunakan sejak halaman signup dihapus.' },
+      { type: 'fix', text: 'Monitoring Unit: filter bulan menggunakan format date yang salah (toISOString() menghasilkan UTC penuh) — diperbaiki menggunakan nilai yyyy-MM-dd langsung.' },
+      { type: 'fix', text: 'Data Pegawai: hapus import ikon yang tidak digunakan (CheckSquare, Square, ChevronUp) dari lucide-react.' },
+      { type: 'fix', text: 'Audit Data: hapus import Filter (ikon tidak digunakan) dan isAdminPusat (variabel tidak digunakan) dari halaman.' },
+    ],
+  },
+  {
+    version: '2.12.0',
+    date: '5 Mei 2026',
+    changes: [
+      { type: 'feature', text: 'Reset Password: fitur "Lupa Password?" di halaman login — kirim link reset ke email, halaman /reset-password untuk membuat password baru.' },
+      { type: 'feature', text: 'Dark Mode: tombol toggle mode gelap/terang di header aplikasi — preferensi disimpan otomatis di browser.' },
+      { type: 'feature', text: 'Pencarian Global Pegawai: tombol pencarian di header untuk admin pusat dan admin pimpinan — cari pegawai berdasarkan nama atau NIP di seluruh unit kerja sekaligus.' },
+      { type: 'feature', text: 'Bulk Edit Pegawai: checkbox multi-select di tabel Data Pegawai — pilih beberapa pegawai sekaligus untuk pindah unit kerja atau ubah status ASN.' },
+      { type: 'feature', text: 'Notifikasi Admin Pimpinan: admin pimpinan kini menerima notifikasi real-time untuk semua perubahan data pegawai (tambah, edit, hapus).' },
+      { type: 'improvement', text: 'Profile: tambah form edit nama lengkap dan informasi login terakhir di halaman Profil Saya.' },
+      { type: 'improvement', text: 'Sidebar: status collapse/expand sidebar kini tersimpan di browser — tidak reset saat halaman di-refresh.' },
+      { type: 'improvement', text: 'Halaman 404: tampilan lebih informatif dengan tombol "Kembali" dan "Ke Dashboard".' },
+      { type: 'fix', text: 'Audit Data: kalkulasi "Tingkat Kelengkapan" diperbaiki — sebelumnya menggunakan angka hardcoded 100, kini menggunakan total pegawai aktual.' },
+      { type: 'fix', text: 'Peta Jabatan: double fetch data dihilangkan — sebelumnya fetchData() dipanggil dua kali saat komponen mount.' },
+      { type: 'fix', text: 'Peta Jabatan: dialog konfirmasi hapus Non-ASN kini menggunakan komponen Dialog yang konsisten, bukan browser confirm() native.' },
+      { type: 'fix', text: 'Peta Jabatan: validasi duplikat nama jabatan — tidak bisa menambahkan jabatan dengan nama yang sama dalam kategori dan unit yang sama.' },
+      { type: 'fix', text: 'constants.ts: hapus duplicate key "Satpel Jayapura" di UNIT_PEMBINA_MAPPING yang menyebabkan warning saat build.' },
+    ],
+  },
+  {
     version: '2.11.0',
     date: '4 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Akses Unit Binaan: Admin unit pembina kini dapat mengakses dan mengelola data pegawai di unit binaan (Satpel/Workshop) — 10 unit pembina dapat mengelola 26 unit binaan dengan total 1.605 pegawai.' },
       { type: 'feature', text: 'Data Pegawai: dropdown unit kerja otomatis muncul untuk admin unit yang memiliki unit binaan — memudahkan navigasi antara unit utama dan unit binaan.' },

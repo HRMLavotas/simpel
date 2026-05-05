@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import { queryClient } from "@/lib/query-client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
+import { ThemeProvider } from "next-themes";
 import { lazy, Suspense } from "react";
 import type { AppRole } from "@/lib/constants";
 
@@ -26,6 +27,7 @@ const PetaJabatan = lazy(() => import("./pages/PetaJabatan"));
 const UnitActivityMonitoring = lazy(() => import("./pages/UnitActivityMonitoring"));
 const SystemInfo = lazy(() => import("./pages/SystemInfo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Loading component
 const PageLoader = () => (
@@ -75,7 +77,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="simpel-theme">
+    <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -92,6 +95,7 @@ const App = () => (
               <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/auth" element={<PublicRoute><ErrorBoundary><Auth /></ErrorBoundary></PublicRoute>} />
+              <Route path="/reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
               <Route path="/dashboard" element={<ProtectedRoute><ErrorBoundary><Dashboard /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/employees" element={<ProtectedRoute><ErrorBoundary><Employees /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/audit-data" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat']}><ErrorBoundary><DataAudit /></ErrorBoundary></ProtectedRoute>} />
@@ -112,6 +116,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

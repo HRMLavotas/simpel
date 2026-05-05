@@ -159,21 +159,19 @@ export function useDataAudit() {
         .from('employees')
         .select('id, nip, name, department, asn_status, rank_group, position_name, gender, birth_date, birth_place, religion');
 
-      // Admin unit hanya bisa lihat data unit mereka
       if (!isAdminPusat && profile?.department) {
         query = query.eq('department', profile.department);
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
-      // Audit setiap employee dan filter yang punya issues
+      const totalEmployees = (data || []).length;
       const auditedData = (data || [])
         .map(auditEmployee)
         .filter(employee => employee.issues.length > 0);
 
-      return auditedData;
+      return { auditedData, totalEmployees };
     },
     enabled: !!profile,
   });

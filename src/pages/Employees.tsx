@@ -1,10 +1,18 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, MoreVertical, Eye } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, MoreVertical, Eye, Users } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TableSkeleton } from '@/components/ui/skeleton-screens';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -188,6 +196,13 @@ export default function Employees() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+
+  // Bulk select state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkActionOpen, setIsBulkActionOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState<'department' | 'asn_status' | null>(null);
+  const [bulkValue, setBulkValue] = useState('');
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [selectedEducation, setSelectedEducation] = useState<EducationEntry[]>([]);
   const [selectedMutationHistory, setSelectedMutationHistory] = useState<HistoryEntry[]>([]);
   const [selectedPositionHistory, setSelectedPositionHistory] = useState<HistoryEntry[]>([]);
@@ -1263,6 +1278,71 @@ export default function Employees() {
     }
   };
 
+  // Bulk select helpers
+  const currentPageIds = useMemo(() => paginatedEmployees.map(e => e.id), [paginatedEmployees]);
+  const allCurrentSelected = currentPageIds.length > 0 && currentPageIds.every(id => selectedIds.has(id));
+  const someCurrentSelected = currentPageIds.some(id => selectedIds.has(id));
+
+  const toggleSelectAll = () => {
+    if (allCurrentSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        currentPageIds.forEach(id => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        currentPageIds.forEach(id => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || !bulkValue || selectedIds.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const updateData: Record<string, string> = {};
+      if (bulkAction === 'department') updateData.department = bulkValue;
+      if (bulkAction === 'asn_status') updateData.asn_status = bulkValue;
+
+      const { error } = await supabase
+        .from('employees')
+        .update({ ...updateData, updated_at: new Date().toISOString() })
+        .in('id', ids);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Berhasil',
+        description: `${ids.length} pegawai berhasil diperbarui`,
+      });
+
+      setSelectedIds(new Set());
+      setIsBulkActionOpen(false);
+      setBulkAction(null);
+      setBulkValue('');
+      // Refresh data
+      fetchEmployees();
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast({ variant: 'destructive', title: 'Gagal', description: error.message });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -1332,7 +1412,7 @@ export default function Employees() {
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn')} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'asn' | 'non-asn'); setSelectedIds(new Set()); }} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="asn">
               Data ASN
@@ -1358,10 +1438,55 @@ export default function Employees() {
 
           <TabsContent value={activeTab} className="mt-6">
         <div className="rounded-lg border bg-card overflow-hidden">
+          {/* Bulk Action Toolbar */}
+          {canEdit && selectedIds.size > 0 && (
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/5 border-b">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4 text-primary" />
+                <span>{selectedIds.size} pegawai dipilih</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { setBulkAction('department'); setIsBulkActionOpen(true); }}
+                  className="text-xs"
+                >
+                  Pindah Unit Kerja
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { setBulkAction('asn_status'); setIsBulkActionOpen(true); }}
+                  className="text-xs"
+                >
+                  Ubah Status ASN
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="text-xs text-muted-foreground"
+                >
+                  Batal
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                {canEdit && (
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={allCurrentSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Pilih semua"
+                      className={someCurrentSelected && !allCurrentSelected ? 'opacity-50' : ''}
+                    />
+                  </TableHead>
+                )}
                 <TableHead className="w-[140px]">{activeTab === 'non-asn' ? 'NIK' : 'NIP'}</TableHead>
                 <TableHead>Nama</TableHead>
                 <TableHead className="hidden md:table-cell">Jabatan</TableHead>
@@ -1373,10 +1498,10 @@ export default function Employees() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableSkeleton columns={canViewAll ? 7 : 6} rows={10} />
+                <TableSkeleton columns={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} rows={10} />
               ) : paginatedEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canViewAll ? 7 : 6} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} className="h-32 text-center text-muted-foreground">
                     {searchQuery || statusFilter !== 'all' || departmentFilter !== 'all'
                       ? 'Tidak ada data yang sesuai dengan filter'
                       : 'Belum ada data pegawai'}
@@ -1392,7 +1517,7 @@ export default function Employees() {
                         onClick={() => toggleCategory(group.category)}
                       >
                         <TableCell 
-                          colSpan={canViewAll ? 7 : 6} 
+                          colSpan={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} 
                           className="font-semibold text-sm uppercase tracking-wide py-3"
                         >
                           <div className="flex items-center gap-2">
@@ -1411,7 +1536,16 @@ export default function Employees() {
                       
                       {/* Employee Rows - Only show if not collapsed */}
                       {!collapsedCategories[group.category] && group.employees.map((employee) => (
-                        <TableRow key={employee.id} className="animate-fade-in">
+                        <TableRow key={employee.id} className={cn("animate-fade-in", selectedIds.has(employee.id) && "bg-primary/5")}>
+                          {canEdit && (
+                            <TableCell className="w-[40px]" onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={selectedIds.has(employee.id)}
+                                onCheckedChange={() => toggleSelectOne(employee.id)}
+                                aria-label={`Pilih ${employee.name}`}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="font-mono text-sm">
                             <div className="flex flex-col gap-0.5">
                               <span>{employee.nip || '-'}</span>
@@ -1580,6 +1714,67 @@ export default function Employees() {
         }}
         isLoading={isSubmitting}
       />
+
+      {/* Bulk Action Dialog */}
+      <Dialog open={isBulkActionOpen} onOpenChange={setIsBulkActionOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {bulkAction === 'department' ? 'Pindah Unit Kerja' : 'Ubah Status ASN'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Tindakan ini akan memperbarui <strong>{selectedIds.size} pegawai</strong> yang dipilih.
+            </p>
+            {bulkAction === 'department' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Unit Kerja Tujuan</label>
+                <Select value={bulkValue} onValueChange={setBulkValue}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih unit kerja..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dynamicDepartments.filter(d => d !== 'Pusat').map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {bulkAction === 'asn_status' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status ASN Baru</label>
+                <Select value={bulkValue} onValueChange={setBulkValue}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ASN_STATUS_OPTIONS.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setIsBulkActionOpen(false); setBulkValue(''); }}>
+              Batal
+            </Button>
+            <Button
+              onClick={handleBulkAction}
+              disabled={!bulkValue || isBulkProcessing}
+            >
+              {isBulkProcessing ? (
+                <><span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent inline-block" />Memproses...</>
+              ) : (
+                `Terapkan ke ${selectedIds.size} Pegawai`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

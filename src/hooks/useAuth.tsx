@@ -23,7 +23,6 @@ interface AuthContextType {
   canViewAll: boolean;
   canEdit: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, department: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -118,29 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName: string,
-    department: string
-  ) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          department: department,
-          role: 'admin_unit',
-        },
-      },
-    });
-    return { error };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -167,7 +143,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       canViewAll,
       canEdit,
       signIn,
-      signUp,
       signOut,
     }}>
       {children}

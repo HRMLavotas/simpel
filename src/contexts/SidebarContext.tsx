@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+
+const SIDEBAR_STORAGE_KEY = 'simpel_sidebar_collapsed';
 
 interface SidebarContextType {
   collapsed: boolean;
@@ -8,7 +10,23 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsedState] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const setCollapsed = (value: boolean) => {
+    setCollapsedState(value);
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(value));
+    } catch {
+      // localStorage not available
+    }
+  };
 
   return (
     <SidebarContext.Provider value={{ collapsed, setCollapsed }}>

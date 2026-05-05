@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useDataAudit } from '@/hooks/useDataAudit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Search, Filter, CheckCircle2, XCircle, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Search, CheckCircle2, XCircle, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,13 +15,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeFormModal } from '@/components/employees/EmployeeFormModal';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function DataAudit() {
-  const { isAdminPusat } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +30,9 @@ export default function DataAudit() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data: auditData, isLoading, error } = useDataAudit();
+  const { data: auditResult, isLoading, error } = useDataAudit();
+  const auditData = auditResult?.auditedData;
+  const totalEmployees = auditResult?.totalEmployees ?? 0;
 
   // Filter data berdasarkan pencarian dan filter
   const filteredData = useMemo(() => {
@@ -227,8 +227,8 @@ export default function DataAudit() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  {auditData && auditData.length > 0 
-                    ? Math.round((1 - auditData.length / 100) * 100) 
+                  {totalEmployees > 0
+                    ? Math.round(((totalEmployees - (auditData?.length || 0)) / totalEmployees) * 100)
                     : 100}%
                 </div>
                 <p className="text-xs text-muted-foreground">

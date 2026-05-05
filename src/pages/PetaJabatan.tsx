@@ -128,6 +128,10 @@ export default function PetaJabatan() {
   const [formAbk, setFormAbk] = useState('0');
   const [formOrder, setFormOrder] = useState('0');
 
+  // Delete Non-ASN confirmation state
+  const [deleteNonAsnTarget, setDeleteNonAsnTarget] = useState<EmployeeMatch | null>(null);
+  const [isDeleteNonAsnOpen, setIsDeleteNonAsnOpen] = useState(false);
+
   useEffect(() => {
     // Set initial department based on user role (only on mount)
     if (!canViewAll && profile?.department) {
@@ -139,12 +143,6 @@ export default function PetaJabatan() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canViewAll, profile?.department]); // Removed selectedDepartment from dependencies
-
-  useEffect(() => {
-    if (selectedDepartment) {
-      fetchData();
-    }
-  }, [selectedDepartment]);
 
   // Fetch summary data when summary tab is active
   useEffect(() => {
@@ -255,9 +253,12 @@ export default function PetaJabatan() {
     }
   }, [selectedDepartment, toast]);
 
-  // Real-time subscription for employee changes
+  // Fetch data when selectedDepartment changes + real-time subscription
   useEffect(() => {
     if (!selectedDepartment) return;
+
+    // Initial fetch
+    fetchData();
 
     logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
     
@@ -313,11 +314,6 @@ export default function PetaJabatan() {
     };
   }, [selectedDepartment, fetchData]);
 
-  useEffect(() => {
-    if (selectedDepartment) {
-      fetchData();
-    }
-  }, [selectedDepartment, fetchData]);
 
   const getEmployeeEducation = (employeeId: string) => {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
@@ -502,6 +498,21 @@ export default function PetaJabatan() {
   const handleSave = async () => {
     if (!formName.trim()) {
       toast({ variant: 'destructive', title: 'Error', description: 'Nama jabatan wajib diisi' });
+      return;
+    }
+
+    // Validasi duplikat nama jabatan dalam kategori dan unit yang sama
+    const isDuplicate = positions.some(p =>
+      p.position_category === formCategory &&
+      p.position_name.trim().toLowerCase() === formName.trim().toLowerCase() &&
+      p.id !== editingPosition?.id
+    );
+    if (isDuplicate) {
+      toast({
+        variant: 'destructive',
+        title: 'Jabatan sudah ada',
+        description: `Jabatan "${formName.trim()}" sudah terdaftar di kategori ${formCategory} untuk unit ini.`,
+      });
       return;
     }
 
@@ -707,12 +718,14 @@ export default function PetaJabatan() {
   };
 
   const handleDeleteNonAsnEmployee = async (employee: EmployeeMatch) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus pegawai ${employee.name}?`)) {
-      return;
-    }
+    setDeleteNonAsnTarget(employee);
+    setIsDeleteNonAsnOpen(true);
+  };
 
+  const confirmDeleteNonAsnEmployee = async () => {
+    if (!deleteNonAsnTarget) return;
     try {
-      const { error } = await supabase.from('employees').delete().eq('id', employee.id);
+      const { error } = await supabase.from('employees').delete().eq('id', deleteNonAsnTarget.id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Pegawai Non-ASN berhasil dihapus' });
       fetchData();
@@ -720,6 +733,9 @@ export default function PetaJabatan() {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus pegawai';
       logger.error('Error deleting non-ASN employee:', err);
       toast({ variant: 'destructive', title: 'Error', description: errorMessage });
+    } finally {
+      setIsDeleteNonAsnOpen(false);
+      setDeleteNonAsnTarget(null);
     }
   };
 
@@ -2814,6 +2830,29 @@ export default function PetaJabatan() {
             <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Non-ASN Confirmation Dialog */}
+      <Dialog open={isDeleteNonAsnOpen} onOpenChange={setIsDeleteNonAsnOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Hapus Pegawai Non-ASN</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Apakah Anda yakin ingin menghapus pegawai{' '}
+            <span className="font-semibold text-foreground">{deleteNonAsnTarget?.name}</span>?
+            Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setIsDeleteNonAsnOpen(false); setDeleteNonAsnTarget(null); }}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteNonAsnEmployee}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Hapus
             </Button>
           </DialogFooter>
         </DialogContent>

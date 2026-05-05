@@ -37,8 +37,8 @@ export function useUnitActivitySummary(selectedMonth?: string) {
         .order('department');
 
       if (selectedMonth) {
-        const monthStart = new Date(selectedMonth);
-        query = query.eq('month', monthStart.toISOString());
+        // selectedMonth sudah dalam format 'yyyy-MM-dd', gunakan langsung
+        query = query.eq('month', selectedMonth);
       }
 
       const { data, error } = await query;

@@ -91,8 +91,9 @@ export function useNotifications() {
             role === 'admin_unit' &&
             newNotif.recipient_role === 'admin_unit' &&
             newNotif.recipient_department === profile.department;
+          const isForAdminPimpinan = role === 'admin_pimpinan' && newNotif.recipient_role === 'admin_pimpinan';
 
-          if (isForAdminPusat || isForAdminUnit) {
+          if (isForAdminPusat || isForAdminUnit || isForAdminPimpinan) {
             setNotifications(prev => [newNotif, ...prev].slice(0, 50));
           }
         }
@@ -151,6 +152,8 @@ export async function createNotification(params: {
     }
   } else {
     notificationsToInsert.push({ ...base, recipient_role: 'admin_pusat', recipient_department: null });
+    // Also notify admin_pimpinan for all non-mutation_in events
+    notificationsToInsert.push({ ...base, recipient_role: 'admin_pimpinan', recipient_department: null });
   }
 
   if (notificationsToInsert.length > 0) {
