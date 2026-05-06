@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 interface Stats {
   total: number;
   pns: number;
+  cpns: number;
   pppk: number;
   nonAsn: number;
 }
@@ -85,7 +86,7 @@ interface UseDashboardDataProps {
 }
 
 export function useDashboardData({ department, isAdminPusat, selectedDepartment, selectedAsnStatus }: UseDashboardDataProps) {
-  const [stats, setStats] = useState<Stats>({ total: 0, pns: 0, pppk: 0, nonAsn: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, pns: 0, cpns: 0, pppk: 0, nonAsn: 0 });
   const [rankData, setRankData] = useState<RankData[]>([]);
   const [departmentData, setDepartmentData] = useState<DepartmentData[]>([]);
   const [positionTypeData, setPositionTypeData] = useState<PositionTypeData[]>([]);

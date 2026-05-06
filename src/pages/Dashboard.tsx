@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, UserCheck, UserPlus, UserMinus, Settings2, TrendingUp, AlertCircle, GraduationCap } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
@@ -283,14 +283,97 @@ export default function Dashboard() {
         )}
 
         {(isLoading || isPetaLoading) ? (
-          <StatsGridSkeleton count={4} />
+          <StatsGridSkeleton count={6} />
         ) : (
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Pegawai" value={stats.total} icon={Users} variant="primary" />
-            <StatCard title="PNS" value={stats.pns} icon={UserCheck} variant="primary" description={`${stats.total > 0 ? ((stats.pns / stats.total) * 100).toFixed(1) : 0}%`} />
-            <StatCard title="PPPK" value={stats.pppk} icon={UserPlus} variant="success" description={`${stats.total > 0 ? ((stats.pppk / stats.total) * 100).toFixed(1) : 0}%`} />
-            <StatCard title="Non ASN" value={stats.nonAsn} icon={UserMinus} variant="warning" description={`${stats.total > 0 ? ((stats.nonAsn / stats.total) * 100).toFixed(1) : 0}%`} />
-          </div>
+          <>
+            {/* Baris 1: 6 card utama */}
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+              <StatCard title="Total Pegawai" value={stats.total} icon={Users} variant="primary" />
+              <StatCard
+                title="ASN"
+                value={stats.pns + stats.cpns + stats.pppk}
+                icon={UserCheck}
+                variant="primary"
+                description={`${stats.total > 0 ? (((stats.pns + stats.cpns + stats.pppk) / stats.total) * 100).toFixed(1) : 0}%`}
+              />
+              <StatCard
+                title="PNS"
+                value={stats.pns}
+                icon={UserCheck}
+                variant="primary"
+                description={`${stats.total > 0 ? ((stats.pns / stats.total) * 100).toFixed(1) : 0}%`}
+              />
+              <StatCard
+                title="CPNS"
+                value={stats.cpns}
+                icon={GraduationCap}
+                variant="info"
+                description={`${stats.total > 0 ? ((stats.cpns / stats.total) * 100).toFixed(1) : 0}%`}
+              />
+              <StatCard
+                title="PPPK"
+                value={stats.pppk}
+                icon={UserPlus}
+                variant="success"
+                description={`${stats.total > 0 ? ((stats.pppk / stats.total) * 100).toFixed(1) : 0}%`}
+              />
+              <StatCard
+                title="Non ASN"
+                value={stats.nonAsn}
+                icon={UserMinus}
+                variant="warning"
+                description={`${stats.total > 0 ? ((stats.nonAsn / stats.total) * 100).toFixed(1) : 0}%`}
+              />
+            </div>
+
+            {/* Baris 2: Card ringkasan ASN */}
+            {(() => {
+              const totalAsn = stats.pns + stats.cpns + stats.pppk;
+              const pctPns  = totalAsn > 0 ? ((stats.pns  / totalAsn) * 100).toFixed(1) : '0';
+              const pctCpns = totalAsn > 0 ? ((stats.cpns / totalAsn) * 100).toFixed(1) : '0';
+              const pctPppk = totalAsn > 0 ? ((stats.pppk / totalAsn) * 100).toFixed(1) : '0';
+              return (
+                <div className="grid gap-3 sm:gap-4 grid-cols-1">
+                  {/* Breakdown ASN - full width */}
+                  <div className="rounded-xl border bg-card p-4 sm:p-5 shadow-sm">
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Komposisi ASN</p>
+                    <div className="space-y-2">
+                      {/* PNS bar */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium">PNS</span>
+                          <span className="text-muted-foreground">{stats.pns.toLocaleString('id-ID')} ({pctPns}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${pctPns}%` }} />
+                        </div>
+                      </div>
+                      {/* CPNS bar */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium">CPNS</span>
+                          <span className="text-muted-foreground">{stats.cpns.toLocaleString('id-ID')} ({pctCpns}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-indigo-500" style={{ width: `${pctCpns}%` }} />
+                        </div>
+                      </div>
+                      {/* PPPK bar */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium">PPPK</span>
+                          <span className="text-muted-foreground">{stats.pppk.toLocaleString('id-ID')} ({pctPppk}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pctPppk}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
         )}
 
         {(isLoading || isPetaLoading || isLoadingPreferences) ? (
