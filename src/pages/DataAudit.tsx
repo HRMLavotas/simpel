@@ -269,7 +269,7 @@ export default function DataAudit() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Cari nama, NIP, atau unit kerja..."
+                    placeholder="Cari nama, NIP/NIK, atau unit kerja..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -342,12 +342,19 @@ export default function DataAudit() {
                     className="flex items-start justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">{employee.name}</h3>
                         <Badge variant="outline">{employee.department}</Badge>
+                        {employee.asn_status ? (
+                          <Badge variant="secondary">{employee.asn_status}</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-xs">Status ASN kosong</Badge>
+                        )}
                       </div>
                       {employee.nip && (
-                        <p className="text-sm text-muted-foreground">NIP: {employee.nip}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {employee.asn_status === 'Non ASN' ? 'NIK' : 'NIP'}: {employee.nip}
+                        </p>
                       )}
                       <div className="flex flex-wrap gap-2">
                         {employee.issues.map((issue: AuditIssue, idx: number) => (

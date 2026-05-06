@@ -38,84 +38,74 @@ interface RawEmployeeAuditData {
   religion: string | null;
 }
 
-// Validasi format pangkat
+const ASN_STATUSES = ['PNS', 'CPNS', 'PPPK'] as const;
+const isASN = (status: string | null): boolean =>
+  ASN_STATUSES.includes(status as typeof ASN_STATUSES[number]);
+const isNonASN = (status: string | null): boolean => status === 'Non ASN';
+
+// Validasi format pangkat golongan — hanya berlaku untuk ASN
 const isValidRankFormat = (rank: string | null): boolean => {
   if (!rank) return false;
-  
+
   const trimmedRank = rank.trim();
-  
-  // Format 1: Full format with name "Penata Muda Tk I (III/b)", "Pembina (IV/a)", dll
-  // Ini harus dicek dulu karena lebih spesifik
+
+  // Format 1: Full format "Penata Muda Tk I (III/b)", "Pembina (IV/a)", dll
   const fullPattern = /\((I{1,4}|IV)\/[a-e]\)$/i;
   if (fullPattern.test(trimmedRank)) return true;
-  
-  // Format 2: Short format "I/a", "II/b", "III/c", "IV/d", dll (PNS)
+
+  // Format 2: Short format "I/a", "II/b", "III/c", "IV/d", dll (PNS/CPNS)
   const shortPattern = /^(I{1,4}|IV)\/[a-e]$/i;
   if (shortPattern.test(trimmedRank)) return true;
-  
-  // Format 3: PPPK format (hanya III, V, VII, IX)
+
+  // Format 3: PPPK format (III, V, VII, IX)
   const pppkPattern = /^(III|V|VII|IX)$/;
   if (pppkPattern.test(trimmedRank)) return true;
-  
+
   // Format 4: "Tidak Ada"
   if (trimmedRank === 'Tidak Ada') return true;
-  
+
   return false;
 };
 
-// Validasi format NIP (18 digit)
+// Validasi format NIP ASN (18 digit angka)
 const isValidNIPFormat = (nip: string | null): boolean => {
-  if (!nip) return true; // NIP boleh kosong
+  if (!nip) return true; // boleh kosong
   return /^\d{18}$/.test(nip.replace(/\s/g, ''));
 };
 
-// Audit satu employee
-const auditEmployee = (employee: RawEmployeeAuditData): AuditEmployee => {
+// ── Audit untuk pegawai ASN (PNS / CPNS / PPPK) ─────────────────────────────
+const auditASNEmployee = (employee: RawEmployeeAuditData): AuditIssue[] => {
   const issues: AuditIssue[] = [];
 
-  // Check NIP format
-  if (employee.nip && !isValidNIPFormat(employee.nip)) {
+  // NIP wajib ada dan harus 18 digit
+  if (!employee.nip) {
+    issues.push({
+      type: 'missing_field',
+      field: 'nip',
+      message: 'NIP belum diisi',
+    });
+  } else if (!isValidNIPFormat(employee.nip)) {
     issues.push({
       type: 'invalid_format',
       field: 'nip',
-      message: 'Format NIP tidak valid (harus 18 digit)',
+      message: 'Format NIP tidak valid (harus 18 digit angka)',
     });
   }
 
-  // Check required fields
   if (!employee.gender) {
-    issues.push({
-      type: 'missing_field',
-      field: 'gender',
-      message: 'Jenis kelamin belum diisi',
-    });
+    issues.push({ type: 'missing_field', field: 'gender', message: 'Jenis kelamin belum diisi' });
   }
-
   if (!employee.birth_date) {
-    issues.push({
-      type: 'missing_field',
-      field: 'birth_date',
-      message: 'Tanggal lahir belum diisi',
-    });
+    issues.push({ type: 'missing_field', field: 'birth_date', message: 'Tanggal lahir belum diisi' });
   }
-
   if (!employee.birth_place) {
-    issues.push({
-      type: 'missing_field',
-      field: 'birth_place',
-      message: 'Tempat lahir belum diisi',
-    });
+    issues.push({ type: 'missing_field', field: 'birth_place', message: 'Tempat lahir belum diisi' });
   }
-
   if (!employee.religion) {
-    issues.push({
-      type: 'missing_field',
-      field: 'religion',
-      message: 'Agama belum diisi',
-    });
+    issues.push({ type: 'missing_field', field: 'religion', message: 'Agama belum diisi' });
   }
 
-  // Check rank_group format
+  // Pangkat/Golongan wajib ada dan harus format yang valid
   if (!employee.rank_group) {
     issues.push({
       type: 'missing_field',
@@ -130,22 +120,74 @@ const auditEmployee = (employee: RawEmployeeAuditData): AuditEmployee => {
     });
   }
 
-  // Check position_name
   if (!employee.position_name) {
-    issues.push({
-      type: 'missing_field',
-      field: 'position_name',
-      message: 'Jabatan belum diisi',
-    });
+    issues.push({ type: 'missing_field', field: 'position_name', message: 'Jabatan belum diisi' });
   }
 
-  // Check ASN status
-  if (!employee.asn_status) {
+  return issues;
+};
+
+// ── Audit untuk pegawai Non ASN ───────────────────────────────────────────────
+// Non ASN tidak memiliki NIP (hanya NIK opsional) dan tidak memiliki pangkat golongan.
+// Field yang diperiksa hanya yang relevan untuk Non ASN.
+const auditNonASNEmployee = (employee: RawEmployeeAuditData): AuditIssue[] => {
+  const issues: AuditIssue[] = [];
+
+  // NIK (disimpan di field nip) — opsional, tapi jika diisi tidak boleh kosong semua spasi
+  // Tidak ada validasi format ketat untuk NIK Non ASN
+
+  if (!employee.gender) {
+    issues.push({ type: 'missing_field', field: 'gender', message: 'Jenis kelamin belum diisi' });
+  }
+
+  // rank_group untuk Non ASN berisi tipe tenaga (mis. "Tenaga Alih Daya") — wajib diisi
+  if (!employee.rank_group) {
     issues.push({
       type: 'missing_field',
-      field: 'asn_status',
-      message: 'Status ASN belum diisi',
+      field: 'rank_group',
+      message: 'Tipe tenaga Non ASN belum diisi (contoh: Tenaga Alih Daya)',
     });
+  }
+  // Tidak ada validasi format pangkat untuk Non ASN — nilai apapun dianggap valid
+
+  if (!employee.position_name) {
+    issues.push({ type: 'missing_field', field: 'position_name', message: 'Jabatan belum diisi' });
+  }
+
+  return issues;
+};
+
+// ── Audit untuk pegawai dengan status tidak diketahui / belum diisi ───────────
+const auditUnknownStatusEmployee = (employee: RawEmployeeAuditData): AuditIssue[] => {
+  const issues: AuditIssue[] = [];
+
+  issues.push({
+    type: 'missing_field',
+    field: 'asn_status',
+    message: 'Status ASN belum diisi',
+  });
+
+  if (!employee.gender) {
+    issues.push({ type: 'missing_field', field: 'gender', message: 'Jenis kelamin belum diisi' });
+  }
+  if (!employee.position_name) {
+    issues.push({ type: 'missing_field', field: 'position_name', message: 'Jabatan belum diisi' });
+  }
+
+  return issues;
+};
+
+// ── Entry point audit per pegawai ─────────────────────────────────────────────
+const auditEmployee = (employee: RawEmployeeAuditData): AuditEmployee => {
+  let issues: AuditIssue[];
+
+  if (isASN(employee.asn_status)) {
+    issues = auditASNEmployee(employee);
+  } else if (isNonASN(employee.asn_status)) {
+    issues = auditNonASNEmployee(employee);
+  } else {
+    // Status kosong atau tidak dikenal
+    issues = auditUnknownStatusEmployee(employee);
   }
 
   return {
