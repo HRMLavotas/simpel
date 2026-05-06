@@ -248,7 +248,7 @@ npm run build
 | 4  | Direktorat Bina Penyelenggaraan Latvogan | 50 | 6 | 56 |
 | 5  | Direktorat Bina Intala | 50 | 6 | 56 |
 | 6  | Direktorat Bina Peningkatan Produktivitas | 45 | 7 | 52 |
-| 7  | Set. BNSP | 70 | 35 | 105 |
+| 7  | Sekretariat BNSP | 70 | 35 | 105 |
 | 8  | BBPVP Bekasi | 202 | 58 | 260 |
 | 9  | BBPVP Bandung | 148 | 59 | 207 |
 | 10 | BBPVP Serang | 155 | 25 | 180 |
