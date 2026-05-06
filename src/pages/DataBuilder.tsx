@@ -69,10 +69,31 @@ const FILTER_OPTIONS: Record<string, string[]> = {
   gender: ['Laki-laki', 'Perempuan'],
   religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],
   rank_group: [
-    'I/a', 'I/b', 'I/c', 'I/d',
-    'II/a', 'II/b', 'II/c', 'II/d',
-    'III/a', 'III/b', 'III/c', 'III/d',
-    'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
+    // Golongan I
+    'Juru (I/a)',
+    'Juru Muda (I/b)',
+    'Juru Muda Tk I (I/c)',
+    'Juru Tk I (I/d)',
+    // Golongan II
+    'Pengatur Muda (II/a)',
+    'Pengatur Muda Tk I (II/b)',
+    'Pengatur (II/c)',
+    'Pengatur Tk I (II/d)',
+    // Golongan III
+    'Penata Muda (III/a)',
+    'Penata Muda Tk I (III/b)',
+    'Penata (III/c)',
+    'Penata Tk I (III/d)',
+    // Golongan IV
+    'Pembina (IV/a)',
+    'Pembina Tk I (IV/b)',
+    'Pembina Muda (IV/c)',
+    'Pembina Madya (IV/d)',
+    'Pembina Utama (IV/e)',
+    // PPPK
+    'III', 'V', 'VII', 'IX',
+    // Non ASN atau kosong
+    '(Tidak Ada)',
   ],
   kejuruan: [
     'Bahasa', 'Bahasa Asing', 'Bahasa Jepang', 'Bangunan', 'Bisnis dan Manajemen',
@@ -213,7 +234,19 @@ export default function DataBuilder() {
     }
 
     for (const [field, vals] of inValuesByField) {
-      q = q.in(field, vals);
+      // Special handling for rank_group: if "(Tidak Ada)" is selected, include null values AND "Tenaga Alih Daya" and "Tidak Ada" strings
+      if (field === 'rank_group' && vals.includes('(Tidak Ada)')) {
+        const actualVals = vals.filter(v => v !== '(Tidak Ada)');
+        if (actualVals.length > 0) {
+          // Include actual values + null + "Tenaga Alih Daya" + "Tidak Ada"
+          q = q.or(`${field}.in.(${actualVals.map(v => `"${v}"`).join(',')},"Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
+        } else {
+          // Only null + "Tenaga Alih Daya" + "Tidak Ada"
+          q = q.or(`${field}.in.("Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
+        }
+      } else {
+        q = q.in(field, vals);
+      }
     }
 
     // Kumpulkan filter text per field

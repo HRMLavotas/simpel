@@ -27,6 +27,7 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: 'birth_place', label: 'Tempat Lahir', dbField: 'birth_place', category: 'identity' },
   { key: 'birth_date', label: 'Tanggal Lahir', dbField: 'birth_date', category: 'identity' },
   { key: 'religion', label: 'Agama', dbField: 'religion', category: 'identity' },
+  { key: 'mobile_phone', label: 'Nomor HP', dbField: 'mobile_phone', category: 'identity', description: 'Nomor handphone/ponsel' },
   
   // Position & Employment Status
   { key: 'asn_status', label: 'Status ASN', dbField: 'asn_status', category: 'employment', description: 'PNS, CPNS, PPPK, atau Non ASN' },

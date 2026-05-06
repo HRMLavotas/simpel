@@ -33,10 +33,31 @@ const FILTER_OPTIONS: Record<string, string[]> = {
   gender: ['Laki-laki', 'Perempuan'],
   religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],
   rank_group: [
-    'I/a', 'I/b', 'I/c', 'I/d',
-    'II/a', 'II/b', 'II/c', 'II/d',
-    'III/a', 'III/b', 'III/c', 'III/d',
-    'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e',
+    // Golongan I
+    'Juru (I/a)',
+    'Juru Muda (I/b)',
+    'Juru Muda Tk I (I/c)',
+    'Juru Tk I (I/d)',
+    // Golongan II
+    'Pengatur Muda (II/a)',
+    'Pengatur Muda Tk I (II/b)',
+    'Pengatur (II/c)',
+    'Pengatur Tk I (II/d)',
+    // Golongan III
+    'Penata Muda (III/a)',
+    'Penata Muda Tk I (III/b)',
+    'Penata (III/c)',
+    'Penata Tk I (III/d)',
+    // Golongan IV
+    'Pembina (IV/a)',
+    'Pembina Tk I (IV/b)',
+    'Pembina Muda (IV/c)',
+    'Pembina Madya (IV/d)',
+    'Pembina Utama (IV/e)',
+    // PPPK
+    'III', 'V', 'VII', 'IX',
+    // Non ASN atau kosong
+    '(Tidak Ada)',
   ],
   kejuruan: [
     'Bahasa', 'Bahasa Asing', 'Bahasa Jepang', 'Bangunan', 'Bisnis dan Manajemen',
