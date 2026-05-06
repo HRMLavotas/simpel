@@ -1649,6 +1649,29 @@ export default function PetaJabatan() {
                       <Download className="mr-1 sm:mr-2 h-4 w-4" />
                       <span className="hidden sm:inline">Export ASN</span><span className="sm:hidden">Export</span>
                     </Button>
+
+                    {/* Export Semua Unit (hanya untuk Admin Pusat / Pimpinan) */}
+                    {canViewAll && (
+                      <Button
+                        variant="default"
+                        onClick={handleExportAllDepartments}
+                        disabled={isExportingAll}
+                        className="text-xs sm:text-sm whitespace-nowrap"
+                        title="Export peta jabatan ASN semua unit kerja dalam 1 file Excel (1 sheet per unit)"
+                      >
+                        {isExportingAll ? (
+                          <RefreshCw className="mr-1 sm:mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {isExportingAll ? 'Memproses...' : 'Export Semua Unit'}
+                        </span>
+                        <span className="sm:hidden">
+                          {isExportingAll ? '...' : 'Semua'}
+                        </span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardHeader>
