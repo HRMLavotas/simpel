@@ -217,6 +217,7 @@ export default function PetaJabatan() {
             .eq('department', selectedDepartment)
             .order('position_category')
             .order('position_order')
+            .order('position_name')
         ),
         fetchAllUnlimited(() =>
           supabase
@@ -381,7 +382,8 @@ export default function PetaJabatan() {
           return query
             .order('department')
             .order('position_category')
-            .order('position_order');
+            .order('position_order')
+            .order('position_name');
         }),
         fetchAllUnlimited(() => {
           let query = supabase
@@ -1204,7 +1206,8 @@ export default function PetaJabatan() {
           .select('*')
           .order('department')
           .order('position_category')
-          .order('position_order'),
+          .order('position_order')
+          .order('position_name'),
         supabase
           .from('employees')
           .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
@@ -1265,7 +1268,12 @@ export default function PetaJabatan() {
 
           const catPositions = deptPositions
             .filter(p => p.position_category === category)
-            .sort((a, b) => a.position_order - b.position_order);
+            .sort((a, b) => {
+              if (a.position_order !== b.position_order) {
+                return a.position_order - b.position_order;
+              }
+              return a.position_name.localeCompare(b.position_name);
+            });
 
           catPositions.forEach(pos => {
             const matched = posMap.get(normalizeString(pos.position_name)) || [];

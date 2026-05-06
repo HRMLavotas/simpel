@@ -1,0 +1,161 @@
+{
+  "mode": "apply",
+  "timestamp": "2026-05-06T10:38:08.711Z",
+  "summary": {
+    "total_departments": 25,
+    "total_updates": 795,
+    "departments_affected": 25
+  },
+  "results": [
+    {
+      "department": "Setditjen Binalavotas",
+      "total": 58,
+      "updated": 36,
+      "updates": []
+    },
+    {
+      "department": "Direktorat Bina Stankomproglat",
+      "total": 36,
+      "updated": 24,
+      "updates": []
+    },
+    {
+      "department": "Direktorat Bina Intala",
+      "total": 40,
+      "updated": 27,
+      "updates": []
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "total": 41,
+      "updated": 36,
+      "updates": []
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "total": 45,
+      "updated": 40,
+      "updates": []
+    },
+    {
+      "department": "Direktorat Bina Lemlatvok",
+      "total": 38,
+      "updated": 25,
+      "updates": []
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "total": 34,
+      "updated": 20,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Semarang",
+      "total": 58,
+      "updated": 43,
+      "updates": []
+    },
+    {
+      "department": "Direktorat Bina Peningkatan Produktivitas",
+      "total": 38,
+      "updated": 27,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Bandung",
+      "total": 50,
+      "updated": 31,
+      "updates": []
+    },
+    {
+      "department": "Sekretariat BNSP",
+      "total": 43,
+      "updated": 28,
+      "updates": []
+    },
+    {
+      "department": "BPVP Pangkep",
+      "total": 39,
+      "updated": 25,
+      "updates": []
+    },
+    {
+      "department": "BPVP Kendari",
+      "total": 46,
+      "updated": 28,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "total": 56,
+      "updated": 50,
+      "updates": []
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "total": 44,
+      "updated": 28,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Serang",
+      "total": 59,
+      "updated": 41,
+      "updates": []
+    },
+    {
+      "department": "BPVP Belitung",
+      "total": 41,
+      "updated": 24,
+      "updates": []
+    },
+    {
+      "department": "BPVP Ternate",
+      "total": 43,
+      "updated": 38,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Medan",
+      "total": 52,
+      "updated": 46,
+      "updates": []
+    },
+    {
+      "department": "BBPVP Makassar",
+      "total": 58,
+      "updated": 41,
+      "updates": []
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "total": 40,
+      "updated": 26,
+      "updates": []
+    },
+    {
+      "department": "BPVP Sorong",
+      "total": 41,
+      "updated": 25,
+      "updates": []
+    },
+    {
+      "department": "BPVP Surakarta",
+      "total": 46,
+      "updated": 31,
+      "updates": []
+    },
+    {
+      "department": "BPVP Samarinda",
+      "total": 44,
+      "updated": 27,
+      "updates": []
+    },
+    {
+      "department": "BPVP Ambon",
+      "total": 44,
+      "updated": 28,
+      "updates": []
+    }
+  ]
+}

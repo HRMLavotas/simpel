@@ -1,0 +1,5751 @@
+{
+  "mode": "dry-run",
+  "timestamp": "2026-05-06T10:37:22.437Z",
+  "summary": {
+    "total_departments": 25,
+    "total_updates": 795,
+    "departments_affected": 25
+  },
+  "results": [
+    {
+      "department": "Setditjen Binalavotas",
+      "total": 58,
+      "updated": 36,
+      "updates": [
+        {
+          "id": "e82e90fa-524d-4a70-99c8-39da197050ab",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 7,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cecf53c1-5855-446a-9798-3bd21a4e7e92",
+          "position_name": "Analis Hukum Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "45218ef7-852b-42b3-a9ff-077ecdf2296a",
+          "position_name": "Analis Hukum Ahli Muda",
+          "old_order": 11,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2ae1d63d-e6e1-4a39-a910-eb2a59e2382c",
+          "position_name": "Analis Hukum Ahli Pertama",
+          "old_order": 15,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "06ee937e-df1e-4543-8ae7-a88804baa8d3",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 7,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "de63134e-aa70-406b-9bc4-4b116862b4e1",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 12,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "86eded6c-b1ad-4fe1-9015-f4ab2067f82a",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 16,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a0d5174a-30e4-4d09-bb77-6bafbe543b5c",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 8,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8e7cd836-4dba-411a-a239-e97a3c82321a",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8f027cd3-4319-45e0-bb83-3f8fcf9acf85",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 17,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ada6432-326e-4d4f-8560-c676a18c1965",
+          "position_name": "Asesor SDM Aparatur Ahli Madya",
+          "old_order": 8,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "169333d3-1928-4394-adc4-5325226bc216",
+          "position_name": "Asesor SDM Aparatur Ahli Muda",
+          "old_order": 9,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b2aa4895-382e-403f-b961-0dde1ec46982",
+          "position_name": "Asesor SDM Aparatur Ahli Pertama",
+          "old_order": 10,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "78defc1a-096f-4b52-b114-fae6e6a9c659",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 9,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a34112e6-d817-4096-8f68-d0496b70f05e",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 14,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d2c986f3-e4ef-4ffc-981f-308905081315",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 18,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a28e53aa-1d12-40f3-8d95-a83020b03b04",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 10,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "80bf9a0f-642a-4496-871b-db22e0c85b9e",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 20,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7131ac95-ca51-45cd-bc79-0306e0c50f1d",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 22,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6e4a0acf-d440-47f5-a708-f0245de785c0",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 21,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "abcc95f0-2137-47b5-aea8-1db60e5af056",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 23,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7640fc53-07c3-4602-b3c8-50302a4c4541",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 24,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b3e56937-da5a-4a7a-b8c7-0aeb8a6731e4",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 27,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8338dc63-71ec-4fcd-b254-b5d76f1f66ad",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 30,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e309e653-15a4-4065-be59-9d3ce1680a07",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 25,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f8b16daf-daa9-441b-87a9-556462afd51d",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 28,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b2e24196-8811-439f-839c-5f3620deb6df",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 31,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f3d0832d-0917-496d-a706-7aeaef7e171b",
+          "position_name": "Pranata SDM Aparatur Penyelia",
+          "old_order": 26,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "44d5e651-e58d-4c49-918d-c695208d1f2a",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 29,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "02e50488-852d-4420-a1bd-0f5a7dd92030",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 32,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c564516-f619-41ef-ba1d-1b184019ef5c",
+          "position_name": "Perancang PUU Ahli Madya",
+          "old_order": 29,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "25abbee9-fccd-4d1f-9b34-e5a2222ebd6c",
+          "position_name": "Perancang PUU Ahli Muda",
+          "old_order": 30,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c34ce88b-b4fc-4678-821e-14a852751fd8",
+          "position_name": "Perancang PUU Ahli Pertama",
+          "old_order": 31,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d600b204-785c-4646-be97-b1a30ad21e92",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 32,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "36f204c5-0652-4406-8396-33108f446bc8",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 33,
+          "new_order": 40,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9d3c089b-5154-49a6-8ce2-63bbb1c62370",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 34,
+          "new_order": 41,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Stankomproglat",
+      "total": 36,
+      "updated": 24,
+      "updates": [
+        {
+          "id": "422d9b0b-4fb3-4d3b-b385-608c80c009ba",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 26,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "27f3343f-1fd8-4aab-991d-ac77b2ba82a4",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f1f1cc52-ff7c-4a06-9954-4b40978bdd9d",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6ba0e13e-55c5-45cd-9ad4-dbd2610888b9",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d4a0ebfe-7ec2-4be0-ac92-6d0e9ae11c54",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9dc7b9bc-dcb1-482f-8ec1-1fb02a439576",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "446cc386-cab2-434b-acf3-19e06a61847c",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "81659380-5e5a-4ac8-9baf-91c6f9e83414",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 9,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5d695046-3cee-423d-9a0c-0172b87f5e6b",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 7,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f204e239-b015-4fb9-a6aa-52cc6c0fb881",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 8,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3392a174-f602-4113-93e0-4ed54ec44266",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "05ce9c50-87f7-46a7-a827-e4f2bb998a3b",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4105189a-927a-4138-97d1-d017e0c175ef",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6f1e67b2-06c8-4a8e-9505-17e181a7b9a5",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 14,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e03bbc73-0c8e-40ce-9cde-c3656d2a01bc",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e16c31a0-d865-44de-a4cd-7f3ca3e3dd4c",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 16,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c6dc5c54-a72b-4698-978d-e57f90326ce9",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 15,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "58cc32d2-8692-4986-9935-2d9b85123d7c",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 17,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3cf3ca35-38b7-4a31-ade4-f4f1a094c886",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "caf8b50f-0124-46d4-a445-bf388cdf1ac2",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 21,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "27553411-ed8e-4f57-8c05-1e806d6ed975",
+          "position_name": "Instruktur Ahli Utama",
+          "old_order": 22,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "502fbfca-ad5f-4551-be67-775dbcb73816",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 23,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1c893f73-6357-4389-b0b8-c46fd71f61b0",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 24,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9865d7c4-baaa-465c-97d2-9f7772dbfe57",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 25,
+          "new_order": 26,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Intala",
+      "total": 40,
+      "updated": 27,
+      "updates": [
+        {
+          "id": "da94bc5c-b747-49a4-84bf-1b7be40db351",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 28,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "08c1b72f-b401-4006-ad86-8df2a330ca15",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d20e1d31-3ad0-48f0-adbf-2b9d2ca25bef",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "96e26289-c65d-44d3-be14-eb6fe9772a47",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b81bcd08-596c-4a55-acf4-2aa004fb2129",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "33cb1199-d93e-4dca-8686-952b8933f96b",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b6938aa4-7155-48e4-bdbe-45feb9baca5c",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 8,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3110dad2-ab74-4fdc-8f70-d5ac7f9d1149",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 11,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fa59f002-0ce0-479a-bbed-42f78ddd5c43",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 6,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f0254b04-93a5-4a1e-9cfa-4640aa4fa32a",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "908f6907-58f5-4603-8ea7-1aeb6e6d46e6",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 12,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e61d968-6bc3-409a-b21f-97a940862c83",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "004aaafc-c93d-49f1-ab28-be8eaaebab91",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 10,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c5706732-630a-469b-ab8d-96acedeb7f7d",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 11,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d86dbc68-ce1b-4f45-bc72-937c2dabdb07",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 12,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "29554cc3-595d-43b9-bc8e-8350203d5aaf",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 14,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "417bb801-bcb3-43ac-bdb4-030e5b710486",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 16,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "313865b8-d957-4bfa-b7cc-b3963db25a28",
+          "position_name": "Analis Pengembangan Kompetensi Ahli Pertama",
+          "old_order": 13,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ead345f6-e0df-4409-b5dd-3ddd0cfceadc",
+          "position_name": "Asesor SDM Aparatur Ahli Madya",
+          "old_order": 13,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a2c7aa9-bd15-43f6-a880-910cef713799",
+          "position_name": "Asesor SDM Aparatur Ahli Muda",
+          "old_order": 14,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f1b6c1cd-0557-4b26-92eb-f5cd2facd7d3",
+          "position_name": "Asesor SDM Aparatur Ahli Pertama",
+          "old_order": 15,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "acbbcc99-542f-447c-80f6-d43ac6ed51c1",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 13,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7b9ab738-6033-464b-a82d-7e77b500ad45",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 15,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e35484e4-f55a-4398-99e3-e21d980e771a",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 20,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf4504fd-c5e0-4a58-80a8-0ecd1d7117d6",
+          "position_name": "Instruktur Ahli Utama",
+          "old_order": 25,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9f891f2a-dd34-4a5e-98be-5e9403fadcfb",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 26,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6d102b82-a0c2-4d00-812c-5fcff047f296",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 27,
+          "new_order": 28,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "total": 41,
+      "updated": 36,
+      "updates": [
+        {
+          "id": "5ef96f68-1090-4669-b754-bf0c27e59b61",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 35,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d1440eec-e4d2-450d-8db0-b2debe036c59",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 1,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "41a03806-b362-4ed0-860e-22a15fc02fb0",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 2,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f20a8f7f-aa2c-4f96-a7c9-9eefbae41530",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 3,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "744329f4-42b4-4411-a708-5643447c84b6",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 4,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4182cfea-b430-4666-82c8-cee955995cd7",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 4,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f986cef3-381c-44f9-acff-dfed74aa3b4f",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 5,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fceb5ca9-6101-4adb-8141-52ff7e120641",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 6,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "668076bd-a3f2-49c9-a211-4e2af0f83cfe",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8fbb3a93-1f14-47e4-81b5-9b93397de15d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 8,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf949991-35f2-4ff5-8df1-1cfeb576eb55",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 10,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "494bc53e-2fa5-454a-8e34-3bfb80be01eb",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 9,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "18546ec7-d729-47ac-bdff-5806aa4accbc",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 11,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "162c6fc8-a607-46f3-8f88-e45900ce330e",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 10,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0242b90a-f7d1-402e-a5d5-83c5beeadaa4",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 12,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ca71829b-8059-4d22-9457-669e4023d993",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 11,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3b5e4bd9-1ff7-4ba1-a05a-3072f3c39740",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 13,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9632ab8e-0d5d-48b6-a360-ff31f6637d3f",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 14,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "35d1b35b-06bb-4dd5-8394-53adca612431",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 16,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e6a26471-6fee-4279-a80b-3b858f0c3d19",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 15,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "23b16378-ab07-4c0d-a1af-e6227fc8d2fd",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 17,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f326a6d5-9543-41ff-bccb-30c206710b77",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 22,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "56a0e814-0b08-4213-8d51-12e975008495",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 23,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a0bd7609-026e-46bc-81cd-edac5a0e3c18",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "226f517c-39d9-4b3d-858f-5dfea51c374f",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 20,
+          "new_order": 1,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "b69a35ee-8870-44c3-bca8-7ad451c7b13e",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 21,
+          "new_order": 2,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "8f254d5d-09ad-43e1-a06c-96ec62b34911",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 24,
+          "new_order": 3,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "fe07eb33-41c0-4a8f-9e53-74968c466d3b",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 26,
+          "new_order": 4,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "de7f8b8d-77a3-4d9b-9de4-8023904e6f90",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "old_order": 27,
+          "new_order": 5,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "a26306f3-f748-4236-a338-3dce3b32cfc4",
+          "position_name": "Konselor SDM",
+          "old_order": 28,
+          "new_order": 6,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "b2b416c8-3fe2-4543-8f71-032f9e3fbc3c",
+          "position_name": "Pengelola Layanan Operasional",
+          "old_order": 29,
+          "new_order": 7,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "7db61599-4451-4c59-bd4f-0bd6f388fe9b",
+          "position_name": "Pengolah Data dan Informasi",
+          "old_order": 30,
+          "new_order": 8,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "ad5b35c1-7817-42c8-bf41-f8829706b7e8",
+          "position_name": "Pengadministrasi Perkantoran",
+          "old_order": 31,
+          "new_order": 9,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "9c6ca2af-9c3f-48e5-ab30-784a0c319f84",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "old_order": 32,
+          "new_order": 10,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "32638643-fd4e-4263-937d-b76fde6c401f",
+          "position_name": "Operator Layanan Operasional",
+          "old_order": 33,
+          "new_order": 11,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "55aa80b5-9193-4dc1-83a5-56b7db3a0449",
+          "position_name": "Pengelola Umum Operasional",
+          "old_order": 34,
+          "new_order": 12,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "total": 45,
+      "updated": 40,
+      "updates": [
+        {
+          "id": "d526c79c-ed2b-4ac4-9ff2-bdb7737dc8ef",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 1,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "40ba7361-a501-4be8-83c3-51dc2656878f",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 2,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cb677aea-e784-441c-a2f1-4c3344d74c44",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 3,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d0c7889d-3f75-416f-87e6-1a3330f1f4b0",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 4,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "27f73e92-2a31-4967-85e2-e1a77f33bff9",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 5,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7f7b9c3e-02a1-45e9-b0e2-9af489971108",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 4,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "46e37d01-0bb1-498f-afd3-370e6f7eee04",
+          "position_name": "Instruktur Terampil/Pelaksana",
+          "old_order": 5,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3bee749c-1f3b-4b3d-9985-aeae2b29a4c6",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 6,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0de849f7-64ef-4a24-a3f0-b50bc11268e3",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7a6dfffe-54ca-4ed6-8aff-a218d2b1919c",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 8,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f8ed7ff-38f5-4956-831b-29ec317135e5",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 9,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a84704d3-fc73-464d-9b42-1487638831ed",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 11,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "98d8df3f-96b8-4649-929c-3a889396e1b9",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 13,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6bcd2f0e-f7e5-4076-861b-a343ddf9c3be",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 10,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "db08bcb3-265b-42af-b0a4-6ffe0748ed20",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 12,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6759b2a0-739e-4ad5-8060-7ae9a2bc5346",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 14,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a1aade69-092b-4e9c-8342-1228ed6cc6e9",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 12,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c2b39088-0f31-451a-869c-ec1ec44e60af",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 14,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "29f7c472-20e8-4125-868a-db6f6911e0a4",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 13,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7738d073-4fae-4c7a-8d5e-d711498fe48e",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 15,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5d20e151-2296-43b2-a9f9-e8c680c08d25",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 16,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a2a32eab-a137-4fc5-8963-a9839c6a5fbd",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 18,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b2d56aa-c9fd-483d-8b6a-57faeb9cd48b",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 17,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "faaca0e3-ee25-47f6-a3bf-dcc26d986d72",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 19,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b82c7855-d1e1-4d77-854b-7c9bd49c477a",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "87ebbb73-378b-4b90-8e12-7fa70924e23a",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "505e742c-f7b8-4392-9d30-781b1665b0f3",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 29,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "18b85307-5980-4b2f-b297-a6ae8a780e69",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 23,
+          "new_order": 1,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "5f9d26a8-fc51-4905-8d2b-80175a297adc",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 24,
+          "new_order": 2,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "a751a662-0b5f-4dbc-bc00-fa70f3fbe813",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 25,
+          "new_order": 3,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "e787e5e9-efb8-435f-9ee3-aefa12fa98fc",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 28,
+          "new_order": 4,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "6cb3f29a-94c4-44be-a218-da06a14bc020",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 30,
+          "new_order": 5,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "684e9dec-6c22-4c4e-9b5a-007817662b99",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "old_order": 31,
+          "new_order": 6,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "c4a433ee-b340-4b75-a0c7-cbda0041b18e",
+          "position_name": "Konselor SDM",
+          "old_order": 32,
+          "new_order": 7,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "8269cd59-5acd-4bd1-bac2-bc3b537415b9",
+          "position_name": "Pengelola Layanan Operasional",
+          "old_order": 33,
+          "new_order": 8,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "6177b9f3-9b57-4049-bc38-3086390c7d53",
+          "position_name": "Pengolah Data dan Informasi",
+          "old_order": 34,
+          "new_order": 9,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "f6adaa84-fba7-4419-9838-fdb6a83ea6db",
+          "position_name": "Pengadministrasi Perkantoran",
+          "old_order": 35,
+          "new_order": 10,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "3ed768f2-0a3d-43d6-ad81-2456a2204a8f",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "old_order": 36,
+          "new_order": 11,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "d55c3691-26ca-411e-ac2b-b2ab3c6214f0",
+          "position_name": "Operator Layanan Operasional",
+          "old_order": 37,
+          "new_order": 12,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "5fc8e508-a09c-4166-b955-8c9a247be45c",
+          "position_name": "Pengelola Umum Operasional",
+          "old_order": 38,
+          "new_order": 13,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Lemlatvok",
+      "total": 38,
+      "updated": 25,
+      "updates": [
+        {
+          "id": "3c7af7f6-c9b0-4d96-a613-756680ad3a6d",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 27,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7ef8db55-2a78-4693-9e3e-aad2d79fc951",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "459770cd-972a-4094-bb9b-9cc5dc903416",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "81fcfee9-eddd-4ff2-9c41-6e95a275698b",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9d2b450-657d-4b31-9ff4-8986b72484de",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "93682764-c6cf-4cff-af38-1dc24058915d",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "415a0d22-48bd-43f9-86ef-057642ee751e",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 10,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8da376b8-b2e4-401f-905b-c30189440693",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 6,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "be4a8b45-8945-4158-b555-10a4c6f8ff22",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 8,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "88ce3bcb-1399-4a38-bc48-d79e005ec3b5",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 9,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "26d503d9-16af-4ea4-a73b-33cf5773547b",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0d2cd73f-ba70-459b-a8e4-f710ec0c8646",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c6020180-57c7-455a-b6ba-f929e6d3f7e3",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 14,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d63140d7-208d-4a50-b2a8-b6d70282ed4c",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "69f87bf1-2a42-4a3a-a4dd-7eddc7b813a8",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 16,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "61b0b14c-4c1c-4cee-9cf3-06a326ac2d13",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 17,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fb8d0c08-fc19-46dd-822a-9c8831162672",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 18,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "54b71ef9-6eed-46c8-99b5-6e17f4823557",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 19,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e661a3b7-c7e2-4596-916c-0cb6850bde27",
+          "position_name": "Instruktur Ahli Utama",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf5acd4d-3c8e-47ba-8563-af950d348c86",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 21,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f47e0a2b-a793-495f-bf6e-028e5c49c98e",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 22,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "69509830-1344-43aa-ac92-4b643f745f3d",
+          "position_name": "Instruktur Ahli Pertama",
+          "old_order": 23,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "885e5342-a15b-4d17-8549-4a01d48b54df",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 24,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b4cd2758-7e6c-4d18-884c-749bcbfae363",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 25,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9fdf5ad5-3732-499e-ae16-a93f3ecc8d72",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 26,
+          "new_order": 27,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "total": 34,
+      "updated": 20,
+      "updates": [
+        {
+          "id": "b70a078d-12ce-4cb3-8222-e8096f63fda8",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 22,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cdfd4331-d8e6-43d0-bb18-b0438193d6f1",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "95054723-30d3-413b-8080-daf6939da31b",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2fafc366-992a-42ff-a953-1e7ad49c9058",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 7,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "38b72669-db72-491e-bb0c-dfaed458c770",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 3,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "31886434-9daf-4520-ae30-675350d54d2d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 5,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ebd4aa87-3303-4bdf-9508-d084098dc0db",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 6,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2e0a92e5-7228-4a09-94b3-d3b597fa5668",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "db25a375-10b8-4aff-ba2d-e74a17ec0893",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 7,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e51c5ac3-dd7b-4303-8eee-98f9746e96ac",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 8,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ebf93dcc-4337-43f5-b602-b4699781c35f",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 9,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a7b0fc7f-1db6-41ce-9d70-fdcfbc73df24",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 10,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7f61a4c-99a5-4b75-9e1b-f9ac3aa04a18",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 12,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2236c9a9-668c-47e5-a4bf-b4cbf8f2b9bf",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 11,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c9d38580-76d6-4f4d-87cb-06ee5e95821c",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 14,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4cf141e4-609f-4789-8b55-bb73da3c8481",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 17,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "11ecfc41-8006-4c5e-a04d-00ae77ead451",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 18,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8ea3b0a8-8a75-473c-8aa8-5f142dbf5140",
+          "position_name": "Instruktur Ahli Utama",
+          "old_order": 19,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e06e589-c64e-48d1-a5fc-873bcb0ecef4",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f8e95ce6-07bc-46e8-ad93-34ec326bb74b",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 21,
+          "new_order": 22,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Semarang",
+      "total": 58,
+      "updated": 43,
+      "updates": [
+        {
+          "id": "246e4753-2d5e-4999-9d1a-88e1677e8b2a",
+          "position_name": "Instruktur Terampil",
+          "old_order": 7,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9661e3f7-a25a-48b5-b9fd-26f481e5b7ce",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjtuan",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5178203f-5e8a-46c5-811d-4250341079c3",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "da54b380-b9d9-4ebd-9b9d-7a93beff15e2",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7ba80a00-68bd-4d90-9c0b-e26241fec1e6",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9c65c8fc-d4d2-4a8f-9d00-2b6e1ca9ced7",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 9,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d555aac8-08e7-4cde-a960-dfb3ed645dba",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fc490398-8022-461f-9d8a-48e9395be4ef",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6e6ef446-c1a9-4145-8921-a4e4f744add0",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6b196b97-2682-4cfe-972a-98eca5e00773",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9e65b7ea-c720-47af-b1b1-426ca8be0e81",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "05a92bf4-19da-4381-b39f-c3264d666e3d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "515c9920-fcae-4062-b0c2-ac81ba5b5dd7",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 19,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc9fc90f-3344-4834-b226-dda5b33d1c27",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 22,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0510b405-20e4-49a3-94bc-eeefad634779",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2313b881-0eb0-4f64-993d-ce0d1bf1d4ca",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3188448a-dd8e-403f-a4c6-6e0c38c7b578",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 23,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4b2f923c-7fc6-4592-a4d2-3a0fc17b45e8",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "07a31528-f1f9-4463-9104-8a6baca8ac7d",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "017a2b42-f84d-4d65-a599-5b865f072316",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 18,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "16b4b8bc-8a00-459d-9059-105991deb6d4",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 18,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3892259b-bd8d-4618-8339-522e6704eb34",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 20,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "109731bb-3ddb-454a-b9b3-8a70348423c8",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 19,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "111ec758-0077-4c22-8fab-3959d2fa8dcf",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 21,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3d2336a0-fea1-4952-9d73-751131d5c920",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 22,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3ca777ca-70cf-4fda-a398-b01fb687c2ae",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 24,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "72aaccc6-9922-42ab-a5aa-559dc33541a7",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 27,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2753f9ea-3253-4ac2-bd3c-ae8420acdb81",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 23,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9bea52b-2867-444e-a309-4b7aa601b2a2",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 25,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7af1b244-cd3b-4f56-938d-62721aa7a619",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 28,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "998a7d1d-bcf4-4f1e-aa06-f4288c8ec9b9",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 26,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bcfca502-0080-477b-9284-c09149f36df4",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 29,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5dc528ef-9c26-43b9-a0c6-2399aa669f96",
+          "position_name": "Statistisi Ahli Madya",
+          "old_order": 36,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bad9dac3-ac4b-4b2e-be47-0935520b0f49",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 37,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "600677d6-ed9a-4f0a-a093-1cf31c9ab0f8",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 38,
+          "new_order": 40,
+          "category": "Fungsional"
+        },
+        {
+          "id": "68b67cba-f62f-4d42-8072-f7ff3467d621",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 39,
+          "new_order": 41,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9010ba96-1364-4bf5-af0d-74b4d9618936",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 40,
+          "new_order": 42,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fb769b65-e718-4104-aa2d-f2194c1183b6",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 41,
+          "new_order": 43,
+          "category": "Fungsional"
+        },
+        {
+          "id": "27f5b9c3-215d-484c-b629-6c865c233b20",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 42,
+          "new_order": 44,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4f28234e-7ab9-4ee1-b076-eb2922a9c114",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 43,
+          "new_order": 45,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fc0fb52d-262c-494b-a080-cd5f7ba993bd",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 44,
+          "new_order": 46,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cb4da0ae-03c1-4b0a-a2d6-0a4abd0fab41",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 45,
+          "new_order": 47,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b55b361-8c0a-48c9-ad17-7de48fb9eba1",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 10,
+          "new_order": 9,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Peningkatan Produktivitas",
+      "total": 38,
+      "updated": 27,
+      "updates": [
+        {
+          "id": "15cddd5c-2edf-4fce-90a2-1b96390f6d30",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 27,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6efa594c-0f15-4db3-8985-2574c7840262",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8a118aa4-52d4-4617-a29f-1f346ba2bd78",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "27b99075-24f0-4351-aeb7-06dd6b85999f",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4fedb4c1-8e9e-49df-97f7-41de9c79290d",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c3257c4-3c0f-4427-961f-42bc26ab658e",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c16fb405-71bd-44a1-a788-1c47d69efddd",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 8,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "64266e90-02e1-4c44-b991-32d051238fef",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 11,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "96d58413-414c-4498-8ab0-3a61b9928ab5",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 6,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "55698a06-419a-4252-94ea-115fd2544495",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "eeac9a35-14d6-4ffa-88c4-df480d63ce04",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 12,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ff8340ee-a129-4c28-8afb-f64bd08c4ebe",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9606e357-f71d-4d24-ab11-ac686bb7ac7f",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 10,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7ad4269d-f182-464c-8510-be5902ce7c9a",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3d4ad6e6-8743-4da4-9b43-34969e4a44cf",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "589b994e-a456-4c8b-b3ac-1ee626a66635",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1f4146c5-feb9-421e-86ae-25cfb842df87",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7e8cceee-1a9c-4397-a12c-e75478e1d6ae",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 16,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8bdc60bd-5685-4759-b9cf-847a5900d5af",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 17,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a5b443b-bc24-438b-add1-a91a06d34da4",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6a77d162-01e9-48fd-bf9d-d75334860fa7",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 17,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "93769e91-d596-4b15-9fbe-c057e8cf28ff",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 18,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b09e8ebf-dae0-4e40-b930-ba42adb1f01c",
+          "position_name": "Instruktur Ahli Utama",
+          "old_order": 21,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "43f88998-f4a6-4ced-bc53-d720cbceabc5",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 22,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3a94b446-e1b7-41f2-9ebd-413967e4b129",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 23,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "71ad1390-c4c0-4831-b4a8-c3ec2fd142bd",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 25,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc65993e-5ca0-4f03-b2e3-33b8463c8286",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 26,
+          "new_order": 27,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Bandung",
+      "total": 50,
+      "updated": 31,
+      "updates": [
+        {
+          "id": "58e33630-02cd-4a02-a6c1-35bacf6e39df",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "960158db-e106-4428-809e-4cbe9b0da217",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b4b5b92b-af52-4268-a105-27c2bdd3fa33",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "546fc640-4593-4d19-bc03-ca49374a1035",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 9,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "eaa06efc-eac4-4d59-9722-64e564256901",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "29878beb-f851-4022-b7a1-fd88e2193a3d",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "31284c16-6f4d-4245-bf9b-610d9d667181",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "828c87ce-3a21-463e-9783-41fab300ab4b",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a70e36c5-a2f6-40e7-acb2-75e6d62e1b9f",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8c92758d-2f5f-4d49-825a-f2ec9ef1989d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "efabf7d0-dc9a-4287-a1dc-9201d3ef97db",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 21,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "be62153c-2667-4b31-8692-3bd1e1f34d06",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "41521036-f8ad-460a-8dac-faef184d6288",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 19,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ec891f34-f0b3-440f-855c-68958ccfd36c",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a0a7c50d-d53c-4076-9213-94a6d44487a1",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 20,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0dab94f2-4afb-4d95-b78c-e94199fdeb54",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 18,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ca29aad3-1b58-4244-974b-a0c98d497b73",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 20,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ca545174-89e2-4a1c-9336-30f282fc378e",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 19,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c59217e2-4bb3-455b-8990-1b4546856fb3",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 21,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8c1ac1e7-ce88-4c5c-8085-9fee283f3789",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 22,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6c34d7bd-c29f-484a-9210-b628bf2a381f",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 23,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc8e4f66-97d2-4f3a-8dcf-1083be3e9a50",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 25,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "41831d5d-7e47-4442-abd7-5ca5945316fc",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 24,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a42f9660-3d4d-4e01-889a-15fdbaef50ee",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 26,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "74f18c07-52cb-4cdc-b228-252fdd00f6b1",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 32,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "09e683f8-9605-4680-afdd-80da4994a8f5",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 33,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "550f1905-0309-47d6-9125-8e69c221b9b3",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 34,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c6cd2e1c-9793-4bf9-a66a-6dc700566a1d",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 35,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9dbb3520-f9de-433c-bbb0-b00970622e43",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 36,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "db193923-3521-4271-845a-f0102e29584e",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 37,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "08666722-050d-4cb2-8b68-8cda5cd109ae",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 38,
+          "new_order": 40,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Sekretariat BNSP",
+      "total": 43,
+      "updated": 28,
+      "updates": [
+        {
+          "id": "3437e199-8686-47c0-a963-52bbc61d6acb",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 30,
+          "new_order": 1,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a78a9217-2f4f-484b-b4a8-e6cab74d1e27",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 1,
+          "new_order": 2,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e90db568-2c25-4bc4-8615-294988d5d7e6",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 2,
+          "new_order": 3,
+          "category": "Fungsional"
+        },
+        {
+          "id": "457f0632-44a3-44d4-b06c-c67d0917e1ec",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "26904c06-80db-4e18-bbce-b7cae06ec662",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "81c0a3b0-4165-46bb-a36b-b133fcc0d945",
+          "position_name": "Analis Kebijakan Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c67fecc-5cac-4346-84e7-b630f6db4c63",
+          "position_name": "Analis Kebijakan Ahli Pertama",
+          "old_order": 10,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5a10ad5d-56a2-4fff-99c0-ac4f2225d7fe",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 6,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "82b6f920-0e4e-4f73-8cc3-ed90ef6d367d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 8,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e335e78-a4c1-4ee3-ba73-16f9ef9134ab",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 9,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1c403c30-c2da-489a-b6fa-710cf666b95a",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "585a7e67-4549-4e99-bf7b-8d0d3e2fee12",
+          "position_name": "Pranata SDM Aparatur Penyelia",
+          "old_order": 11,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4008e677-d423-4c43-9c97-6fd3fba3708a",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "92950680-5694-4196-89ca-52897e746440",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bed71d4d-0b8d-4d60-ad5f-5eb71799d2ed",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 12,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f28dd28-6869-4f0c-9eb5-25f1bb1f445c",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 14,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7588347-4b3f-4f0b-ac59-d0aa2cb74a56",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 18,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "faeaa474-4e58-4a02-a439-691bc4f4d2c1",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 19,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "090ba309-3abb-45c8-917c-e883dcdde79a",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "234ac388-8a59-4259-b5c4-d73e5283514e",
+          "position_name": "Pranata Komputer Muda",
+          "old_order": 21,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c97cbbb5-0785-4eb6-a7f4-e017328525f0",
+          "position_name": "Pranata Komputer Pertama",
+          "old_order": 22,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e5407a7-4729-470d-b76d-379e67bcd4b8",
+          "position_name": "Instruktur Ahli Madya",
+          "old_order": 23,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f2b0deb0-bcb4-4512-a15c-230bc42c3dd4",
+          "position_name": "Instruktur Ahli Muda",
+          "old_order": 24,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "764007eb-8064-439b-8182-1cdf2a548497",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 25,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "762713c2-ef53-4e70-810f-aae06546214e",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 26,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a6c76579-8b9d-40fb-acb1-56bfb2d28426",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 27,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "53ffdf23-6330-4f7d-9913-7f594c085188",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 28,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bcab0958-6374-4233-91fa-e0aea1ce80b2",
+          "position_name": "Pengelola Pengadaan Barang/Jasa Ahli Muda",
+          "old_order": 29,
+          "new_order": 30,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Pangkep",
+      "total": 39,
+      "updated": 25,
+      "updates": [
+        {
+          "id": "c6f9c579-07ca-4ead-9ec5-89e3c79b398f",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7f152d94-a186-4bc6-9223-ef0418afe1da",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4033f71c-7665-41b1-a5e4-2024c5efc569",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "57bd93a1-0937-4574-a4ac-32e6a6cedbd5",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "16dda806-c7e3-40d2-8862-b9d76f775ce3",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "aad5a0ea-ac0d-4847-aecd-bee36b857c6c",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a3c695e5-463d-402e-ba93-a6c78aaf26af",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "096ddb95-9bf0-4b06-882a-8b2ae82f4700",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2846893a-c073-46bc-a362-c9ec16b9bdb0",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "784efe99-17ff-479e-bedb-f4556acad24d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9bc5b19f-ae66-44cf-9436-6ca9b527a047",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "da9e6b93-dd02-43ff-acdc-19a03b56f306",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 12,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d49cfe71-b23c-468e-aa6c-fa6542c1d900",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8d73bba1-31ce-405a-a5c4-54da6b240232",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 13,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f4269e14-0c7d-4129-bac9-6e43a5c90311",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 15,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "babc1ec0-4ead-4037-9c3f-ca673578f291",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 14,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "49aea360-646a-40ab-a819-71a62a57e936",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "99feea78-01c4-481e-ba7b-c862f61c5b08",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 17,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "94ace103-4cc7-428b-ba72-4d1725f3a89d",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 19,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0fa25fd2-66f5-4f84-98b9-dad2bacf19a5",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 18,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b4aaf5f6-5198-415d-936d-2dec70656515",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 20,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "13fbc60d-a86b-48c6-bc3f-e50a159c459a",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 23,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e842b567-d58b-41f1-b183-d4209184e121",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 24,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4b04366e-5fd1-4fb2-902c-ad31eb8bf51a",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2c63a3f9-755d-4d97-be50-92727f2f1231",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Kendari",
+      "total": 46,
+      "updated": 28,
+      "updates": [
+        {
+          "id": "9b1704ee-8f08-4a7f-8b11-a367b59322c9",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "74354bd6-1417-411d-8bc1-39d0a43b5800",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a68a5e5c-9ae7-4e96-a88a-d7185713dd70",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cf1e6be2-6d00-48b8-82ba-c360f15eb350",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5ee8ff46-7466-46ab-a5ec-56689c448fd3",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "06eb06f4-fbea-474f-8324-b571aa9b8b40",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fcef8622-adb6-42dc-a4d4-951c7220cf5a",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "53babd26-ec3f-4e31-8f5a-7cb978569a8f",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4dac96b0-c116-4d17-baf4-c176c89da7c2",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 14,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2448911a-0bd6-4616-87dc-0907b46fd908",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "61afd782-688f-481d-a86c-774f708ea05e",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 16,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6a4ddd05-9d94-4f41-bc32-e293b59fd774",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 18,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3cc7e4ee-833b-464f-8a9a-c2a3fe48d302",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 17,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "16921f72-0485-44d6-a95c-d084ed0c3ffe",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 19,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c517195-78cb-48b2-b8fb-76564f64fbcd",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 18,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "47d90ecb-09d7-419d-831d-1bdbd8321af7",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 20,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "afdae565-ae8e-4aa4-9527-75e7cc9eda57",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2004cfe6-7b03-4083-b4ff-2c4f6ab6ee54",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 24,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a1230eaa-5cd4-447c-9be7-9dbcf9e2b9ce",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 22,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "426b5369-3c8d-46ef-8ee9-33e489e7821c",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e86150e-e836-45b4-a09a-ec8db3a0de7c",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 23,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b388c97-32b5-471d-9937-acac9bc2b91b",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 26,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c1541ebf-db4d-4d8d-bd77-cb4747795cf6",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 29,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bc34fe5d-36f1-46d9-8d43-1d234cd68fd8",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 30,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c9a0d04e-7ceb-4c37-baf9-65af3521ad1f",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 31,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b037c6da-1a74-47cd-ad7f-d8816f66049d",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 32,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ef058113-c068-431e-8e7b-9a0df5b12952",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 33,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f843f598-0fe6-4c1d-bf14-b66ddcdbdb76",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 34,
+          "new_order": 35,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "total": 56,
+      "updated": 50,
+      "updates": [
+        {
+          "id": "756b2b0a-d517-4ae9-bb17-f354e88a37fd",
+          "position_name": "Penelaah Teknik Kebijakan",
+          "old_order": 1,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "82a484cb-5cb1-40f0-8f0d-b618c10ca4b6",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d611fce5-9a76-40a5-b5db-c7a5c3a6d3dc",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3de2b443-b835-497d-be0e-1570d1612ba1",
+          "position_name": "Instruktur Terampil/Pelaksana",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bee4e809-f010-4c8b-81b0-59f51996320d",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 7,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "638052bd-2286-4966-bde9-3ff32f5defb6",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 8,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bb27b0d7-8d9e-4a13-b8e8-463ddb90dcd6",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 9,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d6b7e52c-13e0-4490-b54c-8d3a83a65f87",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ad2e68fd-d44d-4515-b5e8-1f6b131de41b",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "de3931a5-68ce-4e93-ba4d-434198ce79cf",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f71bb408-9cfe-453c-bcfc-6cd78de7f852",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5cfdb8fd-fb26-45d8-9dce-409ea2f739f1",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "85c43c0d-5341-4cbd-90fc-374a3e18a9a5",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8db38fb2-e7e3-4997-a518-f0839a01a6d8",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 19,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d58c6b20-2195-4de9-ad8d-53faaf3aca05",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 22,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "efa8da8f-04af-4323-bc65-331280a816da",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "757eae3e-f475-4c94-b7aa-b27e983af3b7",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "13d5b1e5-a4a7-4e2f-b2c6-bf5b894b1868",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 23,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0fc79148-eb75-45ea-9acd-2973860a1585",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c87c81e0-91c4-4aec-9f84-fc8c6f8c6d09",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0436bcce-5383-477e-b587-b7faef3d10ea",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 18,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4af5f912-921b-489d-aecf-874834d37baf",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 18,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c274a057-9f65-4d5d-a6e1-bd9c01607d01",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 20,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a813d32c-48e0-4b7e-a15c-59c8e4f008e4",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 19,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b2a38a6f-5dfb-4a7f-b282-21b1aeb29fc5",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 21,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bc12aa0b-822e-4acc-be6c-169b2d7092fc",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 22,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ef6f932d-d0f6-4238-89a5-59f05671e54e",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 24,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "484c4f40-0e67-4f1b-9b60-699a63ae0b25",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 27,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b26e8934-1ad2-4595-8df6-48b24b5b24da",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 23,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "577b74c4-24e5-4cd3-84b6-f335b7d67aeb",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 25,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c83ac041-6f7f-4892-9902-de16361c9e68",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 28,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e2d8eae7-b998-4de6-a5ac-a64eb3c5b99e",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 26,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7e446aff-c74b-4593-a162-261bfcbf87b8",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 29,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "97b1a42d-9577-4c1b-ae0d-065451368f11",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 36,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9d7d77fb-621c-463c-832e-899b23a206f7",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 37,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8aa4eb36-f043-4a00-a2d8-9d868ee08d6c",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 38,
+          "new_order": 40,
+          "category": "Fungsional"
+        },
+        {
+          "id": "355bd3b1-c983-4424-b635-b072bb3dcb5b",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 39,
+          "new_order": 41,
+          "category": "Fungsional"
+        },
+        {
+          "id": "57db3441-94f3-45fd-a333-3b756f28a754",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 40,
+          "new_order": 42,
+          "category": "Fungsional"
+        },
+        {
+          "id": "45cd722f-d227-4bb8-83da-7dce2af98861",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 41,
+          "new_order": 43,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1853ff4a-61f7-411f-8510-95e77a7c03f3",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 42,
+          "new_order": 44,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cab17974-3100-46ae-a92e-5ea53fe626bf",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 43,
+          "new_order": 45,
+          "category": "Fungsional"
+        },
+        {
+          "id": "88a26496-b8fa-46bb-9095-1ecde0a7bd48",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "old_order": 2,
+          "new_order": 1,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "60e65305-87d8-4cb0-9cdb-851522d871fd",
+          "position_name": "Konselor SDM",
+          "old_order": 3,
+          "new_order": 2,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "6fcac435-2730-441e-883b-37228b5b538e",
+          "position_name": "Pengelola Data dan Informasi",
+          "old_order": 4,
+          "new_order": 3,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "147e7436-1af9-4269-995b-f48f98bf6e27",
+          "position_name": "Pengelola Layanan Operasional",
+          "old_order": 5,
+          "new_order": 4,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "59911963-ddbe-46c7-9963-f560106da823",
+          "position_name": "Pengadministrasi Perkantoran",
+          "old_order": 6,
+          "new_order": 5,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "dbf90add-ca1f-4b94-8f6f-7b3fe832aee5",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "old_order": 7,
+          "new_order": 6,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "4f4d033f-d338-4152-82d3-3d6ca3559ac4",
+          "position_name": "Operator Layanan Operasional",
+          "old_order": 8,
+          "new_order": 7,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "194fed34-b811-4587-9f28-a965f411eced",
+          "position_name": "Pengelola Umum Operasional",
+          "old_order": 9,
+          "new_order": 8,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "dae3c8b0-3a77-4dbd-b285-5dcdf1e091b1",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 11,
+          "new_order": 9,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "total": 44,
+      "updated": 28,
+      "updates": [
+        {
+          "id": "4009b7c4-20c9-4bac-994e-3b9bb1b7abd7",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "12906465-d430-4aab-90ac-556fd1d3b56b",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4a33925a-1bfc-4c4a-80fd-0b7999c4348b",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c272f59d-3a55-4271-bdcf-94a86f45d312",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ff5b705-fc67-4f72-b251-ce23c46ef6f8",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a566b919-83f0-4669-b4ec-06c1b836c935",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3c984e05-d0d6-4f0b-8cb0-9bc75eba5459",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "979a4c00-43b2-4f31-913a-e09390bb5f2d",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "16408789-4f15-4f55-b31f-5e37e872ea2b",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "83a058ed-8deb-4765-adac-596a62c0606b",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2e2a9568-4074-43e0-8316-5516b6d3bd02",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1aa216ae-5557-4293-9e6e-58649a4fbd5c",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 18,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "37bbe842-c9e7-41e9-a804-61abfdc2cdf8",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 14,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ea8056f6-76c3-4dbb-a866-da08cf4807a1",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 17,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "40b4a9c7-b2e2-4250-be7c-693f1923f47f",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9b8b7421-6731-4b0c-ba2b-ee4535a49324",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 19,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7fafffcd-7ce2-4432-a89a-a18887626231",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 16,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "57dced73-2f74-4ebd-bb40-2377825b9a1d",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 18,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0e2f7bc2-3a0d-4484-9fa7-55b159f6abc9",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 17,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ad1b494e-9abd-470a-bf48-526eae1478d6",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 19,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d93dae03-1b19-48a7-b4ef-8c5d3d96b35d",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 21,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a725f912-f906-4f49-b0d4-a091133fd149",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 20,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a8d9079-8518-4e22-a6a3-152d6b240ee6",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 22,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "20492538-e22f-44d4-a872-73d9d5d1bbbd",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a6351e0c-0d83-4ba8-8bc1-d8247d0e6ba6",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 28,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2a639a94-a934-4b82-a54f-0ec972b1170f",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 29,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "26f8290c-d9c5-4bf7-aa68-708e6d8ad1e0",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 30,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e5f8fa5b-24fc-4852-9ae4-c9abc474f9da",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 31,
+          "new_order": 33,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Serang",
+      "total": 59,
+      "updated": 41,
+      "updates": [
+        {
+          "id": "a1c45b0a-fca3-455b-b654-cc38a3835a97",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 6,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "924692d7-05d8-4fd0-94fe-a35dba9db6c7",
+          "position_name": "Instruktur mahir",
+          "old_order": 7,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7928dea1-70b6-41d4-80cf-624e7557c295",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "95f9e590-8924-4978-986e-ad8e0fbb5fb3",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "34b9c77d-eb67-4171-bd36-fa38060dd22b",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "950c9c03-671b-494e-a0fe-43d88d9ebb18",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "959506fb-c94c-4d03-866a-a946dbc0632a",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c0d95f13-c10f-4366-b512-c5ec9979fa3c",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "07e32b51-8b10-4603-af27-718210f44824",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5a1cb485-81a7-4980-8c1b-a0195dcf2b5a",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1dbe012c-bd90-4eb8-842d-f94d50080fdf",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 14,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "22aea109-e524-4908-bbd7-c8735d234aff",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 18,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6c1b6b57-df26-4983-b4bc-5aecb9d7d8ea",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 21,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f3694606-b74d-4acb-b912-b9a65c118a8c",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 15,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7efc820-aeb9-494a-96a5-7a8707a06100",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 22,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b53e502-f892-4eb1-8fb2-04ec05c7b685",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 16,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "89dc39dc-1fec-4b16-b1d2-a968a609cfe0",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 20,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "58ff0e8a-3c98-4ea5-b765-971fd89fe53d",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4eca5e68-c423-4193-a8a1-68476d41eabb",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 17,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "aee1ddb0-2625-4dad-88ab-577a0ca3c4fe",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 19,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "72f5f120-62b0-4ddf-854b-01f6846cc12f",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 18,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "63317e11-5a2a-46a1-9651-c16658be7098",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 20,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2149bf5f-4f2c-428d-a90d-380f7aa4b78e",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 21,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1e7eca54-9030-4b5b-82f9-c8b57e35cb6f",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 21,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3460cbd1-34f2-4478-8dac-e3ec4f2cc423",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 23,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4eb268cd-800d-442a-8da4-a8c4467ca008",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 26,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fda5a861-a17e-4b20-a6e0-614d2cb016d9",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 22,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "545cd92e-5ef4-406b-b2e5-77f64f04e594",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 24,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e3f63386-6236-4466-9bf5-c610afdfec86",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 27,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6e5147b6-c545-464a-a62d-89cf173facc3",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 25,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "04e0ade6-faa8-4718-97d4-38554db01c44",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 28,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b72f265b-e634-4c5e-9b34-943c8ff9e62f",
+          "position_name": "Pustakawan Ahli Pertama",
+          "old_order": 28,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9b57950a-90f3-41f3-a1d1-d3ce9790264a",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 36,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0732a943-bb6f-4f66-aeeb-704cdafb2da7",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 37,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7325d312-1fc8-4337-98d9-0bb29235dac0",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 38,
+          "new_order": 40,
+          "category": "Fungsional"
+        },
+        {
+          "id": "09198338-5035-4568-95ad-87d006923a05",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 39,
+          "new_order": 41,
+          "category": "Fungsional"
+        },
+        {
+          "id": "15a5069d-f409-421d-8017-c942db73f1cb",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 40,
+          "new_order": 42,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0e4357f1-2398-4682-b7ac-64ebb3da202c",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 41,
+          "new_order": 43,
+          "category": "Fungsional"
+        },
+        {
+          "id": "28e6bca2-84d7-408c-9b20-b8503e69e384",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 42,
+          "new_order": 44,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ccc09c74-a62c-4f97-b7f6-975f3766c36a",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 43,
+          "new_order": 45,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b3014671-a50b-418f-900a-7299cec0756f",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 44,
+          "new_order": 46,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Belitung",
+      "total": 41,
+      "updated": 24,
+      "updates": [
+        {
+          "id": "313d218d-add4-47e9-8885-e6ae37215247",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0c5a5bbd-7092-4574-aeb8-94d18917344b",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ee502038-ccf5-431e-ae0e-9dcbba1c60d1",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7fc1289e-d2e5-40fa-8059-6e0ea79581a9",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e16fe19c-4169-4e66-aeac-9bfcbc2802ba",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "50dad3ee-e6dd-4658-8b03-234c026f2094",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "aaad6cd7-f087-4cc4-a0a2-4016285742c9",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "36face92-9649-4a23-b0e4-535e36c6096d",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a867a4a1-3cd6-492f-8a25-b65826cdcbc2",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bd98a217-af43-4a24-bcc2-9c94003dfdbd",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4bd7ae5-3f67-4c7a-b190-c3dde705032a",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 16,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a351f875-0d09-4b20-97eb-e46df095452d",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 15,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f8b9cce-ef9f-48be-9cae-474f6d2d2b3d",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 17,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "31be86f2-bd68-4bb0-83d6-59d53a80a483",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ff19d3ff-3890-4da7-8e80-f240c8e80151",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 18,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a46c0ae4-69be-4c97-af64-d14f42e511cc",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 17,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2b07f85a-4a0a-4cf7-b443-25973c165bc8",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 19,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "66f387e9-afb1-4319-9d4e-2bad0a4750a8",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 20,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4267172-11d2-45b4-babc-7f74815a11b3",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 21,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "568a15b2-e926-4f99-8848-b7a7fe2a98b8",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 22,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "704555cb-0842-4eee-98da-02eba49d2ff0",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f19f0150-bf98-47f0-8c04-0bab87eeb024",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ad1c7824-f8c1-4d68-ab35-86e6c19f5a77",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ac7d22d-323d-4736-973d-70644e84f610",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 28,
+          "new_order": 30,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ternate",
+      "total": 43,
+      "updated": 38,
+      "updates": [
+        {
+          "id": "386f8f7c-ba3d-424f-b5e5-bfe4a610a053",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 36,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "11db524d-2f0b-45e3-bc54-278886c2172c",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 1,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fdebe986-9c55-4e2f-927a-0e18094fa361",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 2,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "01880b34-f394-4437-ab05-1ab8da661651",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 3,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f13ce653-5c25-45b0-a6d2-3ac14b31f4bf",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 4,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "794ee51b-3de3-4897-a637-9b6f13d8f85d",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 4,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "406eafbb-c377-4499-bd7e-115ede2a29e2",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 5,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d4f2757a-d20a-4ed1-849d-a93b3ef9ff8c",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 6,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7df6ad3f-34df-4479-b30b-ec3a55586ff6",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6d732054-36b4-4798-8dc9-cc5a65de7412",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "old_order": 5,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "41eb50d8-707c-44af-bc2b-4585d210d364",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 8,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cab53e45-ea4e-42b9-9bc8-1e3c357ce7b1",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 9,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f5249586-22a2-4ec6-8d35-0d999ac35f0a",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 11,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b73cc124-5933-408f-af63-0d3b748496ed",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 10,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e0e0963c-091f-4761-9221-3afc24f8b8bf",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 12,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ada1da5c-1c60-49a5-944d-ed6890e01bb6",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 11,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a5c535eb-349a-4233-8fba-e2cf92f61bf5",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 12,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8dd8c8a7-8c44-41b7-adb9-8d6c2912d325",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 13,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3b6ad223-f0ad-468b-877f-0c2d21e36468",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 14,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "681a7582-0130-41c0-a19e-100dbdad49bd",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 16,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "eae1ae5d-2ec8-4635-a523-eab4df64703f",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 15,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1a77d7b4-c760-47de-8d30-fc4f7da39563",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 17,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "31e61fc4-2b70-43d9-89ca-1c5cbc685c14",
+          "position_name": "Ahli Pertama - Pranata Komputer",
+          "old_order": 19,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0591e734-3d2d-44a6-8393-aa848af8c3aa",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 23,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b9f32636-54f8-4d16-8c53-78b2e75d4c50",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 24,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a15aa17f-e674-4833-b8d5-2dc4a75dc2ad",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 26,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "35761702-1926-46e5-a29c-963008978896",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 21,
+          "new_order": 1,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "57a4c647-c1a1-4c5d-b957-3e669b76d5e2",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 22,
+          "new_order": 2,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "55874e30-58bd-475a-98da-beb6bb2045d9",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 25,
+          "new_order": 3,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "15d52841-1178-4542-a691-8fbc0eb2dd25",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 27,
+          "new_order": 4,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "6c85f436-57ee-44cd-9fd7-c44b284a863e",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "old_order": 28,
+          "new_order": 5,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "a4acc705-5cd8-4370-8402-3dffd459caef",
+          "position_name": "Konselor SDM",
+          "old_order": 29,
+          "new_order": 6,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "52dec8d0-acbb-4105-a45a-fc115511cc7f",
+          "position_name": "Pengelola Layanan Operasional",
+          "old_order": 30,
+          "new_order": 7,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "f9078473-436b-44ac-b8cf-49f7183263f0",
+          "position_name": "Pengolah Data dan Informasi",
+          "old_order": 31,
+          "new_order": 8,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "0ca69d27-f0c3-4c67-8a59-1b697bdd0bfb",
+          "position_name": "Pengadministrasi Perkantoran",
+          "old_order": 32,
+          "new_order": 9,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "4a98d9bb-2c73-43eb-9d28-fde0870e9893",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "old_order": 33,
+          "new_order": 10,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "d994fe91-e9a3-404d-9d37-3a1f3738c1b5",
+          "position_name": "Operator Layanan Operasional",
+          "old_order": 34,
+          "new_order": 11,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "b8ca0725-c217-4246-a730-21ffdd2dbb35",
+          "position_name": "Pengelola Umum Operasional",
+          "old_order": 35,
+          "new_order": 12,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Medan",
+      "total": 52,
+      "updated": 46,
+      "updates": [
+        {
+          "id": "5caca856-bb61-419c-915a-b5473475d5f5",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 49,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "561a48b9-7e14-454e-88a2-a9daac8ed1d6",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 1,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "648d54f2-2d4c-4f1f-8f80-8ede2583d67b",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 2,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4b7f577a-54bc-4fde-949b-31e6a7e38604",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 3,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d005f279-76d9-4fd2-9f1f-77ad0b50872d",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 4,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2bf3b914-e24a-42f6-ae54-94fe5fed2276",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 5,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "48959f19-3d0f-4026-ba59-210a2bf495f4",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 6,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e47402b0-a1d4-4363-bef1-4692932604fe",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 7,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2b9bfcdc-ce40-4c40-876f-41cba41305b7",
+          "position_name": "Instruktur Penyelia",
+          "old_order": 5,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "94b86b61-a063-4ee1-8f7d-ab4ef5232182",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 8,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c9077fcb-9c20-4c7c-8edd-27618e9843cb",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 11,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6682b23e-dd1c-4da2-92ee-ca64dc83d023",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f3f16653-06bc-46a1-9595-9aee4e92c530",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 9,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c8276cbd-ff0f-409a-9d2b-29ba6475fa5f",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 12,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7a2c725-d5cf-40b0-923e-86de5ca5388c",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 15,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d88c606b-8988-468f-bbee-8768ee1afb20",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 10,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "467c6092-47a0-4df8-ac29-3343958e9988",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 13,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f1de57a2-a20c-4ccb-899f-c45412dcf773",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 11,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8f1ac049-9551-425e-b017-e34e308dbe71",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 13,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "741afd01-c0c2-425d-9a99-9833e5ab8cf9",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 12,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a07b1565-46dd-4b75-b5fb-c80651726ea1",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 14,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e43d9b17-b903-4781-958e-9c579f9a4fe3",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 16,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f77b5114-73e5-4088-b4c2-c38222d7263f",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 19,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cdc779b1-0d92-4a51-9258-0cb8e32c7450",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 15,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4dd752d-ddd0-4d47-8e12-679533b5a7d3",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 17,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "be0020a8-4c25-40e7-be65-4eb55cb1f021",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 20,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4d9f067b-85ce-4f6e-910b-fc5ff9a7ff93",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 18,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "83e9243a-628b-4e23-901a-9a76b64c86af",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 21,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ea050632-b390-44d7-80a5-fff42da77a1c",
+          "position_name": "Pranata komputer ahli pertama",
+          "old_order": 22,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e58d0e15-b0c3-4181-ba94-ea63c01209a6",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 31,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a11e8b02-3fcd-41ff-867c-6de3a29f082b",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 32,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4e688ffe-9614-4203-baef-91ca461dfbc6",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 33,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "60c7b0e7-76dc-418f-8d9e-9400bd48f08c",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 35,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0fb2ae76-a765-4571-bb11-25fda25837fe",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 28,
+          "new_order": 1,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "54969add-de04-41ed-af07-864e710a6afd",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 29,
+          "new_order": 2,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "576b1e51-79a7-4f58-8d83-19539a28d380",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 30,
+          "new_order": 3,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "0ae39db0-5733-440c-8b97-1aa709b9ebb3",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 34,
+          "new_order": 4,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "12b70868-33c4-4df7-bf57-fb8ed5ee45cd",
+          "position_name": "Penata Layanan Operasional",
+          "old_order": 36,
+          "new_order": 5,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "01a9031f-f819-4550-adb0-564227d1f5fc",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "old_order": 37,
+          "new_order": 6,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "bbd6db8c-3184-4c57-87d5-f0c4a8bf8e20",
+          "position_name": "Konselor SDM",
+          "old_order": 38,
+          "new_order": 7,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "8a68aac1-3fed-4f0c-98d7-d1678118e466",
+          "position_name": "Pengelola Layanan Operasional",
+          "old_order": 39,
+          "new_order": 8,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "d6fb62e8-42ed-4182-b694-e3d9ed038aa3",
+          "position_name": "Pengolah Data dan Informasi",
+          "old_order": 40,
+          "new_order": 9,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "fed0304d-e276-422e-a991-2a78f63cdc6b",
+          "position_name": "Pengadministrasi Perkantoran",
+          "old_order": 41,
+          "new_order": 10,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "61c70ecf-e21f-4ead-ba54-3312ed2e2d64",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "old_order": 42,
+          "new_order": 11,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "33ef9d6e-deba-46bc-92b6-03b57efe19a9",
+          "position_name": "Operator Layanan Operasional",
+          "old_order": 43,
+          "new_order": 12,
+          "category": "Pelaksana"
+        },
+        {
+          "id": "13fa3a33-21f6-41b7-94dc-680c3a913a34",
+          "position_name": "Pengelola Umum Operasional",
+          "old_order": 44,
+          "new_order": 13,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Makassar",
+      "total": 58,
+      "updated": 41,
+      "updates": [
+        {
+          "id": "b051e85b-96ea-486f-80e0-3a75e028be89",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "42c44d88-bb96-412f-bf7a-cd158eaacdae",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "947d6881-90bf-4421-8c17-14a3017584ba",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "87a25a2c-9355-4663-ba6f-c6d8796cf0f8",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f55d017e-bbeb-4ca0-9457-6bc8ef42954f",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "78a67cf3-d77a-45c8-bb22-b1b82ac1c82c",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9a86036-c73e-4583-9d4f-883de7ea75e8",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e54a6228-1e1b-4714-8233-d8744b793a74",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 14,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "16f41c95-16a4-418d-9b66-a030d4c57fdf",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 12,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fcfb9efa-84d1-4f48-9d83-e785c9ba5b98",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "24f69b69-9700-470d-b0ae-65a379e35a6d",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 19,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1fa381cd-92a8-4cb4-a27c-8c78b4fd8210",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 22,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "927a177d-31dc-4057-8364-240087f2184f",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a48eca32-f7bd-4d2a-a9a8-eb61865b21ea",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 20,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "56e6e200-0b48-4dc5-b164-980bfc5bdd5a",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 23,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "93613dd0-c109-48df-ba05-d7642f75bcd8",
+          "position_name": "Analis Anggaran Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1dd1bc6f-317d-4ed6-b5ca-f180780c3d5d",
+          "position_name": "Analis Anggaran Ahli Pertama",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2f41a898-27e2-4b3b-8140-b1d7593d7877",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "old_order": 18,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ccffe54-3b2e-4fe3-8f2c-62f7abdbb148",
+          "position_name": "Pranata Humas Ahli Muda",
+          "old_order": 18,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "df26173c-e0b1-4997-a367-fff724cca90b",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 20,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ac97af2b-d67a-4661-846f-ee84f058a0c5",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 19,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4ed92d70-3693-42b5-a14e-34d1cbc6e190",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 21,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6a1f20bf-2c46-407b-b07c-beca6c5b9a1c",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 22,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b839a6e0-1d0e-4efe-9d0a-59976bed0924",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 24,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f5fd8e36-03ef-406d-aca3-ba81b167bb78",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 27,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9f5d79b2-0ae7-4485-aaba-5ca3f6999167",
+          "position_name": "Pranata Komputer Penyelia",
+          "old_order": 23,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5979fe25-85d2-4eeb-a497-b20b4106581e",
+          "position_name": "Pranata Komputer Mahir",
+          "old_order": 25,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a7e81727-0028-4549-bf23-1266215893cb",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 28,
+          "new_order": 35,
+          "category": "Fungsional"
+        },
+        {
+          "id": "89bd9613-209c-40c7-8758-0e398f96dd18",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 26,
+          "new_order": 36,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a637c63-26f7-4ad1-a2cf-9467afbf4ad8",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 29,
+          "new_order": 37,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fc5c7c92-a0cb-402a-aad2-5cae48fc8f67",
+          "position_name": "Statistisi Ahli Madya",
+          "old_order": 36,
+          "new_order": 38,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fcbc6a7f-f794-4380-877d-7e1ad66fbac2",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 37,
+          "new_order": 39,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fcb8cea8-a8e0-4751-8c9e-788a39c84e03",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 38,
+          "new_order": 40,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ff9ff77b-1b1b-41c3-85d4-623144b0b6e9",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 39,
+          "new_order": 41,
+          "category": "Fungsional"
+        },
+        {
+          "id": "265a0778-32c6-4b82-960f-7d29cd89f192",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 40,
+          "new_order": 42,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a671b75b-c66d-4a05-a3fc-c843cee4edad",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 41,
+          "new_order": 43,
+          "category": "Fungsional"
+        },
+        {
+          "id": "911bc92b-7b3b-4765-8012-857fb4674647",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 42,
+          "new_order": 44,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d17994bf-5510-4199-a0bb-a518c28b0d8f",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 43,
+          "new_order": 45,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f7e1af0c-3e64-4815-b81f-2eaa0435c1e2",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 44,
+          "new_order": 46,
+          "category": "Fungsional"
+        },
+        {
+          "id": "13af2702-ce9a-4777-b375-b3d4a1f3cb94",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 45,
+          "new_order": 47,
+          "category": "Fungsional"
+        },
+        {
+          "id": "386b5e03-8098-499b-a0dd-a36c10d7f215",
+          "position_name": "Operatur Layanan Operasional",
+          "old_order": 10,
+          "new_order": 9,
+          "category": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "total": 40,
+      "updated": 26,
+      "updates": [
+        {
+          "id": "fe0cbb7f-b169-422c-8fc3-24e678fd7a82",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 3,
+          "new_order": 4,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4684df89-d2c8-45a1-a43f-e71f836421ba",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 4,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "767933cc-af01-43bf-b2c9-cb1d65f7d771",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fcf19f08-d47d-43e9-bf6f-83de684e1e95",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "aa26720b-0324-4b71-97d5-b6c7f63033f0",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a00c79a3-5887-404f-b3e4-93054ce323fa",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f93e417a-51b0-4806-8139-0c9913f85e61",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "38233129-951e-420f-8149-192e183708f0",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c53cc3e0-f610-49c7-97f2-e34a4adbd7d4",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "83f686ed-d3f0-461d-9a91-e15112290a3c",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "23fa641e-ce16-46f7-8d73-a8e063c0c5e3",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 13,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "62a40b4d-d6a5-4176-b2fa-6fb3b8e17d57",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 12,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e4e1edcb-9b99-44fc-82b0-66b14e757c27",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "283a2f54-a8bd-42ee-bada-3b44186d4a7e",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 13,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "361c5a75-ecb8-42fe-a207-2e79c9891088",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 15,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5b5eda80-59df-46dd-9e69-ec13091d609d",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 14,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f4573b4-d028-4847-a182-484d8d1a4aba",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7233cbe-0d81-4530-a007-1ba56e214d4d",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 17,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ecc96052-00d6-417d-a610-2c2800ac514c",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 19,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc9f8670-af5a-4445-8dab-0cec253b84c3",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 18,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8aac55bd-057f-4bdf-98e9-75daabec47db",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 20,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7766430-00d0-4d2a-bb21-3a77caebc974",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 23,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "37292b8e-d7c2-40c7-aabc-f29407e70434",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 24,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "14960f40-83d9-416b-a5d3-62454ada54c1",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "48f3a09b-157c-4d02-8220-27d9eb9d7126",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ad4b624b-0bba-4f80-bb16-612ccd623d39",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sorong",
+      "total": 41,
+      "updated": 25,
+      "updates": [
+        {
+          "id": "5a3a81eb-72b8-466f-93ad-cf12536eb9b9",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ce076886-2fbe-42fc-a2c1-19c8d2835635",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7862cad2-ef4e-447e-92a2-625441d95a16",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1a9411d5-562a-466a-be40-11ddfd4b49f4",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "cee692bf-242a-40ef-9a44-50c80ed90df8",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5276a49e-6058-4002-9659-34b4b0fc9d80",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b1b0500c-1006-4f54-8306-b7d3d2d371f5",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a8d58563-60f3-4a46-8082-2b70de4693af",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f0c02450-9985-4aa6-b2bd-3c37f795ad33",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0d6aba42-4562-4c67-81b1-f3f0191d54e9",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5bac386d-e7e5-4393-8421-8e2d2db5b0fb",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2237bd8d-ac6e-40b6-a416-f32adc832b34",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 14,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c61b6c86-7091-455b-a607-c3ee69a08116",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 16,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8171106b-91d2-4dd4-b2c9-bc0b8ffbad39",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 15,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ba7e2fdd-d4d2-4996-99e9-4008f2429b85",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 17,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9cdc949-ccfa-4765-934f-5a4c7a348665",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 16,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "383f204b-8cbb-45ea-8f73-dcd8f47c223f",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 18,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "786cc034-729b-4c65-b26a-72aa09f1d69f",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 19,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ae1b0e64-b515-4462-9442-6e7e7be2f781",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6abf0371-751a-49f7-990f-665d31323ff0",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 20,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f8f54f4b-6d4d-41ab-bbb6-99c666bb5600",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 24,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1f0495b8-bbf5-40c9-9546-1742fb14c53b",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 25,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "20947e2e-f7ae-49f3-a448-4a3ef6b9257c",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6d1d5279-e456-4895-933e-957500bbf1a4",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c52f8295-0b23-4ccc-8646-0d0cf7dde2fd",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 28,
+          "new_order": 30,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Surakarta",
+      "total": 46,
+      "updated": 31,
+      "updates": [
+        {
+          "id": "210daa1d-520b-48dc-8c38-a635ce8a14ad",
+          "position_name": "Instruktur Terampil",
+          "old_order": 6,
+          "new_order": 5,
+          "category": "Fungsional"
+        },
+        {
+          "id": "dc5af1b7-2e11-4995-a788-bd3ce1ac7368",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "0b20b221-e0b8-44a1-b699-f6889121392f",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "24f52d2b-3464-4cda-bca9-dc8708be0a8c",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "1763e17e-e779-45ee-9701-b31d87515963",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "428c855f-b96b-48d7-9487-19911e19e1d0",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "19b30fd9-b0ae-4c20-aadb-393add045484",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6e63e94b-18db-4ae8-8f00-fd059c60f47c",
+          "position_name": "Pranata Komputer Pelaksana Lanjutan",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "14c1462e-7e29-4840-876d-b0bc98e57da5",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2df142a7-393b-45bf-b5a9-c590c2959159",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d9c4a3dd-df6f-4cc3-b28c-82da59cd0a59",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "53e9919f-ebd4-48f5-a45f-0c91888022b5",
+          "position_name": "Perencana Ahli Madya",
+          "old_order": 11,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "66c1b93f-88ee-486c-9c13-e00bf125faa4",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 29,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bfa3ef02-4961-4edd-b623-903490b84503",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 30,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "579936fc-95bc-468c-83d5-403b55eace44",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 14,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2798d49d-b868-4cff-bf5a-b2460398d048",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 16,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d88d126d-8bd1-4a3f-b2d3-3862f8fd0ef3",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 18,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2b7eaf5e-b9df-40df-832a-19bed9320a5c",
+          "position_name": "Analis SDM Aparatur Ahli Madya",
+          "old_order": 15,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c97b8225-34f2-4f58-9661-8419ef33997c",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 17,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "14c9f62b-6f23-4a4d-afd6-e946101baa75",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 19,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "daeda120-fb4a-40d6-aea2-1f6a141a14a6",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 16,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ce31e87e-afd8-476d-996d-32af12939508",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 17,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "414d1823-13c4-4e71-b9e4-1fbc5dd88e91",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 19,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c71a748f-b5af-41a8-9b34-02c11e779029",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 18,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ddb303fe-b860-4789-8cd7-db70a6e5469c",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 20,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b20e3f7d-fedd-4762-b51f-a63fd2fea5e4",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 21,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "3ae9fd56-c58c-4532-9347-1433d16f7741",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 22,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7e7ae6f-61d5-4f64-8aac-b3ab31a4c99b",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 23,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "919d00c5-31b6-4c2b-9d10-ffdfc6b9b913",
+          "position_name": "Statistisi Ahli Muda",
+          "old_order": 27,
+          "new_order": 33,
+          "category": "Fungsional"
+        },
+        {
+          "id": "298c1a3f-075f-46b6-8edf-97db537dc1e4",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 28,
+          "new_order": 34,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f18f88a6-63cf-43b3-a27b-88e687c1d3b6",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 31,
+          "new_order": 35,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Samarinda",
+      "total": 44,
+      "updated": 27,
+      "updates": [
+        {
+          "id": "702b1885-ccf6-4d64-a15a-95079ca6c6fc",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "031bf6ce-f284-4a65-b8ac-a212e63f7d9f",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "c9f12222-9421-4427-a0bd-f34a6d01e100",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "652bb900-36d5-4d10-b204-d9b77665fa72",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "84bcf816-3537-42e1-b1f7-abbb195daf0b",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "fd3aa162-8829-4865-a4c9-b9bd8ca804b4",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "316c42bc-264d-4556-9d42-d7ffa99fbeab",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 11,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7480aaa9-ec84-42ea-9767-2e77a9e55a34",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 12,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f2ca77d8-bff4-417e-a5a9-f27872f004a2",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2b55f861-4407-4680-a747-34fbc82c57a9",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "old_order": 14,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "be1553f2-0ae0-4e7a-93fe-9807f33bd085",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 15,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9fb7266e-12e9-4c01-a7a1-df497f582141",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 17,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "e37ebcec-9d14-4a9f-8a69-8cbc65ae726f",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 16,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6f89b2bd-50ca-480b-b58e-62fa43493244",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 18,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "dab514a8-1f65-46e0-af14-67929740348b",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 17,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "63d0cf2d-7466-4b59-a1cb-932340d48872",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 18,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9611c321-7214-4a04-a040-b2e65e1c6911",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 19,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f870d9b1-9000-4e1b-99bb-736f27f42c3c",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "71a95150-afba-46ad-b7bf-07a5bbaeb8b8",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 20,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f6cf4d7a-8d31-4695-81ff-1e3793f1a7af",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 23,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "08002504-486d-49fb-8c1b-9bf8084ff85e",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 22,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "32af0ea3-1c63-4222-866a-22ede70eb3e6",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Madya",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "941178d2-71bd-4187-9c7e-a791c6de3aca",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4227d3c0-3673-48cb-a609-1b886b0c2a7e",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 28,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "60f3ec2f-34d8-42c0-b93e-d622e8d1481e",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 29,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "68ceb5cc-32a6-4e42-8afa-5789693f81dc",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 30,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "89f78b5a-99c0-4d98-a2f5-6a9e8fe1044a",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 31,
+          "new_order": 33,
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ambon",
+      "total": 44,
+      "updated": 28,
+      "updates": [
+        {
+          "id": "e39b52a5-155b-45e9-8cd6-07b4a38ca9ee",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "old_order": 5,
+          "new_order": 6,
+          "category": "Fungsional"
+        },
+        {
+          "id": "905e31f7-e775-422a-b862-d28af41db2f3",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "old_order": 6,
+          "new_order": 7,
+          "category": "Fungsional"
+        },
+        {
+          "id": "00d5674d-5be0-4e67-8caf-3ad4893905c0",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "old_order": 7,
+          "new_order": 8,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6f0816be-61d2-4bb3-bcf4-5eb3fba0f325",
+          "position_name": "Arsiparis Ahli Muda",
+          "old_order": 8,
+          "new_order": 9,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b544da7a-5cef-43fc-abc8-e90e6adc50c1",
+          "position_name": "Arsiparis Ahli Pertama",
+          "old_order": 9,
+          "new_order": 10,
+          "category": "Fungsional"
+        },
+        {
+          "id": "a93ae906-c333-4054-bb23-96a5a7f6c83b",
+          "position_name": "Arsiparis Penyelia",
+          "old_order": 10,
+          "new_order": 11,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5df7ba1d-f8e1-41f0-9e9e-4f0536ef3cb8",
+          "position_name": "Arsiparis Mahir",
+          "old_order": 11,
+          "new_order": 12,
+          "category": "Fungsional"
+        },
+        {
+          "id": "8c73c032-f5e9-4c5b-8112-11eb89ccae28",
+          "position_name": "Arsiparis Terampil",
+          "old_order": 12,
+          "new_order": 13,
+          "category": "Fungsional"
+        },
+        {
+          "id": "6cac5d39-963e-4f53-ba4e-32f1591a6665",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "old_order": 10,
+          "new_order": 14,
+          "category": "Fungsional"
+        },
+        {
+          "id": "891612b8-0f5d-43d6-a887-e14711f5e275",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "old_order": 13,
+          "new_order": 15,
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf9d86f2-9702-4f49-8c6f-a493130c78fa",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "old_order": 15,
+          "new_order": 16,
+          "category": "Fungsional"
+        },
+        {
+          "id": "57b77b44-49ff-4e44-8ff2-b20521b48a2a",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "old_order": 14,
+          "new_order": 17,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7069492d-4b6c-4bf6-b42c-d0efe6859229",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "old_order": 16,
+          "new_order": 18,
+          "category": "Fungsional"
+        },
+        {
+          "id": "5e1562b5-026a-4102-9b93-ab85d90d558d",
+          "position_name": "Pranata Komputer Ahli Muda",
+          "old_order": 15,
+          "new_order": 19,
+          "category": "Fungsional"
+        },
+        {
+          "id": "47f354b2-1fae-4e6c-b919-4f2406b032d2",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "old_order": 17,
+          "new_order": 20,
+          "category": "Fungsional"
+        },
+        {
+          "id": "97bacaf2-b471-4c30-beb8-51dbbfd76673",
+          "position_name": "Pranata Humas Ahli Pertama",
+          "old_order": 16,
+          "new_order": 21,
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7d8d52d-81dc-4ab5-9aa8-dcb79bf18fa4",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "old_order": 18,
+          "new_order": 22,
+          "category": "Fungsional"
+        },
+        {
+          "id": "f26be65d-5ed0-46dc-a919-66be4843b7f3",
+          "position_name": "Pranata Keuangan APBN Mahir",
+          "old_order": 19,
+          "new_order": 23,
+          "category": "Fungsional"
+        },
+        {
+          "id": "9f529c66-6562-42df-a3c5-fba034fdb74f",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "old_order": 21,
+          "new_order": 24,
+          "category": "Fungsional"
+        },
+        {
+          "id": "d11e5925-815f-414a-9d99-1a22ba0bf973",
+          "position_name": "Pranata SDM Aparatur Mahir",
+          "old_order": 20,
+          "new_order": 25,
+          "category": "Fungsional"
+        },
+        {
+          "id": "2106bcfc-163a-4bd3-ba92-e43689cd1a20",
+          "position_name": "Pranata SDM Aparatur Terampil",
+          "old_order": 23,
+          "new_order": 26,
+          "category": "Fungsional"
+        },
+        {
+          "id": "57f8bd37-6266-43fa-a72e-43a20578f057",
+          "position_name": "Pranata Komputer Terampil",
+          "old_order": 22,
+          "new_order": 27,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7ee20b60-dbfa-400a-bfb8-f6bca6721ec8",
+          "position_name": "Statistisi Ahli Pertama",
+          "old_order": 26,
+          "new_order": 28,
+          "category": "Fungsional"
+        },
+        {
+          "id": "255dfff4-b7b0-4ac8-98dd-c7bdbd3ac4ef",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "old_order": 27,
+          "new_order": 29,
+          "category": "Fungsional"
+        },
+        {
+          "id": "128d9b8f-3e5c-4e13-93d5-c93a3a453832",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "old_order": 28,
+          "new_order": 30,
+          "category": "Fungsional"
+        },
+        {
+          "id": "7f2bb6ff-a39d-40e6-a5d6-8844c0d3cec7",
+          "position_name": "Perencana Ahli Muda",
+          "old_order": 29,
+          "new_order": 31,
+          "category": "Fungsional"
+        },
+        {
+          "id": "ccc321c2-095f-427d-b56a-c198292d520d",
+          "position_name": "Perencana Ahli Pertama",
+          "old_order": 30,
+          "new_order": 32,
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c23c54c-17ff-42bf-9323-7cf7cc4a951e",
+          "position_name": "Penata Laksana Barang Terampil",
+          "old_order": 31,
+          "new_order": 33,
+          "category": "Fungsional"
+        }
+      ]
+    }
+  ]
+}

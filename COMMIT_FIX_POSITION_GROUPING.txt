@@ -1,0 +1,38 @@
+fix: Pengelompokan jabatan sejenis di Peta Jabatan (semua unit)
+
+Merapihkan position_order agar jabatan sejenis berkelompok dengan rapi
+di menu Peta Jabatan. Sebelumnya, jabatan sejenis (Arsiparis, Analis, dll)
+terpisah-pisah karena position_order tidak berurutan.
+
+Masalah:
+- Arsiparis Terampil terpisah dari Arsiparis lainnya
+- Analis muncul di tengah-tengah kelompok Arsiparis
+- position_order tidak berurutan (loncat-loncat)
+- Disebabkan oleh edit manual urutan atau data migrasi
+
+Solusi:
+- Buat script fix_all_units_grouping.mjs untuk merapihkan semua unit
+- Kelompokkan jabatan berdasarkan "base name" (Arsiparis, Analis Hukum, dll)
+- Dalam setiap kelompok, urutkan berdasarkan hierarki (Utama → Madya → Muda → dst)
+- Assign position_order baru yang berurutan per kelompok
+
+Hasil:
+- 795 posisi diperbaiki di 25 unit kerja
+- Semua jabatan sejenis sekarang berkelompok rapi
+- Arsiparis: order 1-6 (berurutan tanpa loncat)
+- Analis Hukum: order 7-9 (berkelompok)
+- Analis Kebijakan: order 10-12 (berkelompok)
+- Dan seterusnya...
+
+Verifikasi:
+- Arsiparis position_order: 1, 2, 3, 4, 5, 6 ✅ (sebelumnya: 1, 2, 3, 4, 5, 7)
+- Tidak ada jabatan yang terpisah-pisah lagi
+- Urutan hierarki tetap benar
+
+File yang dibuat:
+- fix_all_units_grouping.mjs - Script untuk semua unit
+- fix_position_order_grouping.mjs - Script untuk single unit
+- check_arsiparis_order_issue.mjs - Script verifikasi
+
+Dokumentasi:
+- FIX_POSITION_GROUPING_ALL_UNITS.md

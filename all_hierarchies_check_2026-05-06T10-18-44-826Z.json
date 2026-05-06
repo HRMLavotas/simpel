@@ -1,0 +1,33 @@
+{
+  "issues": [],
+  "hierarchyStats": {
+    "Instruktur Ahli": {
+      "total": 87,
+      "units": {}
+    },
+    "Instruktur": {
+      "total": 32,
+      "units": {}
+    },
+    "Arsiparis": {
+      "total": 27,
+      "units": {}
+    },
+    "Analis": {
+      "total": 186,
+      "units": {}
+    },
+    "Pranata": {
+      "total": 233,
+      "units": {}
+    },
+    "Pengelola": {
+      "total": 1,
+      "units": {}
+    },
+    "Perancang": {
+      "total": 3,
+      "units": {}
+    }
+  }
+}

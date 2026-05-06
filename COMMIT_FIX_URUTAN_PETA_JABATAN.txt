@@ -1,0 +1,31 @@
+fix: Konsistensi urutan jabatan berjenjang di Peta Jabatan
+
+Memperbaiki urutan jabatan berjenjang di menu Peta Jabatan agar konsisten
+dengan menu Data Pegawai dengan menambahkan position_name sebagai tiebreaker
+di semua query database.
+
+Masalah:
+- Urutan jabatan di Peta Jabatan tidak konsisten dengan Data Pegawai
+- Jabatan dengan position_order yang sama muncul dalam urutan acak
+- Query database tidak menggunakan tiebreaker untuk sorting
+
+Solusi:
+- Tambahkan .order('position_name') di 3 query database:
+  * fetchData() - query untuk single department
+  * fetchSummaryData() - query untuk summary all departments
+  * handleExportAllDepartments() - query untuk export all units
+- Perbaiki sorting di export function dengan menambahkan position_name
+  sebagai tiebreaker setelah position_order
+
+Hasil:
+- Urutan jabatan konsisten di semua menu (Peta Jabatan & Data Pegawai)
+- Sorting deterministik: position_category → position_order → position_name
+- Jabatan berjenjang terurut dari tertinggi ke terendah
+- Dalam level yang sama, urutan alfabetis konsisten
+
+File yang dimodifikasi:
+- src/pages/PetaJabatan.tsx
+
+Dokumentasi:
+- FIX_PETA_JABATAN_SORTING_CONSISTENCY.md
+- RINGKASAN_FIX_URUTAN_PETA_JABATAN.md
