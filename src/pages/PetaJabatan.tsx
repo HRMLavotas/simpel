@@ -1138,6 +1138,214 @@ export default function PetaJabatan() {
     });
   };
 
+  // ── Export Peta Jabatan ASN semua unit kerja (1 worksheet per unit) ──────────
+  const [isExportingAll, setIsExportingAll] = useState(false);
+
+  const handleExportAllDepartments = async () => {
+    setIsExportingAll(true);
+    toast({ title: 'Memproses...', description: 'Mengambil data semua unit kerja, harap tunggu.' });
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const sheetNamesUsed = new Set<string>();
+
+      // Helper: buat nama sheet unik maks 31 karakter (batas Excel)
+      const makeSheetName = (dept: string): string => {
+        // Singkat nama unit kerja agar muat di 31 karakter
+        let name = dept
+          .replace(/Balai Besar Pelatihan Vokasi dan Produktivitas/gi, 'BBPVP')
+          .replace(/Balai Pelatihan Vokasi dan Produktivitas/gi, 'BPVP')
+          .replace(/Setditjen Binalavotas/gi, 'Setditjen')
+          .replace(/Direktorat/gi, 'Dit.')
+          .trim()
+          .substring(0, 31);
+        // Pastikan unik
+        let candidate = name;
+        let counter = 2;
+        while (sheetNamesUsed.has(candidate)) {
+          const suffix = ` (${counter++})`;
+          candidate = name.substring(0, 31 - suffix.length) + suffix;
+        }
+        sheetNamesUsed.add(candidate);
+        return candidate;
+      };
+
+      // Ambil semua data sekaligus (positions + employees) untuk efisiensi
+      const [allPosRes, allEmpRes, allEduRes] = await Promise.all([
+        supabase
+          .from('position_references')
+          .select('*')
+          .order('department')
+          .order('position_category')
+          .order('position_order'),
+        supabase
+          .from('employees')
+          .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+          .or('asn_status.is.null,asn_status.neq.Non ASN'),
+        supabase
+          .from('education_history')
+          .select('employee_id, level, graduation_year')
+          .order('graduation_year', { ascending: false }),
+      ]);
+
+      if (allPosRes.error) throw allPosRes.error;
+      if (allEmpRes.error) throw allEmpRes.error;
+
+      const allPos = allPosRes.data || [];
+      const allEmp = (allEmpRes.data || []) as EmployeeMatch[];
+      const allEdu = allEduRes.data || [];
+
+      // Buat map pendidikan terakhir per employee_id
+      const eduMap = new Map<string, string>();
+      allEdu.forEach(e => {
+        if (!eduMap.has(e.employee_id)) eduMap.set(e.employee_id, e.level);
+      });
+
+      // Buat map employees per department → per normalized position_name
+      const empByDeptPos = new Map<string, Map<string, EmployeeMatch[]>>();
+      allEmp.forEach(emp => {
+        if (!emp.department || !emp.position_name) return;
+        if (!empByDeptPos.has(emp.department)) empByDeptPos.set(emp.department, new Map());
+        const posMap = empByDeptPos.get(emp.department)!;
+        const norm = normalizeString(emp.position_name);
+        if (!posMap.has(norm)) posMap.set(norm, []);
+        posMap.get(norm)!.push(emp);
+      });
+
+      // Kumpulkan semua unit kerja yang punya data jabatan
+      const depts = dynamicDepartments.filter(d => d !== 'Pusat');
+
+      // Buat worksheet per unit kerja
+      for (const dept of depts) {
+        const deptPositions = allPos.filter(p => p.department === dept);
+        if (deptPositions.length === 0) continue; // skip unit tanpa jabatan
+
+        const posMap = empByDeptPos.get(dept) || new Map<string, EmployeeMatch[]>();
+        const rows: Record<string, string | number>[] = [];
+        let no = 1;
+
+        POSITION_CATEGORIES.forEach(category => {
+          // Baris header kategori
+          rows.push({
+            'No': '',
+            'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
+            'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
+            'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
+            'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
+            'Keterangan Formasi': '', 'Keterangan Penempatan': '',
+            'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
+          });
+
+          const catPositions = deptPositions
+            .filter(p => p.position_category === category)
+            .sort((a, b) => a.position_order - b.position_order);
+
+          catPositions.forEach(pos => {
+            const matched = posMap.get(normalizeString(pos.position_name)) || [];
+            const existing = matched.length;
+            const ketFormasi = pos.abk_count - existing;
+
+            if (matched.length === 0) {
+              rows.push({
+                'No': no++,
+                'Jabatan Sesuai Kepmen 202 Tahun 2024': pos.position_name,
+                'Grade/Kelas Jabatan': pos.grade || '',
+                'Jumlah ABK': pos.abk_count,
+                'Jumlah Existing': 0,
+                'Nama Pemangku': '-',
+                'Kriteria ASN': '-',
+                'NIP': '-',
+                'Pangkat Golongan': '-',
+                'Pendidikan Terakhir': '-',
+                'Jenis Kelamin': '-',
+                'Keterangan Formasi': ketFormasi > 0 ? `Kurang ${ketFormasi}` : 'Sesuai',
+                'Keterangan Penempatan': '-',
+                'Keterangan Penugasan Tambahan': '-',
+                'Keterangan Perubahan': '-',
+              });
+            } else {
+              matched.forEach((emp, idx) => {
+                const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
+                rows.push({
+                  'No': idx === 0 ? no++ : '',
+                  'Jabatan Sesuai Kepmen 202 Tahun 2024': idx === 0 ? pos.position_name : '',
+                  'Grade/Kelas Jabatan': idx === 0 ? (pos.grade || '') : '',
+                  'Jumlah ABK': idx === 0 ? pos.abk_count : '',
+                  'Jumlah Existing': idx === 0 ? existing : '',
+                  'Nama Pemangku': fullName,
+                  'Kriteria ASN': emp.asn_status || '-',
+                  'NIP': emp.nip || '-',
+                  'Pangkat Golongan': emp.rank_group || '-',
+                  'Pendidikan Terakhir': eduMap.get(emp.id) || '-',
+                  'Jenis Kelamin': emp.gender || '-',
+                  'Keterangan Formasi': idx === 0
+                    ? (ketFormasi > 0 ? `Kurang ${ketFormasi}` : ketFormasi < 0 ? `Lebih ${Math.abs(ketFormasi)}` : 'Sesuai')
+                    : '',
+                  'Keterangan Penempatan': emp.keterangan_penempatan || '-',
+                  'Keterangan Penugasan Tambahan': emp.keterangan_penugasan || '-',
+                  'Keterangan Perubahan': emp.keterangan_perubahan || '-',
+                });
+              });
+            }
+          });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws['!cols'] = [
+          { wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 12 }, { wch: 14 },
+          { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 },
+          { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
+      }
+
+      // Sheet terakhir: Summary semua unit
+      const summaryRows: Record<string, string | number>[] = [];
+      depts.forEach((dept, idx) => {
+        const deptPos = allPos.filter(p => p.department === dept);
+        if (deptPos.length === 0) return;
+        const totalAbk = deptPos.reduce((s, p) => s + p.abk_count, 0);
+        const posNames = new Set(deptPos.map(p => normalizeString(p.position_name)));
+        const totalExisting = allEmp.filter(e => e.department === dept && e.position_name && posNames.has(normalizeString(e.position_name))).length;
+        const gap = totalAbk - totalExisting;
+        summaryRows.push({
+          'No': idx + 1,
+          'Unit Kerja': dept,
+          'Total Jabatan': deptPos.length,
+          'Total ABK': totalAbk,
+          'Total Existing': totalExisting,
+          'Gap (ABK-Existing)': gap,
+          '% Terisi': totalAbk > 0 ? `${((totalExisting / totalAbk) * 100).toFixed(1)}%` : '0%',
+          'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+        });
+      });
+
+      if (summaryRows.length > 0) {
+        const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+        wsSummary['!cols'] = [
+          { wch: 5 }, { wch: 40 }, { wch: 14 }, { wch: 12 },
+          { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 15 },
+        ];
+        // Taruh summary di posisi pertama
+        wb.SheetNames.unshift('SUMMARY');
+        wb.Sheets['SUMMARY'] = wsSummary;
+      }
+
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      XLSX.writeFile(wb, `Peta_Jabatan_ASN_Semua_Unit_${today}.xlsx`);
+
+      toast({
+        title: 'Export Berhasil',
+        description: `${wb.SheetNames.length} worksheet (${wb.SheetNames.length - 1} unit kerja + 1 summary) berhasil di-export.`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan';
+      toast({ variant: 'destructive', title: 'Export Gagal', description: msg });
+    } finally {
+      setIsExportingAll(false);
+    }
+  };
+
   const handleExportSummaryNonASN = () => {
     const wb = XLSX.utils.book_new();
 
@@ -1848,6 +2056,20 @@ export default function PetaJabatan() {
                   <Download className="mr-1 sm:mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Export Summary</span><span className="sm:hidden">Export</span>
                 </Button>
+                {canViewAll && (
+                  <Button
+                    variant="default"
+                    onClick={handleExportAllDepartments}
+                    disabled={isExportingAll || allPositions.length === 0}
+                    className="text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    <Download className="mr-1 sm:mr-2 h-4 w-4" />
+                    {isExportingAll
+                      ? 'Memproses...'
+                      : <><span className="hidden sm:inline">Export Semua Unit (Multi-Sheet)</span><span className="sm:hidden">Export Semua</span></>
+                    }
+                  </Button>
+                )}
               </div>
 
               {/* Summary Filters */}
