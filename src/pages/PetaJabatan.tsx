@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, POSITION_TYPES } from '@/lib/constants';
+import { DEPARTMENTS, POSITION_TYPES, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -66,9 +66,27 @@ interface EducationInfo {
 const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
 
 export default function PetaJabatan() {
-  const { profile, isAdminPusat, canEdit, canViewAll } = useAuth();
+  const { profile, isAdminPusat, canEdit, canViewAll, role } = useAuth();
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
+
+  // Supervised units support (unit pembina → satpel/workshop)
+  const hasSupervisedUnits = useMemo(() => {
+    if (!profile || role !== 'admin_unit') return false;
+    return getSatpelsByPembina(profile.department).length > 0;
+  }, [profile, role]);
+
+  // Departments accessible by this user (own unit + supervised units)
+  const accessibleDepartments = useMemo(() => {
+    if (canViewAll) return dynamicDepartments.filter(d => d !== 'Pusat');
+    if (role === 'admin_unit' && hasSupervisedUnits && profile?.department) {
+      return [profile.department, ...getSatpelsByPembina(profile.department)];
+    }
+    return [];
+  }, [canViewAll, role, hasSupervisedUnits, profile?.department, dynamicDepartments]);
+
+  // Show department selector for admin_pusat/pimpinan AND admin_unit pembina
+  const showDepartmentFilter = canViewAll || (role === 'admin_unit' && hasSupervisedUnits);
 
   // Calculate default department based on user role
   const defaultDepartment = useMemo(() => {
@@ -340,17 +358,24 @@ export default function PetaJabatan() {
         return { data: allData, error: null };
       };
 
-      // For Admin Unit, only fetch their department data
+      // For Admin Unit, only fetch their department data (+ supervised units if pembina)
       // For Admin Pusat/Pimpinan, fetch all departments
+      const summaryDepts = !canViewAll && profile?.department
+        ? (hasSupervisedUnits
+            ? [profile.department, ...getSatpelsByPembina(profile.department)]
+            : [profile.department])
+        : null; // null = no filter (fetch all)
+
       const [allPosRes, allEmpRes, allNonAsnRes] = await Promise.all([
         fetchAllUnlimited(() => {
           let query = supabase
             .from('position_references')
             .select('*');
           
-          // Filter by department for Admin Unit
-          if (!canViewAll && profile?.department) {
-            query = query.eq('department', profile.department);
+          if (summaryDepts) {
+            query = summaryDepts.length === 1
+              ? query.eq('department', summaryDepts[0])
+              : query.in('department', summaryDepts);
           }
           
           return query
@@ -364,9 +389,10 @@ export default function PetaJabatan() {
             .select('id, name, department, position_name, asn_status')
             .or('asn_status.is.null,asn_status.neq.Non ASN');
           
-          // Filter by department for Admin Unit
-          if (!canViewAll && profile?.department) {
-            query = query.eq('department', profile.department);
+          if (summaryDepts) {
+            query = summaryDepts.length === 1
+              ? query.eq('department', summaryDepts[0])
+              : query.in('department', summaryDepts);
           }
           
           return query;
@@ -377,9 +403,10 @@ export default function PetaJabatan() {
             .select('id, name, department, position_name, rank_group')
             .eq('asn_status', 'Non ASN');
           
-          // Filter by department for Admin Unit
-          if (!canViewAll && profile?.department) {
-            query = query.eq('department', profile.department);
+          if (summaryDepts) {
+            query = summaryDepts.length === 1
+              ? query.eq('department', summaryDepts[0])
+              : query.in('department', summaryDepts);
           }
           
           return query;
@@ -1535,7 +1562,7 @@ export default function PetaJabatan() {
             <p className="page-description">Jabatan Sesuai Kepmen 202 Tahun 2024</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {canViewAll && (
+            {showDepartmentFilter && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger id="department-filter" className="w-full sm:w-[240px]">
                   <SelectValue>
@@ -1543,7 +1570,7 @@ export default function PetaJabatan() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
+                  {accessibleDepartments.map(d => (
                     <SelectItem key={d} value={d}>{d}</SelectItem>
                   ))}
                 </SelectContent>
@@ -2061,6 +2088,13 @@ export default function PetaJabatan() {
                         (Gabungan dari semua unit kerja)
                       </span>
                     </>
+                  ) : hasSupervisedUnits ? (
+                    <>
+                      Summary Peta Jabatan ASN - {profile?.department}
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Unit pembina + {getSatpelsByPembina(profile?.department || '').length} unit binaan)
+                      </span>
+                    </>
                   ) : (
                     <>
                       Summary Peta Jabatan ASN - {profile?.department || selectedDepartment}
@@ -2118,15 +2152,15 @@ export default function PetaJabatan() {
                   )}
                 </div>
 
-                {/* Unit Kerja Filter - only for Admin Pusat/Pimpinan */}
-                {canViewAll && (
+                {/* Unit Kerja Filter - for Admin Pusat/Pimpinan AND Admin Unit Pembina */}
+                {showDepartmentFilter && (
                   <Select value={summaryFilterUnit} onValueChange={setSummaryFilterUnit}>
                     <SelectTrigger id="summary-unit-filter" className="w-full sm:w-[220px]">
                       <SelectValue placeholder="Semua Unit Kerja" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                      {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
+                      {accessibleDepartments.map(d => (
                         <SelectItem key={d} value={d}>{d}</SelectItem>
                       ))}
                     </SelectContent>
@@ -2602,6 +2636,13 @@ export default function PetaJabatan() {
                         (Gabungan dari semua unit kerja)
                       </span>
                     </>
+                  ) : hasSupervisedUnits ? (
+                    <>
+                      Summary Pegawai Non-ASN - {profile?.department}
+                      <span className="ml-2 text-sm font-normal text-muted-foreground">
+                        (Unit pembina + {getSatpelsByPembina(profile?.department || '').length} unit binaan)
+                      </span>
+                    </>
                   ) : (
                     <>
                       Summary Pegawai Non-ASN - {profile?.department || selectedDepartment}
@@ -2634,15 +2675,15 @@ export default function PetaJabatan() {
                     )}
                   </div>
                   
-                  {/* Unit Kerja Filter - only for Admin Pusat/Pimpinan */}
-                  {canViewAll && (
+                  {/* Unit Kerja Filter - for Admin Pusat/Pimpinan AND Admin Unit Pembina */}
+                  {showDepartmentFilter && (
                     <Select value={summaryNonAsnFilterUnit} onValueChange={setSummaryNonAsnFilterUnit}>
                       <SelectTrigger id="summary-non-asn-unit-filter" className="w-full sm:w-[220px]">
                         <SelectValue placeholder="Semua Unit Kerja" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Semua Unit Kerja</SelectItem>
-                        {dynamicDepartments.filter(d => d !== 'Pusat').map(d => (
+                        {accessibleDepartments.map(d => (
                           <SelectItem key={d} value={d}>{d}</SelectItem>
                         ))}
                       </SelectContent>
