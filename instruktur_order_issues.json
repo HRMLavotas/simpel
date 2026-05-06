@@ -1,0 +1,905 @@
+[
+  {
+    "department": "BBPVP Bandung",
+    "positions": [
+      {
+        "id": "0a7ef741-a3dc-416f-81f4-9b89817dabf7",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "cc87b5c0-dce9-479b-b9d7-ad815e03eb52",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "838d034e-ae75-4eac-b09d-68864401dd78",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "b9033be2-4a69-4ab8-af68-a16fe14b28e6",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "27823fdc-0def-4041-b7df-3e579d67d490",
+        "name": "Instruktur Mahir",
+        "currentOrder": 5,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "5046e303-1707-4cfb-9771-264a246f7ee9",
+        "name": "Instruktur Terampil",
+        "currentOrder": 6,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "20313371-cbff-4ec5-b5fc-c3b20c3b32c8",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 39,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Bekasi",
+    "positions": [
+      {
+        "id": "4f312a77-14c8-4c3d-91a9-0b77c9114b61",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "26f388f3-45be-434c-b62f-d6f0cbdd5fd6",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "c4c469b6-f154-449a-872c-f13d2fa8a708",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "82a484cb-5cb1-40f0-8f0d-b618c10ca4b6",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "d611fce5-9a76-40a5-b5db-c7a5c3a6d3dc",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 5,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "3de2b443-b835-497d-be0e-1570d1612ba1",
+        "name": "Instruktur Terampil/Pelaksana",
+        "currentOrder": 6,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "f48b6bd0-30f4-4f03-b26b-59452cdf1b95",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 44,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Makassar",
+    "positions": [
+      {
+        "id": "8363b8f0-4d1f-47ce-bcd9-efd66baaa4d9",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "e70953a9-04e9-4f3c-bbc8-07aedbe0da86",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "01e5803d-08a0-4abe-8c01-ea3851dcb899",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "1e34c943-5c8b-4eaa-a0e1-dca92d7944f5",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "dc96925c-7a4b-4f50-9fe1-4bf05de4df8b",
+        "name": "Instruktur Mahir",
+        "currentOrder": 5,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "cf510b0a-516b-4ddd-8491-a3452ad4e78c",
+        "name": "Instruktur Terampil",
+        "currentOrder": 6,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "6d686f63-6f2d-429b-811e-89d9d6b6be17",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 46,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Medan",
+    "positions": [
+      {
+        "id": "67a063c8-fb28-4aee-8264-4d6481fb5cda",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "c302910b-80c7-4d14-901c-a68c6902a84a",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "533e388a-b9b7-4afb-b582-1c28f2a3adef",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "2b9bfcdc-ce40-4c40-876f-41cba41305b7",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "36266903-cecb-4d6f-a6c9-3e90be00e4d5",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 5,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Semarang",
+    "positions": [
+      {
+        "id": "ee79b195-cd45-48d8-a9a5-95b710cb5ff1",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "1078e210-4a8f-4e47-814c-c7c5eb0f0b89",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "3c962f72-9ad5-4c3b-b180-b4b10663859b",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "cdf3a93b-05d0-4f2c-bcee-3785c12f2a52",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "9661e3f7-a25a-48b5-b9fd-26f481e5b7ce",
+        "name": "Instruktur Mahir/Pelaksana Lanjtuan",
+        "currentOrder": 5,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "246e4753-2d5e-4999-9d1a-88e1677e8b2a",
+        "name": "Instruktur Terampil",
+        "currentOrder": 6,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "a6483d08-b8f3-4a7a-a2e4-2293f26d45bd",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 46,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Serang",
+    "positions": [
+      {
+        "id": "6e2c63ab-2d2a-4466-916b-6d027f3fe8db",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "538558db-d8d8-4ac7-9102-7b753e31cbaa",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 3,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "a1c45b0a-fca3-455b-b654-cc38a3835a97",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 4,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "924692d7-05d8-4fd0-94fe-a35dba9db6c7",
+        "name": "Instruktur mahir",
+        "currentOrder": 5,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "2174fcc2-eac4-4f5b-b01b-b5130deaa178",
+        "name": "Instruktur Ahli Pertama Kejuruan Teknik Elektronika",
+        "currentOrder": 18,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "4313cb4a-aee6-4186-a27d-fdc2a5681f52",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 20,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "c9fc0804-a37d-4c71-af48-8d92011c4dba",
+        "name": "Instruktur Ahli Utama",
+        "currentOrder": 45,
+        "normalized": "Instruktur Ahli Utama",
+        "expectedRank": 1
+      }
+    ]
+  },
+  {
+    "department": "BPVP Ambon",
+    "positions": [
+      {
+        "id": "bc4d4995-dd32-4f99-8533-ec841e483f29",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "1368f2e5-5527-4f5b-ab01-5e14232c10c6",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "b641418d-9af5-42cc-8b35-489b2fda5c82",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "5b9748a5-df13-43c1-a9ab-16212a7185fd",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "7719d529-2138-41e4-b60c-5ab0d4d6b811",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 32,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Banda Aceh",
+    "positions": [
+      {
+        "id": "135a03f5-b15b-437c-a7a5-505af755e194",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "8aeb9dc4-f4aa-4f81-88cf-1e5ffc40ac63",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "dba9db4a-1562-4b7d-8303-1a78c819aad7",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "25fd696c-6853-474b-b275-bedeccc12448",
+        "name": "Instruktur Mahir",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "2b76878c-576a-4955-a122-2c887514365b",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 32,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Bandung Barat",
+    "positions": [
+      {
+        "id": "5b2a3f08-3ba7-4af7-accc-ce6872ea8aec",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "2e75343d-3928-460f-bd86-41eb661464b3",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "7f7b9c3e-02a1-45e9-b0e2-9af489971108",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "d8e9e080-11fd-4c8b-8ce4-7017530009e2",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 4,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      },
+      {
+        "id": "46e37d01-0bb1-498f-afd3-370e6f7eee04",
+        "name": "Instruktur Terampil/Pelaksana",
+        "currentOrder": 39,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      }
+    ]
+  },
+  {
+    "department": "BPVP Bantaeng",
+    "positions": [
+      {
+        "id": "67129102-408a-4d70-9bcd-176badee682f",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "fb4b1033-7c35-4e07-bc23-f6f063e86b09",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "fc316d77-8a0f-4ca8-ac51-551c42f04a33",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 3,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "e66400d8-867d-4eb3-9a6c-dfc2bba0f08c",
+        "name": "Instruktur Terampil/Pelaksana",
+        "currentOrder": 4,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "ecbfa51c-648b-4b15-9433-dcf8837fc428",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 32,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Banyuwangi",
+    "positions": [
+      {
+        "id": "077a31dc-9c20-4310-9ce3-9062b93682bd",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "f875352c-6ef5-4d38-adbd-148f3de7fd89",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "9f97247a-618b-4618-bbdc-03756ae92ed5",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 28,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Belitung",
+    "positions": [
+      {
+        "id": "6ded3025-f8f7-4867-bd41-993b970c4b3e",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "55a5f772-044c-46df-84ec-6dd5243d88bf",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "b51efb67-c4b3-4b4a-ae8f-ffe018d00361",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "fafafb31-ff06-471a-9330-053f6c6d467f",
+        "name": "Instruktur Mahir",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "576aa294-cca8-4e80-91c9-8ce4d0eedf75",
+        "name": "Instruktur Terampil",
+        "currentOrder": 5,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "941c5c51-a804-4408-8b98-da63dcb2632e",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 29,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Kendari",
+    "positions": [
+      {
+        "id": "b74a148a-8275-4256-93a6-4e24677e37bc",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "c92c042f-3d9c-44d1-bc38-7066d0610b83",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "77834eff-82a7-4c13-aef4-a76411bf2ead",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "902672a7-8949-40ee-a602-fddc4cf8a540",
+        "name": "Instruktur Mahir",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "c9ed313a-463b-49fd-a2ff-ecf0c6e6d17f",
+        "name": "Instruktur Terampil",
+        "currentOrder": 5,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "f0b588ff-1dd5-4893-917f-b8a14df68e6c",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 35,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Lombok Timur",
+    "positions": [
+      {
+        "id": "108fbed8-4379-452c-acc8-d9cf6dfaa89b",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "e0d89076-7601-4391-a367-0125701815f5",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "9e6c9967-a28e-47d8-83a9-3a41b299f9b6",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "658edfe9-aff6-46ef-b0a4-21b58d79ce6e",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 23,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Padang",
+    "positions": [
+      {
+        "id": "27b61dd7-ceb0-4e5c-bf24-30137f54ca39",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "73f75ff5-55be-4c97-8503-e76b4ca680c6",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "20ff5f35-9063-4376-8a24-a53fea8de1b1",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "b5d97253-8e02-4c44-9b82-b8fdaa207a66",
+        "name": "Instruktur Mahir",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "2ef5bf90-cab3-4353-b106-28e731e84fe7",
+        "name": "Instruktur Terampil",
+        "currentOrder": 5,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "f2d79081-40f5-4b8c-9e0d-67448d268d81",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 33,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Pangkep",
+    "positions": [
+      {
+        "id": "abdad9a8-e67d-4979-ad28-ef2cc4192360",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "b76d75e9-6a0a-484d-bf9e-c51e2379c9a7",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "78b8681f-cbda-42db-92b2-8635539de2dc",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 27,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Samarinda",
+    "positions": [
+      {
+        "id": "d748a2d6-76f2-4d0f-b770-6108ca551236",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "6217db89-1db9-46ba-a412-cfec7addca74",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "56ee6d65-6399-4b1e-b1a3-14ad7d913121",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "38b7c979-6dc9-4330-8d85-91176ba56d02",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "7e946e26-a7e7-4b82-a625-af677ad65f26",
+        "name": "Instruktur Terampil/Pelaksana",
+        "currentOrder": 5,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "f91c8a6a-a979-46ce-8706-33422e3d8e9d",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 32,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Sidoarjo",
+    "positions": [
+      {
+        "id": "c17220c1-c7b5-48c2-b8ed-25ecd624f54e",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "e32e3f52-3160-4361-aca2-fa2d22d62d57",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "4182cfea-b430-4666-82c8-cee955995cd7",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "107ce500-861f-4655-9059-e61713308975",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 4,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Sorong",
+    "positions": [
+      {
+        "id": "8b7aaf98-8262-4511-9462-e771057ea34e",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "4dd79a43-6116-4efa-b6af-43dd5e440f9d",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "d33883cd-0370-4570-903c-bff522516f77",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "d50c4cea-bf00-4331-ae52-cf28ff4feefd",
+        "name": "Instruktur Mahir",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "519ee44b-fb27-44a8-9ec4-9640e5799926",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 29,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Surakarta",
+    "positions": [
+      {
+        "id": "705bad3a-1aa4-4211-8aef-3ad6942f0312",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "41862ee7-f966-4874-990a-a053d33976c0",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "2a32cdf3-cf3d-4150-a16b-d8711da868bb",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "dc5af1b7-2e11-4995-a788-bd3ce1ac7368",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "210daa1d-520b-48dc-8c38-a635ce8a14ad",
+        "name": "Instruktur Terampil",
+        "currentOrder": 5,
+        "normalized": "Instruktur Terampil",
+        "expectedRank": 7
+      },
+      {
+        "id": "50266f30-d99d-41af-b213-35a4ea01830a",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 32,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  },
+  {
+    "department": "BPVP Ternate",
+    "positions": [
+      {
+        "id": "efd5451d-f3e6-46d8-9522-2cfc7bde89a8",
+        "name": "Instruktur Ahli Madya",
+        "currentOrder": 1,
+        "normalized": "Instruktur Ahli Madya",
+        "expectedRank": 2
+      },
+      {
+        "id": "0e584207-1a72-4508-a628-52c8d08ec1b3",
+        "name": "Instruktur Ahli Pertama",
+        "currentOrder": 2,
+        "normalized": "Instruktur Ahli Pertama",
+        "expectedRank": 4
+      },
+      {
+        "id": "794ee51b-3de3-4897-a637-9b6f13d8f85d",
+        "name": "Instruktur Penyelia",
+        "currentOrder": 3,
+        "normalized": "Instruktur Penyelia",
+        "expectedRank": 5
+      },
+      {
+        "id": "6d732054-36b4-4798-8dc9-cc5a65de7412",
+        "name": "Instruktur Mahir/Pelaksana Lanjutan",
+        "currentOrder": 4,
+        "normalized": "Instruktur Mahir",
+        "expectedRank": 6
+      },
+      {
+        "id": "bd31c393-72cd-407d-b7b0-10405442c671",
+        "name": "Instruktur Ahli Muda",
+        "currentOrder": 5,
+        "normalized": "Instruktur Ahli Muda",
+        "expectedRank": 3
+      }
+    ]
+  }
+]

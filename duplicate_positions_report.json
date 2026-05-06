@@ -1,0 +1,96 @@
+[
+  {
+    "department": "BBPVP Medan",
+    "duplicates": [
+      {
+        "name": "Instruktur ahli pertama",
+        "category": "Fungsional",
+        "positions": [
+          {
+            "id": "533e388a-b9b7-4afb-b582-1c28f2a3adef",
+            "department": "BBPVP Medan",
+            "position_category": "Fungsional",
+            "position_order": 3,
+            "position_name": "Instruktur Ahli Pertama",
+            "grade": 8,
+            "abk_count": 40,
+            "created_at": "2026-04-06T03:47:03.500827+00:00",
+            "updated_at": "2026-04-06T03:47:03.500827+00:00"
+          },
+          {
+            "id": "f8ecdbe8-6998-45eb-b7d1-271f552ce59c",
+            "department": "BBPVP Medan",
+            "position_category": "Fungsional",
+            "position_order": 46,
+            "position_name": "Instruktur ahli pertama",
+            "grade": 8,
+            "abk_count": 0,
+            "created_at": "2026-04-06T03:47:16.784123+00:00",
+            "updated_at": "2026-05-06T09:05:45.934201+00:00"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "department": "BBPVP Serang",
+    "duplicates": [
+      {
+        "name": "Instruktur ahli madya",
+        "category": "Fungsional",
+        "positions": [
+          {
+            "id": "6e2c63ab-2d2a-4466-916b-6d027f3fe8db",
+            "department": "BBPVP Serang",
+            "position_category": "Fungsional",
+            "position_order": 1,
+            "position_name": "Instruktur Ahli Madya",
+            "grade": 12,
+            "abk_count": 25,
+            "created_at": "2026-04-06T03:35:47.819991+00:00",
+            "updated_at": "2026-04-06T03:38:54.120285+00:00"
+          },
+          {
+            "id": "8b5941a2-d131-4449-9840-4ca845054030",
+            "department": "BBPVP Serang",
+            "position_category": "Fungsional",
+            "position_order": 2,
+            "position_name": "Instruktur ahli madya",
+            "grade": 12,
+            "abk_count": 0,
+            "created_at": "2026-04-06T03:36:03.441092+00:00",
+            "updated_at": "2026-05-06T09:16:56.934275+00:00"
+          }
+        ]
+      },
+      {
+        "name": "Instruktur Ahli pertama",
+        "category": "Fungsional",
+        "positions": [
+          {
+            "id": "538558db-d8d8-4ac7-9102-7b753e31cbaa",
+            "department": "BBPVP Serang",
+            "position_category": "Fungsional",
+            "position_order": 3,
+            "position_name": "Instruktur Ahli Pertama",
+            "grade": 8,
+            "abk_count": 38,
+            "created_at": "2026-04-06T03:35:48.379219+00:00",
+            "updated_at": "2026-04-06T03:38:55.089261+00:00"
+          },
+          {
+            "id": "7b31fd3a-1e98-4a0b-9a50-48a2cedeb769",
+            "department": "BBPVP Serang",
+            "position_category": "Fungsional",
+            "position_order": 19,
+            "position_name": "Instruktur Ahli pertama",
+            "grade": 7,
+            "abk_count": 0,
+            "created_at": "2026-04-06T03:36:03.193099+00:00",
+            "updated_at": "2026-05-06T09:05:46.136817+00:00"
+          }
+        ]
+      }
+    ]
+  }
+]
