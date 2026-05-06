@@ -25,7 +25,7 @@ Update urutan unit kerja di sheet "Jumlah ASN per Unit" pada export Agregasi Cep
 4. **Direktorat Bina Penyelenggaraan Latvogan**
 5. **Direktorat Bina Intala**
 6. **Direktorat Bina Peningkatan Produktivitas**
-7. **Set. BNSP**
+7. **Sekretariat BNSP**
 8. **BBPVP Bekasi**
 9. **BBPVP Bandung**
 10. **BBPVP Serang**
@@ -147,6 +147,8 @@ Update urutan unit kerja di sheet "Jumlah ASN per Unit" pada export Agregasi Cep
 Berdasarkan verifikasi database, nama yang benar adalah:
 - ✅ **"Direktorat Bina Penyelenggaraan Latvogan"** (nama lengkap)
 - ❌ **"Direktorat Bina Lavogan"** (nama pendek, tidak ada di database)
+- ✅ **"Sekretariat BNSP"** (nama lengkap)
+- ❌ **"Set. BNSP"** (singkatan, tidak ada di database)
 
 ### Dampak Perubahan:
 1. **Sheet "Jumlah ASN per Unit"** - urutan unit kerja sesuai format laporan resmi
@@ -165,7 +167,7 @@ const OFFICIAL_DEPT_ORDER: string[] = [
   'Direktorat Bina Penyelenggaraan Latvogan',
   'Direktorat Bina Intala',
   'Direktorat Bina Peningkatan Produktivitas',
-  'Set. BNSP',
+  'Sekretariat BNSP',
   'BBPVP Bekasi',
   'BBPVP Bandung',
   'BBPVP Serang',

@@ -203,10 +203,10 @@ const OFFICIAL_DEPT_ORDER: string[] = [
   'Setditjen Binalavotas',
   'Direktorat Bina Stankomproglat',
   'Direktorat Bina Lemlatvok',
-  'Direktorat Bina Penyelenggaraan Latvogan', // atau "Direktorat Bina Lavogan"
+  'Direktorat Bina Penyelenggaraan Latvogan',
   'Direktorat Bina Intala',
   'Direktorat Bina Peningkatan Produktivitas',
-  'Set. BNSP',
+  'Sekretariat BNSP',
   'BBPVP Bekasi',
   'BBPVP Bandung',
   'BBPVP Serang',
