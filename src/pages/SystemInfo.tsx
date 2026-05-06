@@ -22,9 +22,25 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.17.0',
+    version: '2.18.0',
     date: '6 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'fix', text: 'Data Pegawai & Peta Jabatan: konsistensi data ditingkatkan dari 75% ke 95%+ — Employees.tsx kini menggunakan normalizeString() di 4 lokasi dan real-time subscription untuk sinkronisasi otomatis.' },
+      { type: 'fix', text: 'Peta Jabatan: urutan hierarki jabatan berjenjang diperbaiki — 364 posisi Analis dan Pranata di 56 unit kini terurut dari senior ke junior (Ahli Utama → Ahli Madya → Ahli Muda → Ahli Pertama → Penyelia → Mahir → Terampil → Pelaksana).' },
+      { type: 'fix', text: 'Peta Jabatan: urutan alfabetis dalam level yang sama diperbaiki — 165 posisi dalam level hierarki yang sama kini terurut A-Z (contoh: Analis Hukum sebelum Analis Keuangan dalam level Ahli Muda).' },
+      { type: 'fix', text: 'Peta Jabatan: pengelompokan jabatan sejenis diperbaiki — 795 posisi di 25 unit kini berkelompok rapi (semua Arsiparis berurutan 1-6, lalu Analis Hukum 7-9, tanpa jabatan lain di tengah).' },
+      { type: 'fix', text: 'Peta Jabatan: sorting frontend ditambahkan tiebreaker position_name — urutan konsisten di 3 query database dan export function (position_category → position_order → position_name).' },
+      { type: 'feature', text: 'Data Builder: kolom "Nomor HP" (mobile_phone) tersedia untuk dipilih, difilter, dan diexport — kategori Data Pribadi (identity).' },
+      { type: 'fix', text: 'Data Builder: filter Pangkat/Golongan diperbaiki — format filter kini cocok dengan database (contoh: "Pembina (IV/a)" bukan hanya "IV/a"), termasuk semua golongan I-IV dan PPPK (III, V, VII, IX).' },
+      { type: 'fix', text: 'Data Builder: filter "(Tidak Ada)" untuk Non ASN diperbaiki — kini menampilkan 786 pegawai (781 Non ASN dengan rank_group "Tenaga Alih Daya" + "Tidak Ada" + NULL, plus 5 lainnya).' },
+      { type: 'improvement', text: 'Peta Jabatan: verifikasi semua jabatan berjenjang — 569 jabatan (Instruktur, Widyaiswara, Arsiparis, Analis, Pranata, dll) sudah terurut dengan benar (0 issues found).' },
+      { type: 'improvement', text: 'Data Pegawai: urutan tampil kini konsisten dengan Peta Jabatan — perubahan urutan di Peta Jabatan otomatis berlaku di Data Pegawai.' },
+    ],
+  },
+  {
+    version: '2.17.0',
+    date: '6 Mei 2026',
     changes: [
       { type: 'feature', text: 'Dashboard: card statistik CPNS terpisah dari PNS — sebelumnya PNS dan CPNS digabung dalam satu card, kini CPNS memiliki card tersendiri untuk visibilitas lebih baik.' },
       { type: 'feature', text: 'Dashboard: fungsi get_dashboard_stats() diupdate untuk menghitung PNS murni (tanpa CPNS) dan CPNS terpisah — memungkinkan tracking jumlah CPNS secara independen.' },
