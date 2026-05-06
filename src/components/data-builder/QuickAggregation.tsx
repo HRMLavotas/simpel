@@ -633,8 +633,79 @@ export function QuickAggregation({}: QuickAggregationProps) {
         XLSX.utils.book_append_sheet(wb, wsDepartment, 'Unit Kerja');
       }
 
-      // Sheet 12: Tabel Golongan per Unit Kerja (format resmi)
-      // Kolom: No | Unit Kerja | PNS I | PNS II | PNS III | PNS IV | PPPK III | PPPK IV | PPPK VII | PPPK IX | Total | L | P | Total JK
+      // Sheet 12: Tabel Jumlah ASN dan Non ASN per Unit Kerja (BULANAN)
+      // Format: No | Nama Unit kerja | JUMLAH ASN (PNS + CPNS + PPPK) | Jumlah Tenaga Non ASN / Outsourcing | Jumlah ASN dan Tenaga Non ASN
+      if (selectedDepartment === 'all' && aggregations.department.length > 1) {
+        const deptAsnMap = new Map<string, typeof data>();
+        data.forEach(emp => {
+          const dept = String(emp.department || 'Tidak Ada');
+          if (!deptAsnMap.has(dept)) deptAsnMap.set(dept, []);
+          deptAsnMap.get(dept)!.push(emp);
+        });
+
+        const deptAsnSet = new Set(deptAsnMap.keys());
+        const sortedAsnDepts = [
+          ...OFFICIAL_DEPT_ORDER.filter(d => deptAsnSet.has(d)),
+          ...[...deptAsnSet].filter(d => !OFFICIAL_DEPT_ORDER.includes(d)).sort(),
+        ];
+
+        const asnRows: Record<string, string | number>[] = [];
+        let totalAsn = 0;
+        let totalNonAsn = 0;
+        let totalAll = 0;
+
+        sortedAsnDepts.forEach((dept, idx) => {
+          const emps = deptAsnMap.get(dept) || [];
+          
+          // Hitung ASN (PNS + CPNS + PPPK)
+          const asnCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+          }).length;
+          
+          // Hitung Non ASN / Outsourcing
+          const nonAsnCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'Non ASN';
+          }).length;
+          
+          const total = asnCount + nonAsnCount;
+
+          asnRows.push({
+            'No': idx + 1,
+            'Nama Unit kerja': dept,
+            'JUMLAH ASN (PNS + CPNS + PPPK)': asnCount,
+            'Jumlah Tenaga Non ASN / Outsourcing': nonAsnCount,
+            'Jumlah ASN dan Tenaga Non ASN': total,
+          });
+
+          totalAsn += asnCount;
+          totalNonAsn += nonAsnCount;
+          totalAll += total;
+        });
+
+        // Baris JUMLAH
+        asnRows.push({
+          'No': '',
+          'Nama Unit kerja': 'JUMLAH',
+          'JUMLAH ASN (PNS + CPNS + PPPK)': totalAsn,
+          'Jumlah Tenaga Non ASN / Outsourcing': totalNonAsn,
+          'Jumlah ASN dan Tenaga Non ASN': totalAll,
+        });
+
+        const wsAsnSummary = XLSX.utils.json_to_sheet(asnRows);
+        wsAsnSummary['!cols'] = [
+          { wch: 5 },  // No
+          { wch: 32 }, // Nama Unit kerja
+          { wch: 28 }, // JUMLAH ASN (PNS + CPNS + PPPK)
+          { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
+          { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
+        ];
+        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
+      }
+
+      // Sheet 13: Tabel Golongan per Unit Kerja (format resmi)
+      // Kolom: No | Unit Kerja | PNS I | PNS II | PNS III | PNS IV | PPPK III | PPPK IV | PPPK V | PPPK VII | PPPK IX | Total | L | P | Total JK
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
         // Kelompokkan data per unit kerja
         const deptMap = new Map<string, typeof data>();
@@ -761,7 +832,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
       }
 
-      // Sheet 13: Tabel Pendidikan per Unit Kerja (format resmi)
+      // Sheet 14: Tabel Pendidikan per Unit Kerja (format resmi)
       // Format: Header dokumen + tabel dengan kolom JML PEG ganda
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
         const EDU_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
@@ -864,7 +935,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
 
         XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
 
-        // Sheet 14: Perbandingan dengan data referensi Maret 2026
+        // Sheet 15: Perbandingan dengan data referensi Maret 2026
         // Data referensi dari dokumen resmi
         const REF_MARET_2026: Record<string, { total: number; SD: number; SMP: number; SMA: number; D1: number; D2: number; D3: number; D4: number; S1: number; S2: number; S3: number }> = {
           'Setditjen Binalavotas':                    { total: 96,  SD:0, SMP:0, SMA:4,  D1:0, D2:0, D3:10, D4:4,  S1:58,  S2:20, S3:0 },
@@ -941,7 +1012,7 @@ export function QuickAggregation({}: QuickAggregationProps) {
       const fileName = `agregasi-cepat-${timestamp}.xlsx`;
       XLSX.writeFile(wb, fileName, { bookType: 'xlsx', compression: true });
 
-      const sheetCount = selectedDepartment === 'all' && aggregations.department.length > 1 ? 11 : 10;
+      const sheetCount = selectedDepartment === 'all' && aggregations.department.length > 1 ? 12 : 10;
       toast({
         title: 'Export berhasil',
         description: `File ${fileName} berhasil diunduh dengan ${data.length} pegawai (${sheetCount} sheet).`,

@@ -22,9 +22,29 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.17.0',
+    date: '6 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Dashboard: card statistik CPNS terpisah dari PNS — sebelumnya PNS dan CPNS digabung dalam satu card, kini CPNS memiliki card tersendiri untuk visibilitas lebih baik.' },
+      { type: 'feature', text: 'Dashboard: fungsi get_dashboard_stats() diupdate untuk menghitung PNS murni (tanpa CPNS) dan CPNS terpisah — memungkinkan tracking jumlah CPNS secara independen.' },
+      { type: 'feature', text: 'Peta Jabatan: export Excel "Peta Jabatan ASN Semua Unit Kerja" — admin pusat dapat export peta jabatan seluruh unit kerja dalam satu file Excel multi-sheet (1 sheet per unit kerja).' },
+      { type: 'feature', text: 'Peta Jabatan: tombol export baru "Export Semua Unit" di tab Formasi ASN — tersedia untuk admin pusat, menghasilkan file dengan 28+ sheet (sesuai jumlah unit kerja).' },
+      { type: 'feature', text: 'Peta Jabatan: setiap sheet berisi daftar lengkap jabatan per unit dengan kolom: No, Kategori, Nama Jabatan, ABK, Existing, Selisih, Pemangku Jabatan.' },
+      { type: 'feature', text: 'Peta Jabatan: filter Satpel dan Workshop — admin pusat dapat memfilter unit kerja Satpel dan Workshop di tab Formasi ASN untuk fokus pada unit binaan.' },
+      { type: 'feature', text: 'Data Audit: filter unit kerja untuk admin pusat — dapat memilih unit kerja spesifik atau "Semua Unit Kerja" untuk audit data.' },
+      { type: 'feature', text: 'Data Audit: summary cards (Total Pegawai, Data Lengkap, Perlu Perbaikan, Tingkat Kelengkapan) kini ter-filter sesuai unit kerja yang dipilih.' },
+      { type: 'feature', text: 'Data Audit: tabel masalah data kini menampilkan unit kerja pegawai di kolom terpisah — memudahkan identifikasi masalah per unit.' },
+      { type: 'feature', text: 'Data Builder: sheet baru "Jumlah ASN per Unit" di export Agregasi Cepat — menampilkan tabel jumlah ASN (PNS + CPNS + PPPK), Non ASN, dan Total per unit kerja dalam format laporan bulanan resmi.' },
+      { type: 'feature', text: 'Data Builder: sheet "Jumlah ASN per Unit" mengikuti urutan resmi unit kerja (Setditjen, 5 Direktorat, BNSP, 6 BBPVP, 20 BPVP, 12 Satpel, 3 Workshop) dengan baris JUMLAH di akhir.' },
+      { type: 'fix', text: 'Data: perbaikan rank_group pegawai PPPK Ruslan Abdul Gani (NIP 198008142025211020) dari "IV" menjadi "III" — PPPK golongan III adalah golongan terendah PPPK, berbeda dengan PNS yang memiliki golongan IV.' },
+      { type: 'improvement', text: 'Peta Jabatan: export semua unit menggunakan kompresi Excel untuk ukuran file lebih kecil — file dengan 28+ sheet tetap ringan dan cepat diunduh.' },
+      { type: 'improvement', text: 'Data Audit: performa query dioptimalkan dengan filter unit kerja di level database — audit data unit besar lebih cepat.' },
+    ],
+  },
+  {
     version: '2.16.0',
     date: '5 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Data Pegawai: field baru Nomor HP, Nomor Telepon, dan Alamat — ditampilkan di detail pegawai pada section "Kontak & Alamat".' },
       { type: 'feature', text: 'Data Pegawai: field TMT Golongan (tmt_gol) — mencatat tanggal mulai berlaku golongan/pangkat terakhir.' },
