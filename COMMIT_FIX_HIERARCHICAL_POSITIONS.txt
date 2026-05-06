@@ -1,0 +1,37 @@
+fix: urutan jabatan berjenjang di peta jabatan (Analis & Pranata)
+
+Memperbaiki urutan 364 jabatan berjenjang di 56 unit agar terstruktur dari tinggi ke rendah.
+
+Masalah:
+- Jabatan Analis dan Pranata tidak diurutkan sesuai hierarki
+- Contoh: Ahli Madya (senior) berada di bawah Ahli Muda (junior)
+- Menyebabkan tampilan tidak profesional dan membingungkan
+
+Perbaikan:
+- Analis: Ahli Utama → Ahli Madya → Ahli Muda → Ahli Pertama → Penyelia → Mahir → Terampil → Pelaksana
+- Pranata: Ahli Utama → Ahli Madya → Ahli Muda → Ahli Pertama → Penyelia → Mahir → Terampil → Pelaksana
+
+Unit yang diperbaiki:
+- 6 BBPVP (Bandung, Bekasi, Makassar, Medan, Semarang, Serang)
+- 20 BPVP (Ambon, Banda Aceh, Bandung Barat, Bantaeng, Banyuwangi, Belitung, Kendari, Lombok Timur, Padang, Pangkep, Samarinda, Sidoarjo, Sorong, Surakarta, Ternate, dll)
+- 5 Direktorat (Bina Intala, Bina Lemlatvok, Bina Peningkatan Produktivitas, Bina Penyelenggaraan Latvogan, Bina Stankomproglat)
+- Sekretariat BNSP
+- Setditjen Binalavotas
+
+Statistik:
+- Total unit diperbaiki: 56
+- Total jabatan diperbaiki: 364
+- Success rate: 100%
+- Errors: 0
+
+Tools:
+- check_position_order_hierarchy.mjs (audit script)
+- fix_hierarchical_positions_order.mjs (fix script)
+
+Dampak:
+- Semua jabatan berjenjang sekarang terurut dengan benar
+- Konsisten di semua unit
+- Tampilan lebih profesional dan mudah dipahami
+- Sesuai dengan hierarki kepangkatan ASN
+
+Refs: #peta-jabatan #urutan-jabatan

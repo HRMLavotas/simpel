@@ -54,7 +54,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useDebounce } from '@/hooks/useDebounce';
-import { cn } from '@/lib/utils';
+import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -235,7 +235,68 @@ export default function Employees() {
   } | null>(null);
 
   useEffect(() => {
+    if (!profile) return;
+    
+    // Initial fetch
     fetchEmployees();
+
+    // Real-time subscription untuk employees table
+    logger.debug('Setting up real-time subscription for employees');
+    
+    const handleEmployeeChange = (payload: any) => {
+      logger.debug('Employee change detected:', payload);
+      
+      const newRecord = payload.new as any;
+      const oldRecord = payload.old as any;
+      
+      // Determine accessible departments for this user
+      const accessibleDepts = canViewAll 
+        ? null // null = all departments
+        : (hasSupervisedUnits 
+            ? [profile.department, ...getSatpelsByPembina(profile.department)]
+            : [profile.department]);
+      
+      let shouldRefresh = false;
+      
+      // Check if INSERT or UPDATE affects accessible departments
+      if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+        if (newRecord && (!accessibleDepts || accessibleDepts.includes(newRecord.department))) {
+          shouldRefresh = true;
+          logger.debug('New/Updated record is for accessible department');
+        }
+      }
+      
+      // Check if DELETE or UPDATE (department change) affects accessible departments
+      if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
+        if (oldRecord && (!accessibleDepts || accessibleDepts.includes(oldRecord.department))) {
+          shouldRefresh = true;
+          logger.debug('Deleted/Old record was from accessible department');
+        }
+      }
+      
+      if (shouldRefresh) {
+        logger.debug('Refreshing Employees data...');
+        fetchEmployees(true); // Skip if modal is open
+      }
+    };
+    
+    const channel = supabase
+      .channel('employees-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employees'
+        },
+        handleEmployeeChange
+      )
+      .subscribe();
+
+    return () => {
+      logger.debug('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
   }, [profile, canViewAll, hasSupervisedUnits]);
 
   const fetchEmployees = async (skipIfModalOpen = false) => {
@@ -286,7 +347,8 @@ export default function Employees() {
 
         posBatch.forEach(pos => {
           // Key per unit + nama jabatan agar urutan tiap unit independen
-          const deptKey = `${pos.department}|||${pos.position_name.trim().toLowerCase()}`;
+          // PENTING: Gunakan normalizeString() untuk konsistensi dengan PetaJabatan
+          const deptKey = `${pos.department}|||${normalizeString(pos.position_name)}`;
           const catOrder = CATEGORY_ORDER[pos.position_category] ?? 99;
           posOrderMap.set(deptKey, { categoryOrder: catOrder, positionOrder: pos.position_order });
         });
@@ -354,10 +416,11 @@ export default function Employees() {
         if (deptCompare !== 0) return deptCompare;
 
         // Lookup menggunakan key department + nama jabatan
+        // PENTING: Gunakan normalizeString() untuk konsistensi dengan PetaJabatan
         const deptA = (a.department || '').trim();
         const deptB = (b.department || '').trim();
-        const normA = (a.position_name || '').trim().toLowerCase();
-        const normB = (b.position_name || '').trim().toLowerCase();
+        const normA = normalizeString(a.position_name || '');
+        const normB = normalizeString(b.position_name || '');
         const posA = posOrderMap.get(`${deptA}|||${normA}`);
         const posB = posOrderMap.get(`${deptB}|||${normB}`);
 
@@ -448,7 +511,8 @@ export default function Employees() {
       if (activeTab === 'non-asn') return 'Non ASN';
 
       // Lookup dari positionOrderMap menggunakan dept + position_name
-      const deptKey = `${(emp.department || '').trim()}|||${(emp.position_name || '').trim().toLowerCase()}`;
+      // PENTING: Gunakan normalizeString() untuk konsistensi dengan PetaJabatan
+      const deptKey = `${(emp.department || '').trim()}|||${normalizeString(emp.position_name || '')}`;
       const posRef = positionOrderMap.get(deptKey);
       if (posRef) {
         return CATEGORY_NAME[posRef.categoryOrder] ?? 'Lainnya';

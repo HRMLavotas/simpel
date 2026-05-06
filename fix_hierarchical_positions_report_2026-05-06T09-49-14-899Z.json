@@ -1,0 +1,3310 @@
+{
+  "success": true,
+  "fixed": 364,
+  "fixes": [
+    {
+      "department": "BBPVP Bandung",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "be62153c-2667-4b31-8692-3bd1e1f34d06",
+          "oldOrder": 21,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "dcbaef31-6cf8-4b0c-b5f6-c34e2cd62d0b",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "41521036-f8ad-460a-8dac-faef184d6288",
+          "oldOrder": 22,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ec891f34-f0b3-440f-855c-68958ccfd36c",
+          "oldOrder": 26,
+          "newOrder": 19,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "efabf7d0-dc9a-4287-a1dc-9201d3ef97db",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b3b117c5-a2cc-44f9-8d4b-4b08edb869fd",
+          "oldOrder": 23,
+          "newOrder": 21,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a0a7c50d-d53c-4076-9213-94a6d44487a1",
+          "oldOrder": 27,
+          "newOrder": 22,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Bandung",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "ca545174-89e2-4a1c-9336-30f282fc378e",
+          "oldOrder": 28,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0dab94f2-4afb-4d95-b78c-e94199fdeb54",
+          "oldOrder": 30,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c59217e2-4bb3-455b-8990-1b4546856fb3",
+          "oldOrder": 29,
+          "newOrder": 20,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ca29aad3-1b58-4244-974b-a0c98d497b73",
+          "oldOrder": 31,
+          "newOrder": 21,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8c1ac1e7-ce88-4c5c-8085-9fee283f3789",
+          "oldOrder": 18,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6c34d7bd-c29f-484a-9210-b628bf2a381f",
+          "oldOrder": 19,
+          "newOrder": 23,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc8e4f66-97d2-4f3a-8dcf-1083be3e9a50",
+          "oldOrder": 20,
+          "newOrder": 25,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a42f9660-3d4d-4e01-889a-15fdbaef50ee",
+          "oldOrder": 25,
+          "newOrder": 26,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Bandung",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "efa8da8f-04af-4323-bc65-331280a816da",
+          "oldOrder": 21,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8db38fb2-e7e3-4997-a518-f0839a01a6d8",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "757eae3e-f475-4c94-b7aa-b27e983af3b7",
+          "oldOrder": 22,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0fc79148-eb75-45ea-9acd-2973860a1585",
+          "oldOrder": 26,
+          "newOrder": 19,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0436bcce-5383-477e-b587-b7faef3d10ea",
+          "oldOrder": 28,
+          "newOrder": 20,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d58c6b20-2195-4de9-ad8d-53faaf3aca05",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "13d5b1e5-a4a7-4e2f-b2c6-bf5b894b1868",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c87c81e0-91c4-4aec-9f84-fc8c6f8c6d09",
+          "oldOrder": 27,
+          "newOrder": 23,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "a813d32c-48e0-4b7e-a15c-59c8e4f008e4",
+          "oldOrder": 29,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4af5f912-921b-489d-aecf-874834d37baf",
+          "oldOrder": 34,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b2a38a6f-5dfb-4a7f-b282-21b1aeb29fc5",
+          "oldOrder": 30,
+          "newOrder": 20,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c274a057-9f65-4d5d-a6e1-bd9c01607d01",
+          "oldOrder": 35,
+          "newOrder": 21,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "bc12aa0b-822e-4acc-be6c-169b2d7092fc",
+          "oldOrder": 18,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b26e8934-1ad2-4595-8df6-48b24b5b24da",
+          "oldOrder": 31,
+          "newOrder": 23,
+          "name": "Pranata Komputer Penyelia",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ef6f932d-d0f6-4238-89a5-59f05671e54e",
+          "oldOrder": 19,
+          "newOrder": 24,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e2d8eae7-b998-4de6-a5ac-a64eb3c5b99e",
+          "oldOrder": 24,
+          "newOrder": 25,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "577b74c4-24e5-4cd3-84b6-f335b7d67aeb",
+          "oldOrder": 32,
+          "newOrder": 26,
+          "name": "Pranata Komputer Mahir",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "484c4f40-0e67-4f1b-9b60-699a63ae0b25",
+          "oldOrder": 20,
+          "newOrder": 27,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7e446aff-c74b-4593-a162-261bfcbf87b8",
+          "oldOrder": 25,
+          "newOrder": 28,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c83ac041-6f7f-4892-9902-de16361c9e68",
+          "oldOrder": 33,
+          "newOrder": 29,
+          "name": "Pranata Komputer Terampil",
+          "department": "BBPVP Bekasi",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Makassar",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "927a177d-31dc-4057-8364-240087f2184f",
+          "oldOrder": 21,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "24f69b69-9700-470d-b0ae-65a379e35a6d",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a48eca32-f7bd-4d2a-a9a8-eb61865b21ea",
+          "oldOrder": 22,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "93613dd0-c109-48df-ba05-d7642f75bcd8",
+          "oldOrder": 26,
+          "newOrder": 19,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2f41a898-27e2-4b3b-8140-b1d7593d7877",
+          "oldOrder": 28,
+          "newOrder": 20,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1fa381cd-92a8-4cb4-a27c-8c78b4fd8210",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "56e6e200-0b48-4dc5-b164-980bfc5bdd5a",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1dd1bc6f-317d-4ed6-b5ca-f180780c3d5d",
+          "oldOrder": 27,
+          "newOrder": 23,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Makassar",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "ac97af2b-d67a-4661-846f-ee84f058a0c5",
+          "oldOrder": 29,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ccffe54-3b2e-4fe3-8f2c-62f7abdbb148",
+          "oldOrder": 34,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4ed92d70-3693-42b5-a14e-34d1cbc6e190",
+          "oldOrder": 30,
+          "newOrder": 20,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "df26173c-e0b1-4997-a367-fff724cca90b",
+          "oldOrder": 35,
+          "newOrder": 21,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6a1f20bf-2c46-407b-b07c-beca6c5b9a1c",
+          "oldOrder": 18,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9f5d79b2-0ae7-4485-aaba-5ca3f6999167",
+          "oldOrder": 31,
+          "newOrder": 23,
+          "name": "Pranata Komputer Penyelia",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b839a6e0-1d0e-4efe-9d0a-59976bed0924",
+          "oldOrder": 19,
+          "newOrder": 24,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "89bd9613-209c-40c7-8758-0e398f96dd18",
+          "oldOrder": 24,
+          "newOrder": 25,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5979fe25-85d2-4eeb-a497-b20b4106581e",
+          "oldOrder": 32,
+          "newOrder": 26,
+          "name": "Pranata Komputer Mahir",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f5fd8e36-03ef-406d-aca3-ba81b167bb78",
+          "oldOrder": 20,
+          "newOrder": 27,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a637c63-26f7-4ad1-a2cf-9467afbf4ad8",
+          "oldOrder": 25,
+          "newOrder": 28,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a7e81727-0028-4549-bf23-1266215893cb",
+          "oldOrder": 33,
+          "newOrder": 29,
+          "name": "Pranata Komputer Terampil",
+          "department": "BBPVP Makassar",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Medan",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "f3f16653-06bc-46a1-9595-9aee4e92c530",
+          "oldOrder": 14,
+          "newOrder": 9,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c9077fcb-9c20-4c7c-8edd-27618e9843cb",
+          "oldOrder": 9,
+          "newOrder": 10,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c8276cbd-ff0f-409a-9d2b-29ba6475fa5f",
+          "oldOrder": 15,
+          "newOrder": 11,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d88c606b-8988-468f-bbee-8768ee1afb20",
+          "oldOrder": 19,
+          "newOrder": 12,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6682b23e-dd1c-4da2-92ee-ca64dc83d023",
+          "oldOrder": 10,
+          "newOrder": 13,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7a2c725-d5cf-40b0-923e-86de5ca5388c",
+          "oldOrder": 16,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "467c6092-47a0-4df8-ac29-3343958e9988",
+          "oldOrder": 20,
+          "newOrder": 15,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Medan",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "741afd01-c0c2-425d-9a99-9833e5ab8cf9",
+          "oldOrder": 21,
+          "newOrder": 11,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f1de57a2-a20c-4ccb-899f-c45412dcf773",
+          "oldOrder": 26,
+          "newOrder": 12,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8f1ac049-9551-425e-b017-e34e308dbe71",
+          "oldOrder": 27,
+          "newOrder": 13,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a07b1565-46dd-4b75-b5fb-c80651726ea1",
+          "oldOrder": 11,
+          "newOrder": 14,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "cdc779b1-0d92-4a51-9258-0cb8e32c7450",
+          "oldOrder": 23,
+          "newOrder": 15,
+          "name": "Pranata Komputer Penyelia",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e43d9b17-b903-4781-958e-9c579f9a4fe3",
+          "oldOrder": 12,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4dd752d-ddd0-4d47-8e12-679533b5a7d3",
+          "oldOrder": 24,
+          "newOrder": 18,
+          "name": "Pranata Komputer Mahir",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f77b5114-73e5-4088-b4c2-c38222d7263f",
+          "oldOrder": 13,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "83e9243a-628b-4e23-901a-9a76b64c86af",
+          "oldOrder": 18,
+          "newOrder": 20,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "be0020a8-4c25-40e7-be65-4eb55cb1f021",
+          "oldOrder": 25,
+          "newOrder": 21,
+          "name": "Pranata Komputer Terampil",
+          "department": "BBPVP Medan",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Semarang",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "0510b405-20e4-49a3-94bc-eeefad634779",
+          "oldOrder": 21,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "515c9920-fcae-4062-b0c2-ac81ba5b5dd7",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2313b881-0eb0-4f64-993d-ce0d1bf1d4ca",
+          "oldOrder": 22,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4b2f923c-7fc6-4592-a4d2-3a0fc17b45e8",
+          "oldOrder": 26,
+          "newOrder": 19,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "017a2b42-f84d-4d65-a599-5b865f072316",
+          "oldOrder": 28,
+          "newOrder": 20,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "cc9fc90f-3344-4834-b226-dda5b33d1c27",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3188448a-dd8e-403f-a4c6-6e0c38c7b578",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "07a31528-f1f9-4463-9104-8a6baca8ac7d",
+          "oldOrder": 27,
+          "newOrder": 23,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Semarang",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "109731bb-3ddb-454a-b9b3-8a70348423c8",
+          "oldOrder": 29,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "16b4b8bc-8a00-459d-9059-105991deb6d4",
+          "oldOrder": 34,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "111ec758-0077-4c22-8fab-3959d2fa8dcf",
+          "oldOrder": 30,
+          "newOrder": 20,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3892259b-bd8d-4618-8339-522e6704eb34",
+          "oldOrder": 35,
+          "newOrder": 21,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3d2336a0-fea1-4952-9d73-751131d5c920",
+          "oldOrder": 18,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2753f9ea-3253-4ac2-bd3c-ae8420acdb81",
+          "oldOrder": 31,
+          "newOrder": 23,
+          "name": "Pranata Komputer Penyelia",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3ca777ca-70cf-4fda-a398-b01fb687c2ae",
+          "oldOrder": 19,
+          "newOrder": 24,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "998a7d1d-bcf4-4f1e-aa06-f4288c8ec9b9",
+          "oldOrder": 24,
+          "newOrder": 25,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9bea52b-2867-444e-a309-4b7aa601b2a2",
+          "oldOrder": 32,
+          "newOrder": 26,
+          "name": "Pranata Komputer Mahir",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "72aaccc6-9922-42ab-a5aa-559dc33541a7",
+          "oldOrder": 20,
+          "newOrder": 27,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "bcfca502-0080-477b-9284-c09149f36df4",
+          "oldOrder": 25,
+          "newOrder": 28,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7af1b244-cd3b-4f56-938d-62721aa7a619",
+          "oldOrder": 33,
+          "newOrder": 29,
+          "name": "Pranata Komputer Terampil",
+          "department": "BBPVP Semarang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Serang",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "f3694606-b74d-4acb-b912-b9a65c118a8c",
+          "oldOrder": 20,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "22aea109-e524-4908-bbd7-c8735d234aff",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4ca71f62-3958-445b-bcb2-cb37fbea1cac",
+          "oldOrder": 21,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b53e502-f892-4eb1-8fb2-04ec05c7b685",
+          "oldOrder": 25,
+          "newOrder": 18,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "58ff0e8a-3c98-4ea5-b765-971fd89fe53d",
+          "oldOrder": 27,
+          "newOrder": 19,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6c1b6b57-df26-4983-b4bc-5aecb9d7d8ea",
+          "oldOrder": 16,
+          "newOrder": 20,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d7efc820-aeb9-494a-96a5-7a8707a06100",
+          "oldOrder": 22,
+          "newOrder": 21,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "89dc39dc-1fec-4b16-b1d2-a968a609cfe0",
+          "oldOrder": 26,
+          "newOrder": 22,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BBPVP Serang",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "72f5f120-62b0-4ddf-854b-01f6846cc12f",
+          "oldOrder": 29,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4eca5e68-c423-4193-a8a1-68476d41eabb",
+          "oldOrder": 34,
+          "newOrder": 18,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "63317e11-5a2a-46a1-9651-c16658be7098",
+          "oldOrder": 30,
+          "newOrder": 19,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "aee1ddb0-2625-4dad-88ab-577a0ca3c4fe",
+          "oldOrder": 35,
+          "newOrder": 20,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1e7eca54-9030-4b5b-82f9-c8b57e35cb6f",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "fda5a861-a17e-4b20-a6e0-614d2cb016d9",
+          "oldOrder": 31,
+          "newOrder": 22,
+          "name": "Pranata Komputer Penyelia",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3460cbd1-34f2-4478-8dac-e3ec4f2cc423",
+          "oldOrder": 18,
+          "newOrder": 23,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6e5147b6-c545-464a-a62d-89cf173facc3",
+          "oldOrder": 23,
+          "newOrder": 24,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "545cd92e-5ef4-406b-b2e5-77f64f04e594",
+          "oldOrder": 32,
+          "newOrder": 25,
+          "name": "Pranata Komputer Mahir",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4eb268cd-800d-442a-8da4-a8c4467ca008",
+          "oldOrder": 19,
+          "newOrder": 26,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "04e0ade6-faa8-4718-97d4-38554db01c44",
+          "oldOrder": 24,
+          "newOrder": 27,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e3f63386-6236-4466-9bf5-c610afdfec86",
+          "oldOrder": 33,
+          "newOrder": 28,
+          "name": "Pranata Komputer Terampil",
+          "department": "BBPVP Serang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ambon",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "57b77b44-49ff-4e44-8ff2-b20521b48a2a",
+          "oldOrder": 18,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf9d86f2-9702-4f49-8c6f-a493130c78fa",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7069492d-4b6c-4bf6-b42c-d0efe6859229",
+          "oldOrder": 19,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ambon",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "5e1562b5-026a-4102-9b93-ab85d90d558d",
+          "oldOrder": 22,
+          "newOrder": 15,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "47f354b2-1fae-4e6c-b919-4f2406b032d2",
+          "oldOrder": 23,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "97bacaf2-b471-4c30-beb8-51dbbfd76673",
+          "oldOrder": 25,
+          "newOrder": 17,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7d8d52d-81dc-4ab5-9aa8-dcb79bf18fa4",
+          "oldOrder": 15,
+          "newOrder": 18,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f26be65d-5ed0-46dc-a919-66be4843b7f3",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9f529c66-6562-42df-a3c5-fba034fdb74f",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2106bcfc-163a-4bd3-ba92-e43689cd1a20",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        },
+        {
+          "id": "57f8bd37-6266-43fa-a72e-43a20578f057",
+          "oldOrder": 24,
+          "newOrder": 23,
+          "name": "Pranata Komputer Terampil",
+          "department": "BPVP Ambon",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "40b4a9c7-b2e2-4250-be7c-693f1923f47f",
+          "oldOrder": 18,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "37bbe842-c9e7-41e9-a804-61abfdc2cdf8",
+          "oldOrder": 22,
+          "newOrder": 16,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1aa216ae-5557-4293-9e6e-58649a4fbd5c",
+          "oldOrder": 15,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9b8b7421-6731-4b0c-ba2b-ee4535a49324",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ea8056f6-76c3-4dbb-a866-da08cf4807a1",
+          "oldOrder": 23,
+          "newOrder": 19,
+          "name": "Analis Anggaran Ahli Pertama",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "7fafffcd-7ce2-4432-a89a-a18887626231",
+          "oldOrder": 24,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "57dced73-2f74-4ebd-bb40-2377825b9a1d",
+          "oldOrder": 25,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0e2f7bc2-3a0d-4484-9fa7-55b159f6abc9",
+          "oldOrder": 26,
+          "newOrder": 18,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ad1b494e-9abd-470a-bf48-526eae1478d6",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d93dae03-1b19-48a7-b4ef-8c5d3d96b35d",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0a8d9079-8518-4e22-a6a3-152d6b240ee6",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Banda Aceh",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "db08bcb3-265b-42af-b0a4-6ffe0748ed20",
+          "oldOrder": 15,
+          "newOrder": 11,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6bcd2f0e-f7e5-4076-861b-a343ddf9c3be",
+          "oldOrder": 19,
+          "newOrder": 12,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "98d8df3f-96b8-4649-929c-3a889396e1b9",
+          "oldOrder": 11,
+          "newOrder": 13,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6759b2a0-739e-4ad5-8060-7ae9a2bc5346",
+          "oldOrder": 16,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "a1aade69-092b-4e9c-8342-1228ed6cc6e9",
+          "oldOrder": 20,
+          "newOrder": 12,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c2b39088-0f31-451a-869c-ec1ec44e60af",
+          "oldOrder": 21,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "29f7c472-20e8-4125-868a-db6f6911e0a4",
+          "oldOrder": 22,
+          "newOrder": 14,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7738d073-4fae-4c7a-8d5e-d711498fe48e",
+          "oldOrder": 12,
+          "newOrder": 15,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5d20e151-2296-43b2-a9f9-e8c680c08d25",
+          "oldOrder": 13,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a2a32eab-a137-4fc5-8963-a9839c6a5fbd",
+          "oldOrder": 14,
+          "newOrder": 18,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "faaca0e3-ee25-47f6-a3bf-dcc26d986d72",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Bandung Barat",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Bantaeng",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "e0b2a34a-ecb8-4ff5-b354-f85a3ce764a6",
+          "oldOrder": 19,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6fa8d140-e2e9-4e35-a368-5146b56e270a",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ef3ac312-8680-427f-9cf5-f37cc4304e3e",
+          "oldOrder": 20,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Bantaeng",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "ef04e2cd-109f-433b-8b6f-42f0d0769c4a",
+          "oldOrder": 22,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "732ead1c-7026-48ea-b6f7-00e939cca1ef",
+          "oldOrder": 23,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9b979d86-9467-4191-9de6-9fda59512ee4",
+          "oldOrder": 24,
+          "newOrder": 18,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "28d33f4c-0c0c-48fc-9375-0bec1defde1f",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a1794029-044e-4b52-aacc-788fd4e6f4c9",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c446f4b6-63f3-490a-8802-fd29d331cd6e",
+          "oldOrder": 18,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a1014074-54db-422f-b86e-aa7b89149e2d",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Bantaeng",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "62a40b4d-d6a5-4176-b2fa-6fb3b8e17d57",
+          "oldOrder": 16,
+          "newOrder": 12,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "23fa641e-ce16-46f7-8d73-a8e063c0c5e3",
+          "oldOrder": 12,
+          "newOrder": 13,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e4e1edcb-9b99-44fc-82b0-66b14e757c27",
+          "oldOrder": 17,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "283a2f54-a8bd-42ee-bada-3b44186d4a7e",
+          "oldOrder": 20,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "361c5a75-ecb8-42fe-a207-2e79c9891088",
+          "oldOrder": 21,
+          "newOrder": 14,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5b5eda80-59df-46dd-9e69-ec13091d609d",
+          "oldOrder": 22,
+          "newOrder": 15,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f4573b4-d028-4847-a182-484d8d1a4aba",
+          "oldOrder": 13,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7233cbe-0d81-4530-a007-1ba56e214d4d",
+          "oldOrder": 14,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ecc96052-00d6-417d-a610-2c2800ac514c",
+          "oldOrder": 15,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8aac55bd-057f-4bdf-98e9-75daabec47db",
+          "oldOrder": 19,
+          "newOrder": 20,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Banyuwangi",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Belitung",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "a351f875-0d09-4b20-97eb-e46df095452d",
+          "oldOrder": 19,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4bd7ae5-3f67-4c7a-b190-c3dde705032a",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f8b9cce-ef9f-48be-9cae-474f6d2d2b3d",
+          "oldOrder": 20,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Belitung",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "31be86f2-bd68-4bb0-83d6-59d53a80a483",
+          "oldOrder": 22,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ff19d3ff-3890-4da7-8e80-f240c8e80151",
+          "oldOrder": 23,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a46c0ae4-69be-4c97-af64-d14f42e511cc",
+          "oldOrder": 24,
+          "newOrder": 18,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2b07f85a-4a0a-4cf7-b443-25973c165bc8",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "66f387e9-afb1-4319-9d4e-2bad0a4750a8",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c4267172-11d2-45b4-babc-7f74815a11b3",
+          "oldOrder": 18,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        },
+        {
+          "id": "568a15b2-e926-4f99-8848-b7a7fe2a98b8",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Belitung",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Kendari",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "61afd782-688f-481d-a86c-774f708ea05e",
+          "oldOrder": 20,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1fb5eef0-7099-40a9-ae89-cf6d137233d0",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6a4ddd05-9d94-4f41-bc32-e293b59fd774",
+          "oldOrder": 21,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Kendari",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "3cc7e4ee-833b-464f-8a9a-c2a3fe48d302",
+          "oldOrder": 24,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "16921f72-0485-44d6-a95c-d084ed0c3ffe",
+          "oldOrder": 25,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c517195-78cb-48b2-b8fb-76564f64fbcd",
+          "oldOrder": 28,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "47d90ecb-09d7-419d-831d-1bdbd8321af7",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "afdae565-ae8e-4aa4-9527-75e7cc9eda57",
+          "oldOrder": 18,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a1230eaa-5cd4-447c-9be7-9dbcf9e2b9ce",
+          "oldOrder": 26,
+          "newOrder": 23,
+          "name": "Pranata Komputer Mahir",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2004cfe6-7b03-4083-b4ff-2c4f6ab6ee54",
+          "oldOrder": 19,
+          "newOrder": 24,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1b388c97-32b5-471d-9937-acac9bc2b91b",
+          "oldOrder": 23,
+          "newOrder": 25,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        },
+        {
+          "id": "426b5369-3c8d-46ef-8ee9-33e489e7821c",
+          "oldOrder": 27,
+          "newOrder": 26,
+          "name": "Pranata Komputer Terampil",
+          "department": "BPVP Kendari",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Lombok Timur",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "c9e77233-9bdb-4550-bb00-e5bc991702e3",
+          "oldOrder": 17,
+          "newOrder": 13,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "451d36e7-987e-476e-96bd-19922d667d84",
+          "oldOrder": 13,
+          "newOrder": 14,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3d669825-2b6c-4d0d-89ed-95aab7598431",
+          "oldOrder": 18,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Lombok Timur",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "0b1f8303-f62f-49a2-9895-f5845bef7a61",
+          "oldOrder": 21,
+          "newOrder": 14,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "641a346f-428e-40cb-8225-5e383271a53f",
+          "oldOrder": 17,
+          "newOrder": 15,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "82ccd18a-aea6-4699-8552-97e2f209a7a1",
+          "oldOrder": 22,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "29d6abf2-2b4c-4161-9edb-5510f4e7dd0b",
+          "oldOrder": 14,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "668fd973-58a2-4088-8b41-7223ea3cf2a8",
+          "oldOrder": 15,
+          "newOrder": 18,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "070b12b7-7a2e-44e6-bd65-8acaa966b8a7",
+          "oldOrder": 16,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f7d4e737-2757-46df-8fc9-a73645172389",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Lombok Timur",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Padang",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "0c09b4e4-1a24-4170-8cce-a2d834b516e7",
+          "oldOrder": 19,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "49d9b349-d4bb-4f89-8d47-3ea0cac0daa4",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "38245e85-4a37-46c0-9f19-48e31ebe45f8",
+          "oldOrder": 20,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Padang",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "fbb3f3b0-789a-44f0-a6be-4985052d73e3",
+          "oldOrder": 24,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6b1b9dd1-8a17-4db1-9a8f-8a397a102088",
+          "oldOrder": 25,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1ad7734e-7708-42c9-80f5-f6fe38624fc6",
+          "oldOrder": 27,
+          "newOrder": 18,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "cf1f0c5e-7b6b-4489-a62a-407d6859a51c",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "86cb1ae3-26c4-495f-bd38-a2da18361768",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5b47ed95-78b9-4e3e-8060-6c4997f31249",
+          "oldOrder": 18,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "43892e36-ac75-4f0c-87a8-d1388c884654",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        },
+        {
+          "id": "48df95cd-99f6-441c-9b21-7a79555ffb9a",
+          "oldOrder": 26,
+          "newOrder": 24,
+          "name": "Pranata Komputer Terampil",
+          "department": "BPVP Padang",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Pangkep",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "da9e6b93-dd02-43ff-acdc-19a03b56f306",
+          "oldOrder": 16,
+          "newOrder": 12,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9bc5b19f-ae66-44cf-9436-6ca9b527a047",
+          "oldOrder": 12,
+          "newOrder": 13,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d49cfe71-b23c-468e-aa6c-fa6542c1d900",
+          "oldOrder": 17,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Pangkep",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "8d73bba1-31ce-405a-a5c4-54da6b240232",
+          "oldOrder": 20,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f4269e14-0c7d-4129-bac9-6e43a5c90311",
+          "oldOrder": 21,
+          "newOrder": 14,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "babc1ec0-4ead-4037-9c3f-ca673578f291",
+          "oldOrder": 22,
+          "newOrder": 15,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "49aea360-646a-40ab-a819-71a62a57e936",
+          "oldOrder": 13,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "99feea78-01c4-481e-ba7b-c862f61c5b08",
+          "oldOrder": 14,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "94ace103-4cc7-428b-ba72-4d1725f3a89d",
+          "oldOrder": 15,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b4aaf5f6-5198-415d-936d-2dec70656515",
+          "oldOrder": 19,
+          "newOrder": 20,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Pangkep",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Samarinda",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "e37ebcec-9d14-4a9f-8a69-8cbc65ae726f",
+          "oldOrder": 20,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9fb7266e-12e9-4c01-a7a1-df497f582141",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6f89b2bd-50ca-480b-b58e-62fa43493244",
+          "oldOrder": 21,
+          "newOrder": 18,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Samarinda",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "dab514a8-1f65-46e0-af14-67929740348b",
+          "oldOrder": 25,
+          "newOrder": 17,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "63d0cf2d-7466-4b59-a1cb-932340d48872",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9611c321-7214-4a04-a040-b2e65e1c6911",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "71a95150-afba-46ad-b7bf-07a5bbaeb8b8",
+          "oldOrder": 22,
+          "newOrder": 20,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f870d9b1-9000-4e1b-99bb-736f27f42c3c",
+          "oldOrder": 19,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f6cf4d7a-8d31-4695-81ff-1e3793f1a7af",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        },
+        {
+          "id": "08002504-486d-49fb-8c1b-9bf8084ff85e",
+          "oldOrder": 24,
+          "newOrder": 23,
+          "name": "Pranata Komputer Terampil",
+          "department": "BPVP Samarinda",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "494bc53e-2fa5-454a-8e34-3bfb80be01eb",
+          "oldOrder": 13,
+          "newOrder": 9,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "bf949991-35f2-4ff5-8df1-1cfeb576eb55",
+          "oldOrder": 9,
+          "newOrder": 10,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "18546ec7-d729-47ac-bdff-5806aa4accbc",
+          "oldOrder": 14,
+          "newOrder": 11,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "162c6fc8-a607-46f3-8f88-e45900ce330e",
+          "oldOrder": 17,
+          "newOrder": 10,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0242b90a-f7d1-402e-a5d5-83c5beeadaa4",
+          "oldOrder": 18,
+          "newOrder": 11,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ca71829b-8059-4d22-9457-669e4023d993",
+          "oldOrder": 19,
+          "newOrder": 12,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3b5e4bd9-1ff7-4ba1-a05a-3072f3c39740",
+          "oldOrder": 10,
+          "newOrder": 13,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "9632ab8e-0d5d-48b6-a360-ff31f6637d3f",
+          "oldOrder": 11,
+          "newOrder": 14,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "35d1b35b-06bb-4dd5-8394-53adca612431",
+          "oldOrder": 12,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        },
+        {
+          "id": "23b16378-ab07-4c0d-a1af-e6227fc8d2fd",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "BPVP Sidoarjo",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sorong",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "2237bd8d-ac6e-40b6-a416-f32adc832b34",
+          "oldOrder": 18,
+          "newOrder": 14,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5bac386d-e7e5-4393-8421-8e2d2db5b0fb",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c61b6c86-7091-455b-a607-c3ee69a08116",
+          "oldOrder": 19,
+          "newOrder": 16,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Sorong",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "8171106b-91d2-4dd4-b2c9-bc0b8ffbad39",
+          "oldOrder": 21,
+          "newOrder": 15,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ba7e2fdd-d4d2-4996-99e9-4008f2429b85",
+          "oldOrder": 22,
+          "newOrder": 16,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e9cdc949-ccfa-4765-934f-5a4c7a348665",
+          "oldOrder": 23,
+          "newOrder": 17,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "383f204b-8cbb-45ea-8f73-dcd8f47c223f",
+          "oldOrder": 15,
+          "newOrder": 18,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "786cc034-729b-4c65-b26a-72aa09f1d69f",
+          "oldOrder": 16,
+          "newOrder": 19,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ae1b0e64-b515-4462-9442-6e7e7be2f781",
+          "oldOrder": 17,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Sorong",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Surakarta",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "2b7eaf5e-b9df-40df-832a-19bed9320a5c",
+          "oldOrder": 20,
+          "newOrder": 15,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2798d49d-b868-4cff-bf5a-b2460398d048",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c97b8225-34f2-4f58-9661-8419ef33997c",
+          "oldOrder": 21,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d88d126d-8bd1-4a3f-b2d3-3862f8fd0ef3",
+          "oldOrder": 16,
+          "newOrder": 18,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "14c9f62b-6f23-4a4d-afd6-e946101baa75",
+          "oldOrder": 22,
+          "newOrder": 19,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Surakarta",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "ce31e87e-afd8-476d-996d-32af12939508",
+          "oldOrder": 24,
+          "newOrder": 17,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "414d1823-13c4-4e71-b9e4-1fbc5dd88e91",
+          "oldOrder": 25,
+          "newOrder": 18,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c71a748f-b5af-41a8-9b34-02c11e779029",
+          "oldOrder": 26,
+          "newOrder": 19,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ddb303fe-b860-4789-8cd7-db70a6e5469c",
+          "oldOrder": 17,
+          "newOrder": 20,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b20e3f7d-fedd-4762-b51f-a63fd2fea5e4",
+          "oldOrder": 18,
+          "newOrder": 21,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3ae9fd56-c58c-4532-9347-1433d16f7741",
+          "oldOrder": 19,
+          "newOrder": 22,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Surakarta",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ternate",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "b73cc124-5933-408f-af63-0d3b748496ed",
+          "oldOrder": 14,
+          "newOrder": 10,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f5249586-22a2-4ec6-8d35-0d999ac35f0a",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e0e0963c-091f-4761-9221-3afc24f8b8bf",
+          "oldOrder": 15,
+          "newOrder": 12,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "BPVP Ternate",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "ada1da5c-1c60-49a5-944d-ed6890e01bb6",
+          "oldOrder": 18,
+          "newOrder": 11,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a5c535eb-349a-4233-8fba-e2cf92f61bf5",
+          "oldOrder": 20,
+          "newOrder": 12,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8dd8c8a7-8c44-41b7-adb9-8d6c2912d325",
+          "oldOrder": 11,
+          "newOrder": 13,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3b6ad223-f0ad-468b-877f-0c2d21e36468",
+          "oldOrder": 12,
+          "newOrder": 14,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "eae1ae5d-2ec8-4635-a523-eab4df64703f",
+          "oldOrder": 16,
+          "newOrder": 15,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        },
+        {
+          "id": "681a7582-0130-41c0-a19e-100dbdad49bd",
+          "oldOrder": 13,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "BPVP Ternate",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Intala",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "fa59f002-0ce0-479a-bbed-42f78ddd5c43",
+          "oldOrder": 8,
+          "newOrder": 6,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e61d968-6bc3-409a-b21f-97a940862c83",
+          "oldOrder": 16,
+          "newOrder": 7,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b6938aa4-7155-48e4-bdbe-45feb9baca5c",
+          "oldOrder": 6,
+          "newOrder": 8,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "004aaafc-c93d-49f1-ab28-be8eaaebab91",
+          "oldOrder": 17,
+          "newOrder": 10,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3110dad2-ab74-4fdc-8f70-d5ac7f9d1149",
+          "oldOrder": 7,
+          "newOrder": 11,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "908f6907-58f5-4603-8ea7-1aeb6e6d46e6",
+          "oldOrder": 10,
+          "newOrder": 12,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "566cb43a-5992-42b9-949c-ef2ce16feb27",
+          "oldOrder": 18,
+          "newOrder": 13,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "313865b8-d957-4bfa-b7cc-b3963db25a28",
+          "oldOrder": 19,
+          "newOrder": 14,
+          "name": "Analis Pengembangan Kompetensi Ahli Pertama",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Intala",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "c5706732-630a-469b-ab8d-96acedeb7f7d",
+          "oldOrder": 21,
+          "newOrder": 11,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d86dbc68-ce1b-4f45-bc72-937c2dabdb07",
+          "oldOrder": 22,
+          "newOrder": 12,
+          "name": "Pranata Komputer Penyelia",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "acbbcc99-542f-447c-80f6-d43ac6ed51c1",
+          "oldOrder": 11,
+          "newOrder": 13,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "29554cc3-595d-43b9-bc8e-8350203d5aaf",
+          "oldOrder": 23,
+          "newOrder": 14,
+          "name": "Pranata Komputer Mahir",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7b9ab738-6033-464b-a82d-7e77b500ad45",
+          "oldOrder": 12,
+          "newOrder": 15,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        },
+        {
+          "id": "417bb801-bcb3-43ac-bdb4-030e5b710486",
+          "oldOrder": 24,
+          "newOrder": 16,
+          "name": "Pranata Komputer Terampil",
+          "department": "Direktorat Bina Intala",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Lemlatvok",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "8da376b8-b2e4-401f-905b-c30189440693",
+          "oldOrder": 10,
+          "newOrder": 6,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "239cc574-6131-4260-a4d8-982f0e6b7dfa",
+          "oldOrder": 6,
+          "newOrder": 7,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "be4a8b45-8945-4158-b555-10a4c6f8ff22",
+          "oldOrder": 11,
+          "newOrder": 9,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "415a0d22-48bd-43f9-86ef-057642ee751e",
+          "oldOrder": 7,
+          "newOrder": 10,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "26d503d9-16af-4ea4-a73b-33cf5773547b",
+          "oldOrder": 9,
+          "newOrder": 11,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Lemlatvok",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "0d2cd73f-ba70-459b-a8e4-f710ec0c8646",
+          "oldOrder": 16,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c6020180-57c7-455a-b6ba-f929e6d3f7e3",
+          "oldOrder": 17,
+          "newOrder": 14,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d63140d7-208d-4a50-b2a8-b6d70282ed4c",
+          "oldOrder": 13,
+          "newOrder": 15,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "69f87bf1-2a42-4a3a-a4dd-7eddc7b813a8",
+          "oldOrder": 14,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        },
+        {
+          "id": "61b0b14c-4c1c-4cee-9cf3-06a326ac2d13",
+          "oldOrder": 15,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Direktorat Bina Lemlatvok",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Peningkatan Produktivitas",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "96d58413-414c-4498-8ab0-3a61b9928ab5",
+          "oldOrder": 10,
+          "newOrder": 6,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c16fb405-71bd-44a1-a788-1c47d69efddd",
+          "oldOrder": 6,
+          "newOrder": 7,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "55698a06-419a-4252-94ea-115fd2544495",
+          "oldOrder": 11,
+          "newOrder": 9,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ff8340ee-a129-4c28-8afb-f64bd08c4ebe",
+          "oldOrder": 24,
+          "newOrder": 10,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "64266e90-02e1-4c44-b991-32d051238fef",
+          "oldOrder": 7,
+          "newOrder": 11,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7ad4269d-f182-464c-8510-be5902ce7c9a",
+          "oldOrder": 9,
+          "newOrder": 12,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "eeac9a35-14d6-4ffa-88c4-df480d63ce04",
+          "oldOrder": 12,
+          "newOrder": 13,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Peningkatan Produktivitas",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "3d4ad6e6-8743-4da4-9b43-34969e4a44cf",
+          "oldOrder": 18,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "589b994e-a456-4c8b-b3ac-1ee626a66635",
+          "oldOrder": 19,
+          "newOrder": 14,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1f4146c5-feb9-421e-86ae-25cfb842df87",
+          "oldOrder": 13,
+          "newOrder": 15,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7e8cceee-1a9c-4397-a12c-e75478e1d6ae",
+          "oldOrder": 14,
+          "newOrder": 16,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8bdc60bd-5685-4759-b9cf-847a5900d5af",
+          "oldOrder": 15,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "93769e91-d596-4b15-9fbe-c057e8cf28ff",
+          "oldOrder": 20,
+          "newOrder": 18,
+          "name": "Pranata Komputer Terampil",
+          "department": "Direktorat Bina Peningkatan Produktivitas",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "38b72669-db72-491e-bb0c-dfaed458c770",
+          "oldOrder": 8,
+          "newOrder": 3,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d0d339fd-435d-4de4-ac17-1c83a9ab6b32",
+          "oldOrder": 3,
+          "newOrder": 4,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "31886434-9daf-4520-ae30-675350d54d2d",
+          "oldOrder": 9,
+          "newOrder": 6,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2fafc366-992a-42ff-a953-1e7ad49c9058",
+          "oldOrder": 4,
+          "newOrder": 7,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2e0a92e5-7228-4a09-94b3-d3b597fa5668",
+          "oldOrder": 6,
+          "newOrder": 8,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "6c1b4d3a-5606-4a3d-835f-903b7d21feac",
+          "oldOrder": 10,
+          "newOrder": 9,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "db25a375-10b8-4aff-ba2d-e74a17ec0893",
+          "oldOrder": 15,
+          "newOrder": 7,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e51c5ac3-dd7b-4303-8eee-98f9746e96ac",
+          "oldOrder": 16,
+          "newOrder": 8,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "ebf93dcc-4337-43f5-b602-b4699781c35f",
+          "oldOrder": 11,
+          "newOrder": 9,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2236c9a9-668c-47e5-a4bf-b4cbf8f2b9bf",
+          "oldOrder": 7,
+          "newOrder": 10,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a7b0fc7f-1db6-41ce-9d70-fdcfbc73df24",
+          "oldOrder": 12,
+          "newOrder": 11,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b7f61a4c-99a5-4b75-9e1b-f9ac3aa04a18",
+          "oldOrder": 13,
+          "newOrder": 12,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Direktorat Bina Penyelenggaraan Latvogan",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Stankomproglat",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "f204e239-b015-4fb9-a6aa-52cc6c0fb881",
+          "oldOrder": 8,
+          "newOrder": 7,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "5d695046-3cee-423d-9a0c-0172b87f5e6b",
+          "oldOrder": 10,
+          "newOrder": 8,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "81659380-5e5a-4ac8-9baf-91c6f9e83414",
+          "oldOrder": 7,
+          "newOrder": 9,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3392a174-f602-4113-93e0-4ed54ec44266",
+          "oldOrder": 9,
+          "newOrder": 10,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Direktorat Bina Stankomproglat",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "05ce9c50-87f7-46a7-a827-e4f2bb998a3b",
+          "oldOrder": 15,
+          "newOrder": 12,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4105189a-927a-4138-97d1-d017e0c175ef",
+          "oldOrder": 16,
+          "newOrder": 13,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e03bbc73-0c8e-40ce-9cde-c3656d2a01bc",
+          "oldOrder": 17,
+          "newOrder": 14,
+          "name": "Pranata Komputer Penyelia",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "c6dc5c54-a72b-4698-978d-e57f90326ce9",
+          "oldOrder": 12,
+          "newOrder": 15,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e16c31a0-d865-44de-a4cd-7f3ca3e3dd4c",
+          "oldOrder": 18,
+          "newOrder": 16,
+          "name": "Pranata Komputer Mahir",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "58cc32d2-8692-4986-9935-2d9b85123d7c",
+          "oldOrder": 13,
+          "newOrder": 17,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        },
+        {
+          "id": "637511c1-e972-488c-99c1-0679933aa5dd",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "name": "Pranata Komputer Terampil",
+          "department": "Direktorat Bina Stankomproglat",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Sekretariat BNSP",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "5a10ad5d-56a2-4fff-99c0-ac4f2225d7fe",
+          "oldOrder": 8,
+          "newOrder": 6,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "10cbbc9b-8fb9-4b47-b6e3-321acf686259",
+          "oldOrder": 6,
+          "newOrder": 7,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "82b6f920-0e4e-4f73-8cc3-ed90ef6d367d",
+          "oldOrder": 9,
+          "newOrder": 8,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "3e335e78-a4c1-4ee3-ba73-16f9ef9134ab",
+          "oldOrder": 13,
+          "newOrder": 9,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4c67fecc-5cac-4346-84e7-b630f6db4c63",
+          "oldOrder": 7,
+          "newOrder": 10,
+          "name": "Analis Kebijakan Ahli Pertama",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "91b79146-96c2-48bc-afed-f84a88cf571f",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "1c403c30-c2da-489a-b6fa-710cf666b95a",
+          "oldOrder": 14,
+          "newOrder": 12,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Sekretariat BNSP",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "585a7e67-4549-4e99-bf7b-8d0d3e2fee12",
+          "oldOrder": 15,
+          "newOrder": 11,
+          "name": "Pranata SDM Aparatur Penyelia",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "bed71d4d-0b8d-4d60-ad5f-5eb71799d2ed",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "4008e677-d423-4c43-9c97-6fd3fba3708a",
+          "oldOrder": 16,
+          "newOrder": 13,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "0f28dd28-6869-4f0c-9eb5-25f1bb1f445c",
+          "oldOrder": 12,
+          "newOrder": 14,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        },
+        {
+          "id": "92950680-5694-4196-89ca-52897e746440",
+          "oldOrder": 17,
+          "newOrder": 15,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "Sekretariat BNSP",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Setditjen Binalavotas",
+      "category": "Fungsional",
+      "groupName": "Analis",
+      "updates": [
+        {
+          "id": "cecf53c1-5855-446a-9798-3bd21a4e7e92",
+          "oldOrder": 11,
+          "newOrder": 6,
+          "name": "Analis Hukum Ahli Madya",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "06ee937e-df1e-4543-8ae7-a88804baa8d3",
+          "oldOrder": 14,
+          "newOrder": 7,
+          "name": "Analis Kebijakan Ahli Madya",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "78defc1a-096f-4b52-b114-fae6e6a9c659",
+          "oldOrder": 17,
+          "newOrder": 8,
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a0d5174a-30e4-4d09-bb77-6bafbe543b5c",
+          "oldOrder": 23,
+          "newOrder": 9,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a28e53aa-1d12-40f3-8d95-a83020b03b04",
+          "oldOrder": 6,
+          "newOrder": 10,
+          "name": "Analis Anggaran Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "45218ef7-852b-42b3-a9ff-077ecdf2296a",
+          "oldOrder": 12,
+          "newOrder": 11,
+          "name": "Analis Hukum Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "de63134e-aa70-406b-9bc4-4b116862b4e1",
+          "oldOrder": 15,
+          "newOrder": 12,
+          "name": "Analis Kebijakan Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "a34112e6-d817-4096-8f68-d0496b70f05e",
+          "oldOrder": 18,
+          "newOrder": 13,
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8e7cd836-4dba-411a-a239-e97a3c82321a",
+          "oldOrder": 24,
+          "newOrder": 14,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "2ae1d63d-e6e1-4a39-a910-eb2a59e2382c",
+          "oldOrder": 13,
+          "newOrder": 15,
+          "name": "Analis Hukum Ahli Pertama",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "d2c986f3-e4ef-4ffc-981f-308905081315",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8f027cd3-4319-45e0-bb83-3f8fcf9acf85",
+          "oldOrder": 25,
+          "newOrder": 18,
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        }
+      ]
+    },
+    {
+      "department": "Setditjen Binalavotas",
+      "category": "Fungsional",
+      "groupName": "Pranata",
+      "updates": [
+        {
+          "id": "6e4a0acf-d440-47f5-a708-f0245de785c0",
+          "oldOrder": 35,
+          "newOrder": 20,
+          "name": "Pranata Komputer Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "80bf9a0f-642a-4496-871b-db22e0c85b9e",
+          "oldOrder": 40,
+          "newOrder": 21,
+          "name": "Pranata Humas Ahli Muda",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "abcc95f0-2137-47b5-aea8-1db60e5af056",
+          "oldOrder": 36,
+          "newOrder": 22,
+          "name": "Pranata Komputer Ahli Pertama",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7131ac95-ca51-45cd-bc79-0306e0c50f1d",
+          "oldOrder": 41,
+          "newOrder": 23,
+          "name": "Pranata Humas Ahli Pertama",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f3d0832d-0917-496d-a706-7aeaef7e171b",
+          "oldOrder": 20,
+          "newOrder": 24,
+          "name": "Pranata SDM Aparatur Penyelia",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "7640fc53-07c3-4602-b3c8-50302a4c4541",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "name": "Pranata Keuangan APBN Penyelia",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "e309e653-15a4-4065-be59-9d3ce1680a07",
+          "oldOrder": 37,
+          "newOrder": 26,
+          "name": "Pranata Komputer Penyelia",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "44d5e651-e58d-4c49-918d-c695208d1f2a",
+          "oldOrder": 21,
+          "newOrder": 27,
+          "name": "Pranata SDM Aparatur Mahir",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b3e56937-da5a-4a7a-b8c7-0aeb8a6731e4",
+          "oldOrder": 27,
+          "newOrder": 28,
+          "name": "Pranata Keuangan APBN Mahir",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "f8b16daf-daa9-441b-87a9-556462afd51d",
+          "oldOrder": 38,
+          "newOrder": 29,
+          "name": "Pranata Komputer Mahir",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "02e50488-852d-4420-a1bd-0f5a7dd92030",
+          "oldOrder": 22,
+          "newOrder": 30,
+          "name": "Pranata SDM Aparatur Terampil",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "8338dc63-71ec-4fcd-b254-b5d76f1f66ad",
+          "oldOrder": 28,
+          "newOrder": 31,
+          "name": "Pranata Keuangan APBN Terampil",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        },
+        {
+          "id": "b2e24196-8811-439f-839c-5f3620deb6df",
+          "oldOrder": 39,
+          "newOrder": 32,
+          "name": "Pranata Komputer Terampil",
+          "department": "Setditjen Binalavotas",
+          "category": "Fungsional"
+        }
+      ]
+    }
+  ]
+}

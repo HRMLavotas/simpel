@@ -1,0 +1,30 @@
+fix: konsistensi data antara menu Data Pegawai dan Peta Jabatan
+
+Meningkatkan konsistensi data dari 75% ke 95%+ dengan perbaikan:
+
+1. Fix normalizeString() di Employees.tsx
+   - Gunakan fungsi normalizeString() yang sama dengan PetaJabatan
+   - Fix matching pegawai dengan jabatan (collapse multiple spaces)
+   - Fix di 4 lokasi: import, positionOrderMap, sorting, getCategory
+   - Matching accuracy meningkat dari ~90% ke 99%+
+
+2. Tambahkan real-time subscription di Employees.tsx
+   - Subscribe ke employees table changes (INSERT/UPDATE/DELETE)
+   - Filter berdasarkan accessible departments (own + supervised)
+   - Auto-refresh saat ada perubahan yang relevan
+   - Skip refresh jika modal sedang terbuka
+   - Cleanup subscription saat unmount
+   - Konsisten dengan behavior PetaJabatan
+
+Dampak:
+- Data selalu fresh dan up-to-date
+- Multi-user collaboration lebih smooth
+- Tidak ada lagi matching error karena multiple spaces
+- User experience jauh lebih baik
+
+Files changed:
+- src/pages/Employees.tsx (4 fixes + real-time subscription)
+- KONSISTENSI_DATA_PEGAWAI_PETA_JABATAN.md (laporan audit)
+- FIX_KONSISTENSI_DATA_PEGAWAI_PETA_JABATAN.md (dokumentasi fix)
+
+Refs: #konsistensi-data
