@@ -1,0 +1,1608 @@
+{
+  "fixes": [
+    {
+      "department": "BBPVP Bandung",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "ec891f34-f0b3-440f-855c-68958ccfd36c",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "dcbaef31-6cf8-4b0c-b5f6-c34e2cd62d0b",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "41521036-f8ad-460a-8dac-faef184d6288",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "a0a7c50d-d53c-4076-9213-94a6d44487a1",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "efabf7d0-dc9a-4287-a1dc-9201d3ef97db",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "b3b117c5-a2cc-44f9-8d4b-4b08edb869fd",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "BBPVP Bandung",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "0dab94f2-4afb-4d95-b78c-e94199fdeb54",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "ca545174-89e2-4a1c-9336-30f282fc378e",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "ca29aad3-1b58-4244-974b-a0c98d497b73",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "c59217e2-4bb3-455b-8990-1b4546856fb3",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "0fc79148-eb75-45ea-9acd-2973860a1585",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "0436bcce-5383-477e-b587-b7faef3d10ea",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 20,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "8db38fb2-e7e3-4997-a518-f0839a01a6d8",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "757eae3e-f475-4c94-b7aa-b27e983af3b7",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 20,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "c87c81e0-91c4-4aec-9f84-fc8c6f8c6d09",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 23,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "d58c6b20-2195-4de9-ad8d-53faaf3aca05",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "13d5b1e5-a4a7-4e2f-b2c6-bf5b894b1868",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "7 positions need reordering"
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "4af5f912-921b-489d-aecf-874834d37baf",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "a813d32c-48e0-4b7e-a15c-59c8e4f008e4",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "c274a057-9f65-4d5d-a6e1-bd9c01607d01",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "b2a38a6f-5dfb-4a7f-b282-21b1aeb29fc5",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "577b74c4-24e5-4cd3-84b6-f335b7d67aeb",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "e2d8eae7-b998-4de6-a5ac-a64eb3c5b99e",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 25,
+          "newOrder": 26,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "c83ac041-6f7f-4892-9902-de16361c9e68",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 29,
+          "newOrder": 28,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "7e446aff-c74b-4593-a162-261bfcbf87b8",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 28,
+          "newOrder": 29,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "8 positions need reordering"
+    },
+    {
+      "department": "BBPVP Makassar",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "93613dd0-c109-48df-ba05-d7642f75bcd8",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "2f41a898-27e2-4b3b-8140-b1d7593d7877",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 20,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "24f69b69-9700-470d-b0ae-65a379e35a6d",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "a48eca32-f7bd-4d2a-a9a8-eb61865b21ea",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 20,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "1dd1bc6f-317d-4ed6-b5ca-f180780c3d5d",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 23,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "1fa381cd-92a8-4cb4-a27c-8c78b4fd8210",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "56e6e200-0b48-4dc5-b164-980bfc5bdd5a",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "7 positions need reordering"
+    },
+    {
+      "department": "BBPVP Makassar",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "1ccffe54-3b2e-4fe3-8f2c-62f7abdbb148",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "ac97af2b-d67a-4661-846f-ee84f058a0c5",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "df26173c-e0b1-4997-a367-fff724cca90b",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "4ed92d70-3693-42b5-a14e-34d1cbc6e190",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "5979fe25-85d2-4eeb-a497-b20b4106581e",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "89bd9613-209c-40c7-8758-0e398f96dd18",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 25,
+          "newOrder": 26,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "a7e81727-0028-4549-bf23-1266215893cb",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 29,
+          "newOrder": 28,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "0a637c63-26f7-4ad1-a2cf-9467afbf4ad8",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 28,
+          "newOrder": 29,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "8 positions need reordering"
+    },
+    {
+      "department": "BBPVP Medan",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "d88c606b-8988-468f-bbee-8768ee1afb20",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 12,
+          "newOrder": 10,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "c9077fcb-9c20-4c7c-8edd-27618e9843cb",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "c8276cbd-ff0f-409a-9d2b-29ba6475fa5f",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "467c6092-47a0-4df8-ac29-3343958e9988",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 15,
+          "newOrder": 13,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "6682b23e-dd1c-4da2-92ee-ca64dc83d023",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 13,
+          "newOrder": 14,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "d7a2c725-d5cf-40b0-923e-86de5ca5388c",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "BBPVP Medan",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "f1de57a2-a20c-4ccb-899f-c45412dcf773",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 12,
+          "newOrder": 11,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "741afd01-c0c2-425d-9a99-9833e5ab8cf9",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "c4dd752d-ddd0-4d47-8e12-679533b5a7d3",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "4d9f067b-85ce-4f6e-910b-fc5ff9a7ff93",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "be0020a8-4c25-40e7-be65-4eb55cb1f021",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "83e9243a-628b-4e23-901a-9a76b64c86af",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "BBPVP Semarang",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "4b2f923c-7fc6-4592-a4d2-3a0fc17b45e8",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "017a2b42-f84d-4d65-a599-5b865f072316",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 20,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "515c9920-fcae-4062-b0c2-ac81ba5b5dd7",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "2313b881-0eb0-4f64-993d-ce0d1bf1d4ca",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 20,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "07a31528-f1f9-4463-9104-8a6baca8ac7d",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 23,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "cc9fc90f-3344-4834-b226-dda5b33d1c27",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "3188448a-dd8e-403f-a4c6-6e0c38c7b578",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "7 positions need reordering"
+    },
+    {
+      "department": "BBPVP Semarang",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "16b4b8bc-8a00-459d-9059-105991deb6d4",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "109731bb-3ddb-454a-b9b3-8a70348423c8",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "3892259b-bd8d-4618-8339-522e6704eb34",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "111ec758-0077-4c22-8fab-3959d2fa8dcf",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "e9bea52b-2867-444e-a309-4b7aa601b2a2",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "998a7d1d-bcf4-4f1e-aa06-f4288c8ec9b9",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 25,
+          "newOrder": 26,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "7af1b244-cd3b-4f56-938d-62721aa7a619",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 29,
+          "newOrder": 28,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "bcfca502-0080-477b-9284-c09149f36df4",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 28,
+          "newOrder": 29,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "8 positions need reordering"
+    },
+    {
+      "department": "BBPVP Serang",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "1b53e502-f892-4eb1-8fb2-04ec05c7b685",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 16,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "58ff0e8a-3c98-4ea5-b765-971fd89fe53d",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "22aea109-e524-4908-bbd7-c8735d234aff",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 16,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "4ca71f62-3958-445b-bcb2-cb37fbea1cac",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 19,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "89dc39dc-1fec-4b16-b1d2-a968a609cfe0",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "6c1b6b57-df26-4983-b4bc-5aecb9d7d8ea",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "d7efc820-aeb9-494a-96a5-7a8707a06100",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 21,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "7 positions need reordering"
+    },
+    {
+      "department": "BBPVP Serang",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "4eca5e68-c423-4193-a8a1-68476d41eabb",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "72f5f120-62b0-4ddf-854b-01f6846cc12f",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "aee1ddb0-2625-4dad-88ab-577a0ca3c4fe",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 20,
+          "newOrder": 19,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "63317e11-5a2a-46a1-9651-c16658be7098",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 19,
+          "newOrder": 20,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "545cd92e-5ef4-406b-b2e5-77f64f04e594",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 25,
+          "newOrder": 24,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "6e5147b6-c545-464a-a62d-89cf173facc3",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 24,
+          "newOrder": 25,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "e3f63386-6236-4466-9bf5-c610afdfec86",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 28,
+          "newOrder": 27,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "04e0ade6-faa8-4718-97d4-38554db01c44",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 27,
+          "newOrder": 28,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "8 positions need reordering"
+    },
+    {
+      "department": "BPVP Ambon",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "97bacaf2-b471-4c30-beb8-51dbbfd76673",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 16,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "47f354b2-1fae-4e6c-b919-4f2406b032d2",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "57f8bd37-6266-43fa-a72e-43a20578f057",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "level": "Terampil",
+          "grade": 7
+        },
+        {
+          "id": "2106bcfc-163a-4bd3-ba92-e43689cd1a20",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "37bbe842-c9e7-41e9-a804-61abfdc2cdf8",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 16,
+          "newOrder": 14,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "2e2a9568-4074-43e0-8316-5516b6d3bd02",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "40b4a9c7-b2e2-4250-be7c-693f1923f47f",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 15,
+          "newOrder": 16,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "ea8056f6-76c3-4dbb-a866-da08cf4807a1",
+          "name": "Analis Anggaran Ahli Pertama",
+          "oldOrder": 19,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "1aa216ae-5557-4293-9e6e-58649a4fbd5c",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "9b8b7421-6731-4b0c-ba2b-ee4535a49324",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "0e2f7bc2-3a0d-4484-9fa7-55b159f6abc9",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "57dced73-2f74-4ebd-bb40-2377825b9a1d",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "6bcd2f0e-f7e5-4076-861b-a343ddf9c3be",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 12,
+          "newOrder": 10,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "a84704d3-fc73-464d-9b42-1487638831ed",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "db08bcb3-265b-42af-b0a4-6ffe0748ed20",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "level": "Ahli Muda",
+          "grade": 10
+        }
+      ],
+      "summary": "3 positions need reordering"
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "29f7c472-20e8-4125-868a-db6f6911e0a4",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 14,
+          "newOrder": 13,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "c2b39088-0f31-451a-869c-ec1ec44e60af",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 13,
+          "newOrder": 14,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Bantaeng",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "9b979d86-9467-4191-9de6-9fda59512ee4",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "732ead1c-7026-48ea-b6f7-00e939cca1ef",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "5b5eda80-59df-46dd-9e69-ec13091d609d",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 15,
+          "newOrder": 14,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "361c5a75-ecb8-42fe-a207-2e79c9891088",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Belitung",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "a46c0ae4-69be-4c97-af64-d14f42e511cc",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "ff19d3ff-3890-4da7-8e80-f240c8e80151",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Kendari",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "4c517195-78cb-48b2-b8fb-76564f64fbcd",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "16921f72-0485-44d6-a95c-d084ed0c3ffe",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "a1230eaa-5cd4-447c-9be7-9dbcf9e2b9ce",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "3e86150e-e836-45b4-a09a-ec8db3a0de7c",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "426b5369-3c8d-46ef-8ee9-33e489e7821c",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "1b388c97-32b5-471d-9937-acac9bc2b91b",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 25,
+          "newOrder": 26,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "BPVP Padang",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "1ad7734e-7708-42c9-80f5-f6fe38624fc6",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "6b1b9dd1-8a17-4db1-9a8f-8a397a102088",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "48df95cd-99f6-441c-9b21-7a79555ffb9a",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 24,
+          "newOrder": 23,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "43892e36-ac75-4f0c-87a8-d1388c884654",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 23,
+          "newOrder": 24,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "BPVP Pangkep",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "babc1ec0-4ead-4037-9c3f-ca673578f291",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 15,
+          "newOrder": 14,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "f4269e14-0c7d-4129-bac9-6e43a5c90311",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 14,
+          "newOrder": 15,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Samarinda",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "08002504-486d-49fb-8c1b-9bf8084ff85e",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "f6cf4d7a-8d31-4695-81ff-1e3793f1a7af",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "ca71829b-8059-4d22-9457-669e4023d993",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 12,
+          "newOrder": 11,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "0242b90a-f7d1-402e-a5d5-83c5beeadaa4",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Sorong",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "e9cdc949-ccfa-4765-934f-5a4c7a348665",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 16,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "ba7e2fdd-d4d2-4996-99e9-4008f2429b85",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 16,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "BPVP Surakarta",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "c71a748f-b5af-41a8-9b34-02c11e779029",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 19,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "414d1823-13c4-4e71-b9e4-1fbc5dd88e91",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 19,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Intala",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "313865b8-d957-4bfa-b7cc-b3963db25a28",
+          "name": "Analis Pengembangan Kompetensi Ahli Pertama",
+          "oldOrder": 14,
+          "newOrder": 13,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "566cb43a-5992-42b9-949c-ef2ce16feb27",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 13,
+          "newOrder": 14,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Lemlatvok",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "be4a8b45-8945-4158-b555-10a4c6f8ff22",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 9,
+          "newOrder": 8,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "88ce3bcb-1399-4a38-bc48-d79e005ec3b5",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 8,
+          "newOrder": 9,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "6e785a9c-48e8-4b97-b332-cc6cb4389c4b",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 12,
+          "newOrder": 11,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "26d503d9-16af-4ea4-a73b-33cf5773547b",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 11,
+          "newOrder": 12,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Peningkatan Produktivitas",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "ff8340ee-a129-4c28-8afb-f64bd08c4ebe",
+          "name": "Analis Anggaran Ahli Muda",
+          "oldOrder": 10,
+          "newOrder": 7,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "c16fb405-71bd-44a1-a788-1c47d69efddd",
+          "name": "Analis Kebijakan Ahli Muda",
+          "oldOrder": 7,
+          "newOrder": 8,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "9606e357-f71d-4d24-ab11-ac686bb7ac7f",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 8,
+          "newOrder": 10,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "eeac9a35-14d6-4ffa-88c4-df480d63ce04",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 13,
+          "newOrder": 12,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "7ad4269d-f182-464c-8510-be5902ce7c9a",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 12,
+          "newOrder": 13,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "5 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "31886434-9daf-4520-ae30-675350d54d2d",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 6,
+          "newOrder": 5,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "ebd4aa87-3303-4bdf-9508-d084098dc0db",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 5,
+          "newOrder": 6,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "6c1b4d3a-5606-4a3d-835f-903b7d21feac",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 9,
+          "newOrder": 8,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "2e0a92e5-7228-4a09-94b3-d3b597fa5668",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 8,
+          "newOrder": 9,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Penyelenggaraan Latvogan",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "a7b0fc7f-1db6-41ce-9d70-fdcfbc73df24",
+          "name": "Pranata Keuangan APBN Mahir",
+          "oldOrder": 11,
+          "newOrder": 10,
+          "level": "Mahir",
+          "grade": 8
+        },
+        {
+          "id": "2236c9a9-668c-47e5-a4bf-b4cbf8f2b9bf",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "level": "Mahir",
+          "grade": 7
+        }
+      ],
+      "summary": "2 positions need reordering"
+    },
+    {
+      "department": "Direktorat Bina Stankomproglat",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "5d695046-3cee-423d-9a0c-0172b87f5e6b",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 8,
+          "newOrder": 7,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "f204e239-b015-4fb9-a6aa-52cc6c0fb881",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 7,
+          "newOrder": 8,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "8d438d34-cd6e-48dc-8731-a1013c73e1b0",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 11,
+          "newOrder": 10,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "3392a174-f602-4113-93e0-4ed54ec44266",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 10,
+          "newOrder": 11,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "4 positions need reordering"
+    },
+    {
+      "department": "Setditjen Binalavotas",
+      "category": "Fungsional",
+      "groupType": "Analis",
+      "updates": [
+        {
+          "id": "a0d5174a-30e4-4d09-bb77-6bafbe543b5c",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+          "oldOrder": 9,
+          "newOrder": 8,
+          "level": "Ahli Madya",
+          "grade": 12
+        },
+        {
+          "id": "78defc1a-096f-4b52-b114-fae6e6a9c659",
+          "name": "Analis SDM Aparatur Ahli Madya",
+          "oldOrder": 8,
+          "newOrder": 9,
+          "level": "Ahli Madya",
+          "grade": 12
+        },
+        {
+          "id": "8e7cd836-4dba-411a-a239-e97a3c82321a",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+          "oldOrder": 14,
+          "newOrder": 13,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "a34112e6-d817-4096-8f68-d0496b70f05e",
+          "name": "Analis SDM Aparatur Ahli Muda",
+          "oldOrder": 13,
+          "newOrder": 14,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "8f027cd3-4319-45e0-bb83-3f8fcf9acf85",
+          "name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "oldOrder": 18,
+          "newOrder": 17,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "d2c986f3-e4ef-4ffc-981f-308905081315",
+          "name": "Analis SDM Aparatur Ahli Pertama",
+          "oldOrder": 17,
+          "newOrder": 18,
+          "level": "Ahli Pertama",
+          "grade": 8
+        }
+      ],
+      "summary": "6 positions need reordering"
+    },
+    {
+      "department": "Setditjen Binalavotas",
+      "category": "Fungsional",
+      "groupType": "Pranata",
+      "updates": [
+        {
+          "id": "80bf9a0f-642a-4496-871b-db22e0c85b9e",
+          "name": "Pranata Humas Ahli Muda",
+          "oldOrder": 21,
+          "newOrder": 20,
+          "level": "Ahli Muda",
+          "grade": 10
+        },
+        {
+          "id": "6e4a0acf-d440-47f5-a708-f0245de785c0",
+          "name": "Pranata Komputer Ahli Muda",
+          "oldOrder": 20,
+          "newOrder": 21,
+          "level": "Ahli Muda",
+          "grade": 9
+        },
+        {
+          "id": "7131ac95-ca51-45cd-bc79-0306e0c50f1d",
+          "name": "Pranata Humas Ahli Pertama",
+          "oldOrder": 23,
+          "newOrder": 22,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "abcc95f0-2137-47b5-aea8-1db60e5af056",
+          "name": "Pranata Komputer Ahli Pertama",
+          "oldOrder": 22,
+          "newOrder": 23,
+          "level": "Ahli Pertama",
+          "grade": 8
+        },
+        {
+          "id": "7640fc53-07c3-4602-b3c8-50302a4c4541",
+          "name": "Pranata Keuangan APBN Penyelia",
+          "oldOrder": 25,
+          "newOrder": 24,
+          "level": "Penyelia",
+          "grade": 9
+        },
+        {
+          "id": "e309e653-15a4-4065-be59-9d3ce1680a07",
+          "name": "Pranata Komputer Penyelia",
+          "oldOrder": 26,
+          "newOrder": 25,
+          "level": "Penyelia",
+          "grade": 8
+        },
+        {
+          "id": "f3d0832d-0917-496d-a706-7aeaef7e171b",
+          "name": "Pranata SDM Aparatur Penyelia",
+          "oldOrder": 24,
+          "newOrder": 26,
+          "level": "Penyelia",
+          "grade": 8
+        },
+        {
+          "id": "b3e56937-da5a-4a7a-b8c7-0aeb8a6731e4",
+          "name": "Pranata Keuangan APBN Mahir",
+          "oldOrder": 28,
+          "newOrder": 27,
+          "level": "Mahir",
+          "grade": 8
+        },
+        {
+          "id": "f8b16daf-daa9-441b-87a9-556462afd51d",
+          "name": "Pranata Komputer Mahir",
+          "oldOrder": 29,
+          "newOrder": 28,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "44d5e651-e58d-4c49-918d-c695208d1f2a",
+          "name": "Pranata SDM Aparatur Mahir",
+          "oldOrder": 27,
+          "newOrder": 29,
+          "level": "Mahir",
+          "grade": 7
+        },
+        {
+          "id": "8338dc63-71ec-4fcd-b254-b5d76f1f66ad",
+          "name": "Pranata Keuangan APBN Terampil",
+          "oldOrder": 31,
+          "newOrder": 30,
+          "level": "Terampil",
+          "grade": 7
+        },
+        {
+          "id": "b2e24196-8811-439f-839c-5f3620deb6df",
+          "name": "Pranata Komputer Terampil",
+          "oldOrder": 32,
+          "newOrder": 31,
+          "level": "Terampil",
+          "grade": 6
+        },
+        {
+          "id": "02e50488-852d-4420-a1bd-0f5a7dd92030",
+          "name": "Pranata SDM Aparatur Terampil",
+          "oldOrder": 30,
+          "newOrder": 32,
+          "level": "Terampil",
+          "grade": 6
+        }
+      ],
+      "summary": "13 positions need reordering"
+    }
+  ],
+  "result": {
+    "success": true,
+    "fixed": 165
+  }
+}
