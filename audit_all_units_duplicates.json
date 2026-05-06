@@ -1,0 +1,1258 @@
+{
+  "timestamp": "2026-05-06T09:03:58.938Z",
+  "total_units": 22,
+  "units_with_issues": 20,
+  "total_duplicates": 22,
+  "total_miscategorized": 141,
+  "department_summary": [
+    {
+      "department": "BBPVP Bandung",
+      "total_positions": 50,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BBPVP Bekasi",
+      "total_positions": 57,
+      "duplicates_count": 1,
+      "miscategorized_count": 2
+    },
+    {
+      "department": "BBPVP Makassar",
+      "total_positions": 60,
+      "duplicates_count": 2,
+      "miscategorized_count": 3
+    },
+    {
+      "department": "BBPVP Medan",
+      "total_positions": 54,
+      "duplicates_count": 1,
+      "miscategorized_count": 34
+    },
+    {
+      "department": "BBPVP Semarang",
+      "total_positions": 58,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BBPVP Serang",
+      "total_positions": 65,
+      "duplicates_count": 3,
+      "miscategorized_count": 6
+    },
+    {
+      "department": "BPVP Ambon",
+      "total_positions": 44,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Banda Aceh",
+      "total_positions": 44,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Bandung Barat",
+      "total_positions": 45,
+      "duplicates_count": 0,
+      "miscategorized_count": 26
+    },
+    {
+      "department": "BPVP Bantaeng",
+      "total_positions": 44,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Banyuwangi",
+      "total_positions": 40,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Belitung",
+      "total_positions": 41,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Lombok Timur",
+      "total_positions": 42,
+      "duplicates_count": 0,
+      "miscategorized_count": 5
+    },
+    {
+      "department": "BPVP Padang",
+      "total_positions": 45,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Pangkep",
+      "total_positions": 39,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Samarinda",
+      "total_positions": 44,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Sidoarjo",
+      "total_positions": 41,
+      "duplicates_count": 0,
+      "miscategorized_count": 23
+    },
+    {
+      "department": "BPVP Sorong",
+      "total_positions": 41,
+      "duplicates_count": 0,
+      "miscategorized_count": 1
+    },
+    {
+      "department": "BPVP Surakarta",
+      "total_positions": 50,
+      "duplicates_count": 4,
+      "miscategorized_count": 7
+    },
+    {
+      "department": "BPVP Ternate",
+      "total_positions": 43,
+      "duplicates_count": 0,
+      "miscategorized_count": 24
+    }
+  ],
+  "to_delete": [
+    {
+      "id": "29c55364-d7d6-44af-add9-0f96168d4c7b",
+      "department": "BBPVP Bekasi",
+      "position_name": "Instruktur Ahli Madya",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "95a3df08-541f-45ea-bdeb-c68e0e68658e",
+      "department": "BBPVP Makassar",
+      "position_name": "Instruktur Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "d8ef74b8-fc99-41f9-804f-2bd2f75cfcaf",
+      "department": "BBPVP Makassar",
+      "position_name": "Pengantar Kerja Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "ba4a9aa3-99d6-4c7a-bf84-5ee6d8de62b3",
+      "department": "BBPVP Medan",
+      "position_name": "Instruktur Ahli Madya",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "6b70bd8e-1d87-4e46-8ad1-296086c19134",
+      "department": "BBPVP Serang",
+      "position_name": "Instruktur Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "2a4726f0-88b0-43bc-9696-05a84e3da597",
+      "department": "BBPVP Serang",
+      "position_name": "Pengantar Kerja Ahli Pertama",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "ff0000ba-cf3a-4fa1-9a12-a79faa1041ec",
+      "department": "BBPVP Serang",
+      "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "d4a31762-9e4c-44a0-8357-9e638bfec458",
+      "department": "BPVP Surakarta",
+      "position_name": "Instruktur Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "23a49113-a139-4bf4-8114-02e8092e1d41",
+      "department": "BPVP Surakarta",
+      "position_name": "Instruktur Ahli Pertama",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "e63f780a-98b3-412f-abc9-4de4874cddc7",
+      "department": "BPVP Surakarta",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    },
+    {
+      "id": "76d738a3-2016-426d-aa18-0d4779493d76",
+      "department": "BPVP Surakarta",
+      "position_name": "Instruktur Ahli Madya",
+      "category": "Pelaksana",
+      "reason": "Duplikat - sudah ada di Fungsional"
+    }
+  ],
+  "to_update": [
+    {
+      "id": "546fc640-4593-4d19-bc03-ca49374a1035",
+      "department": "BBPVP Bandung",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "756b2b0a-d517-4ae9-bb17-f354e88a37fd",
+      "department": "BBPVP Bekasi",
+      "position_name": "Penelaah Teknik Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "16f41c95-16a4-418d-9b66-a030d4c57fdf",
+      "department": "BBPVP Makassar",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "561a48b9-7e14-454e-88a2-a9daac8ed1d6",
+      "department": "BBPVP Medan",
+      "position_name": "Pengantar Kerja Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "648d54f2-2d4c-4f1f-8f80-8ede2583d67b",
+      "department": "BBPVP Medan",
+      "position_name": "Pengantar Kerja Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "4b7f577a-54bc-4fde-949b-31e6a7e38604",
+      "department": "BBPVP Medan",
+      "position_name": "Arsiparis Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d005f279-76d9-4fd2-9f1f-77ad0b50872d",
+      "department": "BBPVP Medan",
+      "position_name": "Arsiparis Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "2bf3b914-e24a-42f6-ae54-94fe5fed2276",
+      "department": "BBPVP Medan",
+      "position_name": "Arsiparis Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "48959f19-3d0f-4026-ba59-210a2bf495f4",
+      "department": "BBPVP Medan",
+      "position_name": "Arsiparis Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "e47402b0-a1d4-4363-bef1-4692932604fe",
+      "department": "BBPVP Medan",
+      "position_name": "Arsiparis Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "94b86b61-a063-4ee1-8f7d-ab4ef5232182",
+      "department": "BBPVP Medan",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "c9077fcb-9c20-4c7c-8edd-27618e9843cb",
+      "department": "BBPVP Medan",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6682b23e-dd1c-4da2-92ee-ca64dc83d023",
+      "department": "BBPVP Medan",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a07b1565-46dd-4b75-b5fb-c80651726ea1",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Keuangan APBN Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "e43d9b17-b903-4781-958e-9c579f9a4fe3",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Keuangan APBN Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f77b5114-73e5-4088-b4c2-c38222d7263f",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Keuangan APBN Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f3f16653-06bc-46a1-9595-9aee4e92c530",
+      "department": "BBPVP Medan",
+      "position_name": "Analis SDM Aparatur Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "c8276cbd-ff0f-409a-9d2b-29ba6475fa5f",
+      "department": "BBPVP Medan",
+      "position_name": "Analis SDM Aparatur Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d7a2c725-d5cf-40b0-923e-86de5ca5388c",
+      "department": "BBPVP Medan",
+      "position_name": "Analis SDM Aparatur Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "4d9f067b-85ce-4f6e-910b-fc5ff9a7ff93",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata SDM Aparatur Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "83e9243a-628b-4e23-901a-9a76b64c86af",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata SDM Aparatur Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d88c606b-8988-468f-bbee-8768ee1afb20",
+      "department": "BBPVP Medan",
+      "position_name": "Analis Anggaran Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "467c6092-47a0-4df8-ac29-3343958e9988",
+      "department": "BBPVP Medan",
+      "position_name": "Analis Anggaran Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "741afd01-c0c2-425d-9a99-9833e5ab8cf9",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Komputer Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "ea050632-b390-44d7-80a5-fff42da77a1c",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata komputer ahli pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "cdc779b1-0d92-4a51-9258-0cb8e32c7450",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Komputer Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "c4dd752d-ddd0-4d47-8e12-679533b5a7d3",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Komputer Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "be0020a8-4c25-40e7-be65-4eb55cb1f021",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Komputer Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f1de57a2-a20c-4ccb-899f-c45412dcf773",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Humas Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "8f1ac049-9551-425e-b017-e34e308dbe71",
+      "department": "BBPVP Medan",
+      "position_name": "Pranata Humas Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "e58d0e15-b0c3-4181-ba94-ea63c01209a6",
+      "department": "BBPVP Medan",
+      "position_name": "Perencana Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a11e8b02-3fcd-41ff-867c-6de3a29f082b",
+      "department": "BBPVP Medan",
+      "position_name": "Perencana Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "4e688ffe-9614-4203-baef-91ca461dfbc6",
+      "department": "BBPVP Medan",
+      "position_name": "Perencana Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "60c7b0e7-76dc-418f-8d9e-9400bd48f08c",
+      "department": "BBPVP Medan",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f8ecdbe8-6998-45eb-b7d1-271f552ce59c",
+      "department": "BBPVP Medan",
+      "position_name": "Instruktur ahli pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "5caca856-bb61-419c-915a-b5473475d5f5",
+      "department": "BBPVP Medan",
+      "position_name": "Pengantar Kerja Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "9c65c8fc-d4d2-4a8f-9d00-2b6e1ca9ced7",
+      "department": "BBPVP Semarang",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "2174fcc2-eac4-4f5b-b01b-b5130deaa178",
+      "department": "BBPVP Serang",
+      "position_name": "Instruktur Ahli Pertama Kejuruan Teknik Elektronika",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "7b31fd3a-1e98-4a0b-9a50-48a2cedeb769",
+      "department": "BBPVP Serang",
+      "position_name": "Instruktur Ahli pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "8b5941a2-d131-4449-9840-4ca845054030",
+      "department": "BBPVP Serang",
+      "position_name": "Instruktur ahli madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "2149bf5f-4f2c-428d-a90d-380f7aa4b78e",
+      "department": "BBPVP Serang",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6cac5d39-963e-4f53-ba4e-32f1591a6665",
+      "department": "BPVP Ambon",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "16408789-4f15-4f55-b31f-5e37e872ea2b",
+      "department": "BPVP Banda Aceh",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d526c79c-ed2b-4ac4-9ff2-bdb7737dc8ef",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pengantar Kerja Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "40ba7361-a501-4be8-83c3-51dc2656878f",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pengantar Kerja Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "cb677aea-e784-441c-a2f1-4c3344d74c44",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pengantar Kerja Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d0c7889d-3f75-416f-87e6-1a3330f1f4b0",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Arsiparis Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "27f73e92-2a31-4967-85e2-e1a77f33bff9",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Arsiparis Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "3bee749c-1f3b-4b3d-9985-aeae2b29a4c6",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Arsiparis Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "0de849f7-64ef-4a24-a3f0-b50bc11268e3",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Arsiparis Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "7a6dfffe-54ca-4ed6-8aff-a218d2b1919c",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Arsiparis Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "0f8ed7ff-38f5-4956-831b-29ec317135e5",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a84704d3-fc73-464d-9b42-1487638831ed",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "98d8df3f-96b8-4649-929c-3a889396e1b9",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "7738d073-4fae-4c7a-8d5e-d711498fe48e",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Keuangan APBN Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "5d20e151-2296-43b2-a9f9-e8c680c08d25",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Keuangan APBN Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a2a32eab-a137-4fc5-8963-a9839c6a5fbd",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Keuangan APBN Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "db08bcb3-265b-42af-b0a4-6ffe0748ed20",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis SDM Aparatur Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6759b2a0-739e-4ad5-8060-7ae9a2bc5346",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis SDM Aparatur Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "1b2d56aa-c9fd-483d-8b6a-57faeb9cd48b",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata SDM Aparatur Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "faaca0e3-ee25-47f6-a3bf-dcc26d986d72",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata SDM Aparatur Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6bcd2f0e-f7e5-4076-861b-a343ddf9c3be",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Analis Kebijakan Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a1aade69-092b-4e9c-8342-1228ed6cc6e9",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Komputer Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "c2b39088-0f31-451a-869c-ec1ec44e60af",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Komputer Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "29f7c472-20e8-4125-868a-db6f6911e0a4",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Pranata Humas Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "b82c7855-d1e1-4d77-854b-7c9bd49c477a",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Perencana Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "87ebbb73-378b-4b90-8e12-7fa70924e23a",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Perencana Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "505e742c-f7b8-4392-9d30-781b1665b0f3",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "46e37d01-0bb1-498f-afd3-370e6f7eee04",
+      "department": "BPVP Bandung Barat",
+      "position_name": "Instruktur Terampil/Pelaksana",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "9a482323-9036-40db-87af-1063f5526ea4",
+      "department": "BPVP Bantaeng",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "c53cc3e0-f610-49c7-97f2-e34a4adbd7d4",
+      "department": "BPVP Banyuwangi",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "50dad3ee-e6dd-4658-8b03-234c026f2094",
+      "department": "BPVP Belitung",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "255e3940-df54-41a6-904a-7ff960fd5a15",
+      "department": "BPVP Lombok Timur",
+      "position_name": "Perencana Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "fbc08258-19cc-4f99-8d3b-ddd23338da35",
+      "department": "BPVP Lombok Timur",
+      "position_name": "Perencana Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6298ca56-be2d-49f4-bce0-5b6f16fa23f4",
+      "department": "BPVP Lombok Timur",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "cd9afff9-82a2-45ef-8f05-4d1c498da22c",
+      "department": "BPVP Lombok Timur",
+      "position_name": "Pranata Komputer Pelaksana Lanjutan/Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "641a346f-428e-40cb-8225-5e383271a53f",
+      "department": "BPVP Lombok Timur",
+      "position_name": "Pranata Humas Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "9fc4a080-a9c4-4331-949a-e6140fd0d4e9",
+      "department": "BPVP Padang",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "2846893a-c073-46bc-a362-c9ec16b9bdb0",
+      "department": "BPVP Pangkep",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "fd3aa162-8829-4865-a4c9-b9bd8ca804b4",
+      "department": "BPVP Samarinda",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d1440eec-e4d2-450d-8db0-b2debe036c59",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pengantar Kerja Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "41a03806-b362-4ed0-860e-22a15fc02fb0",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pengantar Kerja Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f20a8f7f-aa2c-4f96-a7c9-9eefbae41530",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Arsiparis Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "744329f4-42b4-4411-a708-5643447c84b6",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Arsiparis Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f986cef3-381c-44f9-acff-dfed74aa3b4f",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Arsiparis Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "fceb5ca9-6101-4adb-8141-52ff7e120641",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Arsiparis Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "668076bd-a3f2-49c9-a211-4e2af0f83cfe",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Arsiparis Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "8fbb3a93-1f14-47e4-81b5-9b93397de15d",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "bf949991-35f2-4ff5-8df1-1cfeb576eb55",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "3b5e4bd9-1ff7-4ba1-a05a-3072f3c39740",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Keuangan APBN Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "9632ab8e-0d5d-48b6-a360-ff31f6637d3f",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Keuangan APBN Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "35d1b35b-06bb-4dd5-8394-53adca612431",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Keuangan APBN Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "494bc53e-2fa5-454a-8e34-3bfb80be01eb",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Analis SDM Aparatur Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "18546ec7-d729-47ac-bdff-5806aa4accbc",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Analis SDM Aparatur Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "e6a26471-6fee-4279-a80b-3b858f0c3d19",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata SDM Aparatur Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "23b16378-ab07-4c0d-a1af-e6227fc8d2fd",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata SDM Aparatur Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "162c6fc8-a607-46f3-8f88-e45900ce330e",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Komputer Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "0242b90a-f7d1-402e-a5d5-83c5beeadaa4",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Komputer Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "ca71829b-8059-4d22-9457-669e4023d993",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pranata Humas Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f326a6d5-9543-41ff-bccb-30c206710b77",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Perencana Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "56a0e814-0b08-4213-8d51-12e975008495",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Perencana Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a0bd7609-026e-46bc-81cd-edac5a0e3c18",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "5ef96f68-1090-4669-b754-bf0c27e59b61",
+      "department": "BPVP Sidoarjo",
+      "position_name": "Pengantar Kerja Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f0c02450-9985-4aa6-b2bd-3c37f795ad33",
+      "department": "BPVP Sorong",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "6e63e94b-18db-4ae8-8f00-fd059c60f47c",
+      "department": "BPVP Surakarta",
+      "position_name": "Pranata Komputer Pelaksana Lanjutan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "53e9919f-ebd4-48f5-a45f-0c91888022b5",
+      "department": "BPVP Surakarta",
+      "position_name": "Perencana Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "daeda120-fb4a-40d6-aea2-1f6a141a14a6",
+      "department": "BPVP Surakarta",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "11db524d-2f0b-45e3-bc54-278886c2172c",
+      "department": "BPVP Ternate",
+      "position_name": "Pengantar Kerja Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "fdebe986-9c55-4e2f-927a-0e18094fa361",
+      "department": "BPVP Ternate",
+      "position_name": "Pengantar Kerja Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "01880b34-f394-4437-ab05-1ab8da661651",
+      "department": "BPVP Ternate",
+      "position_name": "Arsiparis Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f13ce653-5c25-45b0-a6d2-3ac14b31f4bf",
+      "department": "BPVP Ternate",
+      "position_name": "Arsiparis Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "406eafbb-c377-4499-bd7e-115ede2a29e2",
+      "department": "BPVP Ternate",
+      "position_name": "Arsiparis Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "d4f2757a-d20a-4ed1-849d-a93b3ef9ff8c",
+      "department": "BPVP Ternate",
+      "position_name": "Arsiparis Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "7df6ad3f-34df-4479-b30b-ec3a55586ff6",
+      "department": "BPVP Ternate",
+      "position_name": "Arsiparis Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "41eb50d8-707c-44af-bc2b-4585d210d364",
+      "department": "BPVP Ternate",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "cab53e45-ea4e-42b9-9bc8-1e3c357ce7b1",
+      "department": "BPVP Ternate",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "f5249586-22a2-4ec6-8d35-0d999ac35f0a",
+      "department": "BPVP Ternate",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "8dd8c8a7-8c44-41b7-adb9-8d6c2912d325",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata Keuangan APBN Penyelia",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "3b6ad223-f0ad-468b-877f-0c2d21e36468",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata Keuangan APBN Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "681a7582-0130-41c0-a19e-100dbdad49bd",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata Keuangan APBN Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "b73cc124-5933-408f-af63-0d3b748496ed",
+      "department": "BPVP Ternate",
+      "position_name": "Analis SDM Aparatur Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "e0e0963c-091f-4761-9221-3afc24f8b8bf",
+      "department": "BPVP Ternate",
+      "position_name": "Analis SDM Aparatur Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "eae1ae5d-2ec8-4635-a523-eab4df64703f",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata SDM Aparatur Mahir",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "1a77d7b4-c760-47de-8d30-fc4f7da39563",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata SDM Aparatur Terampil",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "ada1da5c-1c60-49a5-944d-ed6890e01bb6",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata Komputer Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "31e61fc4-2b70-43d9-89ca-1c5cbc685c14",
+      "department": "BPVP Ternate",
+      "position_name": "Ahli Pertama - Pranata Komputer",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a5c535eb-349a-4233-8fba-e2cf92f61bf5",
+      "department": "BPVP Ternate",
+      "position_name": "Pranata Humas Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "0591e734-3d2d-44a6-8393-aa848af8c3aa",
+      "department": "BPVP Ternate",
+      "position_name": "Perencana Ahli Muda",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "b9f32636-54f8-4d16-8c53-78b2e75d4c50",
+      "department": "BPVP Ternate",
+      "position_name": "Perencana Ahli Pertama",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "a15aa17f-e674-4833-b8d5-2dc4a75dc2ad",
+      "department": "BPVP Ternate",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    },
+    {
+      "id": "386f8f7c-ba3d-424f-b5e5-bfe4a610a053",
+      "department": "BPVP Ternate",
+      "position_name": "Pengantar Kerja Ahli Madya",
+      "current_category": "Pelaksana",
+      "new_category": "Fungsional",
+      "reason": "Nama jabatan adalah fungsional"
+    }
+  ]
+}

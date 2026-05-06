@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-05-06T08:59:31.659Z",
+  "department": "BPVP Surakarta",
+  "total_positions": 50,
+  "category_distribution": {
+    "Struktural": 2,
+    "Fungsional": 32,
+    "Pelaksana": 16
+  },
+  "duplicates": [
+    {
+      "position_name": "Instruktur Ahli Muda",
+      "count": 2,
+      "positions": [
+        {
+          "id": "50266f30-d99d-41af-b213-35a4ea01830a",
+          "category": "Fungsional",
+          "grade": 10,
+          "abk_count": 39,
+          "position_order": 1
+        },
+        {
+          "id": "d4a31762-9e4c-44a0-8357-9e638bfec458",
+          "category": "Pelaksana",
+          "grade": 10,
+          "abk_count": 39,
+          "position_order": 13
+        }
+      ]
+    },
+    {
+      "position_name": "Instruktur Ahli Pertama",
+      "count": 2,
+      "positions": [
+        {
+          "id": "41862ee7-f966-4874-990a-a053d33976c0",
+          "category": "Fungsional",
+          "grade": 8,
+          "abk_count": 39,
+          "position_order": 2
+        },
+        {
+          "id": "23a49113-a139-4bf4-8114-02e8092e1d41",
+          "category": "Pelaksana",
+          "grade": 8,
+          "abk_count": 0,
+          "position_order": 14
+        }
+      ]
+    },
+    {
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "count": 2,
+      "positions": [
+        {
+          "id": "2798d49d-b868-4cff-bf5a-b2460398d048",
+          "category": "Fungsional",
+          "grade": 10,
+          "abk_count": 1,
+          "position_order": 15
+        },
+        {
+          "id": "e63f780a-98b3-412f-abc9-4de4874cddc7",
+          "category": "Pelaksana",
+          "grade": 10,
+          "abk_count": 1,
+          "position_order": 15
+        }
+      ]
+    },
+    {
+      "position_name": "Instruktur Ahli Madya",
+      "count": 2,
+      "positions": [
+        {
+          "id": "705bad3a-1aa4-4211-8aef-3ad6942f0312",
+          "category": "Fungsional",
+          "grade": 12,
+          "abk_count": 10,
+          "position_order": 32
+        },
+        {
+          "id": "76d738a3-2016-426d-aa18-0d4779493d76",
+          "category": "Pelaksana",
+          "grade": 12,
+          "abk_count": 10,
+          "position_order": 12
+        }
+      ]
+    }
+  ],
+  "miscategorized": [
+    {
+      "id": "6e63e94b-18db-4ae8-8f00-fd059c60f47c",
+      "position_name": "Pranata Komputer Pelaksana Lanjutan",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 7,
+      "abk_count": 0,
+      "position_order": 10
+    },
+    {
+      "id": "53e9919f-ebd4-48f5-a45f-0c91888022b5",
+      "position_name": "Perencana Ahli Madya",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 12,
+      "abk_count": 1,
+      "position_order": 11
+    },
+    {
+      "id": "76d738a3-2016-426d-aa18-0d4779493d76",
+      "position_name": "Instruktur Ahli Madya",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 12,
+      "abk_count": 10,
+      "position_order": 12
+    },
+    {
+      "id": "d4a31762-9e4c-44a0-8357-9e638bfec458",
+      "position_name": "Instruktur Ahli Muda",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 10,
+      "abk_count": 39,
+      "position_order": 13
+    },
+    {
+      "id": "23a49113-a139-4bf4-8114-02e8092e1d41",
+      "position_name": "Instruktur Ahli Pertama",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 8,
+      "abk_count": 0,
+      "position_order": 14
+    },
+    {
+      "id": "e63f780a-98b3-412f-abc9-4de4874cddc7",
+      "position_name": "Analis Pengelolaan Keuangan APBN Ahli Muda",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 10,
+      "abk_count": 1,
+      "position_order": 15
+    },
+    {
+      "id": "daeda120-fb4a-40d6-aea2-1f6a141a14a6",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "current_category": "Pelaksana",
+      "should_be": "Fungsional",
+      "grade": 7,
+      "abk_count": 6,
+      "position_order": 16
+    }
+  ]
+}

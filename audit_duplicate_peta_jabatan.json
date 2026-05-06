@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-05-06T08:57:20.369Z",
+  "department": "BPVP Surakarta",
+  "total_employees": 166,
+  "type_distribution": {
+    "Struktural": 2,
+    "Fungsional": 96,
+    "Pelaksana": 25,
+    "Tidak Ada": 43
+  },
+  "problematic_positions": [],
+  "miscategorized_employees": []
+}

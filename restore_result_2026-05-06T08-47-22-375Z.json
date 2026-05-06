@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-05-06T08:47:22.375Z",
+  "department": "BPVP Surakarta",
+  "total_pegawai": 6,
+  "success_count": 6,
+  "fail_count": 0,
+  "results": [
+    {
+      "name": "Wahyuningtyas Dwi Utami",
+      "nip": "198907182011012012",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    },
+    {
+      "name": "Hari Sri Purwati",
+      "nip": "199005202015032002",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    },
+    {
+      "name": "Agus Ariyanto",
+      "nip": "198501222018011001",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    },
+    {
+      "name": "Herna Diah Cahyati",
+      "nip": "199704082018122001",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    },
+    {
+      "name": "Istianah",
+      "nip": "198002082007122001",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    },
+    {
+      "name": "Fakhri Annas",
+      "nip": "198508222012121001",
+      "status": "BERHASIL",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-05-06T08:46:22.514Z",
+  "department": "BPVP Surakarta",
+  "total_pegawai": 6,
+  "pegawai": [
+    {
+      "id": "a82cb20b-b9a4-4256-a325-57a5ead02483",
+      "nip": "198907182011012012",
+      "name": "Wahyuningtyas Dwi Utami",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Pranata Komputer Pelaksana Lanjutan",
+      "rank_group": "Penata Muda Tk I (III/b)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:27:05.848825+00:00"
+    },
+    {
+      "id": "4b2ddf6b-2b97-4036-8e37-75b82623a45a",
+      "nip": "199005202015032002",
+      "name": "Hari Sri Purwati",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "rank_group": "Penata (III/c)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:27:07.304762+00:00"
+    },
+    {
+      "id": "13b00f9b-120e-47b7-857b-008d269bbe7c",
+      "nip": "198501222018011001",
+      "name": "Agus Ariyanto",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "rank_group": "Penata (III/c)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:27:07.451901+00:00"
+    },
+    {
+      "id": "421823d1-93c5-4dc8-b2e0-3ea903e99e46",
+      "nip": "199704082018122001",
+      "name": "Herna Diah Cahyati",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Penelaah Teknis Kebijakan",
+      "rank_group": "Penata Muda (III/a)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:27:12.982624+00:00"
+    },
+    {
+      "id": "1b5abd58-bb36-4d71-937b-90f7f8da0b6b",
+      "nip": "198002082007122001",
+      "name": "Istianah",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Pranata Keuangan APBN Penyelia",
+      "rank_group": "Penata Tk I (III/d)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:28:39.792037+00:00"
+    },
+    {
+      "id": "57194255-d78b-4b92-b3dd-25ae1da04337",
+      "nip": "198508222012121001",
+      "name": "Fakhri Annas",
+      "position_type_before": "Pelaksana",
+      "position_type_after": "Fungsional",
+      "position_name": "Instruktur Ahli Muda",
+      "rank_group": "Penata Tk I (III/d)",
+      "asn_status": "PNS",
+      "updated_at": "2026-05-06T06:28:42.990612+00:00"
+    }
+  ]
+}
