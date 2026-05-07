@@ -243,11 +243,17 @@ export default function Employees() {
     // Real-time subscription untuk employees table
     logger.debug('Setting up real-time subscription for employees');
     
-    const handleEmployeeChange = (payload: any) => {
+    interface EmployeePayload {
+      eventType: string;
+      new: Record<string, unknown>;
+      old: Record<string, unknown>;
+    }
+    
+    const handleEmployeeChange = (payload: EmployeePayload) => {
       logger.debug('Employee change detected:', payload);
       
-      const newRecord = payload.new as any;
-      const oldRecord = payload.old as any;
+      const newRecord = payload.new;
+      const oldRecord = payload.old;
       
       // Determine accessible departments for this user
       const accessibleDepts = canViewAll 

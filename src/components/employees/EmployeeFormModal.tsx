@@ -558,8 +558,13 @@ export function EmployeeFormModal({
       setIsFetchingHistory(true);
       const empId = employee.id;
 
-      const mapRows = (data: any[], fields: string[]) =>
-        (data || []).map((d: any) => {
+      interface RawHistoryData {
+        id: string;
+        [key: string]: unknown;
+      }
+
+      const mapRows = (data: RawHistoryData[], fields: string[]) =>
+        (data || []).map((d: RawHistoryData) => {
           const entry: HistoryEntry = { id: d.id };
           fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
           return entry;
@@ -597,7 +602,17 @@ export function EmployeeFormModal({
           supabase.from('additional_position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
         ]);
 
-        setEducationEntries((eduRes.data || []).map((d: any) => ({
+        interface EducationData {
+          id: string;
+          level?: string;
+          institution_name?: string;
+          major?: string;
+          graduation_year?: number;
+          front_title?: string;
+          back_title?: string;
+        }
+
+        setEducationEntries((eduRes.data || []).map((d: EducationData) => ({
           id: d.id, level: d.level || '', institution_name: d.institution_name || '',
           major: d.major || '', graduation_year: d.graduation_year?.toString() || '',
           front_title: d.front_title || '', back_title: d.back_title || '',
@@ -630,11 +645,16 @@ export function EmployeeFormModal({
         }
         setRankHistoryEntries(rankWithOld);
 
+        interface NoteData {
+          id: string;
+          note?: string;
+        }
+
         setCompetencyEntries(mapRows(compRes.data || [], ['tanggal', 'jenis_uji', 'hasil', 'keterangan']));
         setTrainingEntries(mapRows(trainRes.data || [], ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']));
-        setPlacementNotes((placementRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-        setAssignmentNotes((assignmentRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
-        setChangeNotes((changeRes.data || []).map((d: any) => ({ id: d.id, note: d.note || '' })));
+        setPlacementNotes((placementRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
+        setAssignmentNotes((assignmentRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
+        setChangeNotes((changeRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
         setAdditionalPositionHistoryEntries(mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
       } catch (err) {
         logger.error('[EmployeeFormModal] Error fetching history data:', err);

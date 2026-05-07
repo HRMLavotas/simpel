@@ -744,7 +744,7 @@ export function QuickAggregation() {
           // Hitung PNS per golongan utama (I, II, III, IV)
           // CPNS dihitung bersama PNS karena CPNS adalah calon PNS dengan golongan PNS
           // PNS/CPNS selalu punya sub-golongan: I/a, II/b, III/c, IV/d, atau format panjang "Penata Muda (III/a)"
-          const isPnsOrCpns = (e: any) => {
+          const isPnsOrCpns = (e: EmployeeData) => {
             const s = normalizeAsnStatus(e.asn_status);
             return s === 'PNS' || s === 'CPNS';
           };
@@ -766,7 +766,7 @@ export function QuickAggregation() {
           // Hitung PPPK per golongan: III, V, VII, IX
           // PPPK golongan III → rank_group = 'III' murni (tanpa sub-golongan)
           // PPPK golongan V, VII, IX → rank_group = 'V', 'VII', 'IX'
-          const isPppk = (e: any) => normalizeAsnStatus(e.asn_status) === 'PPPK';
+          const isPppk = (e: EmployeeData) => normalizeAsnStatus(e.asn_status) === 'PPPK';
           const getPppkGolongan = (rankGroup: string): string => {
             const rg = String(rankGroup || '').trim().toUpperCase();
             if (rg === 'III') return 'III';
@@ -874,7 +874,8 @@ export function QuickAggregation() {
         ];
 
         // Build data rows
-        const dataRows: any[][] = [];
+        type ExcelRow = (string | number)[];
+        const dataRows: ExcelRow[] = [];
         const eduTotals: Record<string, number> = { total: 0 };
         EDU_LABELS.forEach(l => { eduTotals[l] = 0; });
 
@@ -884,7 +885,7 @@ export function QuickAggregation() {
           const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
           const total = asnEmps.length;
 
-          const row: any[] = [idx + 1, dept, total];
+          const row: ExcelRow = [idx + 1, dept, total];
 
           EDU_LEVELS.forEach((level, i) => {
             const count = asnEmps.filter(e => {
@@ -901,7 +902,7 @@ export function QuickAggregation() {
         });
 
         // Baris JUMLAH
-        const jumlahRow: any[] = ['', 'JUMLAH', eduTotals['total']];
+        const jumlahRow: ExcelRow = ['', 'JUMLAH', eduTotals['total']];
         EDU_LABELS.forEach(l => { jumlahRow.push(eduTotals[l]); });
         jumlahRow.push(eduTotals['total']); // JML PEG kedua
         dataRows.push(jumlahRow);
@@ -911,7 +912,7 @@ export function QuickAggregation() {
         // Row 2: Subtitle (merged)
         // Row 3: Column headers
         // Row 4+: Data rows
-        const aoaData: any[][] = [
+        const aoaData: ExcelRow[] = [
           [titleText], // Row 1 - will be merged across all columns
           [subtitleText], // Row 2 - will be merged across all columns
           ['NO.', 'UNIT KERJA', 'JML PEG', 'SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3', 'JML PEG'], // Row 3 - headers

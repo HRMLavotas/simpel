@@ -185,8 +185,8 @@ export default function PetaJabatan() {
       // Helper to fetch all records without 1000-row limit
       // Uses a factory function to create fresh query per batch (Supabase builder is mutable)
       // WARNING: This can be slow for very large datasets (10,000+ records)
-      const fetchAllUnlimited = async (buildQuery: () => any) => {
-        const allData: any[] = [];
+      const fetchAllUnlimited = async <T,>(buildQuery: () => { range: (from: number, to: number) => Promise<{ data: T[] | null; error: unknown }> }) => {
+        const allData: T[] = [];
         let offset = 0;
         const batchSize = 1000;
         const maxRecords = 50000; // Safety limit to prevent memory issues
@@ -281,14 +281,20 @@ export default function PetaJabatan() {
 
     logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
     
-    const handleEmployeeChange = (payload: any) => {
+    interface EmployeePayload {
+      eventType: string;
+      new: Record<string, unknown>;
+      old: Record<string, unknown>;
+    }
+    
+    const handleEmployeeChange = (payload: EmployeePayload) => {
       logger.debug('Employee change detected:', payload);
       
       // For INSERT and UPDATE: check new record
       // For DELETE: check old record
       // For UPDATE (pindah unit): check both old and new department
-      const newRecord = payload.new as any;
-      const oldRecord = payload.old as any;
+      const newRecord = payload.new;
+      const oldRecord = payload.old;
       
       let shouldRefresh = false;
       
@@ -344,8 +350,8 @@ export default function PetaJabatan() {
       logger.debug('Fetching summary data', { canViewAll, department: profile?.department });
       
       // Helper to fetch all records without 1000-row limit
-      const fetchAllUnlimited = async (buildQuery: () => any) => {
-        const allData: any[] = [];
+      const fetchAllUnlimited = async <T,>(buildQuery: () => { range: (from: number, to: number) => Promise<{ data: T[] | null; error: unknown }> }) => {
+        const allData: T[] = [];
         let offset = 0;
         const batchSize = 1000;
         while (true) {
