@@ -721,8 +721,9 @@ export default function Employees() {
     
     // Delete existing entries then insert new ones.
     // If delete succeeds but insert fails, we re-throw so the caller can handle it.
+    type TableName = 'education_history' | 'position_history' | 'mutation_history' | 'rank_history' | 'competency_test_history' | 'training_history' | 'additional_position_history';
     const { error: deleteError } = await supabase
-      .from(tableName as any)
+      .from(tableName as TableName)
       .delete()
       .eq('employee_id', employeeId);
     
@@ -732,7 +733,7 @@ export default function Employees() {
     }
     
     if (rows.length > 0) {
-      const { error: insertError } = await supabase.from(tableName as any).insert(rows);
+      const { error: insertError } = await supabase.from(tableName as TableName).insert(rows);
       if (insertError) {
         logger.error(`Error inserting ${tableName}:`, insertError);
         throw insertError;
@@ -875,10 +876,11 @@ export default function Employees() {
         'competency_test_history', 'training_history',
         'placement_notes', 'assignment_notes', 'change_notes',
         'education_history', 'additional_position_history',
-      ];
+      ] as const;
+      type HistoryTable = typeof tables[number];
       await Promise.all(
         tables.map((t) =>
-          supabase.from(t as any).update({ employee_id: selectedEmployee.id }).eq('employee_id', duplicateEmployee.id)
+          supabase.from(t as HistoryTable).update({ employee_id: selectedEmployee.id }).eq('employee_id', duplicateEmployee.id)
         )
       );
       await supabase.from('employees').delete().eq('id', duplicateEmployee.id);
@@ -1753,7 +1755,7 @@ export default function Employees() {
         onOpenChange={setNonAsnModalOpen}
         onSuccess={fetchEmployees}
         editData={selectedEmployee?.asn_status === 'Non ASN' ? selectedEmployee : undefined}
-        userDepartment={profile?.department as any}
+        userDepartment={profile?.department as Department}
         isAdminPusat={isAdminPusat}
         initialEducation={selectedEducation}
         initialPositionHistory={selectedPositionHistory}

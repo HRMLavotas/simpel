@@ -52,8 +52,8 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
       logger.debug('[PetaJabatanStats] Filter used:', { deptFilter });
       
       // Helper for all unlimited queries
-      const fetchAllUnlimited = async (buildQuery: () => any) => {
-        const allData: any[] = [];
+      const fetchAllUnlimited = async <T,>(buildQuery: () => { range: (from: number, to: number) => Promise<{ data: T[] | null; error: unknown }> }) => {
+        const allData: T[] = [];
         let offset = 0;
         const batchSize = 1000;
         const MAX_ITERATIONS = 50; // Safety limit: max 50.000 records

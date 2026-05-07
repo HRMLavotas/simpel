@@ -34,11 +34,26 @@ interface NonAsnFormData {
   keterangan_perubahan: string;  // Using keterangan_perubahan for notes
 }
 
+interface NonAsnEmployee {
+  id: string;
+  nip?: string;
+  name?: string;
+  position_name?: string;
+  birth_place?: string;
+  birth_date?: string;
+  gender?: string;
+  religion?: string;
+  department?: string;
+  rank_group?: string;
+  keterangan_penugasan?: string;
+  keterangan_perubahan?: string;
+}
+
 interface NonAsnFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  editData?: any;
+  editData?: NonAsnEmployee;
   userDepartment?: Department;
   isAdminPusat?: boolean;
 }

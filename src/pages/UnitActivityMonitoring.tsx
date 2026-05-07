@@ -87,16 +87,16 @@ export default function UnitActivityMonitoring() {
     return { label: 'Aktivitas Tinggi', color: 'bg-green-500' };
   };
 
-  const formatDetailValue = (key: string, value: any) => {
+  const formatDetailValue = (key: string, value: unknown): string => {
     if (value === null || value === undefined) return '-';
     if (key.includes('tanggal') || key.includes('tmt')) {
       try {
-        return format(new Date(value), 'dd MMM yyyy', { locale: localeId });
+        return format(new Date(value as string), 'dd MMM yyyy', { locale: localeId });
       } catch {
-        return value;
+        return String(value);
       }
     }
-    return value;
+    return String(value);
   };
 
   const formatDetailLabel = (key: string) => {
