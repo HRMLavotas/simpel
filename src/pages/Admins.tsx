@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Search, Shield, UserPlus, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -60,12 +60,7 @@ export default function Admins() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null);
 
-  useEffect(() => {
-    if (!isAdminPusat) return;
-    fetchAdmins();
-  }, [isAdminPusat]);
-
-  const fetchAdmins = async () => {
+  const fetchAdmins = useCallback(async () => {
     setIsLoading(true);
     try {
       logger.debug('=== FETCHING ADMINS ===');
@@ -116,7 +111,12 @@ export default function Admins() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isAdminPusat) return;
+    fetchAdmins();
+  }, [isAdminPusat, fetchAdmins]);
 
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch = 

@@ -547,7 +547,7 @@ export function EmployeeFormModal({
       formModifiedRef.current = false;
       setIsFormReady(true);
     }
-  }, [employee?.id, open, profile, form]);
+  }, [employee, open, profile, form]);
 
   // Fetch history dari DB setiap kali modal dibuka - useEffect terpisah di level komponen
   useEffect(() => {

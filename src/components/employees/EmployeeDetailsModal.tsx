@@ -272,7 +272,7 @@ export function EmployeeDetailsModal({
       setActiveTab('main');
       logger.debug('=== EMPLOYEE DETAILS MODAL ===', employee.name);
     }
-  }, [employee?.id]);
+  }, [employee]);
 
   if (!employee) return null;
 

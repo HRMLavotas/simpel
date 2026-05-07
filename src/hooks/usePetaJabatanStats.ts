@@ -183,7 +183,7 @@ export function usePetaJabatanStats({ isAdminPusat, userDepartment, selectedDepa
     } finally {
       setIsLoading(false);
     }
-  }, [isAdminPusat, userDepartment, getDepartmentFilter]);
+  }, [isAdminPusat, userDepartment, selectedDepartment, getDepartmentFilter]);
 
   useEffect(() => {
     fetchData();
