@@ -264,7 +264,10 @@ export default function Announcements() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm whitespace-pre-wrap">{announcement.message}</p>
+                  <div 
+                    className="announcement-content text-sm prose prose-sm max-w-none dark:prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h2:text-xl prose-h2:font-bold prose-h3:text-lg prose-h3:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1"
+                    dangerouslySetInnerHTML={{ __html: announcement.message }}
+                  />
                 </CardContent>
               </Card>
             ))}

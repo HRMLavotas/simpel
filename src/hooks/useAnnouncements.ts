@@ -138,14 +138,12 @@ export function useAllAnnouncements() {
   return useQuery({
     queryKey: ['all-announcements'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      logger.info('Fetching all announcements...');
+      
+      // Fetch announcements
+      const { data: announcements, error } = await supabase
         .from('announcements')
-        .select(`
-          *,
-          profiles:created_by (
-            full_name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -153,7 +151,36 @@ export function useAllAnnouncements() {
         throw error;
       }
 
-      return data;
+      logger.info(`Found ${announcements.length} announcements`);
+
+      // Fetch profiles for created_by users
+      const userIds = [...new Set(announcements.map(a => a.created_by))];
+      
+      if (userIds.length > 0) {
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
+
+        if (profileError) {
+          logger.error('Error fetching profiles:', profileError);
+        } else {
+          logger.info(`Found ${profiles?.length || 0} profiles`);
+        }
+
+        // Map profiles to announcements
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        
+        return announcements.map(announcement => ({
+          ...announcement,
+          profiles: profileMap.get(announcement.created_by) || null,
+        }));
+      }
+
+      return announcements.map(announcement => ({
+        ...announcement,
+        profiles: null,
+      }));
     },
   });
 }

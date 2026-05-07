@@ -40,8 +40,11 @@ function AnnouncementItem({ announcement, onDismiss }: AnnouncementItemProps) {
     <Alert className={cn('relative pr-12', config.className)}>
       <Icon className={cn('h-4 w-4', config.iconClassName)} />
       <AlertTitle className="font-semibold">{announcement.title}</AlertTitle>
-      <AlertDescription className="mt-2 text-sm whitespace-pre-wrap">
-        {announcement.message}
+      <AlertDescription className="mt-2">
+        <div 
+          className="announcement-banner-content text-sm"
+          dangerouslySetInnerHTML={{ __html: announcement.message }}
+        />
       </AlertDescription>
       <div className="mt-2 text-xs opacity-70">
         Dari: {announcement.created_by_name} • {new Date(announcement.created_at).toLocaleDateString('id-ID', {
