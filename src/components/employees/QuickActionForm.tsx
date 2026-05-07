@@ -13,7 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, TrendingUp, MapPin, Briefcase } from 'lucide-react';
+import { CheckCircle2, TrendingUp, MapPin, Briefcase, UserX } from 'lucide-react';
 import { RANK_GROUPS_PNS, RANK_GROUPS_PPPK } from '@/lib/constants';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
@@ -47,6 +47,7 @@ interface QuickActionFormProps {
   onRankChange: (newRank: string, entry: HistoryEntry) => void;
   onPositionChange: (newPosition: string, entry: HistoryEntry) => void;
   onDepartmentChange: (newDepartment: string, newPosition: string, entry: HistoryEntry) => void;
+  onInactiveChange: (isActive: boolean, inactiveDate: string, inactiveReason: string, entry: HistoryEntry) => void;
 }
 
 export function QuickActionForm({
@@ -60,8 +61,9 @@ export function QuickActionForm({
   onRankChange,
   onPositionChange,
   onDepartmentChange,
+  onInactiveChange,
 }: QuickActionFormProps) {
-  const [activeQuickTab, setActiveQuickTab] = useState<'rank' | 'mutation' | 'position'>('rank');
+  const [activeQuickTab, setActiveQuickTab] = useState<'rank' | 'mutation' | 'position' | 'inactive'>('rank');
   const { toast } = useToast();
 
   // Rank promotion state
@@ -98,6 +100,14 @@ export function QuickActionForm({
   const [positionSK, setPositionSK] = useState('');
   const [positionNotes, setPositionNotes] = useState('');
   const [positionSuccess, setPositionSuccess] = useState(false);
+
+  // Inactive status state
+  const [inactiveDate, setInactiveDate] = useState(new Date().toISOString().split('T')[0]);
+  const [inactiveReason, setInactiveReason] = useState('');
+  const [inactiveSK, setInactiveSK] = useState('');
+  const [inactiveNotes, setInactiveNotes] = useState('');
+  const [inactiveSuccess, setInactiveSuccess] = useState(false);
+  const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
 
   const getRankOptions = () => {
     if (asnStatus === 'PPPK') return RANK_GROUPS_PPPK as unknown as string[];
@@ -208,6 +218,36 @@ export function QuickActionForm({
     setPositionNotes('');
   };
 
+  const handleInactiveStatus = () => {
+    if (!inactiveReason) {
+      toast({ variant: 'destructive', title: 'Pilih alasan non-aktif terlebih dahulu' });
+      return;
+    }
+    
+    // Show confirmation dialog
+    setShowInactiveConfirm(true);
+  };
+
+  const confirmInactiveStatus = () => {
+    const entry: HistoryEntry = {
+      tanggal: inactiveDate,
+      nomor_sk: inactiveSK,
+      keterangan: inactiveNotes || `Non-aktif: ${inactiveReason}`,
+    };
+    
+    onInactiveChange(false, inactiveDate, inactiveReason, entry);
+    
+    // Show success message
+    setInactiveSuccess(true);
+    setTimeout(() => setInactiveSuccess(false), 3000);
+    
+    // Close confirmation and reset form
+    setShowInactiveConfirm(false);
+    setInactiveReason('');
+    setInactiveSK('');
+    setInactiveNotes('');
+  };
+
   return (
     <div className="space-y-4">
       <Alert>
@@ -221,8 +261,8 @@ export function QuickActionForm({
         </AlertDescription>
       </Alert>
 
-      <Tabs value={activeQuickTab} onValueChange={(v) => setActiveQuickTab(v as 'rank' | 'mutation' | 'position')}>
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeQuickTab} onValueChange={(v) => setActiveQuickTab(v as 'rank' | 'mutation' | 'position' | 'inactive')}>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="rank" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Naik Pangkat</span>
@@ -237,6 +277,11 @@ export function QuickActionForm({
             <Briefcase className="h-4 w-4" />
             <span className="hidden sm:inline">Ganti Jabatan</span>
             <span className="sm:hidden">Jabatan</span>
+          </TabsTrigger>
+          <TabsTrigger value="inactive" className="flex items-center gap-2">
+            <UserX className="h-4 w-4" />
+            <span className="hidden sm:inline">Non-Aktifkan</span>
+            <span className="sm:hidden">Non-Aktif</span>
           </TabsTrigger>
         </TabsList>
 
@@ -531,6 +576,96 @@ export function QuickActionForm({
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Inactive Status Tab */}
+        <TabsContent value="inactive" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserX className="h-5 w-5" />
+                Non-Aktifkan Pegawai
+              </CardTitle>
+              <CardDescription>
+                Tandai pegawai sebagai non-aktif (pensiun, resign, meninggal)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {inactiveSuccess && (
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    ✅ Status non-aktif berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertDescription className="text-amber-800">
+                  ⚠️ <strong>Perhatian:</strong> Pegawai yang di-non-aktifkan tidak akan dihitung dalam statistik dan agregasi data.
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="quick-inactive-reason">Alasan Non-Aktif *</Label>
+                  <Select value={inactiveReason} onValueChange={setInactiveReason}>
+                    <SelectTrigger id="quick-inactive-reason">
+                      <SelectValue placeholder="Pilih alasan non-aktif" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pensiun">Pensiun</SelectItem>
+                      <SelectItem value="Resign">Resign / Mengundurkan Diri</SelectItem>
+                      <SelectItem value="Meninggal">Meninggal Dunia</SelectItem>
+                      <SelectItem value="Diberhentikan">Diberhentikan</SelectItem>
+                      <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="quick-inactive-date">Tanggal Non-Aktif *</Label>
+                  <Input
+                    id="quick-inactive-date"
+                    type="date"
+                    value={inactiveDate}
+                    onChange={(e) => setInactiveDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="quick-inactive-sk">Nomor SK</Label>
+                  <Input
+                    id="quick-inactive-sk"
+                    placeholder="Contoh: 999/SK/2024"
+                    value={inactiveSK}
+                    onChange={(e) => setInactiveSK(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="quick-inactive-notes">Keterangan</Label>
+                  <Textarea
+                    id="quick-inactive-notes"
+                    placeholder="Keterangan tambahan (opsional)"
+                    value={inactiveNotes}
+                    onChange={(e) => setInactiveNotes(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleInactiveStatus} 
+                className="w-full"
+                variant="destructive"
+                disabled={!inactiveReason}
+              >
+                <UserX className="mr-2 h-4 w-4" />
+                Non-Aktifkan Pegawai
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Konfirmasi Mutasi */}
@@ -564,6 +699,47 @@ export function QuickActionForm({
             </Button>
             <Button onClick={confirmMutation}>
               Ya, Terapkan Mutasi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Konfirmasi Non-Aktifkan Pegawai */}
+      <Dialog open={showInactiveConfirm} onOpenChange={setShowInactiveConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Non-Aktifkan Pegawai</DialogTitle>
+            <DialogDescription>
+              Pegawai akan ditandai sebagai non-aktif dan tidak akan dihitung dalam statistik. Tindakan ini akan dicatat dalam riwayat.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Alasan:</span>
+              <span className="font-medium">{inactiveReason}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tanggal:</span>
+              <span className="font-medium">{new Date(inactiveDate).toLocaleDateString('id-ID')}</span>
+            </div>
+            {inactiveSK && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Nomor SK:</span>
+                <span className="font-medium">{inactiveSK}</span>
+              </div>
+            )}
+          </div>
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertDescription className="text-amber-800 text-xs">
+              ⚠️ Pegawai tidak akan muncul di daftar pegawai aktif dan tidak dihitung dalam agregasi data.
+            </AlertDescription>
+          </Alert>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowInactiveConfirm(false)}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={confirmInactiveStatus}>
+              Ya, Non-Aktifkan
             </Button>
           </DialogFooter>
         </DialogContent>

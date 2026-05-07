@@ -33,6 +33,9 @@ export interface Employee {
   phone: string | null; // Nomor telepon
   mobile_phone: string | null; // Nomor HP
   tmt_gol: string | null; // TMT Golongan/Pangkat terakhir
+  is_active: boolean; // Status aktif/non-aktif pegawai
+  inactive_date: string | null; // Tanggal pegawai menjadi non-aktif
+  inactive_reason: string | null; // Alasan non-aktif (Pensiun, Resign, Meninggal, dll)
   import_order: number | null;
   created_at: string;
   updated_at: string;

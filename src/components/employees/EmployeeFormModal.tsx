@@ -756,8 +756,12 @@ export function EmployeeFormModal({
       }
     }
     
+    // Get inactive data if set by Quick Action
+    const inactiveData = (form as any)._inactiveData;
+    
     await onSubmit({
       ...data,
+      ...(inactiveData || {}), // Include inactive data if present
       education_history: educationEntries,
       mutation_history: mutationEntries,
       position_history: positionHistoryEntries,
@@ -984,6 +988,34 @@ export function EmployeeFormModal({
     }
   };
 
+  const handleQuickInactiveChange = (isActive: boolean, inactiveDate: string, inactiveReason: string, entry: HistoryEntry) => {
+    quickActionUsedRef.current = true;
+    formModifiedRef.current = true;
+    
+    // Note: is_active, inactive_date, inactive_reason tidak ada di form schema
+    // Kita akan menambahkannya ke formData saat submit
+    // Untuk sekarang, simpan di state terpisah atau tambahkan ke change_notes
+    
+    // Tambahkan ke change_notes sebagai catatan perubahan status
+    const noteText = `Status Non-Aktif: ${inactiveReason} (${new Date(inactiveDate).toLocaleDateString('id-ID')})${entry.nomor_sk ? ` - SK: ${entry.nomor_sk}` : ''}${entry.keterangan ? ` - ${entry.keterangan}` : ''}`;
+    
+    setChangeNotes(prev => [...prev, { note: noteText }]);
+    
+    toast({
+      title: '⚠️ Pegawai Di-non-aktifkan',
+      description: `Alasan: ${inactiveReason}. Data akan disimpan saat Anda klik "Simpan Perubahan".`,
+      duration: 5000,
+    });
+    
+    // Store inactive data in a ref or state to be included in form submission
+    // We'll add this to the form data during submit
+    (form as any)._inactiveData = {
+      is_active: isActive,
+      inactive_date: inactiveDate,
+      inactive_reason: inactiveReason,
+    };
+  };
+
   // Wrapper functions for history onChange to mark form as modified
   const handleRankHistoryChange = (entries: HistoryEntry[]) => {
     formModifiedRef.current = true;
@@ -1074,6 +1106,7 @@ export function EmployeeFormModal({
                       onRankChange={handleQuickRankChange}
                       onPositionChange={handleQuickPositionChange}
                       onDepartmentChange={handleQuickDepartmentChange}
+                      onInactiveChange={handleQuickInactiveChange}
                     />
                   )}
                 </>

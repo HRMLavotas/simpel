@@ -149,7 +149,7 @@ export default function Employees() {
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
   
-  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn'>('asn');
+  const [activeTab, setActiveTab] = useState<'asn' | 'non-asn' | 'inactive'>('asn');
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -242,8 +242,7 @@ export default function Employees() {
 
     // Real-time subscription untuk employees table
     logger.debug('Setting up real-time subscription for employees');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, canViewAll, hasSupervisedUnits]);
+    
     interface EmployeePayload {
       eventType: string;
       new: Record<string, unknown>;
@@ -457,10 +456,12 @@ export default function Employees() {
 
   const filteredEmployees = useMemo(() => {
     const filtered = employees.filter((emp) => {
-      // Filter by active tab (ASN vs Non-ASN)
-      const matchesTab = activeTab === 'asn' 
-        ? emp.asn_status !== 'Non ASN' 
-        : emp.asn_status === 'Non ASN';
+      // Filter by active tab (ASN vs Non-ASN vs Inactive)
+      const matchesTab = 
+        activeTab === 'asn' ? (emp.asn_status !== 'Non ASN' && emp.is_active !== false) :
+        activeTab === 'non-asn' ? (emp.asn_status === 'Non ASN' && emp.is_active !== false) :
+        activeTab === 'inactive' ? (emp.is_active === false) :
+        true;
       
       const displayName = formatDisplayName(emp).toLowerCase();
       const matchesSearch = 
@@ -968,6 +969,12 @@ export default function Employees() {
         phone: data.phone || null,
         mobile_phone: data.mobile_phone || null,
         address: data.address || null,
+        // Include inactive status fields if present
+        ...(data.is_active !== undefined && {
+          is_active: data.is_active,
+          inactive_date: data.inactive_date || null,
+          inactive_reason: data.inactive_reason || null,
+        }),
       };
 
       let employeeId: string;
@@ -1145,6 +1152,21 @@ export default function Employees() {
         if (additionalPosRows.length > 0) {
           await supabase.from('additional_position_history').insert(additionalPosRows);
         }
+      }
+
+      // Save inactive history if employee was marked as inactive
+      if (data.is_active === false && data.inactive_date && data.inactive_reason) {
+        // Find SK number from change_notes if available
+        const skNumber = data.change_notes?.find(n => n.note.includes('SK:'))?.note.match(/SK:\s*([^\s-]+)/)?.[1] || null;
+        
+        await supabase.from('inactive_history').insert({
+          employee_id: employeeId,
+          inactive_date: data.inactive_date,
+          inactive_reason: data.inactive_reason,
+          sk_number: skNumber,
+          notes: data.change_notes?.find(n => n.note.includes('Status Non-Aktif'))?.note || null,
+          created_by: user?.id,
+        });
       }
 
       // Auto-create history records AFTER manual save (so they aren't wiped by delete+re-insert)
@@ -1499,15 +1521,15 @@ export default function Employees() {
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'asn' | 'non-asn'); setSelectedIds(new Set()); }} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'asn' | 'non-asn' | 'inactive'); setSelectedIds(new Set()); }} className="w-full">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="asn">
               Data ASN
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
                   const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
-                  return e.asn_status !== 'Non ASN' && matchesStatus && matchesDepartment;
+                  return e.asn_status !== 'Non ASN' && e.is_active !== false && matchesStatus && matchesDepartment;
                 }).length})
               </span>
             </TabsTrigger>
@@ -1517,7 +1539,17 @@ export default function Employees() {
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
                   const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
-                  return e.asn_status === 'Non ASN' && matchesStatus && matchesDepartment;
+                  return e.asn_status === 'Non ASN' && e.is_active !== false && matchesStatus && matchesDepartment;
+                }).length})
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="inactive">
+              Pegawai Non Aktif
+              <span className="ml-2 text-xs text-muted-foreground">
+                ({employees.filter(e => {
+                  const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
+                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
+                  return e.is_active === false && matchesStatus && matchesDepartment;
                 }).length})
               </span>
             </TabsTrigger>
