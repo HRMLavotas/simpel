@@ -13,9 +13,8 @@ import { logger } from '@/lib/logger';
 // Chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 
-interface QuickAggregationProps {
-  // No props needed - component will fetch its own data
-}
+// Component has no props - fetches its own data
+type QuickAggregationProps = Record<string, never>;
 
 // Helper function to normalize rank group for detailed view
 function normalizeRankGroup(rankGroup: string): string {
@@ -78,7 +77,7 @@ function extractEducationLevel(educationHistory: unknown): string {
   if (!educationHistory) return 'Tidak Ada';
   
   try {
-    let histories: any[] = [];
+    let histories: Array<{ level?: string }> = [];
     
     if (typeof educationHistory === 'string') {
       histories = JSON.parse(educationHistory);
@@ -246,7 +245,7 @@ const OFFICIAL_DEPT_ORDER: string[] = [
   'Workshop Gorontalo',
 ];
 
-export function QuickAggregation({}: QuickAggregationProps) {
+export function QuickAggregation() {
   const { toast } = useToast();
   const { profile, canViewAll } = useAuth();
   const shouldFilterByDepartment = !canViewAll && profile?.department;
@@ -262,7 +261,15 @@ export function QuickAggregation({}: QuickAggregationProps) {
     setIsLoading(true);
     try {
       // Fetch ALL employees with pagination
-      const allEmployees: any[] = [];
+      interface EmployeeData {
+        id: string;
+        department?: string;
+        asn_status?: string;
+        rank_group?: string;
+        education_history?: unknown;
+        [key: string]: unknown;
+      }
+      const allEmployees: EmployeeData[] = [];
       let offset = 0;
       const batchSize = 1000;
 
@@ -295,7 +302,12 @@ export function QuickAggregation({}: QuickAggregationProps) {
 
       // Fetch education history for all employees
       const employeeIds = allEmployees.map(e => e.id).filter(Boolean);
-      let educationData: Record<string, any[]> = {};
+      interface EducationRecord {
+        employee_id: string;
+        level?: string;
+        [key: string]: unknown;
+      }
+      const educationData: Record<string, EducationRecord[]> = {};
 
       if (employeeIds.length > 0) {
         // Fetch education in batches to avoid URL length limits

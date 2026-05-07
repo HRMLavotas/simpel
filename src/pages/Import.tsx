@@ -730,7 +730,7 @@ export default function Import() {
         }
         
         // Simpan jabatan apa adanya dari Excel
-        let positionSK = jabatanSK || ''; // Jabatan Sesuai SK
+        const positionSK = jabatanSK || ''; // Jabatan Sesuai SK
         let positionKepmen = jabatanKepmen || ''; // Jabatan Sesuai Kepmen
         
         // Jika Kepmen kosong tapi ada lastPositionKepmen (merged cells), gunakan lastPositionKepmen
@@ -767,7 +767,7 @@ export default function Import() {
         const rawDept = findCol(row, 'Unit Kerja', 'department');
         // Gunakan selectedDepartment sebagai target import
         // Jika ada kolom Unit Kerja di template, validasi harus sama dengan selectedDepartment
-        let dept = selectedDepartment;
+        const dept = selectedDepartment;
         
         if (rawDept) {
           const normalizedRawDept = normalizeImportValue(rawDept, DEPARTMENT_ALIASES, DEPARTMENTS);

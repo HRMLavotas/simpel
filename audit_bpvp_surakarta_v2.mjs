@@ -123,8 +123,7 @@ async function analyzeDepartment(unitId, unitName) {
 
     // 4. Cari pegawai yang diupdate dalam 2 hari terakhir
     console.log('📍 Step 4: Mencari pegawai yang diupdate dalam 2 hari terakhir...');
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    // twoDaysAgo sudah dideklarasi di atas (line 88)
     
     const recentUpdates = employees.filter(emp => {
       const updatedAt = new Date(emp.updated_at);

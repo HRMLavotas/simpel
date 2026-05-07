@@ -1,13 +1,13 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Database, FileText, Briefcase, TrendingUp, Award, GraduationCap, StickyNote } from 'lucide-react';
+import { Database, FileText, Briefcase, TrendingUp, Award, GraduationCap, StickyNote, LucideIcon } from 'lucide-react';
 
 export interface RelatedDataConfig {
   key: string;
   label: string;
   table: string;
-  icon: any;
+  icon: LucideIcon;
   description: string;
   fields: { key: string; label: string }[];
 }

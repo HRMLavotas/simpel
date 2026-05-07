@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 export interface ResponsiveTableColumn<T> {
   key: keyof T;
   label: string;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
   className?: string;
   mobileHidden?: boolean; // Hide on mobile (below md breakpoint)
 }
@@ -42,7 +42,7 @@ export interface ResponsiveTableProps<T> {
  * />
  * ```
  */
-export function ResponsiveTable<T extends Record<string, any>>({
+export function ResponsiveTable<T extends Record<string, unknown>>({
   columns,
   data,
   isLoading = false,

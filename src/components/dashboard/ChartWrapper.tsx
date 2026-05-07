@@ -4,7 +4,7 @@ import { BarChart3 } from 'lucide-react';
 interface ChartWrapperProps {
   title: string;
   description?: string;
-  data: any[];
+  data: Record<string, unknown>[];
   children: React.ReactNode;
 }
 

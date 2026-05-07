@@ -25,7 +25,7 @@ const EXCEL_SHEET_NAME_MAX = 31;
 
 function allocateExcelSheetName(raw: string, used: Set<string>): string {
   let s = raw
-    .replace(/[\\/*?:\[\]]/g, '-')
+    .replace(/[\\/*?:[\]]/g, '-')
     .replace(/\s+/g, ' ')
     .trim();
   if (!s) s = 'Sheet';

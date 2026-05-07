@@ -1181,7 +1181,7 @@ export default function PetaJabatan() {
       // Helper: buat nama sheet unik maks 31 karakter (batas Excel)
       const makeSheetName = (dept: string): string => {
         // Singkat nama unit kerja agar muat di 31 karakter
-        let name = dept
+        const name = dept
           .replace(/Balai Besar Pelatihan Vokasi dan Produktivitas/gi, 'BBPVP')
           .replace(/Balai Pelatihan Vokasi dan Produktivitas/gi, 'BPVP')
           .replace(/Setditjen Binalavotas/gi, 'Setditjen')

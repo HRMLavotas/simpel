@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: process.env.TEMPO === "true" ? "0.0.0.0" : "::",
     port: 8080,
-    // @ts-ignore
+    // @ts-expect-error - Vite types don't support boolean for allowedHosts in this version
     allowedHosts: process.env.TEMPO === "true" ? true : undefined,
   },
   plugins: [

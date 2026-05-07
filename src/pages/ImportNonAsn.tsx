@@ -265,7 +265,7 @@ function ImportNonAsn() {
             // Parse birth date if in format "DD/MM/YYYY" or "DD-MM-YYYY"
             let parsedBirthDate: string | null = null;
             if (birthDate) {
-              const dateMatch = birthDate.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+              const dateMatch = birthDate.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
               if (dateMatch) {
                 const [, day, month, year] = dateMatch;
                 parsedBirthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
