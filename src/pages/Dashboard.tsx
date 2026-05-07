@@ -47,6 +47,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { AnnouncementBanner } from '@/components/notifications/AnnouncementBanner';
 
 // Available chart categories
 const CHART_CATEGORIES = [
@@ -189,6 +190,9 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Announcement Banner - appears at the top */}
+        <AnnouncementBanner />
+
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="page-header mb-0">
             <h1 className="page-title flex items-center gap-2 text-xl sm:text-2xl md:text-3xl">

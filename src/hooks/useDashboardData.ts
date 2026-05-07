@@ -135,6 +135,12 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       });
 
       if (rpcError) {
+        logger.error('[Dashboard] RPC Error details:', {
+          message: rpcError.message,
+          details: rpcError.details,
+          hint: rpcError.hint,
+          code: rpcError.code,
+        });
         throw rpcError;
       }
 
@@ -170,7 +176,12 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
       logger.debug('[Dashboard] All data mapped successfully. Total:', data.stats?.total);
     } catch (err) {
       logger.error('[Dashboard] Error fetching dashboard data:', err);
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat data dashboard');
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat data dashboard';
+      logger.error('[Dashboard] Error message:', errorMessage);
+      if (err && typeof err === 'object') {
+        logger.error('[Dashboard] Error object:', JSON.stringify(err, null, 2));
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

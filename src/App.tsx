@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import { queryClient } from "@/lib/query-client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
+import { AIChatWidget } from "@/components/ai/AIChatWidget";
 import { ThemeProvider } from "next-themes";
 import { lazy, Suspense } from "react";
 import type { AppRole } from "@/lib/constants";
@@ -26,6 +27,7 @@ const DataBuilder = lazy(() => import("./pages/DataBuilder"));
 const PetaJabatan = lazy(() => import("./pages/PetaJabatan"));
 const UnitActivityMonitoring = lazy(() => import("./pages/UnitActivityMonitoring"));
 const SystemInfo = lazy(() => import("./pages/SystemInfo"));
+const Announcements = lazy(() => import("./pages/Announcements"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
@@ -83,6 +85,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AppUpdateBanner />
+      <AIChatWidget />
       <BrowserRouter
         future={{
           v7_startTransition: true,
@@ -107,6 +110,7 @@ const App = () => (
               <Route path="/peta-jabatan" element={<ProtectedRoute><ErrorBoundary><PetaJabatan /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat', 'admin_pimpinan']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan']}><ErrorBoundary><UnitActivityMonitoring /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/announcements" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Announcements /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/system-info" element={<ProtectedRoute><ErrorBoundary><SystemInfo /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>

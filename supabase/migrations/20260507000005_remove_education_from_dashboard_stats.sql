@@ -1,94 +1,9 @@
 -- =============================================
--- Add Non-Active Employee Status Feature
--- Adds ability to mark employees as inactive (retired, resigned, deceased)
+-- Remove education_level query from get_dashboard_stats
+-- Column education_level does not exist in employees table
+-- Education data is in separate education_history table
 -- =============================================
 
--- Add columns to employees table
-ALTER TABLE public.employees
-ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE NOT NULL,
-ADD COLUMN IF NOT EXISTS inactive_date DATE,
-ADD COLUMN IF NOT EXISTS inactive_reason VARCHAR(50);
-
--- Add comment for documentation
-COMMENT ON COLUMN public.employees.is_active IS 'Whether employee is currently active (TRUE) or inactive (FALSE)';
-COMMENT ON COLUMN public.employees.inactive_date IS 'Date when employee became inactive';
-COMMENT ON COLUMN public.employees.inactive_reason IS 'Reason for inactive status: Pensiun, Resign, Meninggal, Lainnya';
-
--- Create index for better query performance
-CREATE INDEX IF NOT EXISTS idx_employees_is_active ON public.employees(is_active);
-CREATE INDEX IF NOT EXISTS idx_employees_inactive_date ON public.employees(inactive_date) WHERE inactive_date IS NOT NULL;
-
--- Create inactive_history table to track status changes
-CREATE TABLE IF NOT EXISTS public.inactive_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  employee_id UUID NOT NULL REFERENCES public.employees(id) ON DELETE CASCADE,
-  inactive_date DATE NOT NULL,
-  inactive_reason VARCHAR(50) NOT NULL,
-  sk_number VARCHAR(100),
-  notes TEXT,
-  created_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
--- Add indexes for inactive_history
-CREATE INDEX IF NOT EXISTS idx_inactive_history_employee_id ON public.inactive_history(employee_id);
-CREATE INDEX IF NOT EXISTS idx_inactive_history_inactive_date ON public.inactive_history(inactive_date);
-
--- Enable RLS on inactive_history
-ALTER TABLE public.inactive_history ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies for inactive_history (mirror employees policies)
-CREATE POLICY "Admin pusat can view all inactive history"
-ON public.inactive_history FOR SELECT
-USING (public.has_role(auth.uid(), 'admin_pusat'));
-
-CREATE POLICY "Admin unit can view own department inactive history"
-ON public.inactive_history FOR SELECT
-USING (
-  public.has_role(auth.uid(), 'admin_unit') 
-  AND EXISTS (
-    SELECT 1 FROM public.employees e
-    WHERE e.id = inactive_history.employee_id
-    AND e.department = ANY(public.get_accessible_departments(auth.uid()))
-  )
-);
-
-CREATE POLICY "Admin pimpinan can view all inactive history"
-ON public.inactive_history FOR SELECT
-USING (public.has_role(auth.uid(), 'admin_pimpinan'));
-
-CREATE POLICY "Admin pusat can insert inactive history"
-ON public.inactive_history FOR INSERT
-WITH CHECK (public.has_role(auth.uid(), 'admin_pusat'));
-
-CREATE POLICY "Admin unit can insert own department inactive history"
-ON public.inactive_history FOR INSERT
-WITH CHECK (
-  public.has_role(auth.uid(), 'admin_unit')
-  AND EXISTS (
-    SELECT 1 FROM public.employees e
-    WHERE e.id = inactive_history.employee_id
-    AND e.department = ANY(public.get_accessible_departments(auth.uid()))
-  )
-);
-
-CREATE POLICY "Admin pusat can update inactive history"
-ON public.inactive_history FOR UPDATE
-USING (public.has_role(auth.uid(), 'admin_pusat'));
-
-CREATE POLICY "Admin unit can update own department inactive history"
-ON public.inactive_history FOR UPDATE
-USING (
-  public.has_role(auth.uid(), 'admin_unit')
-  AND EXISTS (
-    SELECT 1 FROM public.employees e
-    WHERE e.id = inactive_history.employee_id
-    AND e.department = ANY(public.get_accessible_departments(auth.uid()))
-  )
-);
-
--- Update get_dashboard_stats function to exclude inactive employees by default
 CREATE OR REPLACE FUNCTION get_dashboard_stats(
   p_department TEXT DEFAULT NULL,
   p_asn_status TEXT[] DEFAULT NULL,
@@ -112,38 +27,38 @@ BEGIN
   FROM employees e
   WHERE (p_department IS NULL OR e.department = p_department)
     AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-    AND (p_include_inactive OR e.is_active = TRUE);
+    AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE);
 
   -- Count PNS (excludes CPNS)
   SELECT COUNT(*) INTO v_pns
   FROM employees e
   WHERE e.asn_status = 'PNS'
     AND (p_department IS NULL OR e.department = p_department)
-    AND (p_include_inactive OR e.is_active = TRUE);
+    AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE);
 
   -- Count CPNS separately
   SELECT COUNT(*) INTO v_cpns
   FROM employees e
   WHERE e.asn_status = 'CPNS'
     AND (p_department IS NULL OR e.department = p_department)
-    AND (p_include_inactive OR e.is_active = TRUE);
+    AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE);
 
   SELECT COUNT(*) INTO v_pppk
   FROM employees e
   WHERE e.asn_status = 'PPPK'
     AND (p_department IS NULL OR e.department = p_department)
-    AND (p_include_inactive OR e.is_active = TRUE);
+    AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE);
 
   SELECT COUNT(*) INTO v_non_asn
   FROM employees e
   WHERE e.asn_status = 'Non ASN'
     AND (p_department IS NULL OR e.department = p_department)
-    AND (p_include_inactive OR e.is_active = TRUE);
+    AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE);
 
   -- Count inactive employees
   SELECT COUNT(*) INTO v_inactive
   FROM employees e
-  WHERE e.is_active = FALSE
+  WHERE COALESCE(e.is_active, TRUE) = FALSE
     AND (p_department IS NULL OR e.department = p_department)
     AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status));
 
@@ -164,7 +79,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND rank_group IS NOT NULL
         GROUP BY rank_group
       ) sub
@@ -176,7 +91,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
         GROUP BY department
       ) sub
     ),
@@ -187,7 +102,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND position_type IS NOT NULL
         GROUP BY position_type
       ) sub
@@ -199,7 +114,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND gender IS NOT NULL
         GROUP BY gender
       ) sub
@@ -211,7 +126,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND religion IS NOT NULL
         GROUP BY religion
       ) sub
@@ -231,7 +146,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND join_date IS NOT NULL
         GROUP BY duration_range
       ) sub
@@ -245,7 +160,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND rank_group IS NOT NULL
         GROUP BY grade
       ) sub
@@ -265,7 +180,7 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND birth_date IS NOT NULL
         GROUP BY age_range
       ) sub
@@ -279,23 +194,11 @@ BEGIN
         FROM employees e
         WHERE (p_department IS NULL OR e.department = p_department)
           AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
+          AND (p_include_inactive OR COALESCE(e.is_active, TRUE) = TRUE)
           AND birth_date IS NOT NULL
           AND asn_status IN ('PNS', 'CPNS')
         GROUP BY retirement_year
         ORDER BY retirement_year
-      ) sub
-    ),
-    'byEducation', (
-      SELECT COALESCE(jsonb_object_agg(education_level, count), '{}'::jsonb)
-      FROM (
-        SELECT education_level, COUNT(*) as count
-        FROM employees e
-        WHERE (p_department IS NULL OR e.department = p_department)
-          AND (p_asn_status IS NULL OR e.asn_status = ANY(p_asn_status))
-          AND (p_include_inactive OR e.is_active = TRUE)
-          AND education_level IS NOT NULL
-        GROUP BY education_level
       ) sub
     )
   );
@@ -304,20 +207,4 @@ BEGIN
 END;
 $$;
 
--- Add trigger to update updated_at on inactive_history
-CREATE OR REPLACE FUNCTION update_inactive_history_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_inactive_history_updated_at
-BEFORE UPDATE ON public.inactive_history
-FOR EACH ROW
-EXECUTE FUNCTION update_inactive_history_updated_at();
-
--- Grant permissions
-GRANT SELECT, INSERT, UPDATE ON public.inactive_history TO authenticated;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+COMMENT ON FUNCTION get_dashboard_stats(TEXT, TEXT[], BOOLEAN) IS 'Get dashboard statistics excluding inactive employees by default. Education data removed as it is in separate table.';

@@ -353,6 +353,8 @@ export default function DataBuilder() {
       while (true) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = supabase.from('employees').select(selectStr);
+        // Exclude pegawai non-aktif (is_active = FALSE) dari hasil query
+        q = q.eq('is_active', true);
         q = applyFilters(q as FilterableQuery);
         // Batasi data ke unit kerja sendiri jika bukan admin yang bisa lihat semua
         if (shouldFilterByDepartment) {

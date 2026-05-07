@@ -1,0 +1,34 @@
+fix: Add is_active filter to Data Builder, Quick Aggregation, and Peta Jabatan
+
+Ensures 100% consistency across all employee calculations by filtering out
+inactive employees (is_active = FALSE) from queries.
+
+Changes:
+- Data Builder: Added .eq('is_active', true) filter to main query
+- Quick Aggregation: Added .eq('is_active', true) filter to employee fetch
+- Peta Jabatan: Added .eq('is_active', true) filter to 5 query locations
+  * ASN employees query (line ~224)
+  * Non-ASN employees query (line ~231)
+  * All ASN query (line ~396)
+  * Non-ASN only query (line ~410)
+  * Export all units query (line ~1219)
+
+Impact:
+- ✅ Dashboard, Data Builder, and Peta Jabatan now show consistent numbers
+- ✅ Export Excel files only include active employees
+- ✅ Peta Jabatan "Existing" count now accurate (only active employees)
+- ✅ Quick Aggregation statistics exclude inactive employees
+- ✅ All calculations now match business logic (inactive = not counted)
+
+Testing:
+- ✅ No TypeScript errors
+- ✅ No new ESLint warnings
+- ✅ All queries verified to include is_active filter
+
+Documentation:
+- Created AUDIT_ACTIVE_INACTIVE_IMPLEMENTATION.md
+- Created IMPLEMENTATION_ACTIVE_INACTIVE_FIX.md
+- Created ACTIVE_INACTIVE_FIX_SUMMARY.md
+- Updated SUMMARY_PHASE_1_SELESAI.md
+
+Refs: #active-inactive-implementation

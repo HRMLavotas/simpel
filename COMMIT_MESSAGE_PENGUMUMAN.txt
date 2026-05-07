@@ -1,0 +1,49 @@
+feat: add announcement system for admin pusat
+
+Implementasi fitur pengumuman sistem yang memungkinkan Admin Pusat
+untuk membuat dan mengelola pengumuman yang akan muncul di dashboard
+semua admin unit.
+
+Features:
+- Admin Pusat dapat membuat, edit, hapus, dan toggle pengumuman
+- Banner pengumuman muncul di bagian atas dashboard
+- User dapat dismiss pengumuman (tidak muncul lagi)
+- 4 tipe pengumuman: Info, Sukses, Peringatan, Penting
+- Priority system untuk mengatur urutan pengumuman
+- Expiration date untuk auto-hide pengumuman
+- Auto-refresh setiap 5 menit untuk pengumuman baru
+
+Database:
+- Table: announcements (menyimpan pengumuman)
+- Table: announcement_dismissals (track dismissals)
+- Function: get_active_announcements() (fetch pengumuman aktif)
+- RLS policies untuk security
+
+Components:
+- AnnouncementBanner: Banner component di dashboard
+- Announcements page: Halaman kelola pengumuman (Admin Pusat)
+- useAnnouncements hook: Custom hooks untuk CRUD operations
+
+UI/UX:
+- Non-intrusive banner design
+- Dismissible dengan tombol X
+- Color-coded berdasarkan tipe
+- Responsive design
+- Smooth animations
+
+Security:
+- RLS enabled untuk semua tables
+- Admin Pusat: Full CRUD access
+- Admin Unit: Read-only untuk pengumuman aktif
+- User hanya bisa dismiss pengumuman mereka sendiri
+
+Files:
+- supabase/migrations/20260507100000_create_announcements_table.sql
+- src/hooks/useAnnouncements.ts
+- src/components/notifications/AnnouncementBanner.tsx
+- src/pages/Announcements.tsx
+- src/App.tsx (add route)
+- src/components/layout/AppSidebar.tsx (add menu)
+- src/pages/Dashboard.tsx (add banner)
+- FITUR_PENGUMUMAN_ADMIN_PUSAT.md (dokumentasi lengkap)
+- QUICK_START_PENGUMUMAN.md (quick start guide)

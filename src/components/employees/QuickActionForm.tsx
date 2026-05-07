@@ -107,7 +107,6 @@ export function QuickActionForm({
   const [inactiveSK, setInactiveSK] = useState('');
   const [inactiveNotes, setInactiveNotes] = useState('');
   const [inactiveSuccess, setInactiveSuccess] = useState(false);
-  const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
 
   const getRankOptions = () => {
     if (asnStatus === 'PPPK') return RANK_GROUPS_PPPK as unknown as string[];
@@ -224,11 +223,7 @@ export function QuickActionForm({
       return;
     }
     
-    // Show confirmation dialog
-    setShowInactiveConfirm(true);
-  };
-
-  const confirmInactiveStatus = () => {
+    // Langsung apply tanpa dialog konfirmasi untuk menghindari nested modal issue
     const entry: HistoryEntry = {
       tanggal: inactiveDate,
       nomor_sk: inactiveSK,
@@ -241,8 +236,7 @@ export function QuickActionForm({
     setInactiveSuccess(true);
     setTimeout(() => setInactiveSuccess(false), 3000);
     
-    // Close confirmation and reset form
-    setShowInactiveConfirm(false);
+    // Reset form
     setInactiveReason('');
     setInactiveSK('');
     setInactiveNotes('');
@@ -601,7 +595,7 @@ export function QuickActionForm({
 
               <Alert className="bg-amber-50 border-amber-200">
                 <AlertDescription className="text-amber-800">
-                  ⚠️ <strong>Perhatian:</strong> Pegawai yang di-non-aktifkan tidak akan dihitung dalam statistik dan agregasi data.
+                  ⚠️ <strong>Perhatian:</strong> Pegawai yang di-non-aktifkan tidak akan dihitung dalam statistik dan agregasi data. Pastikan data sudah benar sebelum klik tombol di bawah.
                 </AlertDescription>
               </Alert>
 
@@ -654,15 +648,23 @@ export function QuickActionForm({
                 </div>
               </div>
 
-              <Button 
-                onClick={handleInactiveStatus} 
-                className="w-full"
-                variant="destructive"
-                disabled={!inactiveReason}
-              >
-                <UserX className="mr-2 h-4 w-4" />
-                Non-Aktifkan Pegawai
-              </Button>
+              <div className="space-y-2">
+                <Alert className="bg-red-50 border-red-200">
+                  <AlertDescription className="text-red-800 text-sm">
+                    <strong>Konfirmasi:</strong> Dengan menekan tombol di bawah, pegawai akan ditandai sebagai non-aktif. Anda masih perlu klik <strong>"Simpan Perubahan"</strong> untuk menyimpan ke database.
+                  </AlertDescription>
+                </Alert>
+                
+                <Button 
+                  onClick={handleInactiveStatus} 
+                  className="w-full"
+                  variant="destructive"
+                  disabled={!inactiveReason}
+                >
+                  <UserX className="mr-2 h-4 w-4" />
+                  Terapkan Status Non-Aktif
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -699,47 +701,6 @@ export function QuickActionForm({
             </Button>
             <Button onClick={confirmMutation}>
               Ya, Terapkan Mutasi
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Konfirmasi Non-Aktifkan Pegawai */}
-      <Dialog open={showInactiveConfirm} onOpenChange={setShowInactiveConfirm}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Non-Aktifkan Pegawai</DialogTitle>
-            <DialogDescription>
-              Pegawai akan ditandai sebagai non-aktif dan tidak akan dihitung dalam statistik. Tindakan ini akan dicatat dalam riwayat.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Alasan:</span>
-              <span className="font-medium">{inactiveReason}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Tanggal:</span>
-              <span className="font-medium">{new Date(inactiveDate).toLocaleDateString('id-ID')}</span>
-            </div>
-            {inactiveSK && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Nomor SK:</span>
-                <span className="font-medium">{inactiveSK}</span>
-              </div>
-            )}
-          </div>
-          <Alert className="bg-amber-50 border-amber-200">
-            <AlertDescription className="text-amber-800 text-xs">
-              ⚠️ Pegawai tidak akan muncul di daftar pegawai aktif dan tidak dihitung dalam agregasi data.
-            </AlertDescription>
-          </Alert>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowInactiveConfirm(false)}>
-              Batal
-            </Button>
-            <Button variant="destructive" onClick={confirmInactiveStatus}>
-              Ya, Non-Aktifkan
             </Button>
           </DialogFooter>
         </DialogContent>

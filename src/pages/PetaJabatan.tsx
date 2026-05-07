@@ -224,6 +224,7 @@ export default function PetaJabatan() {
           supabase
             .from('employees')
             .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
             .eq('department', selectedDepartment)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
         ),
@@ -231,6 +232,7 @@ export default function PetaJabatan() {
           supabase
             .from('employees')
             .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
+            .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
             .eq('department', selectedDepartment)
             .eq('asn_status', 'Non ASN')
         ),
@@ -396,6 +398,7 @@ export default function PetaJabatan() {
           let query = supabase
             .from('employees')
             .select('id, name, department, position_name, asn_status')
+            .eq('is_active', true)  // Hanya pegawai aktif
             .or('asn_status.is.null,asn_status.neq.Non ASN');
           
           if (summaryDepts) {
@@ -410,6 +413,7 @@ export default function PetaJabatan() {
           let query = supabase
             .from('employees')
             .select('id, name, department, position_name, rank_group')
+            .eq('is_active', true)  // Hanya pegawai aktif
             .eq('asn_status', 'Non ASN');
           
           if (summaryDepts) {
@@ -1218,6 +1222,7 @@ export default function PetaJabatan() {
         supabase
           .from('employees')
           .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+          .eq('is_active', true)  // Hanya pegawai aktif untuk export peta jabatan
           .or('asn_status.is.null,asn_status.neq.Non ASN'),
         supabase
           .from('education_history')
