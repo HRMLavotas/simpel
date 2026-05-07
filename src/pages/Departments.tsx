@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Building2, Search, MoreVertical } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -45,12 +45,7 @@ export default function Departments() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
 
-  useEffect(() => {
-    if (!isAdminPusat) return;
-    fetchDepartments();
-  }, [isAdminPusat]);
-
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -70,7 +65,12 @@ export default function Departments() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isAdminPusat) return;
+    fetchDepartments();
+  }, [isAdminPusat, fetchDepartments]);
 
   const filteredDepartments = departments.filter((dept) =>
     dept.name.toLowerCase().includes(searchQuery.toLowerCase())

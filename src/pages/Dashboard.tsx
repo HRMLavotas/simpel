@@ -150,6 +150,7 @@ export default function Dashboard() {
       }
     };
     loadPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
   const toggleChart = (chartId: string) => {

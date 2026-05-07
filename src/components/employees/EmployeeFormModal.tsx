@@ -669,6 +669,7 @@ export function EmployeeFormModal({
     };
 
     loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, employee?.id]);
 
   // Handle edit additional position

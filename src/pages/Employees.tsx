@@ -242,7 +242,8 @@ export default function Employees() {
 
     // Real-time subscription untuk employees table
     logger.debug('Setting up real-time subscription for employees');
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, canViewAll, hasSupervisedUnits]);
     interface EmployeePayload {
       eventType: string;
       new: Record<string, unknown>;

@@ -167,6 +167,7 @@ export default function PetaJabatan() {
     if (activeTab === 'summary-asn' || activeTab === 'summary-non-asn') {
       fetchSummaryData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Real-time subscription for employee changes
@@ -1563,7 +1564,7 @@ export default function PetaJabatan() {
     });
 
     return result;
-  }, [groupsData, employees, getMatchingEmployees]);
+  }, [groupsData, getMatchingEmployees]);
 
   let positionNo = 0;
 
