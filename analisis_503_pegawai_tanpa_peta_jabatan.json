@@ -1,0 +1,3793 @@
+{
+  "summary": {
+    "total_employees": 2547,
+    "with_posref": 2044,
+    "without_posref": 503,
+    "percentage": "19.7%"
+  },
+  "by_unit": [
+    {
+      "unit": "BPVP Padang",
+      "count": 114,
+      "employees": [
+        {
+          "name": "Indah Febriyeni",
+          "nip": "200002042025052010",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mulyati",
+          "nip": "199103142020122015",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Reynaldi An",
+          "nip": "199510072024211013",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Harry Siswanto",
+          "nip": "198904092020121012",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Adi Chandra",
+          "nip": "198504282020121003",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ade Yosi",
+          "nip": "197412181994032001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhammad Yusra Nusa",
+          "nip": "197803012009121002",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sugianto",
+          "nip": "196611181985031001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Anton Hilman",
+          "nip": "197902032009011010",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Yanri",
+          "nip": "197101171998031003",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Susiyanti",
+          "nip": "197103071997032004",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sugianto",
+          "nip": "196611181986031001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional Tertentu"
+        },
+        {
+          "name": "Gianto",
+          "nip": "197310051994031006",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ahmad Syujai",
+          "nip": "197903112009011014",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Noftharizal",
+          "nip": "198411082018011002",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rezi Delvia Diana",
+          "nip": "198701282015032002",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Andri Anggara",
+          "nip": "198608032015031004",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Silfia Jasfalini",
+          "nip": "198801032012122001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Eli Yarni",
+          "nip": "198205132015032003",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Taufan Sandra",
+          "nip": "197908102010011025",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rinaldi",
+          "nip": "198001242006041003",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Alfarabi Arman",
+          "nip": "198807112014031001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Baitul Makmur",
+          "nip": "198704042015031001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhammad Muhlisun",
+          "nip": "199412152025051003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Hendry Sahat Parlindungan Hutasoit",
+          "nip": "198601052018011002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Harjoni",
+          "nip": "198906212015031002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Asnawati",
+          "nip": "198911232012122002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dhany Irfan",
+          "nip": "198904142015031005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Vania Raissa Fauzi",
+          "nip": "199406092019022007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Eve Finesa Ratu",
+          "nip": "199407182019022004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ririn Octarita",
+          "nip": "199110302015032005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Gita Anggraini",
+          "nip": "199406252020122025",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Suherman",
+          "nip": "198203012015031002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Magrida Yani",
+          "nip": "199908122025052004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Johan Faisal",
+          "nip": "198405232024211009",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Insani Suciati",
+          "nip": "198812222015032002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Surung Welyu Darlia",
+          "nip": "198908092015032007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhammad Irsyad",
+          "nip": "199603222020121014",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Lidza Megarina",
+          "nip": "198602112024212018",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Pratiwi Novita Nurman",
+          "nip": "199511062020122028",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Elda Yunita Nastuti",
+          "nip": "199406202024212036",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Rido Revalino",
+          "nip": "199510022020121011",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ria Laster Syamsul",
+          "nip": "198206062006042011",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Diah Dwi Hapsari",
+          "nip": "199507112025052003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Arief Kurniawan",
+          "nip": "199301152025051002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mutiara",
+          "nip": "199810172025052006",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Andi Putra",
+          "nip": "199312092019021004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Alfajri Rahman",
+          "nip": "198910132019021003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Samarpal",
+          "nip": "199205192019021004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Idham Eka Putra",
+          "nip": "198407272019021002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Berlios Morenzia",
+          "nip": "199411192020121010",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Monica Febrina",
+          "nip": "199702282020122018",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fauzi Akbar",
+          "nip": "197707232009011004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mikha Farady",
+          "nip": "198703072015031004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Selly Revita Winda",
+          "nip": "198903072015032002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sepni Iryaldi",
+          "nip": "198709092015031002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mariati Mala",
+          "nip": "198903222015032002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Yosanthi Shintike Hutabarat",
+          "nip": "199402222025052003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Vhiera Pesselpa",
+          "nip": "199007222015032008",
+          "position_name": "Instruktur Mahir",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Desvi Melia",
+          "nip": "199012042015032006",
+          "position_name": "Instruktur Penyelia",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Gamser Tarapul Raja Daud Sitindaon",
+          "nip": "198410032015031004",
+          "position_name": "Instruktur Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rahmad Yulianto",
+          "nip": "199007242015031003",
+          "position_name": "Instruktur Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Gusnario Hardi",
+          "nip": "198708302014031001",
+          "position_name": "Instruktur Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Arnov Tri Hartanto",
+          "nip": "198211142007011001",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Eflianis",
+          "nip": "198001052009122001",
+          "position_name": "Kepala Sub Bagian Umum",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Maisya Yetti",
+          "nip": "199305232025052002",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Syamsul Bahri",
+          "nip": "197502162008011005",
+          "position_name": "Operator Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Budi Santoso",
+          "nip": "198111102010011005",
+          "position_name": "Operator Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rayhan Arino",
+          "nip": "199606092025051003",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Onky Prasetyo",
+          "nip": "199806302025051002",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rahmi Hidayatullaili",
+          "nip": "199812252025052004",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Abdallah",
+          "nip": "198302232011011002",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Aicah",
+          "nip": "197504051994032004",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Setyo Asih Widowati",
+          "nip": "198809292015212009",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Rion Darisman",
+          "nip": "199505102025211014",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Nissa Septiarizona",
+          "nip": "198509212025212008",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Endang Wydiastuti",
+          "nip": "197712172025212008",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Almitra Dewiana",
+          "nip": "197206021998032003",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Elyanti",
+          "nip": "197404271994032001",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rica Miranti",
+          "nip": "198701162025212024",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Bambang Kurniawan",
+          "nip": "197507272008011002",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Jafri",
+          "nip": "197405062008011002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Indra Syamsi",
+          "nip": "197607082005011005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Meilissa Syuryani",
+          "nip": "198305222005012005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rizka Ridwan",
+          "nip": "198802072019022004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Suci Sri Wahyuni",
+          "nip": "198806292019022006",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Leliana Oktora",
+          "nip": "198410052011012013",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ritnaldi",
+          "nip": "198012272009011006",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Marlan",
+          "nip": "196908021998031007",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Apriendi Yusa",
+          "nip": "198303272025211012",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Candra Purnama",
+          "nip": "196705111998031006",
+          "position_name": "Pengantar Kerja Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ridhwan",
+          "nip": "198804252014031002",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ismi Putri",
+          "nip": "198205212009012004",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Iwan Abdul Rahman",
+          "nip": "198207092011011009",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mayrisa Anggun Utami",
+          "nip": "199405112020122019",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sri Rahayu Lestari",
+          "nip": "199101072024212027",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Annisa Fadillah",
+          "nip": "199610242023212015",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Annaf Sihi Rahman",
+          "nip": "199503192020121013",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Husna Aini",
+          "nip": "198910052025212008",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Rosmini",
+          "nip": "197304172012122001",
+          "position_name": "Pengelola Umum Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Tafri",
+          "nip": "196809012009011002",
+          "position_name": "Pengelola Umum Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Lilla Destiansyah",
+          "nip": "199103042023212036",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Sefri Ilham",
+          "nip": "198109062011011004",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Helmi Septia Anggela",
+          "nip": "198909022017042006",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rizka Rahmadian",
+          "nip": "198207182015032002",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Wildayati",
+          "nip": "198706102020122018",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sheila Octarianda",
+          "nip": "199210112025052002",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Jeaneta Luthia Anagita",
+          "nip": "198806132023212037",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Hendro",
+          "nip": "199804242025051003",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Jefri Stepanus L Tobing",
+          "nip": "199111172025051002",
+          "position_name": "Pranata Komputer Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Hexa Aristia",
+          "nip": "199904222025052004",
+          "position_name": "Pranata Komputer Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rio Fernando",
+          "nip": "199003262019021003",
+          "position_name": "Pustakawan Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mulyadi Ikhlas",
+          "nip": "199601142025051002",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fahrel Siddiq Nurhari",
+          "nip": "200002252025051002",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Lombok Timur",
+      "count": 96,
+      "employees": [
+        {
+          "name": "Bayu Rahadhian Zuhdijaya",
+          "nip": "200103262025051005",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Titik Rahayu",
+          "nip": "197307082000032005",
+          "position_name": "Analis SDM Aparatur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Petrus Nannang",
+          "nip": "198809082024211010",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Erika Fithriaty",
+          "nip": "198703162020122007",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ina Marga Mutia",
+          "nip": "199501072024212026",
+          "position_name": "Arsiparis Terampil",
+          "position_type": null
+        },
+        {
+          "name": "Ronanda Ayu Wulandari",
+          "nip": "199003232015032003",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ahmad Sya'roni",
+          "nip": "199505312024211012",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Aldyth Primadana Putra",
+          "nip": "199602262020121005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Handayani Simorangkir",
+          "nip": "199405112020122020",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Andriana Dwi Puspita",
+          "nip": "199908262025052002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Olivia Anggriany Hutabarat",
+          "nip": "198806282020122013",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Abdullah",
+          "nip": "199606152025051003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Apep Saepuloh",
+          "nip": "197512192023211001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Niswah Istiqoomah",
+          "nip": "199707282025052004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Parhaini",
+          "nip": "197210102024212005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Ni Luh Yunik Anita Rizky",
+          "nip": "199603192020122023",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Supendi",
+          "nip": "199612312024211019",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Abdul Wahab",
+          "nip": "199910032024211005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Aryief Hidayatullah",
+          "nip": "199112272025051001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Desi Ratna Siregar S. Tr. Par",
+          "nip": "199601252025052003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Inah",
+          "nip": "198806152023212050",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Rama Dwi Rananta",
+          "nip": "198705202020121014",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Aditya Harist Ari Firmansyah",
+          "nip": "199604192025051001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Munajap",
+          "nip": "198702132024211007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Rudi Noor Cahyono",
+          "nip": "198903152018011001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Richard Makanoneng",
+          "nip": "199504032025051005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Agustian Harahap",
+          "nip": "198708172018011001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Igor Darma Basmala",
+          "nip": "200103112025051002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Selly Novitasari",
+          "nip": "199711092025052006",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Edison",
+          "nip": "198806162014031002",
+          "position_name": "Instruktur Penyelia",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nita Septi Aryanti",
+          "nip": "199209192015032002",
+          "position_name": "Instruktur Penyelia",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Imran Tahir",
+          "nip": "198108262006041012",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Khairul Ziyad",
+          "nip": "197101031994031002",
+          "position_name": "Kepala Subbagian Umum",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Nanang Kurniawan",
+          "nip": "199503012025051003",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Shafa Nabila Andini Putri",
+          "nip": "200210302025052001",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Jublina Nau",
+          "nip": "197907032009012002",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hasaniah",
+          "nip": "199605062025052004",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mario Emanuel Desipung",
+          "nip": "198209212011011002",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Dianmita Ayu Putri",
+          "nip": "199805062025052003",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Stefanus Bessie",
+          "nip": "197303122000031006",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mayang Karina",
+          "nip": "199709232025052006",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Taufik Rohman",
+          "nip": "200204202025051002",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Zuen Egbertho Nau",
+          "nip": "197902102010011013",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Donny Hendry Kana",
+          "nip": "198502242010011006",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Sunarsih",
+          "nip": "196904121994032011",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mala Aprianti",
+          "nip": "198904082025212017",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Leonardus Evaristus Jemahan",
+          "nip": "198511102014021005",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Abdul Rais",
+          "nip": "198703112025211018",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Heriberth Emaldus Asa",
+          "nip": "198112212011021006",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Lalu Saddam Ali Akbar",
+          "nip": "199103022025211012",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "I Made Bagus Ngurah Ivan Narendra",
+          "nip": "198609232011011003",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Abdullah Rizal Sidin",
+          "nip": "198102242014021002",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Irfan Salman Naufal",
+          "nip": "199605202025211064",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Rolib",
+          "nip": "198103042025211019",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Abdullah Muhammad Alhabsyi",
+          "nip": "198204102014021002",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Roberth Refky Deyanto Kase",
+          "nip": "198604162011011004",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Arnoldus Asyer Naftaly Adoe",
+          "nip": "198102232010011009",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yusri Sutami",
+          "nip": "198304022025211013",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Nurul Asmayati",
+          "nip": "199605142025212012",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Tofan Budi Kurnia",
+          "nip": "198806282025211020",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Hasanul Fajri",
+          "nip": "199104282025211020",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Jumrony Septina",
+          "nip": "198609122025212015",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Sonni Odeth Margaret Sibarani",
+          "nip": "199603132020122028",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "John Fritz Lakinau",
+          "nip": "198203232000121005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Saturninus Da Rato",
+          "nip": "197111292001121002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yanthina Octonia",
+          "nip": "198110142025212004",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Edi Zulhilmi",
+          "nip": "199001122025211016",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Agustinus Nepa",
+          "nip": "197208071998031009",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Daniel Batista",
+          "nip": "197304092008011008",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Maria Regina Peni Hurint",
+          "nip": "197209131994032005",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Salfius Zakarias",
+          "nip": "197507062007011021",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hidayatullah",
+          "nip": "199205082025211011",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Hilyatul Imtihan",
+          "nip": "198405302025212012",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Deny Arya Wiranata",
+          "nip": "199507292025211010",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Ibnu Sina Alimun",
+          "nip": "198403082025211013",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": null
+        },
+        {
+          "name": "Robertus Bela",
+          "nip": "197106072009011001",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rudi Hariyanto",
+          "nip": "198303082015031003",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sahat Martua Haposan Turnip",
+          "nip": "199210102024211023",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Putri Dwi Susalit",
+          "nip": "198805212024212028",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "A. Faduppai M",
+          "nip": "199307292023211016",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Nova",
+          "nip": "198705312020122010",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nitya Dimas Anggara",
+          "nip": "199212252023211020",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Arif Roesman Hafifi",
+          "nip": "198302172025211014",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Novita Adeliani",
+          "nip": "199811082021012001",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Lalu Faris Hilman Hadyan",
+          "nip": "199702282025211009",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Dina Mariana Ratu Here",
+          "nip": "198105072010012025",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Lucia Baon",
+          "nip": "198002192010012007",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Laksmi Puspita Hariyanti",
+          "nip": "199204022015032005",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hary Albert Lay",
+          "nip": "198110052009031004",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Agus Putra",
+          "nip": "198802272023211019",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Billy Putra Adi",
+          "nip": "199606242025051002",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Saipudin Zuhri",
+          "nip": "198406052023211018",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Wilfrianus Sabon Tawa",
+          "nip": "198311242011011009",
+          "position_name": "Pranata Komputer Pelaksana Lanjutan/Mahir",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "I Nengah Arya Priliana S",
+          "nip": "199304122025051001",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Bagas Sukma Romadhon",
+          "nip": "200012072025051006",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rudy Rinjayani Putra",
+          "nip": "199401132025051003",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Kendari",
+      "count": 82,
+      "employees": [
+        {
+          "name": "Yuliani",
+          "nip": "199306242025052001",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Marwati",
+          "nip": "198403062019022004",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Abdul Jalil Bar",
+          "nip": "198803042011011007",
+          "position_name": "Arsiparis Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ardila Pradita",
+          "nip": "199512062020122022",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dzulfiqar Jumardi",
+          "nip": "198901102020121008",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rosnia",
+          "nip": "196804062007012033",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Hastuty",
+          "nip": "197503132010012003",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Suharman",
+          "nip": "197411051998021001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Yulius Gatopan",
+          "nip": "198309062006041007",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Zanuar Ikhsan",
+          "nip": "197901222010011015",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Adi Kurniawan",
+          "nip": "197502022014111001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Esty Nurseta Dianing Ratri",
+          "nip": "198212292015032002",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Amirullah",
+          "nip": "197906112009011006",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nunung Herdina",
+          "nip": "197603122007012020",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Efrat Ipona",
+          "nip": "197102112007012014",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Benyamin Pasorong",
+          "nip": "196804072007011035",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Marsi Novilia Ringan",
+          "nip": "198311062011012013",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Amrun Tantowi",
+          "nip": "199611222024211009",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Desryani Ayulin Inthe",
+          "nip": "198912182020122012",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ibnu Maulana",
+          "nip": "199508122019021005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Agus Setiya",
+          "nip": "198508172020121009",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mattuliling M.",
+          "nip": "197904102011011004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nurul Izza",
+          "nip": "199512232020122030",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Richard Nainggolan",
+          "nip": "198911292020121015",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Risky Amaliah",
+          "nip": "199101222020122016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rachma Sari",
+          "nip": "198003112006042012",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Andi Abdul Jalil",
+          "nip": "199602022019021002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Mursyidah Rusdi",
+          "nip": "199011052015032005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fahir",
+          "nip": "199710272025051003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Herni Bunga Banga Langke",
+          "nip": "198706052020122020",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Triadi Kurniawan",
+          "nip": "199807302025051004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Harisma Dewi",
+          "nip": "198702182019022002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Indirwan",
+          "nip": "199107022020121013",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Jusno Halifa",
+          "nip": "199511102020121016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhamad Azwar Fait",
+          "nip": "199702072020121010",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Reza Prasetyo",
+          "nip": "198809112020121013",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muh. Lukmanul Hakim",
+          "nip": "199305102019021004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fabryan Gunaldi Persada",
+          "nip": "199502022020121011",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ardian Pritra Putra",
+          "nip": "198207232023211009",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Krisnatalia Limbong",
+          "nip": "199812252024212016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhammad Anis Idris",
+          "nip": "199908292025051002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "La Ode Muhamad Safrudin",
+          "nip": "198802112019021002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nirmala Manohara Harnanda",
+          "nip": "199903182025052007",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Agung Budiman",
+          "nip": "196903211991031006",
+          "position_name": "Operator Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yuslan",
+          "nip": "199504082025051002",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hamsari",
+          "nip": "199312162025051004",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Selfiani",
+          "nip": "200105292025052005",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Oktavian Dwi Anugrah",
+          "nip": "199710112025211007",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Lidya Dwi Monika",
+          "nip": "199009192025212014",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhammad Hasbi Akbar",
+          "nip": "199602272025211007",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Aswan",
+          "nip": "199608122025211007",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "La Ode Sharidin",
+          "nip": "198509092025211010",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "La Ode Tarlin",
+          "nip": "199209102025211016",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hasnidar Mamma",
+          "nip": "198511092025212011",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "L.m Fithrah",
+          "nip": "198805152025211031",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhammad Fhadil Sulung",
+          "nip": "199612032025211007",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Bayu Dewa Lumanga",
+          "nip": "199204182025211015",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "La Dedi Mulo",
+          "nip": "199407052025211012",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhamad Adlan Abbas",
+          "nip": "197402272007011011",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Sarlian",
+          "nip": "198203312009012005",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ika Surayah Nskd",
+          "nip": "198110292010012016",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Khoirul Nur Arifin",
+          "nip": "199302092025211016",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Athira Kartika A. Makassau",
+          "nip": "198203292025212008",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yusnius Gamer Duruka",
+          "nip": "199107102025211014",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Syahrul",
+          "nip": "199004072025211015",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Dervi Saditya",
+          "nip": "199307192025211014",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Jevon Raissa Mangiri",
+          "nip": "198803132025211017",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rinaldi Sirande Matandung",
+          "nip": "199205292025211015",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "L M Iqomatuddin Polondu",
+          "nip": "199903032025211006",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muh. Usman Wahyu Putra",
+          "nip": "199006122025211017",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Antares Gita Kencana",
+          "nip": "198806042020121007",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nurichsan",
+          "nip": "199412212023211013",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sukriani",
+          "nip": "199301132023212039",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fira Febrianti",
+          "nip": "198702092009032003",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sem Rantebua",
+          "nip": "198406092015021001",
+          "position_name": "Pranata Keuangan APBN Penyelia",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Risdawati",
+          "nip": "199812212025052004",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Susino Rumbi",
+          "nip": "199106082023211023",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "La Ode Aslimin",
+          "nip": "199204182023211013",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rinaldin",
+          "nip": "198711122023211025",
+          "position_name": "Pranata Komputer Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Perdana",
+          "nip": "198304152023211024",
+          "position_name": "Pranata Komputer Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Aprialdi",
+          "nip": "200004012025051006",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Khaerul Ihsan",
+          "nip": "199104302025051001",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Bandung Barat",
+      "count": 59,
+      "employees": [
+        {
+          "name": "Asep Saepul Muharam",
+          "nip": "197912302014031001",
+          "position_name": "Analis Kebijakan Ahli Muda",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ika Elsifa",
+          "nip": "199402032025052001",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Annisa Pertwi",
+          "nip": "199108242024212032",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Safitri Kriswitasari",
+          "nip": "199009062023212036",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhammad Galih Robbani",
+          "nip": "199307062020121008",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Aria Firnandes",
+          "nip": "199111302020121017",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Iwan Hermawan",
+          "nip": "198302162012121001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Alya Rahmaisyanti",
+          "nip": "200011182025052005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Lina Aulia Rahmah",
+          "nip": "199309292020122030",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Danu Unggul Ardiyanto",
+          "nip": "198204052015031003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muhamad Najibulloh",
+          "nip": "199304112020121012",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Alexander Julius Simamora",
+          "nip": "198707182020121007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Resya Rhema Malinda",
+          "nip": "198301062024212016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ulfimarjan",
+          "nip": "199308072019021005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "I Nyoman Didi Harizena",
+          "nip": "199005022019021004",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Firdausi Nurfalah",
+          "nip": "199501272019022006",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Zeaty Abdillah",
+          "nip": "199311212020122018",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ratih Azizah",
+          "nip": "198912052020122021",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Lucy Natami Figna",
+          "nip": "199011272020122016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Syani Ghozali Fauzan",
+          "nip": "199605272020121007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Velayati Nurrachma Rizqi",
+          "nip": "199312142019022008",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Zulzamal Zepri",
+          "nip": "198512202019021003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ervin Puluhulawa",
+          "nip": "199001102019022003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nita Wulandari",
+          "nip": "198407162019022003",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rakka Putri Ranati",
+          "nip": "199604012020122026",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Egi Setiana",
+          "nip": "199712082024211011",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Salwa Caesar Ramadhanty Supratman",
+          "nip": "200012162025052005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Suci Pebrianti Putri",
+          "nip": "199802182025052007",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dian Rahim",
+          "nip": "199605092020122024",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Hendra Gunawan",
+          "nip": "198207292015031001",
+          "position_name": "Instruktur Terampil/Pelaksana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Iman Riswandi",
+          "nip": "197902102005011002",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Dewi Mayasari Widyastuty",
+          "nip": "197804092000032001",
+          "position_name": "Kepala Subbagian Umum",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Sari Maghfirah",
+          "nip": "199701142025052002",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Betha Rahmawati Agustini",
+          "nip": "198908072025212019",
+          "position_name": "Operator Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Gilang Ramahendra",
+          "nip": "199403082025051004",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Utami Nurjanah",
+          "nip": "199409292025052003",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fajar Adi Subekti",
+          "nip": "199804222025051004",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Sri Anton Sugianto",
+          "nip": "197811132025212005",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Pratiwi Putri Haryono",
+          "nip": "198803052025212021",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ninda Angestika",
+          "nip": "198809292025212010",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mila Cahya",
+          "nip": "199707202025212012",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Irvan Kurniagunawan",
+          "nip": "197811192025211005",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hendrix Budiantoro",
+          "nip": "199207152025211015",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Tri Setiyarini",
+          "nip": "198809102012122001",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Kiki Agustin Nurbaya",
+          "nip": "199608092020122027",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Titi Nurul Hopipah",
+          "nip": "198905302023212052",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Lisa Riska Oktaviani",
+          "nip": "199510172024212033",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fajar Maulana",
+          "nip": "199310032019021002",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Chairun Nisa",
+          "nip": "199407222023212033",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Zaelani",
+          "nip": "199201062023211013",
+          "position_name": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ilham Dwi Aprilianto",
+          "nip": "199704072020121009",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ai Cahyati",
+          "nip": "199804222024212021",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ela Sulastri",
+          "nip": "198507112023212037",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Reni Yanthi Elisabeth Panjaitan",
+          "nip": "199409192025052001",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yusup Supiansori",
+          "nip": "199103022023211026",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Irvan Alvisa Himawan",
+          "nip": "199312212023211015",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Andrie Setiawan",
+          "nip": "198001042024211001",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rifqian Dimas Susanto",
+          "nip": "199712102025051004",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Robertus Bellarmino Septian Dwi Atmadja",
+          "nip": "199909172025051004",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Bantaeng",
+      "count": 58,
+      "employees": [
+        {
+          "name": "Risna Nur Istiqamah",
+          "nip": "200004082025052004",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Awaluddin",
+          "nip": "198104302024211004",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Novita Ambriana",
+          "nip": "199411152020122026",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Azwar Amin",
+          "nip": "198811032020121007",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Andi Abdur Rahman",
+          "nip": "197609022008041001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Syahruni Rahmat Hidayat",
+          "nip": "197409072005022001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dadang Suhada",
+          "nip": "197512302009021003",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Sapri",
+          "nip": "198005102009021005",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dwi Shinta Kurniawati",
+          "nip": "198409172018012001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Bagus Sukma Agung",
+          "nip": "199409092018011001",
+          "position_name": "Instruktur Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Yermia Yunus",
+          "nip": "199507192020121010",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Kamaruddin Baso",
+          "nip": "198403182011011010",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Maeshita Fariska Ayuningtyas",
+          "nip": "199402092018012001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Anwar",
+          "nip": "199610012020121009",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Asep Jajang Setiadi",
+          "nip": "198310142018011001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Asrianti Muhtar",
+          "nip": "197806012024212006",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Husni Mubarak",
+          "nip": "198409162015031002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Arfhan Alam Tonapa",
+          "nip": "200006022025051002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Nur Indri Yawaningsih",
+          "nip": "200009032025052005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Immawan Wahyudi Asbara",
+          "nip": "198903082024031013",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Novia Silviana Dewi",
+          "nip": "199811102025052005",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Muh Fauzi Awaluddin",
+          "nip": "199908222025051001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dwi Muthiah Miranti Putri",
+          "nip": "199512152018012002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "A. Anugrah Shafar",
+          "nip": "199805282020121006",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Dewinda Nurul Mahdayani",
+          "nip": "199507102020122029",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Gusriadi",
+          "nip": "199203152020121016",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Harun",
+          "nip": "199304082020121013",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fuad Anshory",
+          "nip": "199808162025051001",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Theresa Regina Br Damanik",
+          "nip": "199205262025052002",
+          "position_name": "Instruktur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Vindy Aria Prahudy",
+          "nip": "198508222014031002",
+          "position_name": "Instruktur Mahir",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "M. Yusri",
+          "nip": "198307232015031005",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Vindy Aria Prahudy",
+          "nip": "198312292015032001",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Hendra Gunawan Thamrin",
+          "nip": "198508132015031004",
+          "position_name": "Instruktur Mahir/Pelaksana Lanjutan",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Irfan",
+          "nip": "199008062015031001",
+          "position_name": "Instruktur Terampil/Pelaksana",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Arsad",
+          "nip": "197204212007011027",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Asriyadi",
+          "nip": "197201282009011004",
+          "position_name": "Kepala Subbagian Umum",
+          "position_type": "Struktural"
+        },
+        {
+          "name": "Sahrullah",
+          "nip": "200005182025051003",
+          "position_name": "Konselor SDM",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ali Masyhar",
+          "nip": "197803092008011010",
+          "position_name": "Operator Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Aunul Rafieg Anshar",
+          "nip": "199611042025051002",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fadli Hidayat",
+          "nip": "199612172025051003",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Elvara Dyah Ayu Fajria",
+          "nip": "199703192025052004",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Wirma Yunita",
+          "nip": "199302122025212023",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Ikhwan Arifadhil",
+          "nip": "199612282025211010",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Nur Indah Sari",
+          "nip": "199408172025212025",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Fitriani",
+          "nip": "199403282025212008",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Rahmat",
+          "nip": "199103272025211015",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Ety Hastaty",
+          "nip": "198904202015042001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rosmiaty",
+          "nip": "198705262017082002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fitrah Amalia",
+          "nip": "199405052020122030",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Izmi Ulfayani",
+          "nip": "198902112020122011",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Andi Asnianti",
+          "nip": "197903092011112001",
+          "position_name": "Pengantar Kerja Ahli Muda",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Neni Pianti",
+          "nip": "199608152024212028",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Aminah",
+          "nip": "198101022023082029",
+          "position_name": "Pengantar Kerja Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Sri Agusniarti",
+          "nip": "199408182025212024",
+          "position_name": "Pengelola Layanan Operasional",
+          "position_type": null
+        },
+        {
+          "name": "Husnul Khotimah Azis",
+          "nip": "199602062023112029",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Hikmah Hastiwi",
+          "nip": "199505032024212036",
+          "position_name": "Perencana Ahli Pertama",
+          "position_type": null
+        },
+        {
+          "name": "Fadela Ananza",
+          "nip": "200205232025052005",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Virgina Ifah Mangambe",
+          "nip": "200009062025052004",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Ambon",
+      "count": 34,
+      "employees": [
+        {
+          "name": "Eka Dayanti",
+          "nip": "199506202025052002",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Asriadi Alam",
+          "nip": "199208282023211019",
+          "position_name": "Analis SDM Aparatur Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Johan Benyamin Kian",
+          "nip": "199307312020121018",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Tracy Nitalessy",
+          "nip": "199404142020122032",
+          "position_name": "Arsiparis Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Fahri Nurlatu",
+          "nip": "199404092025051001",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Gaizcka Allessandro Renwarin",
+          "nip": "200107022025051002",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Sarah Bhiba",
+          "nip": "199907282025052005",
+          "position_name": "Penata Laksana Barang Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Justiana Lolita Tahya",
+          "nip": "198208252025212013",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Marlyn Titaley",
+          "nip": "197510102025212011",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Gladys E. Ferdinandus",
+          "nip": "199612072025212010",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Elfriena F. Kaihatu",
+          "nip": "198407112025212011",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rexsi R. Kakisina",
+          "nip": "199310062025211019",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Jeanette Maitimu",
+          "nip": "198904052025212023",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mellisa N. Lewerissa",
+          "nip": "199205032025212008",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Susan Ilsa Maitimu",
+          "nip": "198209062025212013",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "A. Albian Misuari",
+          "nip": "199003182019021002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Meike Ekagianti",
+          "nip": "199505262019022015",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Iwan Pelupessy",
+          "nip": "196803121998031015",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Diece S. Soukotta",
+          "nip": "198303272025212013",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Siska Tahir Latukaisupy",
+          "nip": "199504252025212016",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Safira Safarina",
+          "nip": "199806072025212010",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Gabriela Sahetapy",
+          "nip": "199308062025212017",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Thamerlien Siahaya",
+          "nip": "199211142025212016",
+          "position_name": "Pengadministrasi Perkantoran",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Joseph Reynald De Kock",
+          "nip": "198007212009041004",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Josephus Marthen Titahena",
+          "nip": "196905091990031008",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fengki Manukilej",
+          "nip": "198008212008011007",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ronaldo Maail",
+          "nip": "198101182009041002",
+          "position_name": "Pengolah Data dan Informasi",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Irma Usman",
+          "nip": "199703292025052004",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Rafameta Br. Sirait",
+          "nip": "199507132025052006",
+          "position_name": "Pranata Keuangan APBN Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Jerry Aivanca Pattikawa",
+          "nip": "199808202025051002",
+          "position_name": "Pranata Komputer Ahli Pertama",
+          "position_type": "Fungsional Tertentu"
+        },
+        {
+          "name": "Stevano Latupeirissa",
+          "nip": "199009282024211012",
+          "position_name": "Pranata Komputer Terampil",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "David Lewaherilla",
+          "nip": "199608302023111011",
+          "position_name": "Statistisi Ahli Pertama",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Apriyanti Salham Lestaluhu",
+          "nip": "200204212025052004",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Redha Maulana",
+          "nip": "199805252025051005",
+          "position_name": "Teknisi Sarana dan Prasarana",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "Sekretariat BNSP",
+      "count": 23,
+      "employees": [
+        {
+          "name": "Iryanti",
+          "nip": "198608102014032001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Haryono",
+          "nip": "197305011998031006",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Fazriyana",
+          "nip": "199201062019022014",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Esty Warningsih",
+          "nip": "198908242020122015",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hendriyan Matheus",
+          "nip": "197206142005011001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Triyono",
+          "nip": "198402102019021002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yulius Intar Rendra",
+          "nip": "198607182019021001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ikhsania Riyani",
+          "nip": "199212112019022005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Sugiyantoro",
+          "nip": "197707232009121001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Siti Aisyah",
+          "nip": "197803072009122001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Zigit Maha Putra",
+          "nip": "199503152019021006",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rumiris Agustina Sinaga",
+          "nip": "198308062009122004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Yudhi Herutama",
+          "nip": "198405202009121003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhammad Aldi Azmy",
+          "nip": "199607062019021003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Arifatun Nurjannah",
+          "nip": "199405012019022010",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Hery Yoseph",
+          "nip": "198112302011011003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Adinda Ailsa Rahma",
+          "nip": "199605182020122018",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Samuel P. Siagian",
+          "nip": "199709172020121011",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rizal Assiddiq",
+          "nip": "199502012020121013",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Rita Komalasari",
+          "nip": "198603202009122005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Riska Bahra",
+          "nip": "199504252019022004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Kurniawati",
+          "nip": "198003212006042004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Nomala Gema Puji Putri",
+          "nip": "199606032019022001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "Direktorat Bina Peningkatan Produktivitas",
+      "count": 11,
+      "employees": [
+        {
+          "name": "Harry Purnama",
+          "nip": "197905162006041003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Thiana Aderiani",
+          "nip": "197609102009122001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Andri Purwanto",
+          "nip": "198506142009121006",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Nurul Huda Astuti",
+          "nip": "198412012009122003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Feryoman Parhusip",
+          "nip": "198303262011011008",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Dian M. Simorangkir",
+          "nip": "198504152014032001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Nurhani",
+          "nip": "197005301998032007",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Nurul Huda Astuti",
+          "nip": "197303172003122001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Muhammad Ichwanuddin Muchsin M Idris",
+          "nip": "198704302019021001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Tenti Asrar",
+          "nip": "197606102005012001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Nita Puspita Sari",
+          "nip": "198608292009122005",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Surakarta",
+      "count": 10,
+      "employees": [
+        {
+          "name": "Ery Miyarsih",
+          "nip": "197301021997032001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Ardanto Jati Winoto",
+          "nip": "198311252009011009",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Cahyani Windarto",
+          "nip": "197912112009011007",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Supriyanto",
+          "nip": "197304222005011002",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Harbani Wibawanto Hadi",
+          "nip": "197005201998031013",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Agus Widayat",
+          "nip": "196608191986031001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Erwin Thayeb",
+          "nip": "197307291994031001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Azof Ghazali Sujono",
+          "nip": "198207102006041001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Agung Kurniawan",
+          "nip": "198211012006041004",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        },
+        {
+          "name": "Lilik Harjanto",
+          "nip": "197512182003121001",
+          "position_name": "Instruktur Ahli Madya",
+          "position_type": "Fungsional"
+        }
+      ]
+    },
+    {
+      "unit": "Direktorat Bina Penyelenggaraan Latvogan",
+      "count": 7,
+      "employees": [
+        {
+          "name": "Fitria Kurniasany",
+          "nip": "199403132018012003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Andika Adhi Kreshna",
+          "nip": "198505312009121004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Ramdha Hari Nugraha",
+          "nip": "198506052014031002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Anisa Fitriyani",
+          "nip": "199012162020122015",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Mochamad Kamaludin",
+          "nip": "197305052005011001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Imelda Otik",
+          "nip": "198601102009122002",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Bernath Halomoan",
+          "nip": "198403092009121004",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BBPVP Semarang",
+      "count": 3,
+      "employees": [
+        {
+          "name": "Mera Diah Asri Suryaningtyas",
+          "nip": "198310262007012001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Theodorus Iwan Setya Prabowo",
+          "nip": "196911092003121001",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        },
+        {
+          "name": "Dzakiyah Rahayu Asih",
+          "nip": "198906192019022003",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        }
+      ]
+    },
+    {
+      "unit": "BBPVP Bekasi",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Yose Rizal",
+          "nip": "197601312002121009",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        }
+      ]
+    },
+    {
+      "unit": "BBPVP Medan",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Amran",
+          "nip": "198303122009011014",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        }
+      ]
+    },
+    {
+      "unit": "BPVP Banda Aceh",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Rahmad Faisal",
+          "nip": "198103302009011005",
+          "position_name": "Kepala",
+          "position_type": "Struktural"
+        }
+      ]
+    },
+    {
+      "unit": "Satuan Pelayanan Jambi",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Aicah",
+          "nip": "197404051994032004",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Fungsional Umum"
+        }
+      ]
+    },
+    {
+      "unit": "Satuan Pelayanan Kupang",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Heriberth Emaldus Asa",
+          "nip": "198112212011011006",
+          "position_name": "Penata Layanan Operasional",
+          "position_type": "Fungsional Umum"
+        }
+      ]
+    },
+    {
+      "unit": "Satuan Pelayanan Pekanbaru",
+      "count": 1,
+      "employees": [
+        {
+          "name": "Asmalindo",
+          "nip": "199101102020122015",
+          "position_name": "Penelaah Teknis Kebijakan",
+          "position_type": "Pelaksana"
+        }
+      ]
+    }
+  ],
+  "by_position": [
+    {
+      "position": "Instruktur Ahli Pertama",
+      "count": 124,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Alya Rahmaisyanti",
+        "Lina Aulia Rahmah",
+        "Danu Unggul Ardiyanto"
+      ]
+    },
+    {
+      "position": "Penata Layanan Operasional",
+      "count": 70,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang",
+        "Satuan Pelayanan Jambi",
+        "Satuan Pelayanan Kupang"
+      ],
+      "examples": [
+        "Justiana Lolita Tahya",
+        "Marlyn Titaley",
+        "Gladys E. Ferdinandus"
+      ]
+    },
+    {
+      "position": "Penelaah Teknis Kebijakan",
+      "count": 62,
+      "units": [
+        "BBPVP Semarang",
+        "BPVP Ambon",
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur",
+        "BPVP Padang",
+        "Direktorat Bina Peningkatan Produktivitas",
+        "Direktorat Bina Penyelenggaraan Latvogan",
+        "Satuan Pelayanan Pekanbaru",
+        "Sekretariat BNSP"
+      ],
+      "examples": [
+        "Mera Diah Asri Suryaningtyas",
+        "Theodorus Iwan Setya Prabowo",
+        "Dzakiyah Rahayu Asih"
+      ]
+    },
+    {
+      "position": "Instruktur Ahli Madya",
+      "count": 25,
+      "units": [
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Padang",
+        "BPVP Surakarta"
+      ],
+      "examples": [
+        "Andi Abdur Rahman",
+        "Syahruni Rahmat Hidayat",
+        "Dadang Suhada"
+      ]
+    },
+    {
+      "position": "Instruktur Ahli Muda",
+      "count": 23,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Iwan Hermawan",
+        "Sapri",
+        "Dwi Shinta Kurniawati"
+      ]
+    },
+    {
+      "position": "Pengadministrasi Perkantoran",
+      "count": 22,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Diece S. Soukotta",
+        "Siska Tahir Latukaisupy",
+        "Safira Safarina"
+      ]
+    },
+    {
+      "position": "Pengantar Kerja Ahli Pertama",
+      "count": 17,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Kiki Agustin Nurbaya",
+        "Titi Nurul Hopipah",
+        "Lisa Riska Oktaviani"
+      ]
+    },
+    {
+      "position": "Penata Kelola Sistem dan Teknologi Informasi",
+      "count": 14,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Fahri Nurlatu",
+        "Gaizcka Allessandro Renwarin",
+        "Gilang Ramahendra"
+      ]
+    },
+    {
+      "position": "Teknisi Sarana dan Prasarana",
+      "count": 12,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Apriyanti Salham Lestaluhu",
+        "Redha Maulana",
+        "Rifqian Dimas Susanto"
+      ]
+    },
+    {
+      "position": "Arsiparis Ahli Pertama",
+      "count": 11,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Johan Benyamin Kian",
+        "Tracy Nitalessy",
+        "Muhammad Galih Robbani"
+      ]
+    },
+    {
+      "position": "Pengolah Data dan Informasi",
+      "count": 10,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Joseph Reynald De Kock",
+        "Josephus Marthen Titahena",
+        "Fengki Manukilej"
+      ]
+    },
+    {
+      "position": "Pranata Komputer Ahli Pertama",
+      "count": 9,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Jerry Aivanca Pattikawa",
+        "Yusup Supiansori",
+        "Irvan Alvisa Himawan"
+      ]
+    },
+    {
+      "position": "Analis SDM Aparatur Ahli Pertama",
+      "count": 8,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Asriadi Alam",
+        "Annisa Pertwi",
+        "Safitri Kriswitasari"
+      ]
+    },
+    {
+      "position": "Pengelola Layanan Operasional",
+      "count": 8,
+      "units": [
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Sri Agusniarti",
+        "Arif Roesman Hafifi",
+        "Novita Adeliani"
+      ]
+    },
+    {
+      "position": "Kepala",
+      "count": 7,
+      "units": [
+        "BBPVP Bekasi",
+        "BBPVP Medan",
+        "BPVP Banda Aceh",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Yose Rizal",
+        "Amran",
+        "Rahmad Faisal"
+      ]
+    },
+    {
+      "position": "Penata Laksana Barang Terampil",
+      "count": 7,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Sarah Bhiba",
+        "Fajar Adi Subekti",
+        "Elvara Dyah Ayu Fajria"
+      ]
+    },
+    {
+      "position": "Pranata Keuangan APBN Terampil",
+      "count": 7,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Irma Usman",
+        "Rafameta Br. Sirait",
+        "Reni Yanthi Elisabeth Panjaitan"
+      ]
+    },
+    {
+      "position": "Konselor SDM",
+      "count": 7,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Sari Maghfirah",
+        "Sahrullah",
+        "Nirmala Manohara Harnanda"
+      ]
+    },
+    {
+      "position": "Analis Pengelolaan Keuangan APBN Ahli Pertama",
+      "count": 6,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Eka Dayanti",
+        "Ika Elsifa",
+        "Risna Nur Istiqamah"
+      ]
+    },
+    {
+      "position": "Pengantar Kerja Ahli Muda",
+      "count": 6,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Tri Setiyarini",
+        "Andi Asnianti",
+        "Rudi Hariyanto"
+      ]
+    },
+    {
+      "position": "Perencana Ahli Pertama",
+      "count": 6,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Ai Cahyati",
+        "Ela Sulastri",
+        "Husnul Khotimah Azis"
+      ]
+    },
+    {
+      "position": "Pranata Komputer Terampil",
+      "count": 5,
+      "units": [
+        "BPVP Ambon",
+        "BPVP Kendari",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Stevano Latupeirissa",
+        "Rinaldin",
+        "Perdana"
+      ]
+    },
+    {
+      "position": "Operator Layanan Operasional",
+      "count": 5,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Kendari",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Betha Rahmawati Agustini",
+        "Ali Masyhar",
+        "Agung Budiman"
+      ]
+    },
+    {
+      "position": "Kepala Subbagian Umum",
+      "count": 3,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng",
+        "BPVP Lombok Timur"
+      ],
+      "examples": [
+        "Dewi Mayasari Widyastuty",
+        "Asriyadi",
+        "Khairul Ziyad"
+      ]
+    },
+    {
+      "position": "Pengembang Teknologi Pembelajaran Ahli Pertama",
+      "count": 3,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Chairun Nisa",
+        "Zaelani",
+        "Lilla Destiansyah"
+      ]
+    },
+    {
+      "position": "Instruktur Mahir/Pelaksana Lanjutan",
+      "count": 3,
+      "units": [
+        "BPVP Bantaeng"
+      ],
+      "examples": [
+        "M. Yusri",
+        "Vindy Aria Prahudy",
+        "Hendra Gunawan Thamrin"
+      ]
+    },
+    {
+      "position": "Instruktur Penyelia",
+      "count": 3,
+      "units": [
+        "BPVP Lombok Timur",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Edison",
+        "Nita Septi Aryanti",
+        "Desvi Melia"
+      ]
+    },
+    {
+      "position": "Instruktur Terampil",
+      "count": 3,
+      "units": [
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Gamser Tarapul Raja Daud Sitindaon",
+        "Rahmad Yulianto",
+        "Gusnario Hardi"
+      ]
+    },
+    {
+      "position": "Instruktur Terampil/Pelaksana",
+      "count": 2,
+      "units": [
+        "BPVP Bandung Barat",
+        "BPVP Bantaeng"
+      ],
+      "examples": [
+        "Hendra Gunawan",
+        "Irfan"
+      ]
+    },
+    {
+      "position": "Instruktur Mahir",
+      "count": 2,
+      "units": [
+        "BPVP Bantaeng",
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Vindy Aria Prahudy",
+        "Vhiera Pesselpa"
+      ]
+    },
+    {
+      "position": "Pengelola Umum Operasional",
+      "count": 2,
+      "units": [
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Rosmini",
+        "Tafri"
+      ]
+    },
+    {
+      "position": "Statistisi Ahli Pertama",
+      "count": 1,
+      "units": [
+        "BPVP Ambon"
+      ],
+      "examples": [
+        "David Lewaherilla"
+      ]
+    },
+    {
+      "position": "Analis Kebijakan Ahli Muda",
+      "count": 1,
+      "units": [
+        "BPVP Bandung Barat"
+      ],
+      "examples": [
+        "Asep Saepul Muharam"
+      ]
+    },
+    {
+      "position": "Arsiparis Ahli Muda",
+      "count": 1,
+      "units": [
+        "BPVP Kendari"
+      ],
+      "examples": [
+        "Abdul Jalil Bar"
+      ]
+    },
+    {
+      "position": "Pengembang Teknologi Pembelajaran Ahli Muda",
+      "count": 1,
+      "units": [
+        "BPVP Kendari"
+      ],
+      "examples": [
+        "Fira Febrianti"
+      ]
+    },
+    {
+      "position": "Pranata Keuangan APBN Penyelia",
+      "count": 1,
+      "units": [
+        "BPVP Kendari"
+      ],
+      "examples": [
+        "Sem Rantebua"
+      ]
+    },
+    {
+      "position": "Analis SDM Aparatur Ahli Muda",
+      "count": 1,
+      "units": [
+        "BPVP Lombok Timur"
+      ],
+      "examples": [
+        "Titik Rahayu"
+      ]
+    },
+    {
+      "position": "Arsiparis Terampil",
+      "count": 1,
+      "units": [
+        "BPVP Lombok Timur"
+      ],
+      "examples": [
+        "Ina Marga Mutia"
+      ]
+    },
+    {
+      "position": "Pranata Komputer Pelaksana Lanjutan/Mahir",
+      "count": 1,
+      "units": [
+        "BPVP Lombok Timur"
+      ],
+      "examples": [
+        "Wilfrianus Sabon Tawa"
+      ]
+    },
+    {
+      "position": "Kepala Sub Bagian Umum",
+      "count": 1,
+      "units": [
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Eflianis"
+      ]
+    },
+    {
+      "position": "Pengantar Kerja Ahli Madya",
+      "count": 1,
+      "units": [
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Candra Purnama"
+      ]
+    },
+    {
+      "position": "Pustakawan Ahli Pertama",
+      "count": 1,
+      "units": [
+        "BPVP Padang"
+      ],
+      "examples": [
+        "Rio Fernando"
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "category": "Jabatan PLT/Plt",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "category": "Jabatan dengan Typo/Variasi",
+      "count": 503,
+      "examples": [
+        {
+          "name": "Yose Rizal",
+          "department": "BBPVP Bekasi",
+          "position_name": "Kepala"
+        },
+        {
+          "name": "Amran",
+          "department": "BBPVP Medan",
+          "position_name": "Kepala"
+        },
+        {
+          "name": "Mera Diah Asri Suryaningtyas",
+          "department": "BBPVP Semarang",
+          "position_name": "Penelaah Teknis Kebijakan"
+        },
+        {
+          "name": "Theodorus Iwan Setya Prabowo",
+          "department": "BBPVP Semarang",
+          "position_name": "Penelaah Teknis Kebijakan"
+        },
+        {
+          "name": "Dzakiyah Rahayu Asih",
+          "department": "BBPVP Semarang",
+          "position_name": "Penelaah Teknis Kebijakan"
+        },
+        {
+          "name": "Eka Dayanti",
+          "department": "BPVP Ambon",
+          "position_name": "Analis Pengelolaan Keuangan APBN Ahli Pertama"
+        },
+        {
+          "name": "Asriadi Alam",
+          "department": "BPVP Ambon",
+          "position_name": "Analis SDM Aparatur Ahli Pertama"
+        },
+        {
+          "name": "Johan Benyamin Kian",
+          "department": "BPVP Ambon",
+          "position_name": "Arsiparis Ahli Pertama"
+        },
+        {
+          "name": "Tracy Nitalessy",
+          "department": "BPVP Ambon",
+          "position_name": "Arsiparis Ahli Pertama"
+        },
+        {
+          "name": "Fahri Nurlatu",
+          "department": "BPVP Ambon",
+          "position_name": "Penata Kelola Sistem dan Teknologi Informasi"
+        }
+      ]
+    },
+    {
+      "category": "Jabatan Khusus/Unik",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "category": "Jabatan Baru",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "category": "Lainnya",
+      "count": 0,
+      "examples": []
+    }
+  ]
+}
