@@ -279,20 +279,41 @@ export default function PetaJabatan() {
       logger.debug('Employees loaded:', empRes.data?.length || 0);
       logger.debug('Non-ASN loaded:', nonAsnRes.data?.length || 0);
 
-      // Fetch latest education for each employee (ASN only)
+      // Fetch pendidikan terakhir per pegawai menggunakan RPC dengan pagination
       if (empRes.data && empRes.data.length > 0) {
-        const empIds = empRes.data.map(e => e.id);
-        const { data: eduData } = await supabase
-          .from('education_history')
-          .select('employee_id, level')
-          .in('employee_id', empIds)
-          .order('graduation_year', { ascending: false });
+        const empIds = new Set(empRes.data.map(e => e.id));
         
-        // Get latest education per employee
+        // Fetch dengan pagination untuk menghindari limit 1000
+        const allEduData: Array<{ employee_id: string; level: string; major: string | null }> = [];
+        let eduOffset = 0;
+        const eduBatchSize = 1000;
+        
+        while (true) {
+          const { data: eduBatch, error: eduError } = await supabase
+            .rpc('get_latest_education_per_employee')
+            .range(eduOffset, eduOffset + eduBatchSize - 1);
+          
+          if (eduError) {
+            logger.error('Error fetching education data:', eduError);
+            break;
+          }
+          
+          if (!eduBatch || eduBatch.length === 0) break;
+          allEduData.push(...eduBatch);
+          
+          if (eduBatch.length < eduBatchSize) break;
+          eduOffset += eduBatchSize;
+        }
+        
         const latestEdu: Record<string, string> = {};
-        (eduData || []).forEach(e => {
-          if (!latestEdu[e.employee_id]) {
-            latestEdu[e.employee_id] = e.level;
+        allEduData.forEach((e: { employee_id: string; level: string; major: string | null }) => {
+          // Filter hanya untuk pegawai di unit ini
+          if (empIds.has(e.employee_id)) {
+            if (!latestEdu[e.employee_id]) {
+              // Format: "Level Major" atau hanya "Level" jika major kosong
+              const eduText = e.major ? `${e.level} ${e.major}` : e.level;
+              latestEdu[e.employee_id] = eduText;
+            }
           }
         });
         setEducationData(Object.entries(latestEdu).map(([employee_id, level]) => ({ employee_id, level })));
@@ -1243,37 +1264,73 @@ export default function PetaJabatan() {
         return candidate;
       };
 
-      // Ambil semua data sekaligus (positions + employees) untuk efisiensi
-      const [allPosRes, allEmpRes, allEduRes] = await Promise.all([
-        supabase
-          .from('position_references')
-          .select('*')
-          .order('department')
-          .order('position_category')
-          .order('position_order')
-          .order('position_name'),
-        supabase
-          .from('employees')
-          .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
-          .eq('is_active', true)  // Hanya pegawai aktif untuk export peta jabatan
-          .or('asn_status.is.null,asn_status.neq.Non ASN'),
-        supabase
-          .from('education_history')
-          .select('employee_id, level, graduation_year')
-          .order('graduation_year', { ascending: false }),
+      // Helper fetch all dengan pagination untuk menghindari limit 1000 rows Supabase
+      const fetchAllPages = async <T,>(
+        buildQuery: (from: number, to: number) => ReturnType<typeof supabase.from>
+      ): Promise<T[]> => {
+        const all: T[] = [];
+        let offset = 0;
+        const batchSize = 1000;
+        while (true) {
+          const { data, error } = await buildQuery(offset, offset + batchSize - 1) as { data: T[] | null; error: unknown };
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          all.push(...data);
+          if (data.length < batchSize) break;
+          offset += batchSize;
+        }
+        return all;
+      };
+
+      // Ambil semua data dengan pagination
+      const [allPos, allEmp] = await Promise.all([
+        fetchAllPages((from, to) =>
+          supabase
+            .from('position_references')
+            .select('*')
+            .order('department')
+            .order('position_category')
+            .order('position_order')
+            .order('position_name')
+            .range(from, to)
+        ),
+        fetchAllPages((from, to) =>
+          supabase
+            .from('employees')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .eq('is_active', true)
+            .or('asn_status.is.null,asn_status.neq.Non ASN')
+            .range(from, to)
+        ),
       ]);
 
-      if (allPosRes.error) throw allPosRes.error;
-      if (allEmpRes.error) throw allEmpRes.error;
+      // Fetch pendidikan terakhir — RPC DISTINCT ON dengan pagination
+      const allEdu: Array<{ employee_id: string; level: string; major: string | null }> = [];
+      let eduOffset = 0;
+      const eduBatchSize = 1000;
+      
+      while (true) {
+        const { data: eduBatch, error: eduError } = await supabase
+          .rpc('get_latest_education_per_employee')
+          .range(eduOffset, eduOffset + eduBatchSize - 1);
+        
+        if (eduError) throw eduError;
+        if (!eduBatch || eduBatch.length === 0) break;
+        
+        allEdu.push(...eduBatch);
+        
+        if (eduBatch.length < eduBatchSize) break;
+        eduOffset += eduBatchSize;
+      }
 
-      const allPos = allPosRes.data || [];
-      const allEmp = (allEmpRes.data || []) as EmployeeMatch[];
-      const allEdu = allEduRes.data || [];
-
-      // Buat map pendidikan terakhir per employee_id
+      // Buat map pendidikan terakhir per employee_id dengan format "Level Major"
       const eduMap = new Map<string, string>();
       allEdu.forEach(e => {
-        if (!eduMap.has(e.employee_id)) eduMap.set(e.employee_id, e.level);
+        if (!eduMap.has(e.employee_id)) {
+          // Format: "Level Major" atau hanya "Level" jika major kosong
+          const eduText = e.major ? `${e.level} ${e.major}` : e.level;
+          eduMap.set(e.employee_id, eduText);
+        }
       });
 
       // Buat map employees per department → per normalized position_name
