@@ -1436,8 +1436,10 @@ export default function PetaJabatan() {
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
       }
 
-      // Sheet terakhir: Summary semua unit dengan data agregasi lengkap
-      const summaryRows: Record<string, string | number>[] = [];
+      // Sheet SUMMARY: Kumpulan tabel agregasi dalam satu worksheet
+      // Format: Tabel-tabel terpisah dengan spasi antar tabel
+      type ExcelRow = (string | number)[];
+      const summaryData: ExcelRow[] = [];
       
       // Helper functions untuk agregasi (sama seperti di QuickAggregation)
       const normalizeAsnStatus = (status: unknown): string => {
@@ -1696,12 +1698,382 @@ export default function PetaJabatan() {
         wb.Sheets['SUMMARY'] = wsSummary;
       }
 
+      // ═══════════════════════════════════════════════════════════════════════
+      // TAMBAHAN: 3 Sheet Agregasi dari Agregasi Cepat
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // Helper functions untuk agregasi (sama seperti di QuickAggregation)
+      const normalizeAsnStatus = (status: unknown): string => {
+        if (!status) return 'Tidak Ada';
+        const s = String(status).trim().toUpperCase();
+        if (s === 'CPNS' || s.includes('CPNS')) return 'CPNS';
+        if (s === 'PNS' || s.includes('PNS')) return 'PNS';
+        if (s === 'PPPK' || s.includes('PPPK')) return 'PPPK';
+        if (s === 'NON ASN' || s.includes('NON') || s.includes('ALIH DAYA')) return 'Non ASN';
+        return s || 'Tidak Ada';
+      };
+
+      const normalizeGender = (gender: unknown): string => {
+        if (!gender) return 'Tidak Ada';
+        const g = String(gender).toLowerCase().replace(/[-_\/\s]+/g, '');
+        if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'Laki-laki';
+        if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female' || g.includes('wanita')) return 'Perempuan';
+        return 'Tidak Ada';
+      };
+
+      const extractEducationLevelFromMap = (employeeId: string): string => {
+        const edu = eduMap.get(employeeId);
+        if (!edu) return 'Tidak Ada';
+        const level = edu.toUpperCase();
+        if (level.includes('S3') || level.includes('DOKTOR') || level.includes('DR')) return 'S3';
+        if (level.includes('S2') || level.includes('MAGISTER') || level.includes('MASTER')) return 'S2';
+        if (level.includes('S1') || level.includes('SARJANA') || level.includes('BACHELOR')) return 'S1';
+        if (level.includes('D4') || level.includes('D-IV')) return 'D4';
+        if (level.includes('D3') || level.includes('D-III')) return 'D3';
+        if (level.includes('D2') || level.includes('D-II')) return 'D2';
+        if (level.includes('D1') || level.includes('D-I')) return 'D1';
+        if (level.includes('SMA') || level.includes('SMK') || level.includes('MA')) return 'SMA/SMK';
+        if (level.includes('SMP') || level.includes('MTS')) return 'SMP';
+        if (level.includes('SD') || level.includes('MI')) return 'SD';
+        return 'Lainnya';
+      };
+
+      // Urutan resmi unit kerja
+      const OFFICIAL_DEPT_ORDER: string[] = [
+        'Setditjen Binalavotas',
+        'Direktorat Bina Stankomproglat',
+        'Direktorat Bina Lemlatvok',
+        'Direktorat Bina Penyelenggaraan Latvogan',
+        'Direktorat Bina Intala',
+        'Direktorat Bina Peningkatan Produktivitas',
+        'Sekretariat BNSP',
+        'BBPVP Bekasi',
+        'BBPVP Bandung',
+        'BBPVP Serang',
+        'BBPVP Medan',
+        'BBPVP Semarang',
+        'BBPVP Makassar',
+        'BPVP Surakarta',
+        'BPVP Ambon',
+        'BPVP Ternate',
+        'BPVP Banda Aceh',
+        'BPVP Sorong',
+        'BPVP Kendari',
+        'BPVP Samarinda',
+        'BPVP Padang',
+        'BPVP Bandung Barat',
+        'BPVP Lombok Timur',
+        'BPVP Bantaeng',
+        'BPVP Banyuwangi',
+        'BPVP Sidoarjo',
+        'BPVP Pangkep',
+        'BPVP Belitung',
+        'Satpel Sawahlunto',
+        'Satpel Sofifi',
+        'Satpel Pekanbaru',
+        'Satpel Lubuklinggau',
+        'Satpel Lampung',
+        'Satpel Bengkulu',
+        'Satpel Mamuju',
+        'Satpel Majene',
+        'Satpel Palu',
+        'Satpel Bantul',
+        'Satpel Kupang',
+        'Satpel Jambi',
+        'Satpel Jayapura',
+        'Workshop Prabumulih',
+        'Workshop Batam',
+        'Workshop Gorontalo',
+      ];
+
+      // Kelompokkan pegawai per unit kerja
+      const deptEmpMap = new Map<string, typeof allEmp>();
+      allEmp.forEach(emp => {
+        if (!emp.department) return;
+        if (!deptEmpMap.has(emp.department)) deptEmpMap.set(emp.department, []);
+        deptEmpMap.get(emp.department)!.push(emp);
+      });
+
+      const deptSet = new Set(deptEmpMap.keys());
+      const sortedDepts = [
+        ...OFFICIAL_DEPT_ORDER.filter(d => deptSet.has(d)),
+        ...[...deptSet].filter(d => !OFFICIAL_DEPT_ORDER.includes(d)).sort(),
+      ];
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // SHEET 1: Tabel Golongan per Unit Kerja
+      // ═══════════════════════════════════════════════════════════════════════
+      if (sortedDepts.length > 0) {
+        const golonganRows: Record<string, string | number>[] = [];
+        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, jumlah_pns: 0, pppk_III: 0, pppk_V: 0, pppk_VII: 0, pppk_IX: 0, jumlah_pppk: 0, total: 0, L: 0, P: 0 };
+
+        sortedDepts.forEach((dept, idx) => {
+          const emps = deptEmpMap.get(dept) || [];
+
+          // Hitung PNS per golongan utama (I, II, III, IV)
+          const isPnsOrCpns = (e: typeof allEmp[0]) => {
+            const s = normalizeAsnStatus(e.asn_status);
+            return s === 'PNS' || s === 'CPNS';
+          };
+          const getPnsGolongan = (rankGroup: string): string => {
+            const rg = String(rankGroup || '').trim();
+            const subMatch = rg.match(/\b(IV|III|II|I)\/(a|b|c|d|e)\b/i);
+            if (subMatch) return subMatch[1].toUpperCase();
+            const longMatch = rg.match(/\((IV|III|II|I)\//i);
+            if (longMatch) return longMatch[1].toUpperCase();
+            return 'lainnya';
+          };
+          const pns_I   = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'I').length;
+          const pns_II  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
+          const pns_III = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
+          const pns_IV  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
+          const jumlah_pns = emps.filter(e => isPnsOrCpns(e)).length;
+
+          // Hitung PPPK per golongan: III, V, VII, IX
+          const isPppk = (e: typeof allEmp[0]) => normalizeAsnStatus(e.asn_status) === 'PPPK';
+          const getPppkGolongan = (rankGroup: string): string => {
+            const rg = String(rankGroup || '').trim().toUpperCase();
+            if (rg === 'III') return 'III';
+            if (rg === 'V')   return 'V';
+            if (rg === 'VII') return 'VII';
+            if (rg === 'IX')  return 'IX';
+            return 'lainnya';
+          };
+          const pppk_III = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'III').length;
+          const pppk_V   = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
+          const pppk_VII = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
+          const pppk_IX  = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
+          const jumlah_pppk = emps.filter(e => isPppk(e)).length;
+
+          const total_asn = jumlah_pns + jumlah_pppk;
+
+          // Hitung jenis kelamin
+          const countedAsnEmps = emps.filter(e => isPnsOrCpns(e) || isPppk(e));
+          const L = countedAsnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
+          const P = countedAsnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
+
+          golonganRows.push({
+            'No': idx + 1,
+            'Unit Kerja': dept,
+            'PNS I': pns_I,
+            'PNS II': pns_II,
+            'PNS III': pns_III,
+            'PNS IV': pns_IV,
+            'Jumlah PNS': jumlah_pns,
+            'PPPK III': pppk_III,
+            'PPPK V': pppk_V,
+            'PPPK VII': pppk_VII,
+            'PPPK IX': pppk_IX,
+            'Jumlah PPPK': jumlah_pppk,
+            'Total ASN': total_asn,
+            'L': L,
+            'P': P,
+            'Total JK': L + P,
+          });
+
+          totals.pns_I   += pns_I;
+          totals.pns_II  += pns_II;
+          totals.pns_III += pns_III;
+          totals.pns_IV  += pns_IV;
+          totals.jumlah_pns  += jumlah_pns;
+          totals.pppk_III += pppk_III;
+          totals.pppk_V   += pppk_V;
+          totals.pppk_VII += pppk_VII;
+          totals.pppk_IX  += pppk_IX;
+          totals.jumlah_pppk += jumlah_pppk;
+          totals.total   += total_asn;
+          totals.L       += L;
+          totals.P       += P;
+        });
+
+        // Baris JUMLAH
+        golonganRows.push({
+          'No': '',
+          'Unit Kerja': 'JUMLAH',
+          'PNS I': totals.pns_I,
+          'PNS II': totals.pns_II,
+          'PNS III': totals.pns_III,
+          'PNS IV': totals.pns_IV,
+          'Jumlah PNS': totals.jumlah_pns,
+          'PPPK III': totals.pppk_III,
+          'PPPK V': totals.pppk_V,
+          'PPPK VII': totals.pppk_VII,
+          'PPPK IX': totals.pppk_IX,
+          'Jumlah PPPK': totals.jumlah_pppk,
+          'Total ASN': totals.total,
+          'L': totals.L,
+          'P': totals.P,
+          'Total JK': totals.L + totals.P,
+        });
+
+        const wsGolongan = XLSX.utils.json_to_sheet(golonganRows);
+        wsGolongan['!cols'] = [
+          { wch: 5 },  // No
+          { wch: 32 }, // Unit Kerja
+          { wch: 8 },  // PNS I
+          { wch: 8 },  // PNS II
+          { wch: 8 },  // PNS III
+          { wch: 8 },  // PNS IV
+          { wch: 12 }, // Jumlah PNS
+          { wch: 9 },  // PPPK III
+          { wch: 9 },  // PPPK V
+          { wch: 9 },  // PPPK VII
+          { wch: 9 },  // PPPK IX
+          { wch: 13 }, // Jumlah PPPK
+          { wch: 11 }, // Total ASN
+          { wch: 6 },  // L
+          { wch: 6 },  // P
+          { wch: 10 }, // Total JK
+        ];
+        XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // SHEET 2: Tabel Pendidikan per Unit Kerja
+      // ═══════════════════════════════════════════════════════════════════════
+      if (sortedDepts.length > 0) {
+        const EDU_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+        const EDU_LABELS = ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+
+        // Generate dynamic month and year
+        const now = new Date();
+        const monthNames = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 
+                           'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+        const currentMonth = monthNames[now.getMonth()];
+        const currentYear = now.getFullYear();
+        const titleText = `REKAP PEGAWAI DITJEN BULAN ${currentMonth} ${currentYear}`;
+        const subtitleText = 'Dukungan Personil Berdasarkan Tingkat Pendidikan';
+
+        type ExcelRow = (string | number)[];
+        const dataRows: ExcelRow[] = [];
+        const eduTotals: Record<string, number> = { total: 0 };
+        EDU_LABELS.forEach(l => { eduTotals[l] = 0; });
+
+        sortedDepts.forEach((dept, idx) => {
+          const emps = deptEmpMap.get(dept) || [];
+          // Hanya ASN (exclude Non ASN)
+          const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
+          const total = asnEmps.length;
+
+          const row: ExcelRow = [idx + 1, dept, total];
+
+          EDU_LEVELS.forEach((level, i) => {
+            const count = asnEmps.filter(e => {
+              const edu = extractEducationLevelFromMap(e.id);
+              return edu === level;
+            }).length;
+            row.push(count);
+            eduTotals[EDU_LABELS[i]] = (eduTotals[EDU_LABELS[i]] || 0) + count;
+          });
+
+          row.push(total); // JML PEG kedua
+          eduTotals['total'] += total;
+          dataRows.push(row);
+        });
+
+        // Baris JUMLAH
+        const jumlahRow: ExcelRow = ['', 'JUMLAH', eduTotals['total']];
+        EDU_LABELS.forEach(l => { jumlahRow.push(eduTotals[l]); });
+        jumlahRow.push(eduTotals['total']); // JML PEG kedua
+        dataRows.push(jumlahRow);
+
+        // Build worksheet using aoa_to_sheet
+        const aoaData: ExcelRow[] = [
+          [titleText],
+          [subtitleText],
+          ['NO.', 'UNIT KERJA', 'JML PEG', 'SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3', 'JML PEG'],
+          ...dataRows
+        ];
+
+        const wsEdu = XLSX.utils.aoa_to_sheet(aoaData);
+        wsEdu['!cols'] = [
+          { wch: 5 },  // NO.
+          { wch: 32 }, // UNIT KERJA
+          { wch: 8 },  // JML PEG
+          { wch: 6 },  // SD
+          { wch: 6 },  // SMP
+          { wch: 6 },  // SMA
+          { wch: 6 },  // D1
+          { wch: 6 },  // D2
+          { wch: 6 },  // D3
+          { wch: 6 },  // D4
+          { wch: 6 },  // S1
+          { wch: 6 },  // S2
+          { wch: 6 },  // S3
+          { wch: 8 },  // JML PEG
+        ];
+        wsEdu['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } },
+        ];
+        XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // SHEET 3: Jumlah ASN per Unit Kerja
+      // ═══════════════════════════════════════════════════════════════════════
+      if (sortedDepts.length > 0) {
+        const asnRows: Record<string, string | number>[] = [];
+        let totalAsn = 0;
+        let totalNonAsn = 0;
+        let totalAll = 0;
+
+        sortedDepts.forEach((dept, idx) => {
+          const emps = deptEmpMap.get(dept) || [];
+          
+          // Hitung ASN (PNS + CPNS + PPPK)
+          const asnCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+          }).length;
+          
+          // Hitung Non ASN / Outsourcing
+          const nonAsnCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'Non ASN';
+          }).length;
+          
+          const total = asnCount + nonAsnCount;
+
+          asnRows.push({
+            'No': idx + 1,
+            'Nama Unit kerja': dept,
+            'JUMLAH ASN (PNS + CPNS + PPPK)': asnCount,
+            'Jumlah Tenaga Non ASN / Outsourcing': nonAsnCount,
+            'Jumlah ASN dan Tenaga Non ASN': total,
+          });
+
+          totalAsn += asnCount;
+          totalNonAsn += nonAsnCount;
+          totalAll += total;
+        });
+
+        // Baris JUMLAH
+        asnRows.push({
+          'No': '',
+          'Nama Unit kerja': 'JUMLAH',
+          'JUMLAH ASN (PNS + CPNS + PPPK)': totalAsn,
+          'Jumlah Tenaga Non ASN / Outsourcing': totalNonAsn,
+          'Jumlah ASN dan Tenaga Non ASN': totalAll,
+        });
+
+        const wsAsnSummary = XLSX.utils.json_to_sheet(asnRows);
+        wsAsnSummary['!cols'] = [
+          { wch: 5 },  // No
+          { wch: 32 }, // Nama Unit kerja
+          { wch: 28 }, // JUMLAH ASN (PNS + CPNS + PPPK)
+          { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
+          { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
+        ];
+        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
+      }
+
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       XLSX.writeFile(wb, `Peta_Jabatan_ASN_Semua_Unit_${today}.xlsx`);
 
       toast({
         title: 'Export Berhasil',
-        description: `${wb.SheetNames.length} worksheet (${wb.SheetNames.length - 1} unit kerja + 1 summary) berhasil di-export.`,
+        description: `${wb.SheetNames.length} worksheet berhasil di-export (${depts.length} unit kerja + 4 sheet agregasi).`,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan';
