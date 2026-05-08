@@ -233,22 +233,6 @@ export default function DataBuilder() {
       inValuesByField.set(filter.field, [...new Set([...existing, ...vals])]);
     }
 
-    for (const [field, vals] of inValuesByField) {
-      // Special handling for rank_group: if "(Tidak Ada)" is selected, include null values AND "Tenaga Alih Daya" and "Tidak Ada" strings
-      if (field === 'rank_group' && vals.includes('(Tidak Ada)')) {
-        const actualVals = vals.filter(v => v !== '(Tidak Ada)');
-        if (actualVals.length > 0) {
-          // Include actual values + null + "Tenaga Alih Daya" + "Tidak Ada"
-          q = q.or(`${field}.in.(${actualVals.map(v => `"${v}"`).join(',')},"Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
-        } else {
-          // Only null + "Tenaga Alih Daya" + "Tidak Ada"
-          q = q.or(`${field}.in.("Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
-        }
-      } else {
-        q = q.in(field, vals);
-      }
-    }
-
     // Kumpulkan filter text per field
     const textFiltersByField = new Map<string, Array<{ operator: string; value: string }>>();
     for (const filter of regularFilters) {
@@ -259,45 +243,70 @@ export default function DataBuilder() {
       textFiltersByField.set(filter.field, [...existing, { operator: filter.operator, value }]);
     }
 
-    // Deteksi apakah filter position_name dan additional_position keduanya aktif bersamaan.
-    // Jika ya, gabungkan semua kondisi keduanya dalam satu OR besar agar tidak saling memotong
-    // (AND antara dua OR terpisah akan menghilangkan pegawai yang hanya cocok di salah satu field).
-    const hasPositionNameText = textFiltersByField.has('position_name');
-    const hasAdditionalPositionText = textFiltersByField.has('additional_position');
-    const shouldMergePositionFilters = hasPositionNameText && hasAdditionalPositionText;
+    // Helper: konversi satu kondisi text ke OR-part string untuk PostgREST
+    const textConditionToOrPart = (field: string, operator: string, value: string): string => {
+      const escaped = value.replace(/"/g, '\\"');
+      if (operator === 'exact_word' || operator === 'ilike') return `${field}.ilike."%${escaped}%"`;
+      if (operator === 'exact_match') return `${field}.ilike."${escaped}"`;
+      return `${field}.eq."${escaped}"`;
+    };
 
-    if (shouldMergePositionFilters) {
-      // Gabungkan semua kondisi position_name dan additional_position dalam satu OR
+    // Deteksi apakah position_name dan additional_position keduanya aktif (in atau text).
+    // Jika ya, gabungkan SEMUA kondisi keduanya dalam satu OR besar agar tidak saling memotong.
+    // Tanpa ini, dua .or() terpisah di-AND oleh Supabase sehingga pegawai yang hanya cocok
+    // di salah satu field (misal: punya jabatan kepmen tapi tidak punya jabatan tambahan) hilang.
+    const posInVals = inValuesByField.get('position_name');
+    const addInVals = inValuesByField.get('additional_position');
+    const posTextConds = textFiltersByField.get('position_name') ?? [];
+    const addTextConds = textFiltersByField.get('additional_position') ?? [];
+
+    const hasPositionNameActive = (posInVals?.length ?? 0) > 0 || posTextConds.length > 0;
+    const hasAdditionalPositionActive = (addInVals?.length ?? 0) > 0 || addTextConds.length > 0;
+
+    if (hasPositionNameActive && hasAdditionalPositionActive) {
       const mergedOrParts: string[] = [];
 
-      const buildOrParts = (field: string, conditions: Array<{ operator: string; value: string }>) => {
-        for (const { operator, value } of conditions) {
-          const escaped = value.replace(/"/g, '\\"');
-          if (operator === 'exact_word' || operator === 'ilike') {
-            mergedOrParts.push(`${field}.ilike."%${escaped}%"`);
-          } else if (operator === 'exact_match') {
-            mergedOrParts.push(`${field}.ilike."${escaped}"`);
-          } else {
-            mergedOrParts.push(`${field}.eq."${escaped}"`);
-          }
-        }
-      };
-
-      buildOrParts('position_name', textFiltersByField.get('position_name')!);
-      buildOrParts('additional_position', textFiltersByField.get('additional_position')!);
-
-      if (mergedOrParts.length > 0) {
-        q = q.or(mergedOrParts.join(','));
+      if (posInVals?.length) {
+        mergedOrParts.push(`position_name.in.(${posInVals.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')})`);
+        inValuesByField.delete('position_name');
+      }
+      if (addInVals?.length) {
+        mergedOrParts.push(`additional_position.in.(${addInVals.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')})`);
+        inValuesByField.delete('additional_position');
+      }
+      for (const { operator, value } of posTextConds) {
+        mergedOrParts.push(textConditionToOrPart('position_name', operator, value));
+      }
+      for (const { operator, value } of addTextConds) {
+        mergedOrParts.push(textConditionToOrPart('additional_position', operator, value));
       }
 
-      // Hapus kedua field dari map agar tidak diproses ulang di loop di bawah
+      if (mergedOrParts.length > 0) q = q.or(mergedOrParts.join(','));
+
+      // Hapus dari map agar tidak diproses ulang di loop di bawah
       textFiltersByField.delete('position_name');
       textFiltersByField.delete('additional_position');
     }
 
+    // Proses filter 'in' yang tersisa (bukan position_name/additional_position yang sudah digabung)
+    for (const [field, vals] of inValuesByField) {
+      // Special handling for rank_group: if "(Tidak Ada)" is selected, include null values AND "Tenaga Alih Daya" and "Tidak Ada" strings
+      if (field === 'rank_group' && vals.includes('(Tidak Ada)')) {
+        const actualVals = vals.filter(v => v !== '(Tidak Ada)');
+        if (actualVals.length > 0) {
+          q = q.or(`${field}.in.(${actualVals.map(v => `"${v}"`).join(',')},"Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
+        } else {
+          q = q.or(`${field}.in.("Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
+        }
+      } else {
+        q = q.in(field, vals);
+      }
+    }
+
+    // Proses filter text yang tersisa
     for (const [field, conditions] of textFiltersByField) {
-      // Filter pada position_name otomatis mencari juga di additional_position (OR)
-      // sehingga pegawai PLT muncul tanpa perlu memilih kolom additional_position
+      // Filter pada position_name (tanpa additional_position aktif) otomatis mencari juga
+      // di additional_position (OR) agar pegawai PLT muncul tanpa perlu memilih kolom PLT
       const includeAdditional = field === 'position_name';
 
       if (conditions.length === 1 && !includeAdditional) {
@@ -310,29 +319,20 @@ export default function DataBuilder() {
           q = q.eq(field, value);
         }
       } else {
-        // Gabung dengan OR — termasuk additional_position jika field adalah position_name
         const orParts: string[] = [];
-
         for (const { operator, value } of conditions) {
           const escaped = value.replace(/"/g, '\\"');
           if (operator === 'exact_word' || operator === 'ilike') {
             orParts.push(`${field}.ilike."%${escaped}%"`);
-            if (includeAdditional) {
-              orParts.push(`additional_position.ilike."%${escaped}%"`);
-            }
+            if (includeAdditional) orParts.push(`additional_position.ilike."%${escaped}%"`);
           } else if (operator === 'exact_match') {
             orParts.push(`${field}.ilike."${escaped}"`);
-            if (includeAdditional) {
-              orParts.push(`additional_position.ilike."${escaped}"`);
-            }
+            if (includeAdditional) orParts.push(`additional_position.ilike."${escaped}"`);
           } else {
             orParts.push(`${field}.eq."${escaped}"`);
-            if (includeAdditional) {
-              orParts.push(`additional_position.eq."${escaped}"`);
-            }
+            if (includeAdditional) orParts.push(`additional_position.eq."${escaped}"`);
           }
         }
-
         q = q.or(orParts.join(','));
       }
     }
