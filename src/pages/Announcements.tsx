@@ -67,7 +67,7 @@ const typeBadgeVariants: Record<AnnouncementType, 'default' | 'secondary' | 'des
 
 export default function Announcements() {
   const { isAdminPusat } = useAuth();
-  const { data: announcements, isLoading } = useAllAnnouncements();
+  const { data: announcements, isLoading, refetch } = useAllAnnouncements();
   const createMutation = useCreateAnnouncement();
   const updateMutation = useUpdateAnnouncement();
   const deleteMutation = useDeleteAnnouncement();
@@ -144,6 +144,8 @@ export default function Announcements() {
 
     setIsCreateDialogOpen(false);
     form.reset();
+    // Force refetch to ensure the list is up to date
+    refetch();
   };
 
   const handleToggleActive = async (announcement: any) => {

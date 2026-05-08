@@ -113,8 +113,8 @@ export function useCreateAnnouncement() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcements'] });
-      queryClient.invalidateQueries({ queryKey: ['all-announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['announcements'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['all-announcements'], refetchType: 'all' });
       toast({
         title: 'Pengumuman berhasil dibuat',
         description: 'Pengumuman akan muncul di dashboard semua admin unit',
@@ -137,6 +137,7 @@ export function useCreateAnnouncement() {
 export function useAllAnnouncements() {
   return useQuery({
     queryKey: ['all-announcements'],
+    staleTime: 0, // Always refetch when invalidated
     queryFn: async () => {
       logger.info('Fetching all announcements...');
       
@@ -202,8 +203,8 @@ export function useUpdateAnnouncement() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcements'] });
-      queryClient.invalidateQueries({ queryKey: ['all-announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['announcements'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['all-announcements'], refetchType: 'all' });
       toast({
         title: 'Pengumuman berhasil diperbarui',
       });
@@ -236,8 +237,8 @@ export function useDeleteAnnouncement() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcements'] });
-      queryClient.invalidateQueries({ queryKey: ['all-announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['announcements'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['all-announcements'], refetchType: 'all' });
       toast({
         title: 'Pengumuman berhasil dihapus',
       });
