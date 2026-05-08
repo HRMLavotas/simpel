@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Plus, Megaphone, Edit, Trash2, Eye, EyeOff, Calendar } from 'lucide-react';
+import { Plus, Megaphone, Edit, Trash2, Eye, EyeOff, Calendar, AlertCircle, RefreshCw } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -66,8 +67,8 @@ const typeBadgeVariants: Record<AnnouncementType, 'default' | 'secondary' | 'des
 };
 
 export default function Announcements() {
-  const { isAdminPusat } = useAuth();
-  const { data: announcements, isLoading, refetch } = useAllAnnouncements();
+  const { isAdminPusat, isLoading: isAuthLoading } = useAuth();
+  const { data: announcements, isLoading, isError, error, refetch } = useAllAnnouncements();
   const createMutation = useCreateAnnouncement();
   const updateMutation = useUpdateAnnouncement();
   const deleteMutation = useDeleteAnnouncement();
@@ -84,6 +85,17 @@ export default function Announcements() {
       expires_at: '',
     },
   });
+
+  // Tunggu auth selesai loading sebelum cek akses
+  if (isAuthLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   // Redirect if not admin pusat
   if (!isAdminPusat) {
@@ -196,6 +208,16 @@ export default function Announcements() {
               </Card>
             ))}
           </div>
+        ) : isError ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Gagal memuat daftar pengumuman: {(error as Error)?.message || 'Terjadi kesalahan'}
+              <Button variant="outline" size="sm" className="ml-4" onClick={() => refetch()}>
+                Coba Lagi
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : announcements && announcements.length > 0 ? (
           <div className="space-y-4">
             {announcements.map((announcement) => (
