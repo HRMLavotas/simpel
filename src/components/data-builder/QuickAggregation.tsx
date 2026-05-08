@@ -9,6 +9,17 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/lib/logger';
+import { UNIT_PEMBINA_MAPPING, isSatpelOrWorkshop } from '@/lib/constants';
+
+// Helper: resolve effective department for aggregation.
+// Pegawai di Satpel/Workshop dihitung ke unit pembinanya.
+function getEffectiveDept(department: string | undefined | null): string {
+  const dept = String(department || 'Tidak Ada');
+  if (isSatpelOrWorkshop(dept)) {
+    return UNIT_PEMBINA_MAPPING[dept] ?? dept; // fallback ke nama asli jika tidak ada di mapping
+  }
+  return dept;
+}
 
 // Chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
@@ -649,9 +660,10 @@ export function QuickAggregation() {
       // Sheet 12: Tabel Jumlah ASN dan Non ASN per Unit Kerja (BULANAN)
       // Format: No | Nama Unit kerja | JUMLAH ASN (PNS + CPNS + PPPK) | Jumlah Tenaga Non ASN / Outsourcing | Jumlah ASN dan Tenaga Non ASN
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
+        // Kelompokkan pegawai ke unit pembina (Satpel → pembina)
         const deptAsnMap = new Map<string, typeof data>();
         data.forEach(emp => {
-          const dept = String(emp.department || 'Tidak Ada');
+          const dept = getEffectiveDept(emp.department as string | undefined);
           if (!deptAsnMap.has(dept)) deptAsnMap.set(dept, []);
           deptAsnMap.get(dept)!.push(emp);
         });
@@ -720,10 +732,10 @@ export function QuickAggregation() {
       // Sheet 13: Tabel Golongan per Unit Kerja (format resmi)
       // Kolom: No | Unit Kerja | PNS I | PNS II | PNS III | PNS IV | PPPK III | PPPK IV | PPPK V | PPPK VII | PPPK IX | Total | L | P | Total JK
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
-        // Kelompokkan data per unit kerja
+        // Kelompokkan data per unit kerja (Satpel → pembina)
         const deptMap = new Map<string, typeof data>();
         data.forEach(emp => {
-          const dept = String(emp.department || 'Tidak Ada');
+          const dept = getEffectiveDept(emp.department as string | undefined);
           if (!deptMap.has(dept)) deptMap.set(dept, []);
           deptMap.get(dept)!.push(emp);
         });
@@ -860,10 +872,10 @@ export function QuickAggregation() {
         const titleText = `REKAP PEGAWAI DITJEN BULAN ${currentMonth} ${currentYear}`;
         const subtitleText = 'Dukungan Personil Berdasarkan Tingkat Pendidikan';
 
-        // Kelompokkan data per unit kerja
+        // Kelompokkan data per unit kerja (Satpel → pembina)
         const deptEduMap = new Map<string, typeof data>();
         data.forEach(emp => {
-          const dept = String(emp.department || 'Tidak Ada');
+          const dept = getEffectiveDept(emp.department as string | undefined);
           if (!deptEduMap.has(dept)) deptEduMap.set(dept, []);
           deptEduMap.get(dept)!.push(emp);
         });
