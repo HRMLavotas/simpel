@@ -969,6 +969,7 @@ export default function Employees() {
         phone: data.phone || null,
         mobile_phone: data.mobile_phone || null,
         address: data.address || null,
+        satuan_kerja_penugasan: data.satuan_kerja_penugasan || null,
         // Include inactive status fields if present
         ...(data.is_active !== undefined && {
           is_active: data.is_active,

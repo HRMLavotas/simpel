@@ -107,6 +107,23 @@ export const DEPARTMENT_ALIASES: Record<string, Department> = {
   'Satuan Pelayanan Jambi': 'Satpel Jambi',
   'Satpel Jayapura': 'Satpel Jayapura',
   'Satuan Pelayanan Jayapura': 'Satpel Jayapura',
+  // Satpel baru (unit binaan yang ditambahkan)
+  'Satuan Pelayanan Kotawaringin Timur': 'Satpel Kotawaringin Timur',
+  'Satpel Kotawaringin Timur': 'Satpel Kotawaringin Timur',
+  'Satuan Pelayanan Bali': 'Satpel Bali',
+  'Satpel Bali': 'Satpel Bali',
+  'Satuan Pelayanan Morowali': 'Satpel Morowali',
+  'Satpel Morowali': 'Satpel Morowali',
+  'Satuan Pelayanan Morowali Utara': 'Satpel Morowali Utara',
+  'Satpel Morowali Utara': 'Satpel Morowali Utara',
+  'Satuan Pelayanan Minahasa Utara': 'Satpel Minahasa Utara',
+  'Satpel Minahasa Utara': 'Satpel Minahasa Utara',
+  'Satuan Pelayanan Halmahera Selatan': 'Satpel Halmahera Selatan',
+  'Satpel Halmahera Selatan': 'Satpel Halmahera Selatan',
+  'Satuan Pelayanan Tanah Bumbu': 'Satpel Tanah Bumbu',
+  'Satpel Tanah Bumbu': 'Satpel Tanah Bumbu',
+  'Satuan Pelayanan Bulungan': 'Satpel Bulungan',
+  'Satpel Bulungan': 'Satpel Bulungan',
 };
 
 // ASN Status options
@@ -438,4 +455,51 @@ export function canAccessDepartment(
 ): boolean {
   const accessible = getAccessibleDepartments(userDepartment, role);
   return accessible.includes(targetDepartment);
+}
+
+/**
+ * Get the effective department for fetching position_references.
+ * For Satpel/Workshop: returns the unit pembina.
+ * For regular units: returns the unit itself.
+ * Returns null if Satpel is not found in UNIT_PEMBINA_MAPPING.
+ */
+export function getEffectiveDepartment(department: string): string | null {
+  if (!isSatpelOrWorkshop(department)) {
+    return department;
+  }
+  return getUnitPembina(department); // null jika tidak ditemukan di mapping
+}
+
+/**
+ * Check if a department should be in read-only mode for position management.
+ * Satpel/Workshop are always read-only because positions are managed by unit pembina.
+ */
+export function isPositionReadOnly(department: string): boolean {
+  return isSatpelOrWorkshop(department);
+}
+
+/**
+ * Validate and normalize satuan_kerja_penugasan value during data import.
+ * Returns the value if valid, or null with a warning message if invalid.
+ * @param value - The raw value from import data
+ * @returns Object with normalized value (null if invalid/empty) and optional warning message
+ */
+export function validateImportSatpelPenugasan(value: string): { value: string | null; warning: string | null } {
+  // Empty/null values are valid (means no assignment)
+  if (!value || value.trim() === '') {
+    return { value: null, warning: null };
+  }
+
+  const trimmed = value.trim();
+
+  // Check if value is a valid Satpel/Workshop in the mapping
+  if (Object.prototype.hasOwnProperty.call(UNIT_PEMBINA_MAPPING, trimmed)) {
+    return { value: trimmed, warning: null };
+  }
+
+  // Invalid value: clear it and add warning
+  return {
+    value: null,
+    warning: `Nilai satuan_kerja_penugasan tidak valid: "${trimmed}". Nilai harus sesuai dengan daftar Satpel/Workshop yang terdaftar.`,
+  };
 }

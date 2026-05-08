@@ -259,6 +259,42 @@ export default function DataBuilder() {
       textFiltersByField.set(filter.field, [...existing, { operator: filter.operator, value }]);
     }
 
+    // Deteksi apakah filter position_name dan additional_position keduanya aktif bersamaan.
+    // Jika ya, gabungkan semua kondisi keduanya dalam satu OR besar agar tidak saling memotong
+    // (AND antara dua OR terpisah akan menghilangkan pegawai yang hanya cocok di salah satu field).
+    const hasPositionNameText = textFiltersByField.has('position_name');
+    const hasAdditionalPositionText = textFiltersByField.has('additional_position');
+    const shouldMergePositionFilters = hasPositionNameText && hasAdditionalPositionText;
+
+    if (shouldMergePositionFilters) {
+      // Gabungkan semua kondisi position_name dan additional_position dalam satu OR
+      const mergedOrParts: string[] = [];
+
+      const buildOrParts = (field: string, conditions: Array<{ operator: string; value: string }>) => {
+        for (const { operator, value } of conditions) {
+          const escaped = value.replace(/"/g, '\\"');
+          if (operator === 'exact_word' || operator === 'ilike') {
+            mergedOrParts.push(`${field}.ilike."%${escaped}%"`);
+          } else if (operator === 'exact_match') {
+            mergedOrParts.push(`${field}.ilike."${escaped}"`);
+          } else {
+            mergedOrParts.push(`${field}.eq."${escaped}"`);
+          }
+        }
+      };
+
+      buildOrParts('position_name', textFiltersByField.get('position_name')!);
+      buildOrParts('additional_position', textFiltersByField.get('additional_position')!);
+
+      if (mergedOrParts.length > 0) {
+        q = q.or(mergedOrParts.join(','));
+      }
+
+      // Hapus kedua field dari map agar tidak diproses ulang di loop di bawah
+      textFiltersByField.delete('position_name');
+      textFiltersByField.delete('additional_position');
+    }
+
     for (const [field, conditions] of textFiltersByField) {
       // Filter pada position_name otomatis mencari juga di additional_position (OR)
       // sehingga pegawai PLT muncul tanpa perlu memilih kolom additional_position
@@ -320,6 +356,30 @@ export default function DataBuilder() {
     for (const filter of exactWordFilters) {
       const existing = byField.get(filter.field) ?? [];
       byField.set(filter.field, [...existing, filter.value.trim()]);
+    }
+
+    // Jika position_name dan additional_position keduanya punya exact_word filter,
+    // gabungkan dengan OR agar tidak saling memotong data
+    const hasPositionNameExact = byField.has('position_name');
+    const hasAdditionalPositionExact = byField.has('additional_position');
+
+    if (hasPositionNameExact && hasAdditionalPositionExact) {
+      const posRegexes = (byField.get('position_name') ?? []).map(
+        v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i')
+      );
+      const addRegexes = (byField.get('additional_position') ?? []).map(
+        v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i')
+      );
+      filtered = filtered.filter(row => {
+        const posValue = String(row['position_name'] || '').toLowerCase();
+        const addValue = String(row['additional_position'] || '').toLowerCase();
+        return (
+          posRegexes.some(r => r.test(posValue)) ||
+          addRegexes.some(r => r.test(addValue))
+        );
+      });
+      byField.delete('position_name');
+      byField.delete('additional_position');
     }
 
     for (const [field, values] of byField) {

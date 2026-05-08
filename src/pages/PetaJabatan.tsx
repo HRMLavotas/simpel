@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,8 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, POSITION_TYPES, getSatpelsByPembina } from '@/lib/constants';
+import { DEPARTMENTS, POSITION_TYPES, getSatpelsByPembina, getEffectiveDepartment, isPositionReadOnly, isSatpelOrWorkshop } from '@/lib/constants';
+import { SatpelBadge } from '@/components/employees/SatpelBadge';
 import { useDepartments } from '@/hooks/useDepartments';
 import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -52,6 +53,7 @@ interface EmployeeMatch {
   position_name?: string | null;
   additional_position?: string | null;
   department?: string | null;
+  satuan_kerja_penugasan?: string | null;
   keterangan_formasi?: string | null;
   keterangan_penempatan?: string | null;
   keterangan_penugasan?: string | null;
@@ -109,6 +111,13 @@ export default function PetaJabatan() {
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState<PositionReference | null>(null);
 
+  // Satpel resolution state
+  const [activeSatpelFilter, setActiveSatpelFilter] = useState<string | null>(null);
+  const [effectiveDepartment, setEffectiveDepartment] = useState<string>('');
+
+  // Computed: read-only mode when a Satpel/Workshop is selected
+  const isReadOnlyMode = useMemo(() => isPositionReadOnly(selectedDepartment), [selectedDepartment]);
+
   // Summary data for all departments
   const [allPositions, setAllPositions] = useState<PositionReference[]>([]);
   const [allEmployees, setAllEmployees] = useState<EmployeeMatch[]>([]);
@@ -162,6 +171,23 @@ export default function PetaJabatan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canViewAll, profile?.department]); // Removed selectedDepartment from dependencies
 
+  // Resolve effective department and satpel filter whenever selectedDepartment changes
+  useEffect(() => {
+    const effective = getEffectiveDepartment(selectedDepartment);
+    if (effective === null) {
+      // Satpel not found in mapping
+      setEffectiveDepartment('');
+      setActiveSatpelFilter(null);
+      return;
+    }
+    setEffectiveDepartment(effective);
+    if (isSatpelOrWorkshop(selectedDepartment)) {
+      setActiveSatpelFilter(selectedDepartment);
+    } else {
+      setActiveSatpelFilter(null);
+    }
+  }, [selectedDepartment]);
+
   // Fetch summary data when summary tab is active
   useEffect(() => {
     if (activeTab === 'summary-asn' || activeTab === 'summary-non-asn') {
@@ -174,7 +200,7 @@ export default function PetaJabatan() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      logger.debug('Fetching data for department:', selectedDepartment);
+      logger.debug('Fetching data for department:', selectedDepartment, '(effective:', effectiveDepartment, ')');
       
       // Debug: Check all positions in database
       const { data: allPositions } = await supabase
@@ -215,7 +241,7 @@ export default function PetaJabatan() {
           supabase
             .from('position_references')
             .select('*')
-            .eq('department', selectedDepartment)
+            .eq('department', effectiveDepartment)
             .order('position_category')
             .order('position_order')
             .order('position_name')
@@ -223,9 +249,9 @@ export default function PetaJabatan() {
         fetchAllUnlimited(() =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, satuan_kerja_penugasan, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
-            .eq('department', selectedDepartment)
+            .eq('department', effectiveDepartment)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
         ),
         fetchAllUnlimited(() =>
@@ -233,13 +259,20 @@ export default function PetaJabatan() {
             .from('employees')
             .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
             .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
-            .eq('department', selectedDepartment)
+            .eq('department', effectiveDepartment)
             .eq('asn_status', 'Non ASN')
         ),
       ]);
 
       setPositions(posRes.data || []);
-      setEmployees((empRes.data || []) as EmployeeMatch[]);
+
+      // Apply client-side filter for Satpel: only show employees assigned to that Satpel
+      const rawEmployees = (empRes.data || []) as EmployeeMatch[];
+      const filteredEmployees = activeSatpelFilter
+        ? rawEmployees.filter(emp => emp.satuan_kerja_penugasan === activeSatpelFilter)
+        : rawEmployees;
+      setEmployees(filteredEmployees);
+
       setNonAsnEmployees((nonAsnRes.data || []) as EmployeeMatch[]);
       
       logger.debug('Positions loaded:', posRes.data?.length || 0);
@@ -273,16 +306,16 @@ export default function PetaJabatan() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDepartment, toast]);
+  }, [effectiveDepartment, activeSatpelFilter, toast]);
 
-  // Fetch data when selectedDepartment changes + real-time subscription
+  // Fetch data when effectiveDepartment changes + real-time subscription
   useEffect(() => {
-    if (!selectedDepartment) return;
+    if (!effectiveDepartment) return;
 
     // Initial fetch
     fetchData();
 
-    logger.debug('Setting up real-time subscription for employees in:', selectedDepartment);
+    logger.debug('Setting up real-time subscription for employees in:', effectiveDepartment);
     
     interface EmployeePayload {
       eventType: string;
@@ -302,16 +335,16 @@ export default function PetaJabatan() {
       let shouldRefresh = false;
       
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-        // Check if new department matches current selected department
-        if (newRecord && newRecord.department === selectedDepartment) {
+        // Check if new department matches current effective department
+        if (newRecord && newRecord.department === effectiveDepartment) {
           shouldRefresh = true;
           logger.debug('New/Updated record is for current department');
         }
       }
       
       if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
-        // Check if old department matches current selected department
-        if (oldRecord && oldRecord.department === selectedDepartment) {
+        // Check if old department matches current effective department
+        if (oldRecord && oldRecord.department === effectiveDepartment) {
           shouldRefresh = true;
           logger.debug('Deleted/Old record was from current department');
         }
@@ -324,7 +357,7 @@ export default function PetaJabatan() {
     };
     
     const channel = supabase
-      .channel(`employees-${selectedDepartment}`)
+      .channel(`employees-${effectiveDepartment}`)
       .on(
         'postgres_changes',
         {
@@ -340,7 +373,7 @@ export default function PetaJabatan() {
       logger.debug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [selectedDepartment, fetchData]);
+  }, [effectiveDepartment, fetchData]);
 
 
   const getEmployeeEducation = (employeeId: string) => {
@@ -1616,7 +1649,7 @@ export default function PetaJabatan() {
                 >
                   <span className="hidden sm:inline">Perbaiki Urutan</span><span className="sm:hidden">Urutan</span>
                 </Button>
-                <Button onClick={openAddModal} className="text-xs sm:text-sm">
+                <Button onClick={openAddModal} className="text-xs sm:text-sm" disabled={isReadOnlyMode || !canEdit}>
                   <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
                 </Button>
@@ -1723,6 +1756,29 @@ export default function PetaJabatan() {
                 </div>
               </CardHeader>
           <CardContent>
+            {/* Banner: Satpel read-only mode */}
+            {isReadOnlyMode && effectiveDepartment && (
+              <div className="flex items-center gap-2 p-3 mb-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                <Info className="h-4 w-4 flex-shrink-0" />
+                <span>
+                  Peta jabatan untuk <strong>{selectedDepartment}</strong> menginduk ke{' '}
+                  <strong>{effectiveDepartment}</strong>. Pengelolaan jabatan dilakukan di unit pembina.
+                </span>
+              </div>
+            )}
+            {/* Banner: Satpel not found in mapping */}
+            {isSatpelOrWorkshop(selectedDepartment) && !effectiveDepartment && (
+              <div className="flex items-center gap-2 p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-red-800">Unit pembina tidak ditemukan</p>
+                  <p className="text-sm text-red-600">
+                    Unit <strong>{selectedDepartment}</strong> tidak memiliki unit pembina yang terdaftar.{' '}
+                    Hubungi admin pusat untuk konfigurasi.
+                  </p>
+                </div>
+              </div>
+            )}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -1824,6 +1880,9 @@ export default function PetaJabatan() {
                                   {emp.additional_position}
                                 </span>
                               )}
+                              {emp?.satuan_kerja_penugasan && (
+                                <SatpelBadge satpelName={emp.satuan_kerja_penugasan} />
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="text-center text-sm">{emp?.asn_status || '-'}</TableCell>
@@ -1847,7 +1906,7 @@ export default function PetaJabatan() {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => openEditModal(pos)}>
+                                  <DropdownMenuItem onClick={() => openEditModal(pos)} disabled={isReadOnlyMode}>
                                     <Pencil className="mr-2 h-4 w-4" />
                                     Edit Jabatan
                                   </DropdownMenuItem>
@@ -1855,6 +1914,7 @@ export default function PetaJabatan() {
                                   <DropdownMenuItem 
                                     onClick={() => handleDelete(pos.id)}
                                     className="text-destructive focus:text-destructive"
+                                    disabled={isReadOnlyMode}
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Hapus

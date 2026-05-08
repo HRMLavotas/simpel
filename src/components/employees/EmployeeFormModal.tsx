@@ -27,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
-import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS, KEJURUAN_OPTIONS, isInstrukturPosition } from '@/lib/constants';
+import { DEPARTMENTS, ASN_STATUS_OPTIONS, POSITION_TYPES, RANK_GROUPS_PNS, RANK_GROUPS_PPPK, GENDER_OPTIONS, RELIGION_OPTIONS, KEJURUAN_OPTIONS, isInstrukturPosition, getSatpelsByPembina } from '@/lib/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,6 +71,7 @@ const employeeSchema = z.object({
   phone: z.string().max(50).optional().or(z.literal('')),
   mobile_phone: z.string().max(50).optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
+  satuan_kerja_penugasan: z.string().optional().or(z.literal('')),
 });
 
 export type EmployeeFormData = z.infer<typeof employeeSchema> & {
@@ -111,6 +112,7 @@ interface Employee {
   phone: string | null;
   mobile_phone: string | null;
   address: string | null;
+  satuan_kerja_penugasan: string | null;
 }
 
 interface EmployeeFormModalProps {
@@ -180,6 +182,22 @@ export function EmployeeFormModal({
   // Fetch jabatan dari Peta Jabatan berdasarkan unit kerja yang dipilih
   const watchedDepartment = form.watch('department');
   const { positionNames, isLoading: isLoadingPositions, error: positionError } = usePositionOptions(watchedDepartment || undefined);
+
+  // Satpel options: list of Satpel/Workshop binaan dari unit pembina pegawai
+  const satpelOptions = getSatpelsByPembina(watchedDepartment || '');
+
+  // Validate that the selected satuan_kerja_penugasan belongs to the current pembina
+  const validateSatpelPenugasan = (value: string, pembinaDept: string): string | null => {
+    if (!value) return null;
+    const validSatpels = getSatpelsByPembina(pembinaDept);
+    if (!validSatpels.includes(value)) {
+      return `${value} bukan binaan dari ${pembinaDept}. Pilih Satpel yang sesuai.`;
+    }
+    return null;
+  };
+
+  const watchedSatpelPenugasan = form.watch('satuan_kerja_penugasan') || '';
+  const invalidSatpelWarning = validateSatpelPenugasan(watchedSatpelPenugasan, watchedDepartment || '');
 
   // Track original values for change detection
   const [originalValues, setOriginalValues] = useState<{
@@ -503,6 +521,7 @@ export function EmployeeFormModal({
         phone: employee.phone || '',
         mobile_phone: employee.mobile_phone || '',
         address: employee.address || '',
+        satuan_kerja_penugasan: employee.satuan_kerja_penugasan || '',
       });
       
       // Explicitly set rank_group to ensure it's set
@@ -531,7 +550,7 @@ export function EmployeeFormModal({
         position_type: '', position_name: '', additional_position: '', kejuruan: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
         join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
-        phone: '', mobile_phone: '', address: '',
+        phone: '', mobile_phone: '', address: '', satuan_kerja_penugasan: '',
       });
       setEducationEntries([]);
       setMutationEntries([]);
@@ -1399,6 +1418,33 @@ export function EmployeeFormModal({
                   <p className="text-xs text-muted-foreground">⚠️ Perubahan unit kerja akan otomatis menambahkan riwayat mutasi</p>
                 )}
               </div>
+
+              {/* Satuan Kerja Penugasan - hanya tampil jika unit pembina memiliki Satpel binaan */}
+              {satpelOptions.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="satuan_kerja_penugasan">
+                    Satuan Kerja Penugasan
+                    <span className="text-muted-foreground text-xs ml-1">(opsional)</span>
+                  </Label>
+                  <Select
+                    value={form.watch('satuan_kerja_penugasan') || ''}
+                    onValueChange={(val) => form.setValue('satuan_kerja_penugasan', val === '__none__' ? '' : val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Bertugas di unit pembina langsung" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Bertugas di unit pembina langsung —</SelectItem>
+                      {satpelOptions.map(satpel => (
+                        <SelectItem key={satpel} value={satpel}>{satpel}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {invalidSatpelWarning && (
+                    <p className="text-sm text-amber-600">{invalidSatpelWarning}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

@@ -39,6 +39,7 @@ export interface Employee {
   import_order: number | null;
   created_at: string;
   updated_at: string;
+  satuan_kerja_penugasan: string | null; // Nama Satpel/Workshop tempat pegawai bertugas secara fisik
 }
 
 export interface HistoryRowData {
