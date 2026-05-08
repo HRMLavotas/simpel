@@ -1345,7 +1345,13 @@ export default function PetaJabatan() {
       });
 
       // Kumpulkan semua unit kerja yang punya data jabatan
-      const depts = dynamicDepartments.filter(d => d !== 'Pusat');
+      // Filter: exclude Pusat dan Satpel/Workshop (karena Satpel menginduk ke unit pembina)
+      const depts = dynamicDepartments.filter(d => {
+        if (d === 'Pusat') return false;
+        // Exclude Satpel dan Workshop karena mereka menginduk ke unit pembina
+        if (d.startsWith('Satpel ') || d.startsWith('Workshop ')) return false;
+        return true;
+      });
 
       // Buat worksheet per unit kerja
       for (const dept of depts) {
@@ -1696,6 +1702,14 @@ export default function PetaJabatan() {
           { wch: 10 }, // Total JK
         ];
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
+        
+        // Pindahkan sheet ini ke posisi setelah SUMMARY (posisi index 1)
+        const golonganSheetName = 'Tabel Golongan per Unit';
+        const golonganIndex = wb.SheetNames.indexOf(golonganSheetName);
+        if (golonganIndex > -1) {
+          wb.SheetNames.splice(golonganIndex, 1);
+          wb.SheetNames.splice(1, 0, golonganSheetName);
+        }
       }
 
       // ═══════════════════════════════════════════════════════════════════════
@@ -1777,6 +1791,14 @@ export default function PetaJabatan() {
           { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } },
         ];
         XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
+        
+        // Pindahkan sheet ini ke posisi setelah Tabel Golongan (posisi index 2)
+        const eduSheetName = 'Tabel Pendidikan per Unit';
+        const eduIndex = wb.SheetNames.indexOf(eduSheetName);
+        if (eduIndex > -1) {
+          wb.SheetNames.splice(eduIndex, 1);
+          wb.SheetNames.splice(2, 0, eduSheetName);
+        }
       }
 
       // ═══════════════════════════════════════════════════════════════════════
@@ -1836,6 +1858,14 @@ export default function PetaJabatan() {
           { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
         ];
         XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
+        
+        // Pindahkan sheet ini ke posisi setelah Tabel Pendidikan (posisi index 3)
+        const asnSheetName = 'Jumlah ASN per Unit';
+        const asnIndex = wb.SheetNames.indexOf(asnSheetName);
+        if (asnIndex > -1) {
+          wb.SheetNames.splice(asnIndex, 1);
+          wb.SheetNames.splice(3, 0, asnSheetName);
+        }
       }
 
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
