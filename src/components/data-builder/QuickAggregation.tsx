@@ -148,9 +148,9 @@ function normalizeAsnStatus(status: unknown): string {
 // Helper function to normalize gender
 function normalizeGender(gender: unknown): string {
   if (!gender) return 'Tidak Ada';
-  const g = String(gender).toLowerCase();
+  const g = String(gender).toLowerCase().replace(/[-_\/\s]+/g, '');
   if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'Laki-laki';
-  if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female') return 'Perempuan';
+  if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female' || g.includes('wanita')) return 'Perempuan';
   return 'Tidak Ada';
 }
 
@@ -419,10 +419,10 @@ export function QuickAggregation() {
       asnStatusCounts[status] = (asnStatusCounts[status] || 0) + 1;
     });
 
-    // Department aggregation
+    // Department aggregation — Satpel/Workshop di-rollup ke unit pembinanya
     const departmentCounts: Record<string, number> = {};
     data.forEach(row => {
-      const dept = String(row.department || 'Tidak Ada');
+      const dept = getEffectiveDept(row.department as string | undefined);
       departmentCounts[dept] = (departmentCounts[dept] || 0) + 1;
     });
 
@@ -749,7 +749,7 @@ export function QuickAggregation() {
         ];
 
         const golonganRows: Record<string, string | number>[] = [];
-        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, pppk_III: 0, pppk_V: 0, pppk_VII: 0, pppk_IX: 0, total: 0, L: 0, P: 0 };
+        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, jumlah_pns: 0, pppk_III: 0, pppk_V: 0, pppk_VII: 0, pppk_IX: 0, jumlah_pppk: 0, total: 0, L: 0, P: 0 };
 
         sortedDepts.forEach((dept, idx) => {
           const emps = deptMap.get(dept) || [];
@@ -775,7 +775,9 @@ export function QuickAggregation() {
           const pns_II  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
           const pns_III = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
           const pns_IV  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
-          const jumlah_pns = pns_I + pns_II + pns_III + pns_IV;
+          // Jumlah PNS dihitung langsung dari status agar pegawai PNS/CPNS
+          // dengan rank_group tidak dikenali tetap terhitung
+          const jumlah_pns = emps.filter(e => isPnsOrCpns(e)).length;
 
           // Hitung PPPK per golongan: III, V, VII, IX
           // PPPK golongan III → rank_group = 'III' murni (tanpa sub-golongan)
@@ -793,18 +795,18 @@ export function QuickAggregation() {
           const pppk_V   = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
           const pppk_VII = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
           const pppk_IX  = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
-          const jumlah_pppk = pppk_III + pppk_V + pppk_VII + pppk_IX;
+          // Jumlah PPPK dihitung langsung dari status, bukan dari penjumlahan golongan
+          // agar pegawai PPPK dengan rank_group kosong/tidak dikenali tetap terhitung
+          const jumlah_pppk = emps.filter(e => isPppk(e)).length;
 
           // Total ASN = PNS (termasuk CPNS) + PPPK
           const total_asn = jumlah_pns + jumlah_pppk;
 
-          // Hitung jenis kelamin — hanya ASN (PNS/CPNS + PPPK, exclude Non ASN)
-          const asnEmps = emps.filter(e => {
-            const s = normalizeAsnStatus(e.asn_status);
-            return s === 'PNS' || s === 'CPNS' || s === 'PPPK';
-          });
-          const L = asnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
-          const P = asnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
+          // Hitung jenis kelamin — hanya dari pegawai yang masuk hitungan ASN
+          // (isPnsOrCpns ATAU isPppk), agar L+P selalu = Total ASN
+          const countedAsnEmps = emps.filter(e => isPnsOrCpns(e) || isPppk(e));
+          const L = countedAsnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
+          const P = countedAsnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
 
           golonganRows.push({
             'No': idx + 1,
@@ -829,10 +831,12 @@ export function QuickAggregation() {
           totals.pns_II  += pns_II;
           totals.pns_III += pns_III;
           totals.pns_IV  += pns_IV;
+          totals.jumlah_pns  += jumlah_pns;
           totals.pppk_III += pppk_III;
           totals.pppk_V   += pppk_V;
           totals.pppk_VII += pppk_VII;
           totals.pppk_IX  += pppk_IX;
+          totals.jumlah_pppk += jumlah_pppk;
           totals.total   += total_asn;
           totals.L       += L;
           totals.P       += P;
@@ -846,12 +850,12 @@ export function QuickAggregation() {
           'PNS II': totals.pns_II,
           'PNS III': totals.pns_III,
           'PNS IV': totals.pns_IV,
-          'Jumlah PNS': totals.pns_I + totals.pns_II + totals.pns_III + totals.pns_IV,
+          'Jumlah PNS': totals.jumlah_pns,
           'PPPK III': totals.pppk_III,
           'PPPK V': totals.pppk_V,
           'PPPK VII': totals.pppk_VII,
           'PPPK IX': totals.pppk_IX,
-          'Jumlah PPPK': totals.pppk_III + totals.pppk_V + totals.pppk_VII + totals.pppk_IX,
+          'Jumlah PPPK': totals.jumlah_pppk,
           'Total ASN': totals.total,
           'L': totals.L,
           'P': totals.P,
