@@ -1297,7 +1297,7 @@ export default function PetaJabatan() {
         fetchAllPages((from, to) =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('is_active', true)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
             .range(from, to)
@@ -1436,32 +1436,260 @@ export default function PetaJabatan() {
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
       }
 
-      // Sheet terakhir: Summary semua unit
+      // Sheet terakhir: Summary semua unit dengan data agregasi lengkap
       const summaryRows: Record<string, string | number>[] = [];
+      
+      // Helper functions untuk agregasi (sama seperti di QuickAggregation)
+      const normalizeAsnStatus = (status: unknown): string => {
+        if (!status) return 'Tidak Ada';
+        const s = String(status).trim().toUpperCase();
+        if (s === 'CPNS' || s.includes('CPNS')) return 'CPNS';
+        if (s === 'PNS' || s.includes('PNS')) return 'PNS';
+        if (s === 'PPPK' || s.includes('PPPK')) return 'PPPK';
+        if (s === 'NON ASN' || s.includes('NON') || s.includes('ALIH DAYA')) return 'Non ASN';
+        return s || 'Tidak Ada';
+      };
+
+      const normalizeGender = (gender: unknown): string => {
+        if (!gender) return 'Tidak Ada';
+        const g = String(gender).toLowerCase().replace(/[-_\/\s]+/g, '');
+        if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'Laki-laki';
+        if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female' || g.includes('wanita')) return 'Perempuan';
+        return 'Tidak Ada';
+      };
+
+      const extractMainRank = (rankGroup: string): string => {
+        if (!rankGroup || rankGroup === '-') return 'Tidak Ada';
+        if (rankGroup.toLowerCase().includes('tenaga alih daya') || rankGroup.toLowerCase().includes('non asn')) {
+          return 'Non ASN';
+        }
+        if (/^(V|VII|IX|XI)$/i.test(rankGroup.trim())) return 'PPPK';
+        const match = rankGroup.match(/\b(IV|III|II|I)\b/);
+        if (match) return match[1];
+        return 'Lainnya';
+      };
+
+      const extractEducationLevel = (employeeId: string): string => {
+        const edu = eduMap.get(employeeId);
+        if (!edu) return 'Tidak Ada';
+        const level = edu.toUpperCase();
+        if (level.includes('S3') || level.includes('DOKTOR') || level.includes('DR')) return 'S3';
+        if (level.includes('S2') || level.includes('MAGISTER') || level.includes('MASTER')) return 'S2';
+        if (level.includes('S1') || level.includes('SARJANA') || level.includes('BACHELOR')) return 'S1';
+        if (level.includes('D4') || level.includes('D-IV')) return 'D4';
+        if (level.includes('D3') || level.includes('D-III')) return 'D3';
+        if (level.includes('D2') || level.includes('D-II')) return 'D2';
+        if (level.includes('D1') || level.includes('D-I')) return 'D1';
+        if (level.includes('SMA') || level.includes('SMK') || level.includes('MA')) return 'SMA/SMK';
+        if (level.includes('SMP') || level.includes('MTS')) return 'SMP';
+        if (level.includes('SD') || level.includes('MI')) return 'SD';
+        return 'Lainnya';
+      };
+
+      const calculateAge = (birthDate: unknown): number | null => {
+        if (!birthDate) return null;
+        try {
+          const birth = new Date(String(birthDate));
+          const today = new Date();
+          let age = today.getFullYear() - birth.getFullYear();
+          const monthDiff = today.getMonth() - birth.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+          }
+          return age > 0 && age < 100 ? age : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const categorizeAge = (age: number | null): string => {
+        if (!age) return 'Tidak Ada';
+        if (age < 25) return '<25 tahun';
+        if (age < 35) return '25-34 tahun';
+        if (age < 45) return '35-44 tahun';
+        if (age < 55) return '45-54 tahun';
+        return '≥55 tahun';
+      };
+
       depts.forEach((dept, idx) => {
         const deptPos = allPos.filter(p => p.department === dept);
         if (deptPos.length === 0) return;
+        
+        // Data jabatan
         const totalAbk = deptPos.reduce((s, p) => s + p.abk_count, 0);
         const posNames = new Set(deptPos.map(p => normalizeString(p.position_name)));
-        const totalExisting = allEmp.filter(e => e.department === dept && e.position_name && posNames.has(normalizeString(e.position_name))).length;
+        const deptEmps = allEmp.filter(e => e.department === dept && e.position_name && posNames.has(normalizeString(e.position_name)));
+        const totalExisting = deptEmps.length;
         const gap = totalAbk - totalExisting;
+
+        // Agregasi Status ASN
+        const pns = deptEmps.filter(e => normalizeAsnStatus(e.asn_status) === 'PNS').length;
+        const cpns = deptEmps.filter(e => normalizeAsnStatus(e.asn_status) === 'CPNS').length;
+        const pppk = deptEmps.filter(e => normalizeAsnStatus(e.asn_status) === 'PPPK').length;
+        const nonAsn = deptEmps.filter(e => normalizeAsnStatus(e.asn_status) === 'Non ASN').length;
+
+        // Agregasi Jenis Kelamin
+        const lakiLaki = deptEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
+        const perempuan = deptEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
+
+        // Agregasi Pangkat/Golongan
+        const golI = deptEmps.filter(e => extractMainRank(String(e.rank_group || '')) === 'I').length;
+        const golII = deptEmps.filter(e => extractMainRank(String(e.rank_group || '')) === 'II').length;
+        const golIII = deptEmps.filter(e => extractMainRank(String(e.rank_group || '')) === 'III').length;
+        const golIV = deptEmps.filter(e => extractMainRank(String(e.rank_group || '')) === 'IV').length;
+        const golPPPK = deptEmps.filter(e => extractMainRank(String(e.rank_group || '')) === 'PPPK').length;
+
+        // Agregasi Pendidikan
+        const sd = deptEmps.filter(e => extractEducationLevel(e.id) === 'SD').length;
+        const smp = deptEmps.filter(e => extractEducationLevel(e.id) === 'SMP').length;
+        const sma = deptEmps.filter(e => extractEducationLevel(e.id) === 'SMA/SMK').length;
+        const d1 = deptEmps.filter(e => extractEducationLevel(e.id) === 'D1').length;
+        const d2 = deptEmps.filter(e => extractEducationLevel(e.id) === 'D2').length;
+        const d3 = deptEmps.filter(e => extractEducationLevel(e.id) === 'D3').length;
+        const d4 = deptEmps.filter(e => extractEducationLevel(e.id) === 'D4').length;
+        const s1 = deptEmps.filter(e => extractEducationLevel(e.id) === 'S1').length;
+        const s2 = deptEmps.filter(e => extractEducationLevel(e.id) === 'S2').length;
+        const s3 = deptEmps.filter(e => extractEducationLevel(e.id) === 'S3').length;
+
+        // Agregasi Agama
+        const islam = deptEmps.filter(e => String(e.religion || '').toLowerCase().includes('islam')).length;
+        const kristen = deptEmps.filter(e => {
+          const rel = String(e.religion || '').toLowerCase();
+          return rel.includes('kristen') && !rel.includes('katolik');
+        }).length;
+        const katolik = deptEmps.filter(e => String(e.religion || '').toLowerCase().includes('katolik')).length;
+        const hindu = deptEmps.filter(e => String(e.religion || '').toLowerCase().includes('hindu')).length;
+        const buddha = deptEmps.filter(e => String(e.religion || '').toLowerCase().includes('buddha')).length;
+        const konghucu = deptEmps.filter(e => String(e.religion || '').toLowerCase().includes('konghucu')).length;
+
+        // Agregasi Rentang Usia
+        const ageCategories: Record<string, number> = {
+          '<25 tahun': 0,
+          '25-34 tahun': 0,
+          '35-44 tahun': 0,
+          '45-54 tahun': 0,
+          '≥55 tahun': 0,
+        };
+        let totalAge = 0;
+        let ageCount = 0;
+        deptEmps.forEach(e => {
+          const age = calculateAge(e.birth_date);
+          const category = categorizeAge(age);
+          if (category !== 'Tidak Ada') {
+            ageCategories[category] = (ageCategories[category] || 0) + 1;
+          }
+          if (age) {
+            totalAge += age;
+            ageCount++;
+          }
+        });
+        const avgAge = ageCount > 0 ? (totalAge / ageCount).toFixed(1) : '0';
+
         summaryRows.push({
           'No': idx + 1,
           'Unit Kerja': dept,
+          // Data Jabatan
           'Total Jabatan': deptPos.length,
           'Total ABK': totalAbk,
           'Total Existing': totalExisting,
           'Gap (ABK-Existing)': gap,
           '% Terisi': totalAbk > 0 ? `${((totalExisting / totalAbk) * 100).toFixed(1)}%` : '0%',
           'Status': gap > 0 ? `Kurang ${gap}` : gap < 0 ? `Lebih ${Math.abs(gap)}` : 'Sesuai',
+          // Agregasi Status ASN
+          'PNS': pns,
+          'CPNS': cpns,
+          'PPPK': pppk,
+          'Non ASN': nonAsn,
+          'Total ASN': pns + cpns + pppk,
+          // Agregasi Jenis Kelamin
+          'Laki-laki': lakiLaki,
+          'Perempuan': perempuan,
+          // Agregasi Pangkat/Golongan
+          'Gol I': golI,
+          'Gol II': golII,
+          'Gol III': golIII,
+          'Gol IV': golIV,
+          'Gol PPPK': golPPPK,
+          // Agregasi Pendidikan
+          'SD': sd,
+          'SMP': smp,
+          'SMA/SMK': sma,
+          'D1': d1,
+          'D2': d2,
+          'D3': d3,
+          'D4': d4,
+          'S1': s1,
+          'S2': s2,
+          'S3': s3,
+          // Agregasi Agama
+          'Islam': islam,
+          'Kristen': kristen,
+          'Katolik': katolik,
+          'Hindu': hindu,
+          'Buddha': buddha,
+          'Konghucu': konghucu,
+          // Agregasi Rentang Usia
+          '<25 thn': ageCategories['<25 tahun'],
+          '25-34 thn': ageCategories['25-34 tahun'],
+          '35-44 thn': ageCategories['35-44 tahun'],
+          '45-54 thn': ageCategories['45-54 tahun'],
+          '≥55 thn': ageCategories['≥55 tahun'],
+          'Rata-rata Usia': avgAge,
         });
       });
 
       if (summaryRows.length > 0) {
         const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
         wsSummary['!cols'] = [
-          { wch: 5 }, { wch: 40 }, { wch: 14 }, { wch: 12 },
-          { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 15 },
+          { wch: 5 },  // No
+          { wch: 40 }, // Unit Kerja
+          // Data Jabatan
+          { wch: 14 }, // Total Jabatan
+          { wch: 12 }, // Total ABK
+          { wch: 14 }, // Total Existing
+          { wch: 16 }, // Gap
+          { wch: 10 }, // % Terisi
+          { wch: 15 }, // Status
+          // Status ASN
+          { wch: 8 },  // PNS
+          { wch: 8 },  // CPNS
+          { wch: 8 },  // PPPK
+          { wch: 10 }, // Non ASN
+          { wch: 12 }, // Total ASN
+          // Jenis Kelamin
+          { wch: 12 }, // Laki-laki
+          { wch: 12 }, // Perempuan
+          // Pangkat/Golongan
+          { wch: 8 },  // Gol I
+          { wch: 8 },  // Gol II
+          { wch: 8 },  // Gol III
+          { wch: 8 },  // Gol IV
+          { wch: 10 }, // Gol PPPK
+          // Pendidikan
+          { wch: 6 },  // SD
+          { wch: 6 },  // SMP
+          { wch: 10 }, // SMA/SMK
+          { wch: 6 },  // D1
+          { wch: 6 },  // D2
+          { wch: 6 },  // D3
+          { wch: 6 },  // D4
+          { wch: 6 },  // S1
+          { wch: 6 },  // S2
+          { wch: 6 },  // S3
+          // Agama
+          { wch: 8 },  // Islam
+          { wch: 8 },  // Kristen
+          { wch: 8 },  // Katolik
+          { wch: 8 },  // Hindu
+          { wch: 8 },  // Buddha
+          { wch: 10 }, // Konghucu
+          // Rentang Usia
+          { wch: 10 }, // <25 thn
+          { wch: 10 }, // 25-34 thn
+          { wch: 10 }, // 35-44 thn
+          { wch: 10 }, // 45-54 thn
+          { wch: 10 }, // ≥55 thn
+          { wch: 14 }, // Rata-rata Usia
         ];
         // Taruh summary di posisi pertama
         wb.SheetNames.unshift('SUMMARY');
