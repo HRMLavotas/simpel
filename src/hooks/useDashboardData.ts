@@ -150,28 +150,75 @@ export function useDashboardData({ department, isAdminPusat, selectedDepartment,
 
       logger.debug('[Dashboard] RPC response received successfully');
 
+      // Helper: convert JSONB object { "key": count } to array of objects
+      const objToArray = <T extends object>(
+        obj: Record<string, number> | null | undefined,
+        keyName: string
+      ): T[] => {
+        if (!obj || typeof obj !== 'object') return [];
+        return Object.entries(obj).map(([key, count]) => ({ [keyName]: key, count } as unknown as T));
+      };
+
       // Map all data from RPC response
-      setStats(data.stats || { total: 0, pns: 0, pppk: 0, nonAsn: 0 });
-      setRankData(data.rankData || []);
-      setDepartmentData(data.departmentData || []);
-      // Format position types: Rename "Tidak Diketahui" to "Non ASN" since it predominantly represents Non ASN staff without specific jabatan.
-      const formattedPositionTypeData = (data.positionTypeData || []).map((item: { type: string; count: number }) => ({
+      // RPC returns keys: stats, byRank, byDepartment, byPositionType, byGender, byReligion,
+      //                   byWorkDuration, byGrade, byAge, byRetirementYear
+      setStats(data.stats || { total: 0, pns: 0, cpns: 0, pppk: 0, nonAsn: 0 });
+
+      setRankData(objToArray<RankData>(data.byRank, 'rank'));
+      setDepartmentData(objToArray<DepartmentData>(data.byDepartment, 'department'));
+
+      // Format position types: Rename "Tidak Diketahui" to "Non ASN"
+      const rawPositionTypeData = objToArray<PositionTypeData>(data.byPositionType, 'type');
+      const formattedPositionTypeData = rawPositionTypeData.map((item) => ({
         ...item,
-        type: item.type === 'Tidak Diketahui' ? 'Non ASN' : item.type
+        type: item.type === 'Tidak Diketahui' ? 'Non ASN' : item.type,
       }));
-      
       setPositionTypeData(formattedPositionTypeData);
-      setJoinYearData(data.joinYearData || []);
-      setGenderData(data.genderData || []);
-      setReligionData(data.religionData || []);
-      setPositionKepmenData(data.positionKepmenData || []);
-      setTmtCpnsData(data.tmtCpnsData || []);
-      setTmtPnsData(data.tmtPnsData || []);
-      setWorkDurationData(data.workDurationData || []);
-      setGradeData(data.gradeData || []);
-      setAgeData(data.ageData || []);
-      setRetirementYearData(data.retirementYearData || []);
-      setEducationData(data.educationData || []);
+
+      // joinYearData, positionKepmenData, tmtCpnsData, tmtPnsData not provided by RPC — keep empty
+      setJoinYearData([]);
+      setGenderData(objToArray<GenderData>(data.byGender, 'gender'));
+      setReligionData(objToArray<ReligionData>(data.byReligion, 'religion'));
+      setPositionKepmenData([]);
+      setTmtCpnsData([]);
+      setTmtPnsData([]);
+
+      // workDurationData: RPC returns { "0-5 tahun": N, ... }, map to { category, count, order }
+      const workDurationOrder: Record<string, number> = {
+        '0-5 tahun': 1,
+        '5-10 tahun': 2,
+        '10-15 tahun': 3,
+        '15-20 tahun': 4,
+        '20+ tahun': 5,
+      };
+      const rawWorkDuration = data.byWorkDuration as Record<string, number> | null;
+      const mappedWorkDuration: WorkDurationData[] = rawWorkDuration
+        ? Object.entries(rawWorkDuration).map(([category, count]) => ({
+            category,
+            count: count as number,
+            order: workDurationOrder[category] ?? 99,
+          })).sort((a, b) => a.order - b.order)
+        : [];
+      setWorkDurationData(mappedWorkDuration);
+
+      setGradeData(objToArray<GradeData>(data.byGrade, 'grade'));
+
+      // ageData: RPC returns { "<25": N, "25-34": N, ... }, map to { category, count, order }
+      const ageOrder: Record<string, number> = { '<25': 1, '25-34': 2, '35-44': 3, '45-54': 4, '55+': 5 };
+      const rawAge = data.byAge as Record<string, number> | null;
+      const mappedAge: AgeData[] = rawAge
+        ? Object.entries(rawAge).map(([category, count]) => ({
+            category,
+            count: count as number,
+            order: ageOrder[category] ?? 99,
+          })).sort((a, b) => a.order - b.order)
+        : [];
+      setAgeData(mappedAge);
+
+      setRetirementYearData(objToArray<RetirementYearData>(data.byRetirementYear, 'year'));
+
+      // educationData not in RPC (removed in migration 005) — keep empty
+      setEducationData([]);
 
       logger.debug('[Dashboard] All data mapped successfully. Total:', data.stats?.total);
     } catch (err) {
