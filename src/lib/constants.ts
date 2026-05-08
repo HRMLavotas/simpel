@@ -341,50 +341,73 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 };
 
 // Unit Pembina Mapping - Satpel/Workshop dan unit pembinanya
+// Catatan: beberapa unit di database menggunakan nama panjang "Satuan Pelayanan ..."
+// sebagai alias dari "Satpel ...". Keduanya didaftarkan di sini.
 export const UNIT_PEMBINA_MAPPING: Record<string, string> = {
   // BBPVP Serang
   'Satpel Lubuklinggau': 'BBPVP Serang',
+  'Satuan Pelayanan Lubuklinggau': 'BBPVP Serang',
   'Satpel Lampung': 'BBPVP Serang',
+  'Satuan Pelayanan Lampung': 'BBPVP Serang',
   'Workshop Prabumulih': 'BBPVP Serang',
-  
+
   // BBPVP Bekasi
   'Satpel Bengkulu': 'BBPVP Bekasi',
+  'Satuan Pelayanan Bengkulu': 'BBPVP Bekasi',
   'Satpel Kotawaringin Timur': 'BBPVP Bekasi',
-  
+  'Satuan Pelayanan Kotawaringin Timur': 'BBPVP Bekasi',
+
   // BBPVP Makassar
   'Satpel Majene': 'BBPVP Makassar',
+  'Satuan Pelayanan Majene': 'BBPVP Makassar',
   'Satpel Mamuju': 'BBPVP Makassar',
+  'Satuan Pelayanan Mamuju': 'BBPVP Makassar',
   'Satpel Palu': 'BBPVP Makassar',
+  'Satuan Pelayanan Palu': 'BBPVP Makassar',
   'Workshop Gorontalo': 'BBPVP Makassar',
   'Satpel Morowali': 'BBPVP Makassar',
+  'Satuan Pelayanan Morowali': 'BBPVP Makassar',
   'Satpel Morowali Utara': 'BBPVP Makassar',
-  
+  'Satuan Pelayanan Morowali Utara': 'BBPVP Makassar',
+
   // BBPVP Medan
   'Satpel Pekanbaru': 'BBPVP Medan',
+  'Satuan Pelayanan Pekanbaru': 'BBPVP Medan',
   'Workshop Batam': 'BBPVP Medan',
-  
+
   // BPVP Surakarta
   'Satpel Bantul': 'BPVP Surakarta',
-  
+  'Satuan Pelayanan Bantul': 'BPVP Surakarta',
+
   // BPVP Padang
   'Satpel Jambi': 'BPVP Padang',
+  'Satuan Pelayanan Jambi': 'BPVP Padang',
   'Satpel Sawahlunto': 'BPVP Padang',
-  
+  'Satuan Pelayanan Sawahlunto': 'BPVP Padang',
+
   // BPVP Lombok Timur
   'Satpel Kupang': 'BPVP Lombok Timur',
+  'Satuan Pelayanan Kupang': 'BPVP Lombok Timur',
   'Satpel Bali': 'BPVP Lombok Timur',
-  
+  'Satuan Pelayanan Bali': 'BPVP Lombok Timur',
+
   // BPVP Ternate
   'Satpel Sofifi': 'BPVP Ternate',
+  'Satuan Pelayanan Sofifi': 'BPVP Ternate',
   'Satpel Minahasa Utara': 'BPVP Ternate',
+  'Satuan Pelayanan Minahasa Utara': 'BPVP Ternate',
   'Satpel Halmahera Selatan': 'BPVP Ternate',
-  
+  'Satuan Pelayanan Halmahera Selatan': 'BPVP Ternate',
+
   // BPVP Sorong
   'Satpel Jayapura': 'BPVP Sorong',
-  
+  'Satuan Pelayanan Jayapura': 'BPVP Sorong',
+
   // BPVP Samarinda
   'Satpel Tanah Bumbu': 'BPVP Samarinda',
+  'Satuan Pelayanan Tanah Bumbu': 'BPVP Samarinda',
   'Satpel Bulungan': 'BPVP Samarinda',
+  'Satuan Pelayanan Bulungan': 'BPVP Samarinda',
 };
 
 /**
@@ -398,11 +421,16 @@ export function getUnitPembina(department: string): string | null {
 
 /**
  * Check if a department is a Satpel or Workshop
+ * Mengenali prefix: "Satpel ", "Satuan Pelayanan ", "Workshop "
  * @param department - Department name
  * @returns true if Satpel or Workshop
  */
 export function isSatpelOrWorkshop(department: string): boolean {
-  return department.startsWith('Satpel ') || department.startsWith('Workshop ');
+  return (
+    department.startsWith('Satpel ') ||
+    department.startsWith('Satuan Pelayanan ') ||
+    department.startsWith('Workshop ')
+  );
 }
 
 /**
