@@ -495,10 +495,16 @@ export default function DataBuilder() {
           if (col.dbField === 'name') {
             obj[col.label] = formatFullName(row);
           } else if (col.dbField === 'position_name') {
-            // Jika ada additional_position (PLT), tampilkan sebagai keterangan tambahan
+            // Gabungkan PLT ke kolom ini HANYA jika kolom additional_position tidak dipilih secara terpisah.
+            // Jika sudah ada kolom Jabatan Tambahan/PLT sendiri, tampilkan position_name saja agar tidak duplikat.
             const posName = (raw as string) ?? '-';
-            const plt = row['additional_position'] as string | null;
-            obj[col.label] = plt ? `${posName} (PLT: ${plt})` : posName;
+            const hasAdditionalPositionColumn = selectedColumns.includes('additional_position');
+            if (!hasAdditionalPositionColumn) {
+              const plt = row['additional_position'] as string | null;
+              obj[col.label] = plt ? `${posName} (PLT: ${plt})` : posName;
+            } else {
+              obj[col.label] = posName;
+            }
           } else if (col.category === 'dates' && raw != null && raw !== '') {
             obj[col.label] = formatEmployeeCellValue(raw, col.dbField);
           } else {

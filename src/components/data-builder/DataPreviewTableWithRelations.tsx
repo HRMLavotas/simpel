@@ -206,10 +206,14 @@ export function DataPreviewTableWithRelations({
                       {(currentPage - 1) * pageSize + idx + 1}
                     </TableCell>
                     {columns.map(col => {
-                      // Kolom position_name: tampilkan PLT sebagai badge jika ada
+                      // Kolom position_name: tampilkan PLT sebagai badge HANYA jika kolom
+                      // additional_position tidak dipilih — agar tidak duplikat
                       if (col.dbField === 'position_name') {
                         const posName = formatEmployeeCellValue(row[col.dbField], col.dbField);
-                        const plt = row['additional_position'] as string | null;
+                        const hasAdditionalPositionColumn = selectedColumns.includes('additional_position');
+                        const plt = !hasAdditionalPositionColumn
+                          ? (row['additional_position'] as string | null)
+                          : null;
                         return (
                           <TableCell key={col.key} className="max-w-[min(280px,40vw)]">
                             <div className="flex flex-col gap-0.5">
