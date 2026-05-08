@@ -20,6 +20,7 @@ import {
   EducationPieChart
 } from '@/components/dashboard/AdditionalCharts';
 import { PetaJabatanAsnTable, NonAsnPositionChart } from '@/components/dashboard/PetaJabatanCharts';
+import { GolonganPerUnitChart } from '@/components/dashboard/GolonganPerUnitChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { usePetaJabatanStats } from '@/hooks/usePetaJabatanStats';
@@ -63,6 +64,7 @@ const CHART_CATEGORIES = [
   { id: 'gender', label: 'Jenis Kelamin', description: 'Distribusi berdasarkan gender' },
   { id: 'peta_jabatan_asn', label: 'Summary Peta Jabatan ASN', description: 'Perbandingan Target ABK vs Total ASN' },
   { id: 'non_asn_formasi', label: 'Distribusi Formasi Non ASN', description: 'Top 15 Formasi/Penugasan terbanyak untuk Non ASN' },
+  { id: 'golongan_per_unit', label: 'Golongan ASN per Unit', description: 'Distribusi PNS Gol I–IV dan PPPK per unit kerja' },
 ];
 
 export default function Dashboard() {
@@ -384,7 +386,7 @@ export default function Dashboard() {
         {(isLoading || isPetaLoading || isLoadingPreferences) ? (
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2"><ChartSkeleton /><ChartSkeleton /></div>
         ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 [&>.col-span-full]:col-span-1 md:[&>.col-span-full]:col-span-2">
             {selectedCharts.includes('asn_status') && <AsnPieChart data={asnChartData} />}
             {selectedCharts.includes('non_asn_formasi') && <NonAsnPositionChart data={nonAsnStats} />}
             {selectedCharts.includes('position_type') && (
@@ -415,6 +417,14 @@ export default function Dashboard() {
             )}
             {selectedCharts.includes('education') && (
               <ChartWrapper title="Jenjang Pendidikan" data={educationData}><EducationPieChart data={educationData} /></ChartWrapper>
+            )}
+
+            {/* Golongan per Unit - Full width chart */}
+            {selectedCharts.includes('golongan_per_unit') && canViewAll && (
+              <GolonganPerUnitChart 
+                userDepartment={profile?.department} 
+                isAdminPusat={canViewAll} 
+              />
             )}
 
             {/* Peta Jabatan Table at the very bottom */}
