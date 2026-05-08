@@ -749,7 +749,7 @@ export function QuickAggregation() {
         ];
 
         const golonganRows: Record<string, string | number>[] = [];
-        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, pppk_III: 0, pppk_IV: 0, pppk_VII: 0, pppk_IX: 0, total: 0, L: 0, P: 0 };
+        const totals = { pns_I: 0, pns_II: 0, pns_III: 0, pns_IV: 0, pppk_III: 0, pppk_V: 0, pppk_VII: 0, pppk_IX: 0, total: 0, L: 0, P: 0 };
 
         sortedDepts.forEach((dept, idx) => {
           const emps = deptMap.get(dept) || [];
@@ -775,6 +775,7 @@ export function QuickAggregation() {
           const pns_II  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
           const pns_III = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
           const pns_IV  = emps.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
+          const jumlah_pns = pns_I + pns_II + pns_III + pns_IV;
 
           // Hitung PPPK per golongan: III, V, VII, IX
           // PPPK golongan III → rank_group = 'III' murni (tanpa sub-golongan)
@@ -792,12 +793,18 @@ export function QuickAggregation() {
           const pppk_V   = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
           const pppk_VII = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
           const pppk_IX  = emps.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
+          const jumlah_pppk = pppk_III + pppk_V + pppk_VII + pppk_IX;
 
-          // Hitung jenis kelamin (exclude Non ASN)
-          const asnEmps = emps.filter(e => normalizeAsnStatus(e.asn_status) !== 'Non ASN');
+          // Total ASN = PNS (termasuk CPNS) + PPPK
+          const total_asn = jumlah_pns + jumlah_pppk;
+
+          // Hitung jenis kelamin — hanya ASN (PNS/CPNS + PPPK, exclude Non ASN)
+          const asnEmps = emps.filter(e => {
+            const s = normalizeAsnStatus(e.asn_status);
+            return s === 'PNS' || s === 'CPNS' || s === 'PPPK';
+          });
           const L = asnEmps.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
           const P = asnEmps.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
-          const total = pns_I + pns_II + pns_III + pns_IV + pppk_III + pppk_V + pppk_VII + pppk_IX;
 
           golonganRows.push({
             'No': idx + 1,
@@ -806,11 +813,13 @@ export function QuickAggregation() {
             'PNS II': pns_II,
             'PNS III': pns_III,
             'PNS IV': pns_IV,
+            'Jumlah PNS': jumlah_pns,
             'PPPK III': pppk_III,
             'PPPK V': pppk_V,
             'PPPK VII': pppk_VII,
             'PPPK IX': pppk_IX,
-            'Total': total,
+            'Jumlah PPPK': jumlah_pppk,
+            'Total ASN': total_asn,
             'L': L,
             'P': P,
             'Total JK': L + P,
@@ -821,10 +830,10 @@ export function QuickAggregation() {
           totals.pns_III += pns_III;
           totals.pns_IV  += pns_IV;
           totals.pppk_III += pppk_III;
-          totals.pppk_IV  += pppk_V;
+          totals.pppk_V   += pppk_V;
           totals.pppk_VII += pppk_VII;
           totals.pppk_IX  += pppk_IX;
-          totals.total   += total;
+          totals.total   += total_asn;
           totals.L       += L;
           totals.P       += P;
         });
@@ -837,11 +846,13 @@ export function QuickAggregation() {
           'PNS II': totals.pns_II,
           'PNS III': totals.pns_III,
           'PNS IV': totals.pns_IV,
+          'Jumlah PNS': totals.pns_I + totals.pns_II + totals.pns_III + totals.pns_IV,
           'PPPK III': totals.pppk_III,
-          'PPPK V': totals.pppk_IV,
+          'PPPK V': totals.pppk_V,
           'PPPK VII': totals.pppk_VII,
           'PPPK IX': totals.pppk_IX,
-          'Total': totals.total,
+          'Jumlah PPPK': totals.pppk_III + totals.pppk_V + totals.pppk_VII + totals.pppk_IX,
+          'Total ASN': totals.total,
           'L': totals.L,
           'P': totals.P,
           'Total JK': totals.L + totals.P,
@@ -849,10 +860,22 @@ export function QuickAggregation() {
 
         const wsGolongan = XLSX.utils.json_to_sheet(golonganRows);
         wsGolongan['!cols'] = [
-          { wch: 5 }, { wch: 30 },
-          { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
-          { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 9 },
-          { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 10 },
+          { wch: 5 },  // No
+          { wch: 32 }, // Unit Kerja
+          { wch: 8 },  // PNS I
+          { wch: 8 },  // PNS II
+          { wch: 8 },  // PNS III
+          { wch: 8 },  // PNS IV
+          { wch: 12 }, // Jumlah PNS
+          { wch: 9 },  // PPPK III
+          { wch: 9 },  // PPPK V
+          { wch: 9 },  // PPPK VII
+          { wch: 9 },  // PPPK IX
+          { wch: 13 }, // Jumlah PPPK
+          { wch: 11 }, // Total ASN
+          { wch: 6 },  // L
+          { wch: 6 },  // P
+          { wch: 10 }, // Total JK
         ];
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
       }
