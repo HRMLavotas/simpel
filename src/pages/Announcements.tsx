@@ -4,6 +4,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import {
   Dialog,
   DialogContent,
@@ -288,10 +291,14 @@ export default function Announcements() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div 
-                    className="announcement-content text-sm prose prose-sm max-w-none dark:prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h2:text-xl prose-h2:font-bold prose-h3:text-lg prose-h3:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1"
-                    dangerouslySetInnerHTML={{ __html: announcement.message }}
-                  />
+                  <div className="announcement-content text-sm prose prose-sm max-w-none dark:prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h2:text-xl prose-h2:font-bold prose-h3:text-lg prose-h3:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {announcement.message}
+                    </ReactMarkdown>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -346,12 +353,12 @@ export default function Announcements() {
                     <FormControl>
                       <Textarea
                         placeholder="Tulis pesan pengumuman di sini..."
-                        className="min-h-[120px]"
+                        className="min-h-[120px] font-mono text-sm"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Anda bisa menggunakan enter untuk membuat baris baru
+                      Mendukung format Markdown: **tebal**, *miring*, # Judul, - daftar, [link](url)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

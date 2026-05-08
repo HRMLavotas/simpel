@@ -3,6 +3,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useAnnouncements, useDismissAnnouncement, type Announcement } from '@/hooks/useAnnouncements';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 const typeConfig = {
   info: {
@@ -41,10 +44,14 @@ function AnnouncementItem({ announcement, onDismiss }: AnnouncementItemProps) {
       <Icon className={cn('h-4 w-4', config.iconClassName)} />
       <AlertTitle className="font-semibold">{announcement.title}</AlertTitle>
       <AlertDescription className="mt-2">
-        <div 
-          className="announcement-banner-content text-sm"
-          dangerouslySetInnerHTML={{ __html: announcement.message }}
-        />
+        <div className="announcement-banner-content text-sm prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:mt-2 prose-headings:mb-1">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+          >
+            {announcement.message}
+          </ReactMarkdown>
+        </div>
       </AlertDescription>
       <div className="mt-2 text-xs opacity-70">
         Dari: {announcement.created_by_name} • {new Date(announcement.created_at).toLocaleDateString('id-ID', {

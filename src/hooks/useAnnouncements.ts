@@ -139,7 +139,7 @@ export function useAllAnnouncements() {
     queryKey: ['all-announcements'],
     staleTime: 0, // Always refetch when invalidated
     queryFn: async () => {
-      logger.info('Fetching all announcements...');
+      logger.log('Fetching all announcements...');
       
       // Fetch announcements
       const { data: announcements, error } = await supabase
@@ -152,7 +152,7 @@ export function useAllAnnouncements() {
         throw error;
       }
 
-      logger.info(`Found ${announcements.length} announcements`);
+      logger.log(`Found ${announcements.length} announcements`);
 
       // Fetch profiles for created_by users
       const userIds = [...new Set(announcements.map(a => a.created_by))];
@@ -166,7 +166,7 @@ export function useAllAnnouncements() {
         if (profileError) {
           logger.error('Error fetching profiles:', profileError);
         } else {
-          logger.info(`Found ${profiles?.length || 0} profiles`);
+          logger.log(`Found ${profiles?.length || 0} profiles`);
         }
 
         // Map profiles to announcements
