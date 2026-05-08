@@ -22,9 +22,26 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.20.0',
+    date: '8 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Peta Jabatan: unit Satpel dan Workshop kini menampilkan peta jabatan dari unit pembinanya secara otomatis — sebelumnya halaman kosong saat memilih unit Satpel.' },
+      { type: 'feature', text: 'Peta Jabatan: banner informasi biru muncul saat membuka peta jabatan Satpel — menampilkan nama unit pembina yang menjadi induk peta jabatan.' },
+      { type: 'feature', text: 'Peta Jabatan: filter otomatis pegawai Satpel — saat memilih unit Satpel, hanya pegawai yang ditugaskan di Satpel tersebut yang ditampilkan (bukan seluruh pegawai unit pembina).' },
+      { type: 'feature', text: 'Peta Jabatan: badge penugasan Satpel (warna amber) pada baris pegawai — memudahkan identifikasi pegawai yang bertugas di Satpel/Workshop tertentu.' },
+      { type: 'feature', text: 'Peta Jabatan: mode read-only otomatis saat membuka peta jabatan Satpel — tombol Tambah, Edit, dan Hapus jabatan dinonaktifkan karena pengelolaan jabatan dilakukan di unit pembina.' },
+      { type: 'feature', text: 'Peta Jabatan: pesan error jika Satpel tidak memiliki unit pembina terdaftar — banner merah dengan instruksi menghubungi admin pusat.' },
+      { type: 'feature', text: 'Form Edit Pegawai: field baru "Satuan Kerja Penugasan" — mencatat Satpel/Workshop tempat pegawai unit pembina bertugas secara fisik.' },
+      { type: 'improvement', text: 'Form Edit Pegawai: dropdown "Satuan Kerja Penugasan" hanya muncul untuk unit pembina yang memiliki Satpel/Workshop binaan — tidak mengganggu unit lain.' },
+      { type: 'improvement', text: 'Form Edit Pegawai: dropdown hanya menampilkan Satpel/Workshop yang merupakan binaan dari unit pembina pegawai — mencegah penugasan ke Satpel yang salah.' },
+      { type: 'improvement', text: 'Form Edit Pegawai: pilih "— Bertugas di unit pembina langsung —" untuk mengosongkan penugasan Satpel — pegawai dianggap bertugas di unit pembina tanpa penugasan ke Satpel.' },
+      { type: 'improvement', text: 'Database: kolom baru satuan_kerja_penugasan di tabel employees — menyimpan nama Satpel/Workshop tempat pegawai bertugas (NULL = bertugas di unit pembina langsung).' },
+    ],
+  },
+  {
     version: '2.19.0',
     date: '7 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'AI Chatbot: asisten AI untuk menjawab pertanyaan tentang data pegawai — tanya "Berapa jumlah PNS?", "Siapa saja Instruktur di BBPVP Bekasi?", dll.' },
       { type: 'feature', text: 'AI Chatbot: 12 backend functions untuk query data — search by name, statistics, position analysis, retirement forecast, department comparison, dll.' },
