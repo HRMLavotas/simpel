@@ -1386,7 +1386,7 @@ export default function PetaJabatan() {
             'No': '',
             'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
             'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
-            'Nama Pemangku': '', 'Jabatan Tambahan': '', 'Kriteria ASN': '', 'NIP': '',
+            'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
             'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
             'Keterangan Formasi': '', 'Keterangan Penempatan': '',
             'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
@@ -1414,7 +1414,6 @@ export default function PetaJabatan() {
                 'Jumlah ABK': pos.abk_count,
                 'Jumlah Existing': 0,
                 'Nama Pemangku': '-',
-                'Jabatan Tambahan': '-',
                 'Kriteria ASN': '-',
                 'NIP': '-',
                 'Pangkat Golongan': '-',
@@ -1435,7 +1434,6 @@ export default function PetaJabatan() {
                   'Jumlah ABK': idx === 0 ? pos.abk_count : '',
                   'Jumlah Existing': idx === 0 ? existing : '',
                   'Nama Pemangku': fullName,
-                  'Jabatan Tambahan': emp.additional_position || '-',
                   'Kriteria ASN': emp.asn_status || '-',
                   'NIP': emp.nip || '-',
                   'Pangkat Golongan': emp.rank_group || '-',
@@ -1445,7 +1443,7 @@ export default function PetaJabatan() {
                     ? (ketFormasi > 0 ? `Kurang ${ketFormasi}` : ketFormasi < 0 ? `Lebih ${Math.abs(ketFormasi)}` : 'Sesuai')
                     : '',
                   'Keterangan Penempatan': emp.keterangan_penempatan || '-',
-                  'Keterangan Penugasan Tambahan': emp.keterangan_penugasan || '-',
+                  'Keterangan Penugasan Tambahan': emp.additional_position || '-',
                   'Keterangan Perubahan': emp.keterangan_perubahan || '-',
                 });
               });
@@ -1596,15 +1594,14 @@ export default function PetaJabatan() {
           { wch: 12 }, // Jumlah ABK
           { wch: 14 }, // Jumlah Existing
           { wch: 30 }, // Nama Pemangku
-          { wch: 25 }, // Jabatan Tambahan
           { wch: 12 }, // Kriteria ASN
           { wch: 20 }, // NIP
           { wch: 25 }, // Pangkat Golongan
-          { wch: 18 }, // Pendidikan Terakhir
+          { wch: 30 }, // Pendidikan Terakhir
           { wch: 14 }, // Jenis Kelamin
-          { wch: 18 }, // Keterangan Formasi
+          { wch: 20 }, // Keterangan Formasi
           { wch: 20 }, // Keterangan Penempatan
-          { wch: 25 }, // Keterangan Penugasan Tambahan
+          { wch: 30 }, // Keterangan Penugasan Tambahan
           { wch: 20 }, // Keterangan Perubahan
         ];
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
