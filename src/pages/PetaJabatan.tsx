@@ -1385,9 +1385,8 @@ export default function PetaJabatan() {
           rows.push({
             'No': '',
             'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
-            'Jabatan Tambahan': '',
             'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
-            'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
+            'Nama Pemangku': '', 'Jabatan Tambahan': '', 'Kriteria ASN': '', 'NIP': '',
             'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
             'Keterangan Formasi': '', 'Keterangan Penempatan': '',
             'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
@@ -1411,11 +1410,11 @@ export default function PetaJabatan() {
               rows.push({
                 'No': no++,
                 'Jabatan Sesuai Kepmen 202 Tahun 2024': pos.position_name,
-                'Jabatan Tambahan': '-',
                 'Grade/Kelas Jabatan': pos.grade || '',
                 'Jumlah ABK': pos.abk_count,
                 'Jumlah Existing': 0,
                 'Nama Pemangku': '-',
+                'Jabatan Tambahan': '-',
                 'Kriteria ASN': '-',
                 'NIP': '-',
                 'Pangkat Golongan': '-',
@@ -1432,11 +1431,11 @@ export default function PetaJabatan() {
                 rows.push({
                   'No': idx === 0 ? no++ : '',
                   'Jabatan Sesuai Kepmen 202 Tahun 2024': idx === 0 ? pos.position_name : '',
-                  'Jabatan Tambahan': emp.additional_position || '-',
                   'Grade/Kelas Jabatan': idx === 0 ? (pos.grade || '') : '',
                   'Jumlah ABK': idx === 0 ? pos.abk_count : '',
                   'Jumlah Existing': idx === 0 ? existing : '',
                   'Nama Pemangku': fullName,
+                  'Jabatan Tambahan': emp.additional_position || '-',
                   'Kriteria ASN': emp.asn_status || '-',
                   'NIP': emp.nip || '-',
                   'Pangkat Golongan': emp.rank_group || '-',
@@ -1458,11 +1457,11 @@ export default function PetaJabatan() {
         ws['!cols'] = [
           { wch: 5 },  // No
           { wch: 40 }, // Jabatan Sesuai Kepmen 202 Tahun 2024
-          { wch: 25 }, // Jabatan Tambahan (NEW)
           { wch: 15 }, // Grade/Kelas Jabatan
           { wch: 12 }, // Jumlah ABK
           { wch: 14 }, // Jumlah Existing
           { wch: 30 }, // Nama Pemangku
+          { wch: 25 }, // Jabatan Tambahan (pindah ke sini)
           { wch: 12 }, // Kriteria ASN
           { wch: 20 }, // NIP
           { wch: 25 }, // Pangkat Golongan
