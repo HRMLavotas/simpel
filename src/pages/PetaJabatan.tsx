@@ -1297,7 +1297,7 @@ export default function PetaJabatan() {
         fetchAllPages((from, to) =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('is_active', true)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
             .range(from, to)
@@ -1334,14 +1334,32 @@ export default function PetaJabatan() {
       });
 
       // Buat map employees per department → per normalized position_name
+      // PENTING: Resolve Satpel/Workshop ke unit pembina menggunakan getEffectiveDepartment
       const empByDeptPos = new Map<string, Map<string, EmployeeMatch[]>>();
       allEmp.forEach(emp => {
         if (!emp.department || !emp.position_name) return;
-        if (!empByDeptPos.has(emp.department)) empByDeptPos.set(emp.department, new Map());
-        const posMap = empByDeptPos.get(emp.department)!;
+        // Resolve Satpel/Workshop ke unit pembina
+        const effectiveDept = getEffectiveDepartment(emp.department);
+        if (!effectiveDept) return; // Skip jika tidak ada mapping
+        
+        if (!empByDeptPos.has(effectiveDept)) empByDeptPos.set(effectiveDept, new Map());
+        const posMap = empByDeptPos.get(effectiveDept)!;
         const norm = normalizeString(emp.position_name);
         if (!posMap.has(norm)) posMap.set(norm, []);
         posMap.get(norm)!.push(emp);
+      });
+
+      // Kelompokkan position_references per effective department
+      // PENTING: Resolve Satpel/Workshop ke unit pembina
+      const posByDept = new Map<string, typeof allPos>();
+      allPos.forEach(pos => {
+        if (!pos.department) return;
+        // Resolve Satpel/Workshop ke unit pembina
+        const effectiveDept = getEffectiveDepartment(pos.department);
+        if (!effectiveDept) return; // Skip jika tidak ada mapping
+        
+        if (!posByDept.has(effectiveDept)) posByDept.set(effectiveDept, []);
+        posByDept.get(effectiveDept)!.push(pos);
       });
 
       // Kumpulkan semua unit kerja yang punya data jabatan
@@ -1355,7 +1373,7 @@ export default function PetaJabatan() {
 
       // Buat worksheet per unit kerja
       for (const dept of depts) {
-        const deptPositions = allPos.filter(p => p.department === dept);
+        const deptPositions = posByDept.get(dept) || [];
         if (deptPositions.length === 0) continue; // skip unit tanpa jabatan
 
         const posMap = empByDeptPos.get(dept) || new Map<string, EmployeeMatch[]>();
@@ -1367,6 +1385,7 @@ export default function PetaJabatan() {
           rows.push({
             'No': '',
             'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
+            'Jabatan Tambahan': '',
             'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
             'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
             'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
@@ -1392,6 +1411,7 @@ export default function PetaJabatan() {
               rows.push({
                 'No': no++,
                 'Jabatan Sesuai Kepmen 202 Tahun 2024': pos.position_name,
+                'Jabatan Tambahan': '-',
                 'Grade/Kelas Jabatan': pos.grade || '',
                 'Jumlah ABK': pos.abk_count,
                 'Jumlah Existing': 0,
@@ -1412,6 +1432,7 @@ export default function PetaJabatan() {
                 rows.push({
                   'No': idx === 0 ? no++ : '',
                   'Jabatan Sesuai Kepmen 202 Tahun 2024': idx === 0 ? pos.position_name : '',
+                  'Jabatan Tambahan': emp.additional_position || '-',
                   'Grade/Kelas Jabatan': idx === 0 ? (pos.grade || '') : '',
                   'Jumlah ABK': idx === 0 ? pos.abk_count : '',
                   'Jumlah Existing': idx === 0 ? existing : '',
@@ -1435,9 +1456,22 @@ export default function PetaJabatan() {
 
         const ws = XLSX.utils.json_to_sheet(rows);
         ws['!cols'] = [
-          { wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 12 }, { wch: 14 },
-          { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 },
-          { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
+          { wch: 5 },  // No
+          { wch: 40 }, // Jabatan Sesuai Kepmen 202 Tahun 2024
+          { wch: 25 }, // Jabatan Tambahan (NEW)
+          { wch: 15 }, // Grade/Kelas Jabatan
+          { wch: 12 }, // Jumlah ABK
+          { wch: 14 }, // Jumlah Existing
+          { wch: 30 }, // Nama Pemangku
+          { wch: 12 }, // Kriteria ASN
+          { wch: 20 }, // NIP
+          { wch: 25 }, // Pangkat Golongan
+          { wch: 18 }, // Pendidikan Terakhir
+          { wch: 14 }, // Jenis Kelamin
+          { wch: 18 }, // Keterangan Formasi
+          { wch: 20 }, // Keterangan Penempatan
+          { wch: 25 }, // Keterangan Penugasan Tambahan
+          { wch: 20 }, // Keterangan Perubahan
         ];
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
       }
@@ -1445,11 +1479,19 @@ export default function PetaJabatan() {
       // Sheet terakhir: Summary semua unit
       const summaryRows: Record<string, string | number>[] = [];
       depts.forEach((dept, idx) => {
-        const deptPos = allPos.filter(p => p.department === dept);
+        // Hitung positions untuk dept ini (sudah resolved ke effective dept)
+        const deptPos = posByDept.get(dept) || [];
         if (deptPos.length === 0) return;
+        
         const totalAbk = deptPos.reduce((s, p) => s + p.abk_count, 0);
-        const posNames = new Set(deptPos.map(p => normalizeString(p.position_name)));
-        const totalExisting = allEmp.filter(e => e.department === dept && e.position_name && posNames.has(normalizeString(e.position_name))).length;
+        
+        // Hitung employees untuk dept ini (sudah resolved ke effective dept)
+        const posMap = empByDeptPos.get(dept) || new Map<string, EmployeeMatch[]>();
+        let totalExisting = 0;
+        posMap.forEach(emps => {
+          totalExisting += emps.length;
+        });
+        
         const gap = totalAbk - totalExisting;
         summaryRows.push({
           'No': idx + 1,
@@ -1562,12 +1604,16 @@ export default function PetaJabatan() {
         'Workshop Gorontalo',
       ];
 
-      // Kelompokkan pegawai per unit kerja
+      // Kelompokkan pegawai per unit kerja (resolve Satpel ke unit pembina)
       const deptEmpMap = new Map<string, typeof allEmp>();
       allEmp.forEach(emp => {
         if (!emp.department) return;
-        if (!deptEmpMap.has(emp.department)) deptEmpMap.set(emp.department, []);
-        deptEmpMap.get(emp.department)!.push(emp);
+        // Resolve Satpel/Workshop ke unit pembina
+        const effectiveDept = getEffectiveDepartment(emp.department);
+        if (!effectiveDept) return; // Skip jika tidak ada mapping
+        
+        if (!deptEmpMap.has(effectiveDept)) deptEmpMap.set(effectiveDept, []);
+        deptEmpMap.get(effectiveDept)!.push(emp);
       });
 
       const deptSet = new Set(deptEmpMap.keys());
