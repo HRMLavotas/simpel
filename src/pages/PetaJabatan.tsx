@@ -1604,6 +1604,81 @@ export default function PetaJabatan() {
           { wch: 30 }, // Keterangan Penugasan Tambahan
           { wch: 20 }, // Keterangan Perubahan
         ];
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Merge cells, colors, borders
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // Define border style
+        const borderStyle = {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        };
+
+        // Header style (row 0)
+        const headerStyle = {
+          fill: { fgColor: { rgb: 'D3D3D3' } }, // Light gray
+          font: { bold: true, color: { rgb: '000000' } },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: borderStyle,
+        };
+
+        // Category header style (STRUKTURAL, FUNGSIONAL, PELAKSANA)
+        const categoryStyle = {
+          fill: { fgColor: { rgb: 'FFA500' } }, // Orange
+          font: { bold: true, color: { rgb: 'FFFFFF' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: borderStyle,
+        };
+
+        // Data cell style
+        const dataStyle = {
+          alignment: { vertical: 'center', wrapText: true },
+          border: borderStyle,
+        };
+
+        // Apply styling to all cells
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        
+        // Track category header rows for merging
+        const categoryRows: number[] = [];
+        
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            if (!ws[cellAddress]) continue;
+            
+            // Initialize cell style
+            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            
+            // Header row (row 0)
+            if (R === 0) {
+              ws[cellAddress].s = headerStyle;
+            }
+            // Check if this is a category header row
+            else if (C === 1 && ws[cellAddress].v && 
+                     ['STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA'].includes(String(ws[cellAddress].v))) {
+              categoryRows.push(R);
+              ws[cellAddress].s = categoryStyle;
+            }
+            // Data cells
+            else {
+              ws[cellAddress].s = dataStyle;
+            }
+          }
+        }
+
+        // Merge cells for category headers (merge across all columns)
+        if (!ws['!merges']) ws['!merges'] = [];
+        categoryRows.forEach(rowIdx => {
+          ws['!merges']!.push({
+            s: { r: rowIdx, c: 0 },  // Start: column A
+            e: { r: rowIdx, c: 14 }, // End: column O (15 columns total, 0-14)
+          });
+        });
+
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
       }
 
