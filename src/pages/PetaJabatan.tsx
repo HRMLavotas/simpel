@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1379,18 +1379,23 @@ export default function PetaJabatan() {
         const posMap = empByDeptPos.get(dept) || new Map<string, EmployeeMatch[]>();
         const rows: Record<string, string | number>[] = [];
         let no = 1;
+        
+        // Track merge ranges untuk jabatan dengan multiple pemangku
+        const mergeRanges: Array<{ startRow: number; endRow: number; columns: number[] }> = [];
+        let currentRowIndex = 0; // Track row index in worksheet (0-based)
 
         POSITION_CATEGORIES.forEach(category => {
-          // Baris header kategori
+          // Baris header kategori - nilai di kolom pertama untuk merge
           rows.push({
-            'No': '',
-            'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
+            'No': category.toUpperCase(), // Taruh kategori di kolom pertama
+            'Jabatan Sesuai Kepmen 202 Tahun 2024': '',
             'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
             'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
             'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
             'Keterangan Formasi': '', 'Keterangan Penempatan': '',
             'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
           });
+          currentRowIndex++;
 
           const catPositions = deptPositions
             .filter(p => p.position_category === category)
@@ -1424,7 +1429,10 @@ export default function PetaJabatan() {
                 'Keterangan Penugasan Tambahan': '-',
                 'Keterangan Perubahan': '-',
               });
+              currentRowIndex++;
             } else {
+              const startRow = currentRowIndex;
+              
               matched.forEach((emp, idx) => {
                 const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
                 rows.push({
@@ -1446,7 +1454,17 @@ export default function PetaJabatan() {
                   'Keterangan Penugasan Tambahan': emp.additional_position || '-',
                   'Keterangan Perubahan': emp.keterangan_perubahan || '-',
                 });
+                currentRowIndex++;
               });
+              
+              // Jika ada lebih dari 1 pemangku, tambahkan merge range
+              if (matched.length > 1) {
+                mergeRanges.push({
+                  startRow: startRow,
+                  endRow: currentRowIndex - 1,
+                  columns: [0, 1, 2, 3, 4, 11] // No, Jabatan, Grade, ABK, Existing, Keterangan Formasi
+                });
+              }
             }
           });
         });
@@ -1619,16 +1637,16 @@ export default function PetaJabatan() {
 
         // Header style (row 0)
         const headerStyle = {
-          fill: { fgColor: { rgb: 'D3D3D3' } }, // Light gray
-          font: { bold: true, color: { rgb: '000000' } },
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue header
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
           alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
           border: borderStyle,
         };
 
         // Category header style (STRUKTURAL, FUNGSIONAL, PELAKSANA)
         const categoryStyle = {
-          fill: { fgColor: { rgb: 'FFA500' } }, // Orange
-          font: { bold: true, color: { rgb: 'FFFFFF' } },
+          fill: { fgColor: { rgb: 'FFC000' } }, // Orange/Gold
+          font: { bold: true, color: { rgb: '000000' }, sz: 11 },
           alignment: { horizontal: 'center', vertical: 'center' },
           border: borderStyle,
         };
@@ -1645,22 +1663,43 @@ export default function PetaJabatan() {
         // Track category header rows for merging
         const categoryRows: number[] = [];
         
+        // First pass: identify category rows and apply basic styling
         for (let R = range.s.r; R <= range.e.r; ++R) {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cellAddress]) continue;
             
-            // Initialize cell style
-            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            // Create cell if it doesn't exist (for empty cells)
+            if (!ws[cellAddress]) {
+              ws[cellAddress] = { t: 's', v: '', s: {} };
+            }
+            
+            // Check if this is a category header row (check column A which has the category name)
+            if (C === 0 && ws[cellAddress].v && 
+                ['STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA'].includes(String(ws[cellAddress].v).toUpperCase())) {
+              if (!categoryRows.includes(R)) {
+                categoryRows.push(R);
+              }
+            }
+          }
+        }
+
+        // Second pass: apply styling based on row type
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          const isCategoryRow = categoryRows.includes(R);
+          
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            if (!ws[cellAddress]) {
+              ws[cellAddress] = { t: 's', v: '', s: {} };
+            }
             
             // Header row (row 0)
             if (R === 0) {
               ws[cellAddress].s = headerStyle;
             }
-            // Check if this is a category header row
-            else if (C === 1 && ws[cellAddress].v && 
-                     ['STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA'].includes(String(ws[cellAddress].v))) {
-              categoryRows.push(R);
+            // Category header row
+            else if (isCategoryRow) {
               ws[cellAddress].s = categoryStyle;
             }
             // Data cells
@@ -1673,11 +1712,118 @@ export default function PetaJabatan() {
         // Merge cells for category headers (merge across all columns)
         if (!ws['!merges']) ws['!merges'] = [];
         categoryRows.forEach(rowIdx => {
+          // Merge from column A (0) to column O (14)
           ws['!merges']!.push({
             s: { r: rowIdx, c: 0 },  // Start: column A
             e: { r: rowIdx, c: 14 }, // End: column O (15 columns total, 0-14)
           });
         });
+        
+        // Add vertical merges for positions with multiple employees
+        mergeRanges.forEach(range => {
+          range.columns.forEach(colIdx => {
+            ws['!merges']!.push({
+              s: { r: range.startRow, c: colIdx },
+              e: { r: range.endRow, c: colIdx },
+            });
+          });
+        });
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Tabel Agregasi (Golongan, Pendidikan, Jenis Kelamin)
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // Style untuk header tabel agregasi
+        const aggHeaderStyle = {
+          fill: { fgColor: { rgb: '70AD47' } }, // Green
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 10 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: borderStyle,
+        };
+
+        // Style untuk data tabel agregasi
+        const aggDataStyle = {
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: borderStyle,
+        };
+
+        // Tabel 1: Golongan (startRow + 1 untuk header, +2 sampai +9 untuk data)
+        // Header: "Golongan", "Jumlah"
+        for (let C = 0; C <= 1; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: startRow + 1, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggHeaderStyle;
+          }
+        }
+        // Data rows
+        for (let R = startRow + 2; R <= startRow + 9; ++R) {
+          for (let C = 0; C <= 1; ++C) {
+            const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
+            if (ws[cellAddr]) {
+              ws[cellAddr].s = aggDataStyle;
+            }
+          }
+        }
+
+        // Tabel 2: Pendidikan ASN
+        // Header row 1: "PENDIDIKAN ASN" merged, "JML"
+        const eduHeaderRow1 = eduStartRow + 1;
+        // Merge "PENDIDIKAN ASN" dari kolom 0-9
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push({
+          s: { r: eduHeaderRow1, c: 0 },
+          e: { r: eduHeaderRow1, c: 9 },
+        });
+        for (let C = 0; C <= 10; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: eduHeaderRow1, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggHeaderStyle;
+          }
+        }
+        
+        // Header row 2: SD, SMP, SMA, D1, D2, D3, D4, S1, S2, S3, (empty for JML)
+        const eduHeaderRow2 = eduStartRow + 2;
+        for (let C = 0; C <= 10; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: eduHeaderRow2, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggHeaderStyle;
+          }
+        }
+        
+        // Data row
+        const eduDataRow = eduStartRow + 3;
+        for (let C = 0; C <= 10; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: eduDataRow, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggDataStyle;
+          }
+        }
+
+        // Tabel 3: Jenis Kelamin
+        // Header row 1: "Jenis Kelamin"
+        const genderHeaderRow1 = genderStartRow + 1;
+        const cellAddr1 = XLSX.utils.encode_cell({ r: genderHeaderRow1, c: 0 });
+        if (ws[cellAddr1]) {
+          ws[cellAddr1].s = aggHeaderStyle;
+        }
+        
+        // Header row 2: L, P, JML PEG
+        const genderHeaderRow2 = genderStartRow + 2;
+        for (let C = 0; C <= 2; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: genderHeaderRow2, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggHeaderStyle;
+          }
+        }
+        
+        // Data row
+        const genderDataRow = genderStartRow + 3;
+        for (let C = 0; C <= 2; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: genderDataRow, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggDataStyle;
+          }
+        }
 
         XLSX.utils.book_append_sheet(wb, ws, makeSheetName(dept));
       }
@@ -1717,6 +1863,49 @@ export default function PetaJabatan() {
           { wch: 5 }, { wch: 40 }, { wch: 14 }, { wch: 12 },
           { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 15 },
         ];
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Summary Sheet
+        // ═══════════════════════════════════════════════════════════════════════
+        const summaryBorderStyle = {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        };
+
+        const summaryHeaderStyle = {
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: summaryBorderStyle,
+        };
+
+        const summaryDataStyle = {
+          alignment: { vertical: 'center', wrapText: true },
+          border: summaryBorderStyle,
+        };
+
+        // Apply styling to Summary sheet
+        const summaryRange = XLSX.utils.decode_range(wsSummary['!ref'] || 'A1');
+        for (let R = summaryRange.s.r; R <= summaryRange.e.r; ++R) {
+          for (let C = summaryRange.s.c; C <= summaryRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            // Only style existing cells
+            if (wsSummary[cellAddress] && wsSummary[cellAddress].v !== undefined) {
+              // Header row (row 0)
+              if (R === 0) {
+                wsSummary[cellAddress].s = summaryHeaderStyle;
+              }
+              // Data rows
+              else {
+                wsSummary[cellAddress].s = summaryDataStyle;
+              }
+            }
+          }
+        }
+        
         // Taruh summary di posisi pertama
         wb.SheetNames.unshift('SUMMARY');
         wb.Sheets['SUMMARY'] = wsSummary;
@@ -1953,6 +2142,62 @@ export default function PetaJabatan() {
           { wch: 6 },  // P
           { wch: 10 }, // Total JK
         ];
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Tabel Golongan per Unit
+        // ═══════════════════════════════════════════════════════════════════════
+        const golBorderStyle = {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        };
+
+        const golHeaderStyle = {
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: golBorderStyle,
+        };
+
+        const golDataStyle = {
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: golBorderStyle,
+        };
+
+        const golTotalStyle = {
+          fill: { fgColor: { rgb: 'FFF2CC' } }, // Light yellow
+          font: { bold: true },
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: golBorderStyle,
+        };
+
+        // Apply styling
+        const golRange = XLSX.utils.decode_range(wsGolongan['!ref'] || 'A1');
+        const lastRow = golRange.e.r;
+        
+        for (let R = golRange.s.r; R <= golRange.e.r; ++R) {
+          for (let C = golRange.s.c; C <= golRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            // Only style existing cells
+            if (wsGolongan[cellAddress] && wsGolongan[cellAddress].v !== undefined) {
+              // Header row
+              if (R === 0) {
+                wsGolongan[cellAddress].s = golHeaderStyle;
+              }
+              // Last row (JUMLAH)
+              else if (R === lastRow) {
+                wsGolongan[cellAddress].s = golTotalStyle;
+              }
+              // Data rows
+              else {
+                wsGolongan[cellAddress].s = golDataStyle;
+              }
+            }
+          }
+        }
+        
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
         
         // Pindahkan sheet ini ke posisi setelah SUMMARY (posisi index 1)
@@ -2042,6 +2287,84 @@ export default function PetaJabatan() {
           { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
           { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } },
         ];
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Tabel Pendidikan per Unit
+        // ═══════════════════════════════════════════════════════════════════════
+        const eduBorderStyle = {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        };
+
+        const eduTitleStyle = {
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: eduBorderStyle,
+        };
+
+        const eduSubtitleStyle = {
+          fill: { fgColor: { rgb: '5B9BD5' } }, // Light blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: eduBorderStyle,
+        };
+
+        const eduHeaderStyle = {
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: eduBorderStyle,
+        };
+
+        const eduDataStyle = {
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: eduBorderStyle,
+        };
+
+        const eduTotalStyle = {
+          fill: { fgColor: { rgb: 'FFF2CC' } }, // Light yellow
+          font: { bold: true },
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: eduBorderStyle,
+        };
+
+        // Apply styling
+        const eduRange = XLSX.utils.decode_range(wsEdu['!ref'] || 'A1');
+        const lastEduRow = eduRange.e.r;
+        
+        for (let R = eduRange.s.r; R <= eduRange.e.r; ++R) {
+          for (let C = eduRange.s.c; C <= eduRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            // Only style existing cells
+            if (wsEdu[cellAddress] && wsEdu[cellAddress].v !== undefined) {
+              // Title row (row 0)
+              if (R === 0) {
+                wsEdu[cellAddress].s = eduTitleStyle;
+              }
+              // Subtitle row (row 1)
+              else if (R === 1) {
+                wsEdu[cellAddress].s = eduSubtitleStyle;
+              }
+              // Header row (row 2)
+              else if (R === 2) {
+                wsEdu[cellAddress].s = eduHeaderStyle;
+              }
+              // Last row (JUMLAH)
+              else if (R === lastEduRow) {
+                wsEdu[cellAddress].s = eduTotalStyle;
+              }
+              // Data rows
+              else {
+                wsEdu[cellAddress].s = eduDataStyle;
+              }
+            }
+          }
+        }
+        
         XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
         
         // Pindahkan sheet ini ke posisi setelah Tabel Golongan (posisi index 2)
@@ -2109,6 +2432,62 @@ export default function PetaJabatan() {
           { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
           { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
         ];
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // STYLING: Jumlah ASN per Unit
+        // ═══════════════════════════════════════════════════════════════════════
+        const asnBorderStyle = {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        };
+
+        const asnHeaderStyle = {
+          fill: { fgColor: { rgb: '4472C4' } }, // Blue
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: asnBorderStyle,
+        };
+
+        const asnDataStyle = {
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: asnBorderStyle,
+        };
+
+        const asnTotalStyle = {
+          fill: { fgColor: { rgb: 'FFF2CC' } }, // Light yellow
+          font: { bold: true },
+          alignment: { vertical: 'center', horizontal: 'center' },
+          border: asnBorderStyle,
+        };
+
+        // Apply styling
+        const asnRange = XLSX.utils.decode_range(wsAsnSummary['!ref'] || 'A1');
+        const lastAsnRow = asnRange.e.r;
+        
+        for (let R = asnRange.s.r; R <= asnRange.e.r; ++R) {
+          for (let C = asnRange.s.c; C <= asnRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            
+            // Only style existing cells
+            if (wsAsnSummary[cellAddress] && wsAsnSummary[cellAddress].v !== undefined) {
+              // Header row
+              if (R === 0) {
+                wsAsnSummary[cellAddress].s = asnHeaderStyle;
+              }
+              // Last row (JUMLAH)
+              else if (R === lastAsnRow) {
+                wsAsnSummary[cellAddress].s = asnTotalStyle;
+              }
+              // Data rows
+              else {
+                wsAsnSummary[cellAddress].s = asnDataStyle;
+              }
+            }
+          }
+        }
+        
         XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
         
         // Pindahkan sheet ini ke posisi setelah Tabel Pendidikan (posisi index 3)
