@@ -1453,7 +1453,142 @@ export default function PetaJabatan() {
           });
         });
 
+        // Convert rows to array of arrays untuk bisa menambahkan tabel agregasi di bawah
         const ws = XLSX.utils.json_to_sheet(rows);
+        
+        // Hitung agregasi untuk unit ini
+        const deptEmps = allEmp.filter(e => {
+          if (!e.department) return false;
+          const effectiveDept = getEffectiveDepartment(e.department);
+          return effectiveDept === dept;
+        });
+
+        // Filter hanya ASN (PNS, CPNS, PPPK)
+        const asnEmps = deptEmps.filter(e => {
+          const status = e.asn_status?.trim().toUpperCase() || '';
+          return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+        });
+
+        // Hitung golongan
+        const getPnsGolongan = (rankGroup: string): string => {
+          const rg = String(rankGroup || '').trim();
+          const subMatch = rg.match(/\b(IV|III|II|I)\/(a|b|c|d|e)\b/i);
+          if (subMatch) return subMatch[1].toUpperCase();
+          const longMatch = rg.match(/\((IV|III|II|I)\//i);
+          if (longMatch) return longMatch[1].toUpperCase();
+          return 'lainnya';
+        };
+
+        const getPppkGolongan = (rankGroup: string): string => {
+          const rg = String(rankGroup || '').trim().toUpperCase();
+          if (rg === 'III') return 'III';
+          if (rg === 'V') return 'V';
+          if (rg === 'VII') return 'VII';
+          if (rg === 'IX') return 'IX';
+          return 'lainnya';
+        };
+
+        const pnsEmps = asnEmps.filter(e => {
+          const s = e.asn_status?.trim().toUpperCase() || '';
+          return s === 'PNS' || s === 'CPNS';
+        });
+        const pppkEmps = asnEmps.filter(e => e.asn_status?.trim().toUpperCase() === 'PPPK');
+
+        const golonganCounts = {
+          iv: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'IV').length,
+          iii: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'III').length,
+          ii: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'II').length,
+          i: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'I').length,
+          V: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'V').length,
+          vii: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'VII').length,
+          ix: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'IX').length,
+        };
+
+        // Hitung pendidikan
+        const getEduLevel = (empId: string): string => {
+          const edu = eduMap.get(empId);
+          if (!edu) return 'Tidak Ada';
+          const level = edu.toUpperCase();
+          if (level.includes('S3') || level.includes('DOKTOR') || level.includes('DR')) return 'S3';
+          if (level.includes('S2') || level.includes('MAGISTER') || level.includes('MASTER')) return 'S2';
+          if (level.includes('S1') || level.includes('SARJANA') || level.includes('BACHELOR')) return 'S1';
+          if (level.includes('D4') || level.includes('D-IV')) return 'D4';
+          if (level.includes('D3') || level.includes('D-III')) return 'D3';
+          if (level.includes('D2') || level.includes('D-II')) return 'D2';
+          if (level.includes('D1') || level.includes('D-I')) return 'D1';
+          if (level.includes('SMA') || level.includes('SMK') || level.includes('MA')) return 'SMA';
+          if (level.includes('SMP') || level.includes('MTS')) return 'SMP';
+          if (level.includes('SD') || level.includes('MI')) return 'SD';
+          return 'Lainnya';
+        };
+
+        const eduCounts = {
+          SD: asnEmps.filter(e => getEduLevel(e.id) === 'SD').length,
+          SMP: asnEmps.filter(e => getEduLevel(e.id) === 'SMP').length,
+          SMA: asnEmps.filter(e => getEduLevel(e.id) === 'SMA').length,
+          D1: asnEmps.filter(e => getEduLevel(e.id) === 'D1').length,
+          D2: asnEmps.filter(e => getEduLevel(e.id) === 'D2').length,
+          D3: asnEmps.filter(e => getEduLevel(e.id) === 'D3').length,
+          D4: asnEmps.filter(e => getEduLevel(e.id) === 'D4').length,
+          S1: asnEmps.filter(e => getEduLevel(e.id) === 'S1').length,
+          S2: asnEmps.filter(e => getEduLevel(e.id) === 'S2').length,
+          S3: asnEmps.filter(e => getEduLevel(e.id) === 'S3').length,
+        };
+
+        // Hitung jenis kelamin
+        const getGender = (gender: unknown): string => {
+          if (!gender) return 'Tidak Ada';
+          const g = String(gender).toLowerCase().replace(/[-_\/\s]+/g, '');
+          if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'L';
+          if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female' || g.includes('wanita')) return 'P';
+          return 'Tidak Ada';
+        };
+
+        const genderCounts = {
+          L: asnEmps.filter(e => getGender(e.gender) === 'L').length,
+          P: asnEmps.filter(e => getGender(e.gender) === 'P').length,
+        };
+
+        const totalAsn = asnEmps.length;
+
+        // Tambahkan tabel agregasi di bawah data utama
+        const startRow = rows.length + 3; // Mulai 3 baris setelah data terakhir
+
+        // Tabel 1: Golongan
+        XLSX.utils.sheet_add_aoa(ws, [
+          [''],
+          ['Golongan', 'Jumlah'],
+          ['iv', golonganCounts.iv],
+          ['iii', golonganCounts.iii],
+          ['ii', golonganCounts.ii],
+          ['i', golonganCounts.i],
+          ['V', golonganCounts.V],
+          ['vii', golonganCounts.vii],
+          ['ix', golonganCounts.ix],
+          ['Jml', totalAsn],
+        ], { origin: startRow });
+
+        // Tabel 2: Pendidikan ASN
+        const eduStartRow = startRow + 12;
+        XLSX.utils.sheet_add_aoa(ws, [
+          [''],
+          ['PENDIDIKAN ASN', '', '', '', '', '', '', '', '', '', 'JML'],
+          ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3', ''],
+          [
+            eduCounts.SD, eduCounts.SMP, eduCounts.SMA, eduCounts.D1, eduCounts.D2,
+            eduCounts.D3, eduCounts.D4, eduCounts.S1, eduCounts.S2, eduCounts.S3, totalAsn
+          ],
+        ], { origin: eduStartRow });
+
+        // Tabel 3: Jenis Kelamin
+        const genderStartRow = eduStartRow + 6;
+        XLSX.utils.sheet_add_aoa(ws, [
+          [''],
+          ['Jenis Kelamin'],
+          ['L', 'P', 'JML PEG'],
+          [genderCounts.L, genderCounts.P, totalAsn],
+        ], { origin: genderStartRow });
+
         ws['!cols'] = [
           { wch: 5 },  // No
           { wch: 40 }, // Jabatan Sesuai Kepmen 202 Tahun 2024
@@ -1461,7 +1596,7 @@ export default function PetaJabatan() {
           { wch: 12 }, // Jumlah ABK
           { wch: 14 }, // Jumlah Existing
           { wch: 30 }, // Nama Pemangku
-          { wch: 25 }, // Jabatan Tambahan (pindah ke sini)
+          { wch: 25 }, // Jabatan Tambahan
           { wch: 12 }, // Kriteria ASN
           { wch: 20 }, // NIP
           { wch: 25 }, // Pangkat Golongan
