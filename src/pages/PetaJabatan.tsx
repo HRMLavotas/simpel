@@ -1382,7 +1382,7 @@ export default function PetaJabatan() {
         
         // Track merge ranges untuk jabatan dengan multiple pemangku
         const mergeRanges: Array<{ startRow: number; endRow: number; columns: number[] }> = [];
-        let currentRowIndex = 0; // Track row index in worksheet (0-based)
+        let currentRowIndex = 1; // Track row index in worksheet (1-based, karena row 0 adalah header)
 
         POSITION_CATEGORIES.forEach(category => {
           // Baris header kategori - nilai di kolom pertama untuk merge
@@ -1663,23 +1663,14 @@ export default function PetaJabatan() {
         // Track category header rows for merging
         const categoryRows: number[] = [];
         
-        // First pass: identify category rows and apply basic styling
+        // First pass: identify category rows (HANYA BACA, JANGAN UBAH)
         for (let R = range.s.r; R <= range.e.r; ++R) {
-          for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            
-            // Create cell if it doesn't exist (for empty cells)
-            if (!ws[cellAddress]) {
-              ws[cellAddress] = { t: 's', v: '', s: {} };
-            }
-            
-            // Check if this is a category header row (check column A which has the category name)
-            if (C === 0 && ws[cellAddress].v && 
-                ['STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA'].includes(String(ws[cellAddress].v).toUpperCase())) {
-              if (!categoryRows.includes(R)) {
-                categoryRows.push(R);
-              }
-            }
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 }); // Check column A only
+          
+          // Check if this is a category header row
+          if (ws[cellAddress] && ws[cellAddress].v && 
+              ['STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA'].includes(String(ws[cellAddress].v).toUpperCase())) {
+            categoryRows.push(R);
           }
         }
 
@@ -1690,21 +1681,20 @@ export default function PetaJabatan() {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
             
-            if (!ws[cellAddress]) {
-              ws[cellAddress] = { t: 's', v: '', s: {} };
-            }
-            
-            // Header row (row 0)
-            if (R === 0) {
-              ws[cellAddress].s = headerStyle;
-            }
-            // Category header row
-            else if (isCategoryRow) {
-              ws[cellAddress].s = categoryStyle;
-            }
-            // Data cells
-            else {
-              ws[cellAddress].s = dataStyle;
+            // Only style cells that exist and have values
+            if (ws[cellAddress]) {
+              // Header row (row 0)
+              if (R === 0) {
+                ws[cellAddress].s = headerStyle;
+              }
+              // Category header row
+              else if (isCategoryRow) {
+                ws[cellAddress].s = categoryStyle;
+              }
+              // Data cells
+              else {
+                ws[cellAddress].s = dataStyle;
+              }
             }
           }
         }
