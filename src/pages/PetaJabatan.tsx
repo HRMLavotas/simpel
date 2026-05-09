@@ -1511,13 +1511,14 @@ export default function PetaJabatan() {
         const pppkEmps = asnEmps.filter(e => e.asn_status?.trim().toUpperCase() === 'PPPK');
 
         const golonganCounts = {
-          iv: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'IV').length,
-          iii: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'III').length,
-          ii: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'II').length,
-          i: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'I').length,
-          V: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'V').length,
-          vii: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'VII').length,
-          ix: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'IX').length,
+          pnsIV: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'IV').length,
+          pnsIII: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'III').length,
+          pnsII: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'II').length,
+          pnsI: pnsEmps.filter(e => getPnsGolongan(e.rank_group || '') === 'I').length,
+          pppkIII: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'III').length,
+          pppkV: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'V').length,
+          pppkVII: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'VII').length,
+          pppkIX: pppkEmps.filter(e => getPppkGolongan(e.rank_group || '') === 'IX').length,
         };
 
         // Hitung pendidikan
@@ -1574,18 +1575,19 @@ export default function PetaJabatan() {
         XLSX.utils.sheet_add_aoa(ws, [
           [''],
           ['Golongan', 'Jumlah'],
-          ['iv', golonganCounts.iv],
-          ['iii', golonganCounts.iii],
-          ['ii', golonganCounts.ii],
-          ['i', golonganCounts.i],
-          ['V', golonganCounts.V],
-          ['vii', golonganCounts.vii],
-          ['ix', golonganCounts.ix],
+          ['PNS Golongan IV', golonganCounts.pnsIV],
+          ['PNS Golongan III', golonganCounts.pnsIII],
+          ['PNS Golongan II', golonganCounts.pnsII],
+          ['PNS Golongan I', golonganCounts.pnsI],
+          ['PPPK Golongan III', golonganCounts.pppkIII],
+          ['PPPK Golongan V', golonganCounts.pppkV],
+          ['PPPK Golongan VII', golonganCounts.pppkVII],
+          ['PPPK Golongan IX', golonganCounts.pppkIX],
           ['Jml', totalAsn],
         ], { origin: startRow });
 
         // Tabel 2: Pendidikan ASN
-        const eduStartRow = startRow + 12;
+        const eduStartRow = startRow + 13;
         XLSX.utils.sheet_add_aoa(ws, [
           [''],
           ['PENDIDIKAN ASN', '', '', '', '', '', '', '', '', '', 'JML'],
@@ -1600,7 +1602,7 @@ export default function PetaJabatan() {
         const genderStartRow = eduStartRow + 6;
         XLSX.utils.sheet_add_aoa(ws, [
           [''],
-          ['Jenis Kelamin'],
+          ['Jenis Kelamin', '', ''],
           ['L', 'P', 'JML PEG'],
           [genderCounts.L, genderCounts.P, totalAsn],
         ], { origin: genderStartRow });
@@ -1737,7 +1739,17 @@ export default function PetaJabatan() {
           border: borderStyle,
         };
 
-        // Tabel 1: Golongan (startRow + 1 untuk header, +2 sampai +9 untuk data)
+        // Style untuk label tabel agregasi (kolom kiri)
+        const aggLabelStyle = {
+          font: { bold: true, sz: 10 },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: borderStyle,
+        };
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Tabel 1: Golongan (startRow + 1 untuk header, +2 sampai +10 untuk data)
+        // ─────────────────────────────────────────────────────────────────────
+        
         // Header: "Golongan", "Jumlah"
         for (let C = 0; C <= 1; ++C) {
           const cellAddr = XLSX.utils.encode_cell({ r: startRow + 1, c: C });
@@ -1745,25 +1757,37 @@ export default function PetaJabatan() {
             ws[cellAddr].s = aggHeaderStyle;
           }
         }
-        // Data rows
-        for (let R = startRow + 2; R <= startRow + 9; ++R) {
-          for (let C = 0; C <= 1; ++C) {
-            const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
-            if (ws[cellAddr]) {
-              ws[cellAddr].s = aggDataStyle;
-            }
+        
+        // Data rows (8 rows golongan + 1 row total)
+        for (let R = startRow + 2; R <= startRow + 10; ++R) {
+          // Kolom 0: Label golongan (bold, left-aligned)
+          const labelAddr = XLSX.utils.encode_cell({ r: R, c: 0 });
+          if (ws[labelAddr]) {
+            ws[labelAddr].s = aggLabelStyle;
+          }
+          
+          // Kolom 1: Jumlah (center-aligned)
+          const valueAddr = XLSX.utils.encode_cell({ r: R, c: 1 });
+          if (ws[valueAddr]) {
+            ws[valueAddr].s = aggDataStyle;
           }
         }
 
+        // ─────────────────────────────────────────────────────────────────────
         // Tabel 2: Pendidikan ASN
-        // Header row 1: "PENDIDIKAN ASN" merged, "JML"
+        // ─────────────────────────────────────────────────────────────────────
+        
+        // Header row 1: "PENDIDIKAN ASN" merged (kolom 0-9), "JML" (kolom 10)
         const eduHeaderRow1 = eduStartRow + 1;
+        
         // Merge "PENDIDIKAN ASN" dari kolom 0-9
         if (!ws['!merges']) ws['!merges'] = [];
         ws['!merges'].push({
           s: { r: eduHeaderRow1, c: 0 },
           e: { r: eduHeaderRow1, c: 9 },
         });
+        
+        // Style untuk semua kolom di header row 1
         for (let C = 0; C <= 10; ++C) {
           const cellAddr = XLSX.utils.encode_cell({ r: eduHeaderRow1, c: C });
           if (ws[cellAddr]) {
@@ -1780,7 +1804,7 @@ export default function PetaJabatan() {
           }
         }
         
-        // Data row
+        // Data row: nilai pendidikan
         const eduDataRow = eduStartRow + 3;
         for (let C = 0; C <= 10; ++C) {
           const cellAddr = XLSX.utils.encode_cell({ r: eduDataRow, c: C });
@@ -1789,12 +1813,25 @@ export default function PetaJabatan() {
           }
         }
 
+        // ─────────────────────────────────────────────────────────────────────
         // Tabel 3: Jenis Kelamin
-        // Header row 1: "Jenis Kelamin"
+        // ─────────────────────────────────────────────────────────────────────
+        
+        // Header row 1: "Jenis Kelamin" merged (kolom 0-2)
         const genderHeaderRow1 = genderStartRow + 1;
-        const cellAddr1 = XLSX.utils.encode_cell({ r: genderHeaderRow1, c: 0 });
-        if (ws[cellAddr1]) {
-          ws[cellAddr1].s = aggHeaderStyle;
+        
+        // Merge "Jenis Kelamin" dari kolom 0-2
+        ws['!merges'].push({
+          s: { r: genderHeaderRow1, c: 0 },
+          e: { r: genderHeaderRow1, c: 2 },
+        });
+        
+        // Style untuk header row 1
+        for (let C = 0; C <= 2; ++C) {
+          const cellAddr = XLSX.utils.encode_cell({ r: genderHeaderRow1, c: C });
+          if (ws[cellAddr]) {
+            ws[cellAddr].s = aggHeaderStyle;
+          }
         }
         
         // Header row 2: L, P, JML PEG
@@ -1806,7 +1843,7 @@ export default function PetaJabatan() {
           }
         }
         
-        // Data row
+        // Data row: nilai jenis kelamin
         const genderDataRow = genderStartRow + 3;
         for (let C = 0; C <= 2; ++C) {
           const cellAddr = XLSX.utils.encode_cell({ r: genderDataRow, c: C });
