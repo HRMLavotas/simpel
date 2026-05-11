@@ -16,7 +16,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { FileSpreadsheet, Search, Loader2, Table2, BarChart3, Database, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
+import {
+  applyWorksheetStyling,
+  setColumnWidths,
+} from '@/lib/excelStyles';
 import { logger } from '@/lib/logger';
 import { randomId } from '@/lib/utils';
 
@@ -514,6 +518,19 @@ export default function DataBuilder() {
         return obj;
       });
       const wsData = XLSX.utils.json_to_sheet(exportData);
+      
+      // Apply styling to main data sheet
+      const dataColWidths = columns.map(col => {
+        // Estimate column width based on label length and content type
+        if (col.dbField === 'name' || col.dbField === 'position_name') return 35;
+        if (col.dbField === 'department') return 30;
+        if (col.dbField === 'nip') return 20;
+        if (col.category === 'dates') return 15;
+        return Math.max(col.label.length + 5, 12);
+      });
+      setColumnWidths(wsData, [5, ...dataColWidths]); // 5 for "No" column
+      applyWorksheetStyling(wsData, { headerRow: 0 });
+      
       XLSX.utils.book_append_sheet(wb, wsData, mainSheetName);
 
       const exportRelationErrors: string[] = [];
@@ -582,6 +599,16 @@ export default function DataBuilder() {
           });
 
           const wsRelated = XLSX.utils.json_to_sheet(relatedExportData);
+          
+          // Apply styling to related data sheet
+          const relatedColWidths = [5, 20, 35, 30]; // No, NIP, Nama, Unit Kerja
+          tableConfig.fields.forEach(field => {
+            // Estimate width based on field label
+            relatedColWidths.push(Math.max(field.label.length + 5, 15));
+          });
+          setColumnWidths(wsRelated, relatedColWidths);
+          applyWorksheetStyling(wsRelated, { headerRow: 0 });
+          
           const sheetName = allocateExcelSheetName(tableConfig.label, sheetNamesUsed);
           XLSX.utils.book_append_sheet(wb, wsRelated, sheetName);
         }
@@ -594,6 +621,11 @@ export default function DataBuilder() {
         { Kategori: 'Filter Aktif', Nilai: activeFilterCount },
       ];
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+      
+      // Apply styling to summary sheet
+      setColumnWidths(wsSummary, [25, 15]); // Kategori, Nilai
+      applyWorksheetStyling(wsSummary, { headerRow: 0 });
+      
       XLSX.utils.book_append_sheet(wb, wsSummary, summarySheetName);
 
       // Fields to exclude from statistics
@@ -649,6 +681,11 @@ export default function DataBuilder() {
 
         if (statData.length > 0) {
           const wsStats = XLSX.utils.json_to_sheet(statData);
+          
+          // Apply styling to statistics sheet
+          setColumnWidths(wsStats, [Math.max(stat.label.length + 5, 25), 12, 12]); // Label, Jumlah, Persentase
+          applyWorksheetStyling(wsStats, { headerRow: 0 });
+          
           const statSheetName = allocateExcelSheetName(`Stat ${stat.label}`, sheetNamesUsed);
           XLSX.utils.book_append_sheet(wb, wsStats, statSheetName);
         }

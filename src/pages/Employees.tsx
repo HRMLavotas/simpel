@@ -60,7 +60,11 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { HistoryRowData, Employee } from '@/types/employee';
 import { createNotification } from '@/hooks/useNotifications';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
+import {
+  applyWorksheetStyling,
+  setColumnWidths,
+} from '@/lib/excelStyles';
 
 const ITEMS_PER_PAGE = 200;
 
@@ -1327,25 +1331,28 @@ export default function Employees() {
     const aoaData = [headers, ...rows];
     const ws = XLSX.utils.aoa_to_sheet(aoaData);
 
-    // Lebar kolom
-    ws['!cols'] = [
-      { wch: 5 },  // No
-      { wch: 20 }, // NIP
-      { wch: 10 }, // Gelar Depan
-      { wch: 30 }, // Nama
-      { wch: 15 }, // Gelar Belakang
-      { wch: 15 }, // Jenis Jabatan
-      { wch: 35 }, // Nama Jabatan
-      { wch: 25 }, // Jabatan Tambahan
-      { wch: 10 }, // Status ASN
-      { wch: 25 }, // Golongan
-      { wch: 30 }, // Unit Kerja
-      { wch: 14 }, // Tanggal Masuk
-      { wch: 25 }, // Ket. Formasi
-      { wch: 25 }, // Ket. Penempatan
-      { wch: 25 }, // Ket. Penugasan
-      { wch: 25 }, // Ket. Perubahan
-    ];
+    // Set column widths
+    setColumnWidths(ws, [
+      5,  // No
+      20, // NIP
+      10, // Gelar Depan
+      30, // Nama
+      15, // Gelar Belakang
+      15, // Jenis Jabatan
+      35, // Nama Jabatan
+      25, // Jabatan Tambahan
+      10, // Status ASN
+      25, // Golongan
+      30, // Unit Kerja
+      14, // Tanggal Masuk
+      25, // Ket. Formasi
+      25, // Ket. Penempatan
+      25, // Ket. Penugasan
+      25, // Ket. Perubahan
+    ]);
+
+    // Apply styling
+    applyWorksheetStyling(ws, { headerRow: 0 });
 
     // Freeze baris header
     ws['!freeze'] = { xSplit: 0, ySplit: 1 };
@@ -1370,7 +1377,14 @@ export default function Employees() {
     ];
 
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-    wsSummary['!cols'] = [{ wch: 25 }, { wch: 20 }];
+    setColumnWidths(wsSummary, [25, 20]);
+    
+    // Apply styling: row 0 is title (category style), row 2 is header-like, rest are data
+    applyWorksheetStyling(wsSummary, {
+      headerRow: 0, // Title row
+      categoryRows: [5], // "Berdasarkan Status ASN" row
+    });
+    
     wsSummary['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 

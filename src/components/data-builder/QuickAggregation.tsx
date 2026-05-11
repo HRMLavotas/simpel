@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileSpreadsheet, Download, Loader2, Zap, Users, TrendingUp, Award, GraduationCap } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
+import {
+  applyWorksheetStyling,
+  setColumnWidths,
+} from '@/lib/excelStyles';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -555,6 +559,12 @@ export function QuickAggregation() {
     setIsExporting(true);
     try {
       const wb = XLSX.utils.book_new();
+      
+      // Helper function to apply styling to aggregation sheets
+      const applyAggregationStyling = (ws: XLSX.WorkSheet, colWidths: number[]) => {
+        setColumnWidths(ws, colWidths);
+        applyWorksheetStyling(ws, { headerRow: 0 });
+      };
 
       // Sheet 1: Ringkasan
       const summaryData = [
@@ -563,6 +573,7 @@ export function QuickAggregation() {
         { Kategori: 'Filter Unit Kerja', Nilai: selectedDepartment === 'all' ? 'Semua Unit' : selectedDepartment },
       ];
       const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+      applyAggregationStyling(wsSummary, [25, 20]);
       XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
 
       // Sheet 2: Status ASN
@@ -572,6 +583,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsAsnStatus = XLSX.utils.json_to_sheet(asnStatusData);
+      applyAggregationStyling(wsAsnStatus, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsAsnStatus, 'Status ASN');
 
       // Sheet 3: Pangkat/Golongan Utama
@@ -581,6 +593,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsRank = XLSX.utils.json_to_sheet(rankData);
+      applyAggregationStyling(wsRank, [25, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsRank, 'Pangkat Utama');
 
       // Sheet 4: Pangkat/Golongan Detail
@@ -590,6 +603,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsDetailedRank = XLSX.utils.json_to_sheet(detailedRankData);
+      applyAggregationStyling(wsDetailedRank, [30, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsDetailedRank, 'Pangkat Detail');
 
       // Sheet 5: Jenis Jabatan
@@ -599,6 +613,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsPositionType = XLSX.utils.json_to_sheet(positionTypeData);
+      applyAggregationStyling(wsPositionType, [25, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsPositionType, 'Jenis Jabatan');
 
       // Sheet 6: Pendidikan
@@ -608,6 +623,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsEducation = XLSX.utils.json_to_sheet(educationData);
+      applyAggregationStyling(wsEducation, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsEducation, 'Pendidikan');
 
       // Sheet 7: Jenis Kelamin
@@ -617,6 +633,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsGender = XLSX.utils.json_to_sheet(genderData);
+      applyAggregationStyling(wsGender, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsGender, 'Jenis Kelamin');
 
       // Sheet 8: Agama
@@ -626,6 +643,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsReligion = XLSX.utils.json_to_sheet(religionData);
+      applyAggregationStyling(wsReligion, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsReligion, 'Agama');
 
       // Sheet 9: Rentang Usia
@@ -635,6 +653,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsAge = XLSX.utils.json_to_sheet(ageData);
+      applyAggregationStyling(wsAge, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsAge, 'Rentang Usia');
 
       // Sheet 10: Masa Kerja
@@ -644,6 +663,7 @@ export function QuickAggregation() {
         'Persentase': `${item.percentage}%`,
       }));
       const wsYears = XLSX.utils.json_to_sheet(yearsData);
+      applyAggregationStyling(wsYears, [20, 12, 12]);
       XLSX.utils.book_append_sheet(wb, wsYears, 'Masa Kerja');
 
       // Sheet 11: Unit Kerja (only if not filtered by department)
@@ -654,6 +674,7 @@ export function QuickAggregation() {
           'Persentase': `${item.percentage}%`,
         }));
         const wsDepartment = XLSX.utils.json_to_sheet(departmentData);
+        applyAggregationStyling(wsDepartment, [35, 12, 12]);
         XLSX.utils.book_append_sheet(wb, wsDepartment, 'Unit Kerja');
       }
 
@@ -726,6 +747,11 @@ export function QuickAggregation() {
           { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
           { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
         ];
+        // Apply styling with last row as total row
+        applyWorksheetStyling(wsAsnSummary, {
+          headerRow: 0,
+          totalRows: [asnRows.length], // Last row is JUMLAH
+        });
         XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
       }
 
@@ -881,6 +907,11 @@ export function QuickAggregation() {
           { wch: 6 },  // P
           { wch: 10 }, // Total JK
         ];
+        // Apply styling with last row as total row
+        applyWorksheetStyling(wsGolongan, {
+          headerRow: 0,
+          totalRows: [golonganRows.length], // Last row is JUMLAH
+        });
         XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan per Unit');
       }
 
@@ -985,6 +1016,14 @@ export function QuickAggregation() {
           { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } }, // Row 1 (title) merged A1:N1
           { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } }, // Row 2 (subtitle) merged A2:N2
         ];
+        
+        // Apply styling: row 0-1 are title/subtitle (category style), row 2 is header, row 3+ are data
+        // Last row is JUMLAH (total row)
+        applyWorksheetStyling(wsEdu, {
+          headerRow: 2, // Row 2 is the actual header
+          categoryRows: [0, 1], // Title and subtitle rows
+          totalRows: [dataRows.length + 2], // Last data row + 2 (for title/subtitle rows)
+        });
 
         XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan per Unit');
 
@@ -1056,6 +1095,8 @@ export function QuickAggregation() {
         if (compareRows.length > 0) {
           const wsCompare = XLSX.utils.json_to_sheet(compareRows);
           wsCompare['!cols'] = [{ wch: 5 }, { wch: 30 }, ...Array(compareFields.length * 3).fill({ wch: 10 })];
+          // Apply styling
+          applyWorksheetStyling(wsCompare, { headerRow: 0 });
           XLSX.utils.book_append_sheet(wb, wsCompare, 'Perbandingan Pendidikan');
         }
       }

@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
+import {
+  applyWorksheetStyling,
+  applyCategoryHeaders,
+  setColumnWidths,
+} from '@/lib/excelStyles';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -855,17 +860,24 @@ export default function PetaJabatan() {
   const handleExportASN = () => {
     const rows: Record<string, string | number>[] = [];
     let no = 1;
+    const categoryRows: number[] = []; // Track category header rows (0-indexed after header)
+    const mergeRanges: Array<{ startRow: number; endRow: number; columns: number[] }> = []; // Track merge ranges for positions with multiple employees
+    let currentRowIndex = 0; // Track current row index in data array (0-indexed)
 
     POSITION_CATEGORIES.forEach(category => {
+      // Track this row as a category header (row index = current rows.length)
+      categoryRows.push(rows.length);
+      
       rows.push({
-        'No': '',
-        'Jabatan Sesuai Kepmen 202 Tahun 2024': category.toUpperCase(),
+        'No': category.toUpperCase(), // Put category name in first column for merge
+        'Jabatan Sesuai Kepmen 202 Tahun 2024': '',
         'Grade/Kelas Jabatan': '', 'Jumlah ABK': '', 'Jumlah Existing': '',
         'Nama Pemangku': '', 'Kriteria ASN': '', 'NIP': '',
         'Pangkat Golongan': '', 'Pendidikan Terakhir': '', 'Jenis Kelamin': '',
         'Keterangan Formasi': '', 'Keterangan Penempatan': '',
         'Keterangan Penugasan Tambahan': '', 'Keterangan Perubahan': '',
       });
+      currentRowIndex++;
 
       const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
@@ -891,7 +903,10 @@ export default function PetaJabatan() {
             'Keterangan Penugasan Tambahan': '-',
             'Keterangan Perubahan': '-',
           });
+          currentRowIndex++;
         } else {
+          const startRow = currentRowIndex;
+          
           matched.forEach((emp, idx) => {
             const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ');
             rows.push({
@@ -911,20 +926,70 @@ export default function PetaJabatan() {
               'Keterangan Penugasan Tambahan': emp.keterangan_penugasan || '-',
               'Keterangan Perubahan': emp.keterangan_perubahan || '-',
             });
+            currentRowIndex++;
           });
+          
+          // If there are multiple employees for this position, add merge range
+          if (matched.length > 1) {
+            mergeRanges.push({
+              startRow: startRow,
+              endRow: currentRowIndex - 1,
+              columns: [0, 1, 2, 3, 4, 11] // No, Jabatan, Grade, ABK, Existing, Keterangan Formasi
+            });
+          }
         }
       });
     });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [
-      { wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 12 }, { wch: 14 },
-      { wch: 30 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 },
-      { wch: 14 }, { wch: 18 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
-    ];
+    
+    // Set column widths
+    setColumnWidths(ws, [
+      5,  // No
+      40, // Jabatan Sesuai Kepmen 202 Tahun 2024
+      15, // Grade/Kelas Jabatan
+      12, // Jumlah ABK
+      14, // Jumlah Existing
+      30, // Nama Pemangku
+      12, // Kriteria ASN
+      20, // NIP
+      25, // Pangkat Golongan
+      18, // Pendidikan Terakhir
+      14, // Jenis Kelamin
+      18, // Keterangan Formasi
+      20, // Keterangan Penempatan
+      25, // Keterangan Penugasan Tambahan
+      20, // Keterangan Perubahan
+    ]);
+    
+    // Apply styling: header row (0) + category rows + data rows
+    // Category rows are at indices: categoryRows array (but in worksheet, they're +1 because of header)
+    const worksheetCategoryRows = categoryRows.map(r => r + 1); // +1 because header is row 0
+    applyWorksheetStyling(ws, {
+      headerRow: 0,
+      categoryRows: worksheetCategoryRows,
+    });
+    
+    // Apply category header merging (merge across all 15 columns)
+    applyCategoryHeaders(ws, worksheetCategoryRows, 15);
+    
+    // Apply vertical merges for positions with multiple employees
+    if (!ws['!merges']) ws['!merges'] = [];
+    mergeRanges.forEach(range => {
+      range.columns.forEach(colIdx => {
+        ws['!merges']!.push({
+          s: { r: range.startRow + 1, c: colIdx }, // +1 because of header row
+          e: { r: range.endRow + 1, c: colIdx },   // +1 because of header row
+        });
+      });
+    });
+    
     XLSX.utils.book_append_sheet(wb, ws, 'Peta Jabatan ASN');
-    XLSX.writeFile(wb, `Peta_Jabatan_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
+    XLSX.writeFile(wb, `Peta_Jabatan_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`, { 
+      bookType: 'xlsx', 
+      compression: true 
+    });
     
     toast({ title: 'Berhasil', description: `Data Peta Jabatan ASN berhasil di-export (${rows.length - POSITION_CATEGORIES.length} baris data)` });
   };
@@ -966,13 +1031,32 @@ export default function PetaJabatan() {
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [
-      { wch: 5 }, { wch: 35 }, { wch: 10 }, { wch: 10 },
-      { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 14 },
-      { wch: 30 }, { wch: 12 },
-    ];
+    
+    // Set column widths
+    setColumnWidths(ws, [
+      5,  // No
+      35, // Jabatan
+      10, // Formasi
+      10, // Existing
+      30, // Nama Pemangku
+      20, // NIK
+      20, // Type Non ASN
+      14, // Jenis Kelamin
+      30, // Keterangan Penugasan
+      12, // Status
+    ]);
+    
+    // Apply styling: header row (0) + data rows (no category rows for Non-ASN)
+    applyWorksheetStyling(ws, {
+      headerRow: 0,
+      categoryRows: [], // No category headers for Non-ASN
+    });
+    
     XLSX.utils.book_append_sheet(wb, ws, 'Formasi Non-ASN');
-    XLSX.writeFile(wb, `Formasi_Non_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`);
+    XLSX.writeFile(wb, `Formasi_Non_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`, {
+      bookType: 'xlsx',
+      compression: true
+    });
     
     toast({ title: 'Berhasil', description: `Data Formasi Non-ASN berhasil di-export (${rows.length} baris data)` });
   };
@@ -1010,10 +1094,8 @@ export default function PetaJabatan() {
         });
 
       const ws1 = XLSX.utils.json_to_sheet(deptRows);
-      ws1['!cols'] = [
-        { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 12 },
-        { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
-      ];
+      setColumnWidths(ws1, [5, 35, 14, 12, 14, 10, 10, 15]);
+      applyWorksheetStyling(ws1, { headerRow: 0 });
       XLSX.utils.book_append_sheet(wb, ws1, 'Summary per Unit');
     }
 
@@ -1078,10 +1160,8 @@ export default function PetaJabatan() {
     });
 
     const ws2 = XLSX.utils.json_to_sheet(positionRows);
-    ws2['!cols'] = [
-      { wch: 5 }, { wch: 15 }, { wch: 40 }, { wch: 12 },
-      { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
-    ];
+    setColumnWidths(ws2, [5, 15, 40, 12, 14, 10, 10, 15]);
+    applyWorksheetStyling(ws2, { headerRow: 0 });
     XLSX.utils.book_append_sheet(wb, ws2, 'Summary per Jabatan');
 
     // Sheet 3: Summary per Kategori
@@ -1111,15 +1191,15 @@ export default function PetaJabatan() {
     });
 
     const ws3 = XLSX.utils.json_to_sheet(categoryRows);
-    ws3['!cols'] = [
-      { wch: 5 }, { wch: 15 }, { wch: 14 }, { wch: 12 },
-      { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 15 },
-    ];
+    setColumnWidths(ws3, [5, 15, 14, 12, 14, 10, 10, 15]);
+    applyWorksheetStyling(ws3, { headerRow: 0 });
     XLSX.utils.book_append_sheet(wb, ws3, 'Summary per Kategori');
 
     // Sheet 4: Detail Jabatan per Unit Kerja (only for Admin Pusat/Pimpinan)
     if (canViewAll) {
       const detailRows: Record<string, string | number>[] = [];
+      const unitHeaderRows: number[] = []; // Track unit header rows for styling
+      const subtotalRows: number[] = []; // Track subtotal rows for styling
       let detailNo = 1;
 
       dynamicDepartments
@@ -1129,6 +1209,7 @@ export default function PetaJabatan() {
           if (deptPositions.length === 0) return;
 
           // Header baris unit kerja
+          unitHeaderRows.push(detailRows.length);
           detailRows.push({
             'No': '',
             'Unit Kerja': dept.toUpperCase(),
@@ -1189,6 +1270,7 @@ export default function PetaJabatan() {
             ? ((unitTotalExisting / unitTotalAbk) * 100).toFixed(1)
             : '0';
 
+          subtotalRows.push(detailRows.length);
           detailRows.push({
             'No': '',
             'Unit Kerja': `SUBTOTAL ${dept}`,
@@ -1210,10 +1292,20 @@ export default function PetaJabatan() {
 
       if (detailRows.length > 0) {
         const ws4 = XLSX.utils.json_to_sheet(detailRows);
-        ws4['!cols'] = [
-          { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 42 },
-          { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 15 },
-        ];
+        setColumnWidths(ws4, [5, 35, 14, 42, 8, 10, 8, 10, 15]);
+        
+        // Apply styling with unit headers as category rows and subtotals as total rows
+        const worksheetUnitHeaderRows = unitHeaderRows.map(r => r + 1); // +1 for header row
+        const worksheetSubtotalRows = subtotalRows.map(r => r + 1); // +1 for header row
+        applyWorksheetStyling(ws4, {
+          headerRow: 0,
+          categoryRows: worksheetUnitHeaderRows,
+          totalRows: worksheetSubtotalRows,
+        });
+        
+        // Merge unit header rows across all columns
+        applyCategoryHeaders(ws4, worksheetUnitHeaderRows, 9);
+        
         XLSX.utils.book_append_sheet(wb, ws4, 'Detail Jabatan per Unit');
       }
     }
@@ -1223,7 +1315,10 @@ export default function PetaJabatan() {
       ? `Summary_Peta_Jabatan_Semua_Unit.xlsx`
       : `Summary_Peta_Jabatan_${(profile?.department || selectedDepartment).replace(/\s/g, '_')}.xlsx`;
     
-    XLSX.writeFile(wb, filename);
+    XLSX.writeFile(wb, filename, {
+      bookType: 'xlsx',
+      compression: true
+    });
     
     const sheetCount = canViewAll ? 4 : 2; // Admin Unit doesn't have "Summary per Unit" & "Detail per Unit" sheets
     toast({ 
@@ -2569,10 +2664,8 @@ export default function PetaJabatan() {
 
       if (deptRows.length > 0) {
         const ws1 = XLSX.utils.json_to_sheet(deptRows);
-        ws1['!cols'] = [
-          { wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 },
-          { wch: 10 }, { wch: 14 },
-        ];
+        setColumnWidths(ws1, [5, 35, 14, 16, 10, 14]);
+        applyWorksheetStyling(ws1, { headerRow: 0 });
         XLSX.utils.book_append_sheet(wb, ws1, 'Summary per Unit');
       }
     }
@@ -2635,9 +2728,11 @@ export default function PetaJabatan() {
     });
 
     const ws2 = XLSX.utils.json_to_sheet(positionRows);
-    ws2['!cols'] = canViewAll 
-      ? [{ wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 }, { wch: 10 }, { wch: 12 }]
-      : [{ wch: 5 }, { wch: 35 }, { wch: 14 }, { wch: 16 }, { wch: 10 }];
+    setColumnWidths(ws2, canViewAll 
+      ? [5, 35, 14, 16, 10, 12]
+      : [5, 35, 14, 16, 10]
+    );
+    applyWorksheetStyling(ws2, { headerRow: 0 });
     XLSX.utils.book_append_sheet(wb, ws2, 'Summary per Jabatan');
 
     // Sheet 3: Summary per Type
@@ -2663,9 +2758,12 @@ export default function PetaJabatan() {
     ];
 
     const ws3 = XLSX.utils.json_to_sheet(typeRows);
-    ws3['!cols'] = [
-      { wch: 5 }, { wch: 20 }, { wch: 14 }, { wch: 12 },
-    ];
+    setColumnWidths(ws3, [5, 20, 14, 12]);
+    // Apply styling with last row as total row
+    applyWorksheetStyling(ws3, {
+      headerRow: 0,
+      totalRows: [3], // Row 3 is the TOTAL row (0=header, 1-2=data, 3=total)
+    });
     XLSX.utils.book_append_sheet(wb, ws3, 'Summary per Type');
 
     // Generate filename based on role
@@ -2673,7 +2771,10 @@ export default function PetaJabatan() {
       ? `Summary_Non_ASN_Semua_Unit.xlsx`
       : `Summary_Non_ASN_${(profile?.department || selectedDepartment).replace(/\s/g, '_')}.xlsx`;
     
-    XLSX.writeFile(wb, filename);
+    XLSX.writeFile(wb, filename, {
+      bookType: 'xlsx',
+      compression: true
+    });
     
     const sheetCount = canViewAll ? 3 : 2; // Admin Unit doesn't have "Summary per Unit" sheet
     toast({ 
