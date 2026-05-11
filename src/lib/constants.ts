@@ -28,26 +28,26 @@ export const DEPARTMENTS = [
   'BPVP Sidoarjo',
   'BPVP Pangkep',
   'BPVP Belitung',
-  'Satpel Sawahlunto',
-  'Satpel Sofifi',
-  'Satpel Pekanbaru',
-  'Satpel Lubuklinggau',
-  'Satpel Lampung',
-  'Satpel Bengkulu',
-  'Satpel Mamuju',
-  'Satpel Majene',
-  'Satpel Palu',
-  'Satpel Bantul',
-  'Satpel Kupang',
-  'Satpel Jambi',
-  'Satpel Jayapura',
-  'Satpel Kotawaringin Timur',
-  'Satpel Bali',
-  'Satpel Morowali',
-  'Satpel Morowali Utara',
-  'Satpel Minahasa Utara',
-  'Satpel Halmahera Selatan',
-  'Satpel Tanah Bumbu',
+  'Satuan Pelayanan Sawahlunto',
+  'Satuan Pelayanan Sofifi',
+  'Satuan Pelayanan Pekanbaru',
+  'Satuan Pelayanan Lubuklinggau',
+  'Satuan Pelayanan Lampung',
+  'Satuan Pelayanan Bengkulu',
+  'Satuan Pelayanan Mamuju',
+  'Satuan Pelayanan Majene',
+  'Satuan Pelayanan Palu',
+  'Satuan Pelayanan Bantul',
+  'Satuan Pelayanan Kupang',
+  'Satuan Pelayanan Jambi',
+  'Satuan Pelayanan Jayapura',
+  'Satuan Pelayanan Kotawaringin Timur',
+  'Satuan Pelayanan Bali',
+  'Satuan Pelayanan Morowali',
+  'Satuan Pelayanan Morowali Utara',
+  'Satuan Pelayanan Minahasa Utara',
+  'Satuan Pelayanan Halmahera Selatan',
+  'Satuan Pelayanan Tanah Bumbu',
   'Satpel Bulungan',
   'Workshop Prabumulih',
   'Workshop Batam',
@@ -92,21 +92,20 @@ export const DEPARTMENT_ALIASES: Record<string, Department> = {
   'Direktorat Bina Lavogan': 'Direktorat Bina Penyelenggaraan Latvogan',
   'Sekretariat Ditjen Binalavotas': 'Setditjen Binalavotas',
   'Sekretariat BNSP': 'Set. BNSP',
-  // Satuan Pelayanan (Satpel) mappings
-  'Satuan Pelayanan Sawahlunto': 'Satpel Sawahlunto',
-  'Satuan Pelayanan Sofifi': 'Satpel Sofifi',
-  'Satuan Pelayanan Pekanbaru': 'Satpel Pekanbaru',
-  'Satuan Pelayanan Lubuklinggau': 'Satpel Lubuklinggau',
-  'Satuan Pelayanan Lampung': 'Satpel Lampung',
-  'Satuan Pelayanan Bengkulu': 'Satpel Bengkulu',
-  'Satuan Pelayanan Mamuju': 'Satpel Mamuju',
-  'Satuan Pelayanan Majene': 'Satpel Majene',
-  'Satuan Pelayanan Palu': 'Satpel Palu',
-  'Satuan Pelayanan Bantul': 'Satpel Bantul',
-  'Satuan Pelayanan Kupang': 'Satpel Kupang',
-  'Satuan Pelayanan Jambi': 'Satpel Jambi',
-  'Satpel Jayapura': 'Satpel Jayapura',
-  'Satuan Pelayanan Jayapura': 'Satpel Jayapura',
+  // Satuan Pelayanan (Satpel) mappings - map short name to full name
+  'Satpel Sawahlunto': 'Satuan Pelayanan Sawahlunto',
+  'Satpel Sofifi': 'Satuan Pelayanan Sofifi',
+  'Satpel Pekanbaru': 'Satuan Pelayanan Pekanbaru',
+  'Satpel Lubuklinggau': 'Satuan Pelayanan Lubuklinggau',
+  'Satpel Lampung': 'Satuan Pelayanan Lampung',
+  'Satpel Bengkulu': 'Satuan Pelayanan Bengkulu',
+  'Satpel Mamuju': 'Satuan Pelayanan Mamuju',
+  'Satpel Majene': 'Satuan Pelayanan Majene',
+  'Satpel Palu': 'Satuan Pelayanan Palu',
+  'Satpel Bantul': 'Satuan Pelayanan Bantul',
+  'Satpel Kupang': 'Satuan Pelayanan Kupang',
+  'Satpel Jambi': 'Satuan Pelayanan Jambi',
+  'Satpel Jayapura': 'Satuan Pelayanan Jayapura',
   // Satpel baru (unit binaan yang ditambahkan)
   'Satuan Pelayanan Kotawaringin Timur': 'Satpel Kotawaringin Timur',
   'Satpel Kotawaringin Timur': 'Satpel Kotawaringin Timur',
@@ -436,12 +435,14 @@ export function isSatpelOrWorkshop(department: string): boolean {
 /**
  * Get all Satpel/Workshop units under a unit pembina
  * @param pembina - Unit pembina name
- * @returns Array of Satpel/Workshop names
+ * @returns Array of Satpel/Workshop names (using full name "Satuan Pelayanan")
  */
 export function getSatpelsByPembina(pembina: string): string[] {
   return Object.entries(UNIT_PEMBINA_MAPPING)
     .filter(([_, parent]) => parent === pembina)
-    .map(([satpel]) => satpel);
+    .map(([satpel]) => satpel)
+    // Filter only full names (Satuan Pelayanan, Workshop) - exclude short names (Satpel)
+    .filter(name => !name.startsWith('Satpel '));
 }
 
 /**
