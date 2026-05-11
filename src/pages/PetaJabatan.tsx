@@ -986,12 +986,334 @@ export default function PetaJabatan() {
     });
     
     XLSX.utils.book_append_sheet(wb, ws, 'Peta Jabatan ASN');
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TAMBAHAN: 3 Tabel Agregasi (Golongan, Pendidikan, Jenis Kelamin)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    // Helper functions untuk agregasi
+    const normalizeAsnStatus = (status: unknown): string => {
+      if (!status) return 'Tidak Ada';
+      const s = String(status).trim().toUpperCase();
+      if (s === 'CPNS' || s.includes('CPNS')) return 'CPNS';
+      if (s === 'PNS' || s.includes('PNS')) return 'PNS';
+      if (s === 'PPPK' || s.includes('PPPK')) return 'PPPK';
+      if (s === 'NON ASN' || s.includes('NON') || s.includes('ALIH DAYA')) return 'Non ASN';
+      return s || 'Tidak Ada';
+    };
+
+    const normalizeGender = (gender: unknown): string => {
+      if (!gender) return 'Tidak Ada';
+      const g = String(gender).toLowerCase().replace(/[-_\/\s]+/g, '');
+      if (g.includes('laki') || g === 'l' || g === 'm' || g === 'male') return 'Laki-laki';
+      if (g.includes('perempuan') || g === 'p' || g === 'f' || g === 'female' || g.includes('wanita')) return 'Perempuan';
+      return 'Tidak Ada';
+    };
+
+    const extractEducationLevel = (employeeId: string): string => {
+      const edu = getEmployeeEducation(employeeId);
+      if (!edu || edu === '-') return 'Tidak Ada';
+      const level = edu.toUpperCase();
+      if (level.includes('S3') || level.includes('DOKTOR') || level.includes('DR')) return 'S3';
+      if (level.includes('S2') || level.includes('MAGISTER') || level.includes('MASTER')) return 'S2';
+      if (level.includes('S1') || level.includes('SARJANA') || level.includes('BACHELOR')) return 'S1';
+      if (level.includes('D4') || level.includes('D-IV')) return 'D4';
+      if (level.includes('D3') || level.includes('D-III')) return 'D3';
+      if (level.includes('D2') || level.includes('D-II')) return 'D2';
+      if (level.includes('D1') || level.includes('D-I')) return 'D1';
+      if (level.includes('SMA') || level.includes('SMK') || level.includes('MA')) return 'SMA/SMK';
+      if (level.includes('SMP') || level.includes('MTS')) return 'SMP';
+      if (level.includes('SD') || level.includes('MI')) return 'SD';
+      return 'Lainnya';
+    };
+
+    // Filter hanya ASN (PNS, CPNS, PPPK) dari unit ini
+    const asnEmployees = employees.filter(emp => {
+      const status = normalizeAsnStatus(emp.asn_status);
+      return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 2: Tabel Golongan
+    // ═══════════════════════════════════════════════════════════════════════
+    const isPnsOrCpns = (emp: EmployeeMatch) => {
+      const s = normalizeAsnStatus(emp.asn_status);
+      return s === 'PNS' || s === 'CPNS';
+    };
+    
+    const isPppk = (emp: EmployeeMatch) => normalizeAsnStatus(emp.asn_status) === 'PPPK';
+    
+    const getPnsGolongan = (rankGroup: string): string => {
+      const rg = String(rankGroup || '').trim();
+      const subMatch = rg.match(/\b(IV|III|II|I)\/(a|b|c|d|e)\b/i);
+      if (subMatch) return subMatch[1].toUpperCase();
+      const longMatch = rg.match(/\((IV|III|II|I)\//i);
+      if (longMatch) return longMatch[1].toUpperCase();
+      return 'lainnya';
+    };
+    
+    const getPppkGolongan = (rankGroup: string): string => {
+      const rg = String(rankGroup || '').trim().toUpperCase();
+      if (rg === 'III') return 'III';
+      if (rg === 'V')   return 'V';
+      if (rg === 'VII') return 'VII';
+      if (rg === 'IX')  return 'IX';
+      return 'lainnya';
+    };
+
+    const pns_I   = asnEmployees.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'I').length;
+    const pns_II  = asnEmployees.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'II').length;
+    const pns_III = asnEmployees.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'III').length;
+    const pns_IV  = asnEmployees.filter(e => isPnsOrCpns(e) && getPnsGolongan(String(e.rank_group || '')) === 'IV').length;
+    const jumlah_pns = asnEmployees.filter(e => isPnsOrCpns(e)).length;
+
+    const pppk_III = asnEmployees.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'III').length;
+    const pppk_V   = asnEmployees.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'V').length;
+    const pppk_VII = asnEmployees.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'VII').length;
+    const pppk_IX  = asnEmployees.filter(e => isPppk(e) && getPppkGolongan(String(e.rank_group || '')) === 'IX').length;
+    const jumlah_pppk = asnEmployees.filter(e => isPppk(e)).length;
+
+    const total_asn = jumlah_pns + jumlah_pppk;
+
+    const L = asnEmployees.filter(e => normalizeGender(e.gender) === 'Laki-laki').length;
+    const P = asnEmployees.filter(e => normalizeGender(e.gender) === 'Perempuan').length;
+
+    const golonganRows: Record<string, string | number>[] = [{
+      'Unit Kerja': selectedDepartment,
+      'PNS I': pns_I,
+      'PNS II': pns_II,
+      'PNS III': pns_III,
+      'PNS IV': pns_IV,
+      'Jumlah PNS': jumlah_pns,
+      'PPPK III': pppk_III,
+      'PPPK V': pppk_V,
+      'PPPK VII': pppk_VII,
+      'PPPK IX': pppk_IX,
+      'Jumlah PPPK': jumlah_pppk,
+      'Total ASN': total_asn,
+      'L': L,
+      'P': P,
+      'Total JK': L + P,
+    }];
+
+    const wsGolongan = XLSX.utils.json_to_sheet(golonganRows);
+    wsGolongan['!cols'] = [
+      { wch: 32 }, // Unit Kerja
+      { wch: 8 },  // PNS I
+      { wch: 8 },  // PNS II
+      { wch: 8 },  // PNS III
+      { wch: 8 },  // PNS IV
+      { wch: 12 }, // Jumlah PNS
+      { wch: 9 },  // PPPK III
+      { wch: 9 },  // PPPK V
+      { wch: 9 },  // PPPK VII
+      { wch: 9 },  // PPPK IX
+      { wch: 13 }, // Jumlah PPPK
+      { wch: 11 }, // Total ASN
+      { wch: 6 },  // L
+      { wch: 6 },  // P
+      { wch: 10 }, // Total JK
+    ];
+
+    // Styling untuk Tabel Golongan
+    const golBorderStyle = {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } },
+    };
+
+    const golHeaderStyle = {
+      fill: { fgColor: { rgb: '4472C4' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: golBorderStyle,
+    };
+
+    const golDataStyle = {
+      alignment: { vertical: 'center', horizontal: 'center' },
+      border: golBorderStyle,
+    };
+
+    const golRange = XLSX.utils.decode_range(wsGolongan['!ref'] || 'A1');
+    for (let R = golRange.s.r; R <= golRange.e.r; ++R) {
+      for (let C = golRange.s.c; C <= golRange.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (wsGolongan[cellAddress] && wsGolongan[cellAddress].v !== undefined) {
+          wsGolongan[cellAddress].s = R === 0 ? golHeaderStyle : golDataStyle;
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsGolongan, 'Tabel Golongan');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 3: Tabel Pendidikan
+    // ═══════════════════════════════════════════════════════════════════════
+    const EDU_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+    const EDU_LABELS = ['SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'];
+
+    const now = new Date();
+    const monthNames = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 
+                       'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+    const currentMonth = monthNames[now.getMonth()];
+    const currentYear = now.getFullYear();
+    const titleText = `REKAP PEGAWAI ${selectedDepartment.toUpperCase()} BULAN ${currentMonth} ${currentYear}`;
+    const subtitleText = 'Dukungan Personil Berdasarkan Tingkat Pendidikan';
+
+    type ExcelRow = (string | number)[];
+    const eduDataRow: ExcelRow = [selectedDepartment, asnEmployees.length];
+
+    EDU_LEVELS.forEach((level) => {
+      const count = asnEmployees.filter(e => extractEducationLevel(e.id) === level).length;
+      eduDataRow.push(count);
+    });
+    eduDataRow.push(asnEmployees.length); // JML PEG kedua
+
+    const aoaData: ExcelRow[] = [
+      [titleText],
+      [subtitleText],
+      ['UNIT KERJA', 'JML PEG', 'SD', 'SMP', 'SMA', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3', 'JML PEG'],
+      eduDataRow
+    ];
+
+    const wsEdu = XLSX.utils.aoa_to_sheet(aoaData);
+    wsEdu['!cols'] = [
+      { wch: 32 }, // UNIT KERJA
+      { wch: 8 },  // JML PEG
+      { wch: 6 },  // SD
+      { wch: 6 },  // SMP
+      { wch: 6 },  // SMA
+      { wch: 6 },  // D1
+      { wch: 6 },  // D2
+      { wch: 6 },  // D3
+      { wch: 6 },  // D4
+      { wch: 6 },  // S1
+      { wch: 6 },  // S2
+      { wch: 6 },  // S3
+      { wch: 8 },  // JML PEG
+    ];
+    wsEdu['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } },
+    ];
+
+    // Styling untuk Tabel Pendidikan
+    const eduBorderStyle = {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } },
+    };
+
+    const eduTitleStyle = {
+      fill: { fgColor: { rgb: '4472C4' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: eduBorderStyle,
+    };
+
+    const eduSubtitleStyle = {
+      fill: { fgColor: { rgb: '5B9BD5' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: eduBorderStyle,
+    };
+
+    const eduHeaderStyle = {
+      fill: { fgColor: { rgb: '4472C4' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: eduBorderStyle,
+    };
+
+    const eduDataStyle = {
+      alignment: { vertical: 'center', horizontal: 'center' },
+      border: eduBorderStyle,
+    };
+
+    const eduRange = XLSX.utils.decode_range(wsEdu['!ref'] || 'A1');
+    for (let R = eduRange.s.r; R <= eduRange.e.r; ++R) {
+      for (let C = eduRange.s.c; C <= eduRange.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (wsEdu[cellAddress] && wsEdu[cellAddress].v !== undefined) {
+          if (R === 0) {
+            wsEdu[cellAddress].s = eduTitleStyle;
+          } else if (R === 1) {
+            wsEdu[cellAddress].s = eduSubtitleStyle;
+          } else if (R === 2) {
+            wsEdu[cellAddress].s = eduHeaderStyle;
+          } else {
+            wsEdu[cellAddress].s = eduDataStyle;
+          }
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsEdu, 'Tabel Pendidikan');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 4: Tabel Jenis Kelamin
+    // ═══════════════════════════════════════════════════════════════════════
+    const genderRows: Record<string, string | number>[] = [{
+      'Unit Kerja': selectedDepartment,
+      'Laki-laki': L,
+      'Perempuan': P,
+      'Total': L + P,
+    }];
+
+    const wsGender = XLSX.utils.json_to_sheet(genderRows);
+    wsGender['!cols'] = [
+      { wch: 32 }, // Unit Kerja
+      { wch: 12 }, // Laki-laki
+      { wch: 12 }, // Perempuan
+      { wch: 10 }, // Total
+    ];
+
+    // Styling untuk Tabel Jenis Kelamin
+    const genderBorderStyle = {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } },
+    };
+
+    const genderHeaderStyle = {
+      fill: { fgColor: { rgb: '4472C4' } },
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: genderBorderStyle,
+    };
+
+    const genderDataStyle = {
+      alignment: { vertical: 'center', horizontal: 'center' },
+      border: genderBorderStyle,
+    };
+
+    const genderRange = XLSX.utils.decode_range(wsGender['!ref'] || 'A1');
+    for (let R = genderRange.s.r; R <= genderRange.e.r; ++R) {
+      for (let C = genderRange.s.c; C <= genderRange.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (wsGender[cellAddress] && wsGender[cellAddress].v !== undefined) {
+          wsGender[cellAddress].s = R === 0 ? genderHeaderStyle : genderDataStyle;
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsGender, 'Tabel Jenis Kelamin');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // WRITE FILE
+    // ═══════════════════════════════════════════════════════════════════════
     XLSX.writeFile(wb, `Peta_Jabatan_ASN_${selectedDepartment.replace(/\s/g, '_')}.xlsx`, { 
       bookType: 'xlsx', 
       compression: true 
     });
     
-    toast({ title: 'Berhasil', description: `Data Peta Jabatan ASN berhasil di-export (${rows.length - POSITION_CATEGORIES.length} baris data)` });
+    toast({ 
+      title: 'Berhasil', 
+      description: `Data Peta Jabatan ASN berhasil di-export dengan ${wb.SheetNames.length} sheet (${rows.length - POSITION_CATEGORIES.length} baris data + 3 tabel agregasi)` 
+    });
   };
 
   const handleExportNonASN = () => {
