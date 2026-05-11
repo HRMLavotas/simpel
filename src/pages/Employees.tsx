@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, MoreVertical, Eye, Users } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -458,6 +458,33 @@ export default function Employees() {
     }
   };
 
+  // Helper function to check if employee matches department filter
+  // Checks both department AND satuan_kerja_penugasan with normalization
+  const matchesDepartmentFilter = useCallback((emp: any) => {
+    if (!showDepartmentFilter || departmentFilter === 'all') {
+      return true;
+    }
+    
+    // Normalize function: convert "Satpel X" to "Satuan Pelayanan X"
+    const normalize = (name: string | null | undefined) => {
+      if (!name) return '';
+      return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+    };
+    
+    const normalizedFilter = normalize(departmentFilter);
+    const normalizedDepartment = normalize(emp.department);
+    const normalizedPenugasan = normalize(emp.satuan_kerja_penugasan);
+    
+    // Check if employee's department matches
+    const departmentMatches = normalizedDepartment === normalizedFilter;
+    
+    // Check if employee is assigned to this Satpel/Workshop
+    const penugasanMatches = normalizedPenugasan === normalizedFilter;
+    
+    // Match if either department OR satuan_kerja_penugasan matches
+    return departmentMatches || penugasanMatches;
+  }, [showDepartmentFilter, departmentFilter]);
+
   const filteredEmployees = useMemo(() => {
     const filtered = employees.filter((emp) => {
       // Filter by active tab (ASN vs Non-ASN vs Inactive)
@@ -473,20 +500,13 @@ export default function Employees() {
         (emp.nip && emp.nip.includes(debouncedSearchQuery)) ||
         (emp.position_name && emp.position_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
       const matchesStatus = statusFilter === 'all' || emp.asn_status === statusFilter;
-      // Apply department filter if dropdown is shown
-      const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || emp.department === departmentFilter;
+      const matchesDepartment = matchesDepartmentFilter(emp);
+      
       return matchesTab && matchesSearch && matchesStatus && matchesDepartment;
     });
     
-    logger.debug('=== FILTERED EMPLOYEES ===');
-    logger.debug('Active tab:', activeTab);
-    logger.debug('Total employees:', employees.length);
-    logger.debug('Department filter:', departmentFilter);
-    logger.debug('Show department filter:', showDepartmentFilter);
-    logger.debug('Filtered count:', filtered.length);
-    
     return filtered;
-  }, [employees, activeTab, debouncedSearchQuery, statusFilter, departmentFilter, showDepartmentFilter]);
+  }, [employees, activeTab, debouncedSearchQuery, statusFilter, matchesDepartmentFilter]);
 
   // Pagination: jika filter department spesifik aktif atau admin_unit (satu unit),
   // tampilkan semua tanpa pagination agar grouping tidak terpotong.
@@ -1543,7 +1563,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = matchesDepartmentFilter(e);
                   return e.asn_status !== 'Non ASN' && e.is_active !== false && matchesStatus && matchesDepartment;
                 }).length})
               </span>
@@ -1553,7 +1573,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = matchesDepartmentFilter(e);
                   return e.asn_status === 'Non ASN' && e.is_active !== false && matchesStatus && matchesDepartment;
                 }).length})
               </span>
@@ -1563,7 +1583,7 @@ export default function Employees() {
               <span className="ml-2 text-xs text-muted-foreground">
                 ({employees.filter(e => {
                   const matchesStatus = statusFilter === 'all' || e.asn_status === statusFilter;
-                  const matchesDepartment = !showDepartmentFilter || departmentFilter === 'all' || e.department === departmentFilter;
+                  const matchesDepartment = matchesDepartmentFilter(e);
                   return e.is_active === false && matchesStatus && matchesDepartment;
                 }).length})
               </span>

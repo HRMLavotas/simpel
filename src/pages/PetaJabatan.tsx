@@ -251,19 +251,21 @@ export default function PetaJabatan() {
             .order('position_order')
             .order('position_name')
         ),
+        // Fetch ASN employees from unit pembina only
         fetchAllUnlimited(() =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, satuan_kerja_penugasan, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
-            .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, department, satuan_kerja_penugasan, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .eq('is_active', true)
             .eq('department', effectiveDepartment)
             .or('asn_status.is.null,asn_status.neq.Non ASN')
         ),
+        // Fetch Non-ASN employees from unit pembina only
         fetchAllUnlimited(() =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, keterangan_penugasan')
-            .eq('is_active', true)  // Hanya pegawai aktif yang ditampilkan di peta jabatan
+            .select('id, name, front_title, back_title, nip, position_name, gender, rank_group, department, satuan_kerja_penugasan, keterangan_penugasan')
+            .eq('is_active', true)
             .eq('department', effectiveDepartment)
             .eq('asn_status', 'Non ASN')
         ),
@@ -272,16 +274,45 @@ export default function PetaJabatan() {
       setPositions(posRes.data || []);
 
       // Apply client-side filter for Satpel: only show employees assigned to that Satpel
+      // Normalize both names for comparison (handle "Satpel" vs "Satuan Pelayanan" variants)
       const rawEmployees = (empRes.data || []) as EmployeeMatch[];
+      
       const filteredEmployees = activeSatpelFilter
-        ? rawEmployees.filter(emp => emp.satuan_kerja_penugasan === activeSatpelFilter)
+        ? rawEmployees.filter(emp => {
+            if (!emp.satuan_kerja_penugasan) return false;
+            // Normalize both names: convert "Satpel X" to "Satuan Pelayanan X" for comparison
+            const normalizeForComparison = (name: string) => {
+              return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+            };
+            const normalizedFilter = normalizeForComparison(activeSatpelFilter);
+            const normalizedPenugasan = normalizeForComparison(emp.satuan_kerja_penugasan);
+            return normalizedPenugasan === normalizedFilter;
+          })
         : rawEmployees;
+      
       setEmployees(filteredEmployees);
 
-      setNonAsnEmployees((nonAsnRes.data || []) as EmployeeMatch[]);
+      // Apply same filter for Non-ASN employees (same logic as ASN)
+      const rawNonAsnEmployees = (nonAsnRes.data || []) as EmployeeMatch[];
+      const filteredNonAsnEmployees = activeSatpelFilter
+        ? rawNonAsnEmployees.filter(emp => {
+            if (!emp.satuan_kerja_penugasan) return false;
+            // Normalize both names: convert "Satpel X" to "Satuan Pelayanan X" for comparison
+            const normalizeForComparison = (name: string) => {
+              return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+            };
+            const normalizedFilter = normalizeForComparison(activeSatpelFilter);
+            const normalizedPenugasan = normalizeForComparison(emp.satuan_kerja_penugasan);
+            return normalizedPenugasan === normalizedFilter;
+          })
+        : rawNonAsnEmployees;
+
+      setNonAsnEmployees(filteredNonAsnEmployees);
       
       logger.debug('Positions loaded:', posRes.data?.length || 0);
-      logger.debug('Employees loaded:', empRes.data?.length || 0);
+      logger.debug('Employees loaded (before Satpel filter):', empRes.data?.length || 0);
+      logger.debug('Employees loaded (after Satpel filter):', filteredEmployees.length);
+      logger.debug('Active Satpel filter:', activeSatpelFilter);
       logger.debug('Non-ASN loaded:', nonAsnRes.data?.length || 0);
 
       // Fetch pendidikan terakhir per pegawai menggunakan RPC dengan pagination

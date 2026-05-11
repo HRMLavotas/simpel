@@ -11,7 +11,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department } from '@/lib/constants';
+import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department, getSatpelsByPembina } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { useNonAsnPositionOptions } from '@/hooks/useNonAsnPositionOptions';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
@@ -30,6 +30,7 @@ interface NonAsnFormData {
   religion: string;
   department: Department;
   rank_group: string;  // Using rank_group for type_non_asn
+  satuan_kerja_penugasan: string;  // NEW: Satpel/Workshop assignment
   keterangan_penugasan: string;  // Using keterangan_penugasan for job_description
   keterangan_perubahan: string;  // Using keterangan_perubahan for notes
 }
@@ -45,6 +46,7 @@ interface NonAsnEmployee {
   religion?: string;
   department?: string;
   rank_group?: string;
+  satuan_kerja_penugasan?: string;
   keterangan_penugasan?: string;
   keterangan_perubahan?: string;
 }
@@ -86,11 +88,16 @@ export function NonAsnFormModal({
     religion: '',
     department: userDepartment || 'Setditjen Binalavotas',
     rank_group: 'Tenaga Alih Daya',
+    satuan_kerja_penugasan: '',
     keterangan_penugasan: '',
     keterangan_perubahan: '',
   });
 
   const isEditing = !!editData;
+  
+  // Check if user is admin unit pembina (has supervised Satpel/Workshop)
+  const supervisedSatpels = userDepartment ? getSatpelsByPembina(userDepartment) : [];
+  const hasSupervisedUnits = supervisedSatpels.length > 0;
   
   // Use validation hook
   const { validateNIK, nikValidation, resetNIKValidation } = useEmployeeValidation({ debounceMs: 500 });
@@ -113,6 +120,7 @@ export function NonAsnFormModal({
         religion: editData.religion || '',
         department: editData.department || userDepartment || 'Setditjen Binalavotas',
         rank_group: editData.rank_group || 'Tenaga Alih Daya',
+        satuan_kerja_penugasan: editData.satuan_kerja_penugasan || '',
         keterangan_penugasan: editData.keterangan_penugasan || '',
         keterangan_perubahan: editData.keterangan_perubahan || '',
       });
@@ -130,6 +138,7 @@ export function NonAsnFormModal({
         religion: '',
         department: userDepartment || 'Setditjen Binalavotas',
         rank_group: 'Tenaga Alih Daya',
+        satuan_kerja_penugasan: '',
         keterangan_penugasan: '',
         keterangan_perubahan: '',
       });
@@ -192,6 +201,7 @@ export function NonAsnFormModal({
         department: formData.department,
         asn_status: 'Non ASN' as const,
         rank_group: formData.rank_group,
+        satuan_kerja_penugasan: formData.satuan_kerja_penugasan || null,
         keterangan_penugasan: formData.keterangan_penugasan || null,
         keterangan_perubahan: formData.keterangan_perubahan || null,
       };
@@ -526,6 +536,30 @@ export function NonAsnFormModal({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Satuan Kerja Penugasan - only show for admin unit pembina */}
+          {hasSupervisedUnits && (
+            <div className="space-y-2">
+              <Label htmlFor="satuan_kerja_penugasan">Satuan Kerja Penugasan</Label>
+              <Select
+                value={formData.satuan_kerja_penugasan || '__none__'}
+                onValueChange={(value) => setFormData({ ...formData, satuan_kerja_penugasan: value === '__none__' ? '' : value })}
+              >
+                <SelectTrigger id="satuan_kerja_penugasan">
+                  <SelectValue placeholder="Pilih Satpel/Workshop (opsional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Tidak ada (bertugas di unit pembina)</SelectItem>
+                  {supervisedSatpels.map((satpel) => (
+                    <SelectItem key={satpel} value={satpel}>{satpel}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                💡 Pilih Satpel/Workshop jika pegawai ditugaskan di unit binaan
+              </p>
+            </div>
+          )}
 
           {/* Deskripsi Tugas */}
           <div className="space-y-2 sm:col-span-2">
