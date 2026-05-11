@@ -292,15 +292,15 @@ export default function PetaJabatan() {
 
       // Filter positions: for Satpel, only show positions that have employees assigned
       // This ensures Peta Jabatan only shows actual positions filled in the Satpel
-      const allPositions = posRes.data || [];
+      const rawPositions = posRes.data || [];
       const filteredPositions = activeSatpelFilter
-        ? allPositions.filter(pos => {
+        ? rawPositions.filter(pos => {
             // Check if any employee in this Satpel has this position
             return filteredEmployees.some(emp => 
               normalizeString(emp.position_name || '') === normalizeString(pos.position_name)
             );
           })
-        : allPositions;
+        : rawPositions;
       
       setPositions(filteredPositions);
 
