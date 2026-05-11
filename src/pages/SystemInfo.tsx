@@ -22,9 +22,23 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.21.0',
+    date: '11 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Export Peta Jabatan Unit Individu: tambahan 3 tabel agregasi (Golongan, Pendidikan, Jenis Kelamin) — export unit individu kini memiliki 4 sheets seperti export semua unit.' },
+      { type: 'feature', text: 'Tabel Golongan: distribusi PNS per golongan (I-IV), PPPK per golongan (III, V, VII, IX), dan jenis kelamin (L/P) untuk unit yang dipilih.' },
+      { type: 'feature', text: 'Tabel Pendidikan: distribusi pendidikan (SD sampai S3) dengan format resmi — judul dokumen dinamis sesuai bulan dan tahun export.' },
+      { type: 'feature', text: 'Tabel Jenis Kelamin: distribusi Laki-laki dan Perempuan dengan total pegawai unit.' },
+      { type: 'improvement', text: 'Export Peta Jabatan Unit Individu: styling profesional dengan header biru, border lengkap, merge cells untuk judul, dan column width optimal.' },
+      { type: 'improvement', text: 'Export Peta Jabatan Unit Individu: toast notification menampilkan jumlah sheet yang di-export (contoh: "4 sheet berhasil di-export").' },
+      { type: 'improvement', text: 'Konsistensi Export: tabel agregasi unit individu menggunakan helper functions dan styling yang sama dengan export semua unit — format identik untuk kemudahan analisis.' },
+      { type: 'fix', text: 'Export Peta Jabatan Unit Individu: data agregasi hanya menghitung pegawai ASN aktif (PNS, CPNS, PPPK) — pegawai Non-ASN dan pegawai non-aktif dikecualikan.' },
+    ],
+  },
+  {
     version: '2.20.0',
     date: '8 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Peta Jabatan: unit Satpel dan Workshop kini menampilkan peta jabatan dari unit pembinanya secara otomatis — sebelumnya halaman kosong saat memilih unit Satpel.' },
       { type: 'feature', text: 'Peta Jabatan: banner informasi biru muncul saat membuka peta jabatan Satpel — menampilkan nama unit pembina yang menjadi induk peta jabatan.' },
@@ -406,7 +420,11 @@ const FEATURES_OVERVIEW = [
       'Formasi Non-ASN per unit kerja',
       'Summary ASN dan Non-ASN dengan statistik ABK vs Existing (hanya pegawai aktif)',
       'Filter per unit kerja untuk admin pusat',
-      'Export ke Excel (multi-sheet: per unit, per jabatan, per kategori, detail per unit)',
+      'Export unit individu: 4 sheets (Peta Jabatan ASN + 3 tabel agregasi: Golongan, Pendidikan, Jenis Kelamin)',
+      'Export semua unit: multi-sheet per unit + 4 sheet agregasi gabungan',
+      'Tabel Golongan: distribusi PNS (I-IV), PPPK (III, V, VII, IX), dan jenis kelamin',
+      'Tabel Pendidikan: distribusi SD sampai S3 dengan format resmi dan judul dinamis',
+      'Tabel Jenis Kelamin: distribusi Laki-laki dan Perempuan',
       'Manajemen urutan jabatan dengan reorder otomatis — mengubah urutan menggeser jabatan lain secara otomatis',
       'Tombol "Perbaiki Urutan" untuk normalisasi urutan semua jabatan sekaligus',
     ],
