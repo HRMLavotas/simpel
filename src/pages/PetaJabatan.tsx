@@ -271,19 +271,17 @@ export default function PetaJabatan() {
         ),
       ]);
 
-      setPositions(posRes.data || []);
-
       // Apply client-side filter for Satpel: only show employees assigned to that Satpel
       // Normalize both names for comparison (handle "Satpel" vs "Satuan Pelayanan" variants)
       const rawEmployees = (empRes.data || []) as EmployeeMatch[];
       
+      const normalizeForComparison = (name: string) => {
+        return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+      };
+      
       const filteredEmployees = activeSatpelFilter
         ? rawEmployees.filter(emp => {
             if (!emp.satuan_kerja_penugasan) return false;
-            // Normalize both names: convert "Satpel X" to "Satuan Pelayanan X" for comparison
-            const normalizeForComparison = (name: string) => {
-              return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
-            };
             const normalizedFilter = normalizeForComparison(activeSatpelFilter);
             const normalizedPenugasan = normalizeForComparison(emp.satuan_kerja_penugasan);
             return normalizedPenugasan === normalizedFilter;
@@ -292,15 +290,25 @@ export default function PetaJabatan() {
       
       setEmployees(filteredEmployees);
 
+      // Filter positions: for Satpel, only show positions that have employees assigned
+      // This ensures Peta Jabatan only shows actual positions filled in the Satpel
+      const allPositions = posRes.data || [];
+      const filteredPositions = activeSatpelFilter
+        ? allPositions.filter(pos => {
+            // Check if any employee in this Satpel has this position
+            return filteredEmployees.some(emp => 
+              normalizeString(emp.position_name || '') === normalizeString(pos.position_name)
+            );
+          })
+        : allPositions;
+      
+      setPositions(filteredPositions);
+
       // Apply same filter for Non-ASN employees (same logic as ASN)
       const rawNonAsnEmployees = (nonAsnRes.data || []) as EmployeeMatch[];
       const filteredNonAsnEmployees = activeSatpelFilter
         ? rawNonAsnEmployees.filter(emp => {
             if (!emp.satuan_kerja_penugasan) return false;
-            // Normalize both names: convert "Satpel X" to "Satuan Pelayanan X" for comparison
-            const normalizeForComparison = (name: string) => {
-              return name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
-            };
             const normalizedFilter = normalizeForComparison(activeSatpelFilter);
             const normalizedPenugasan = normalizeForComparison(emp.satuan_kerja_penugasan);
             return normalizedPenugasan === normalizedFilter;
@@ -309,11 +317,13 @@ export default function PetaJabatan() {
 
       setNonAsnEmployees(filteredNonAsnEmployees);
       
-      logger.debug('Positions loaded:', posRes.data?.length || 0);
+      logger.debug('Positions loaded (before Satpel filter):', posRes.data?.length || 0);
+      logger.debug('Positions loaded (after Satpel filter):', filteredPositions.length);
       logger.debug('Employees loaded (before Satpel filter):', empRes.data?.length || 0);
       logger.debug('Employees loaded (after Satpel filter):', filteredEmployees.length);
       logger.debug('Active Satpel filter:', activeSatpelFilter);
-      logger.debug('Non-ASN loaded:', nonAsnRes.data?.length || 0);
+      logger.debug('Non-ASN loaded (before filter):', nonAsnRes.data?.length || 0);
+      logger.debug('Non-ASN loaded (after filter):', filteredNonAsnEmployees.length);
 
       // Fetch pendidikan terakhir per pegawai menggunakan RPC dengan pagination
       if (empRes.data && empRes.data.length > 0) {
