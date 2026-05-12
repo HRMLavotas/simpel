@@ -36,6 +36,10 @@ interface RawEmployeeAuditData {
   birth_date: string | null;
   birth_place: string | null;
   religion: string | null;
+  position_history?: { tanggal: string | null; jabatan_baru: string | null; nomor_sk: string | null }[];
+  mutation_history?: { tanggal: string | null; ke_unit: string | null; nomor_sk: string | null }[];
+  education_history?: { level: string; graduation_year: number | null; institution_name: string | null }[];
+  rank_history?: { tanggal: string | null; pangkat_baru: string | null; nomor_sk: string | null }[];
 }
 
 const ASN_STATUSES = ['PNS', 'CPNS', 'PPPK'] as const;
@@ -124,6 +128,58 @@ const auditASNEmployee = (employee: RawEmployeeAuditData): AuditIssue[] => {
     issues.push({ type: 'missing_field', field: 'position_name', message: 'Jabatan belum diisi' });
   }
 
+  // Cek Riwayat Jabatan
+  if (employee.position_history && employee.position_history.length > 0) {
+    employee.position_history.forEach((ph, i) => {
+      if (!ph.tanggal || !ph.nomor_sk || !ph.jabatan_baru) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'position_history',
+          message: `Riwayat Jabatan #${i + 1} tidak lengkap (Tanggal/No SK/Jabatan kosong)`,
+        });
+      }
+    });
+  }
+
+  // Cek Riwayat Mutasi
+  if (employee.mutation_history && employee.mutation_history.length > 0) {
+    employee.mutation_history.forEach((mh, i) => {
+      if (!mh.tanggal || !mh.nomor_sk || !mh.ke_unit) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'mutation_history',
+          message: `Riwayat Mutasi #${i + 1} tidak lengkap (Tanggal/No SK/Unit kosong)`,
+        });
+      }
+    });
+  }
+
+  // Cek Riwayat Pangkat
+  if (employee.rank_history && employee.rank_history.length > 0) {
+    employee.rank_history.forEach((rh, i) => {
+      if (!rh.tanggal || !rh.nomor_sk || !rh.pangkat_baru) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'rank_history',
+          message: `Riwayat Pangkat #${i + 1} tidak lengkap (Tanggal/No SK/Pangkat kosong)`,
+        });
+      }
+    });
+  }
+
+  // Cek Riwayat Pendidikan
+  if (employee.education_history && employee.education_history.length > 0) {
+    employee.education_history.forEach((eh, i) => {
+      if (!eh.institution_name || !eh.graduation_year) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'education_history',
+          message: `Riwayat Pendidikan ${eh.level} tidak lengkap (Nama Institusi/Tahun Lulus kosong)`,
+        });
+      }
+    });
+  }
+
   return issues;
 };
 
@@ -152,6 +208,32 @@ const auditNonASNEmployee = (employee: RawEmployeeAuditData): AuditIssue[] => {
 
   if (!employee.position_name) {
     issues.push({ type: 'missing_field', field: 'position_name', message: 'Jabatan belum diisi' });
+  }
+
+  // Cek Riwayat Pendidikan (Non ASN juga bisa punya riwayat pendidikan)
+  if (employee.education_history && employee.education_history.length > 0) {
+    employee.education_history.forEach((eh, i) => {
+      if (!eh.institution_name || !eh.graduation_year) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'education_history',
+          message: `Riwayat Pendidikan ${eh.level} tidak lengkap (Nama Institusi/Tahun Lulus kosong)`,
+        });
+      }
+    });
+  }
+
+  // Cek Riwayat Jabatan Non ASN
+  if (employee.position_history && employee.position_history.length > 0) {
+    employee.position_history.forEach((ph, i) => {
+      if (!ph.tanggal || !ph.nomor_sk || !ph.jabatan_baru) {
+        issues.push({
+          type: 'incomplete_data',
+          field: 'position_history',
+          message: `Riwayat Jabatan #${i + 1} tidak lengkap (Tanggal/No SK/Jabatan kosong)`,
+        });
+      }
+    });
   }
 
   return issues;
@@ -214,7 +296,13 @@ export function useDataAudit() {
     queryFn: async () => {
       let query = supabase
         .from('employees')
-        .select('id, nip, name, department, asn_status, rank_group, position_name, gender, birth_date, birth_place, religion');
+        .select(`
+          id, nip, name, department, asn_status, rank_group, position_name, gender, birth_date, birth_place, religion,
+          position_history(tanggal, jabatan_baru, nomor_sk),
+          mutation_history(tanggal, ke_unit, nomor_sk),
+          education_history(level, graduation_year, institution_name),
+          rank_history(tanggal, pangkat_baru, nomor_sk)
+        `);
 
       if (!isAdminPusat && profile?.department) {
         query = query.eq('department', profile.department);
