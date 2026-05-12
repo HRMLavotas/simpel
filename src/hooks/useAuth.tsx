@@ -70,8 +70,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Cek existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    // Gunakan Promise.race untuk mendeteksi hanging request akibat infinite loop Rate Limit
+    const sessionTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('SESSION_TIMEOUT'));
+      }, 5000); // 5 detik batas tunggu sebelum force logout
+    });
+
+    Promise.race([
+      supabase.auth.getSession(),
+      sessionTimeout
+    ]).then((result: any) => {
+      const { data: { session }, error } = result;
       if (error) throw error;
       setSession(session);
       setUser(session?.user ?? null);
@@ -83,11 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }).catch((err) => {
       logger.error('Error getting session:', err);
-      // Jika error rate limit / token rusak, bersihkan session untuk keluar dari infinite loop
+      // Jika error rate limit / timeout karena hanging loop, paksa bersihkan agar keluar dari cycle 429
       const errorMsg = err.message || '';
-      if (errorMsg.includes('Too Many Requests') || errorMsg.includes('FetchError') || err.status === 429) {
-        localStorage.clear(); // Force clear auth token
-        window.location.href = '/auth'; // Force redirect
+      if (errorMsg.includes('Too Many Requests') || errorMsg.includes('FetchError') || errorMsg === 'SESSION_TIMEOUT' || err.status === 429) {
+        logger.warn('Force clearing auth tokens due to unrecoverable auth state');
+        // Bersihkan spesifik key supabase terlebih dahulu untuk kepastian
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.clear(); // Hapus sisa cache
+        window.location.href = '/auth'; // Redirect paksa
       }
       setIsLoading(false);
     });
