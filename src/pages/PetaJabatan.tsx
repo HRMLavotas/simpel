@@ -3408,7 +3408,7 @@ export default function PetaJabatan() {
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               </div>
             ) : (
-              <div className="rounded-lg border overflow-x-auto">
+              <div className="rounded-lg border overflow-x-auto scroll-container">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -3627,7 +3627,7 @@ export default function PetaJabatan() {
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               </div>
             ) : (
-              <div className="rounded-lg border overflow-x-auto">
+              <div className="rounded-lg border overflow-x-auto scroll-container">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -3972,7 +3972,7 @@ export default function PetaJabatan() {
                 {canViewAll && summaryFilterUnit === 'all' && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
-                    <div className="rounded-lg border overflow-x-auto">
+                    <div className="rounded-lg border overflow-x-auto scroll-container">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -4092,7 +4092,7 @@ export default function PetaJabatan() {
                       </span>
                     )}
                   </h3>
-                  <div className="rounded-lg border overflow-x-auto">
+                  <div className="rounded-lg border overflow-x-auto scroll-container">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -4485,7 +4485,7 @@ export default function PetaJabatan() {
                 {canViewAll && summaryNonAsnFilterUnit === 'all' && allNonAsnEmployees.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold">Summary per Unit Kerja</h3>
-                    <div className="rounded-lg border overflow-x-auto">
+                    <div className="rounded-lg border overflow-x-auto scroll-container">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -4565,7 +4565,7 @@ export default function PetaJabatan() {
                         </span>
                       )}
                     </h3>
-                    <div className="rounded-lg border overflow-x-auto">
+                    <div className="rounded-lg border overflow-x-auto scroll-container">
                       <Table>
                         <TableHeader>
                           <TableRow>

@@ -1553,7 +1553,7 @@ export default function Import() {
 
             {/* Preview table */}
             {daftarData.length > 0 && (
-              <div className="rounded-lg border overflow-x-auto max-h-72 overflow-y-auto">
+              <div className="rounded-lg border overflow-x-auto scroll-container max-h-72 overflow-y-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
@@ -1760,7 +1760,7 @@ export default function Import() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-lg border overflow-x-auto max-h-[600px] overflow-y-auto">
+                  <div className="rounded-lg border overflow-x-auto scroll-container max-h-[600px] overflow-y-auto">
                     <Table>
                       <TableHeader className="sticky top-0 bg-background z-10">
                         <TableRow>
@@ -1815,7 +1815,7 @@ export default function Import() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-lg border overflow-x-auto max-h-[600px] overflow-y-auto">
+                  <div className="rounded-lg border overflow-x-auto scroll-container max-h-[600px] overflow-y-auto">
                     <Table>
                       <TableHeader className="sticky top-0 bg-background z-10">
                         <TableRow>
@@ -1883,7 +1883,7 @@ export default function Import() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="rounded-lg border overflow-x-auto">
+                        <div className="rounded-lg border overflow-x-auto scroll-container">
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -1927,7 +1927,7 @@ export default function Import() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="rounded-lg border overflow-x-auto">
+                        <div className="rounded-lg border overflow-x-auto scroll-container">
                           <Table>
                             <TableHeader>
                               <TableRow>

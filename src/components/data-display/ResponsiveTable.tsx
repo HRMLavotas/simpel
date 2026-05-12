@@ -129,7 +129,7 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
 
       {/* Desktop View - Table Layout (hidden on mobile) */}
       <div className="hidden md:block rounded-lg border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-container">
           <Table>
             <TableHeader>
               <TableRow>

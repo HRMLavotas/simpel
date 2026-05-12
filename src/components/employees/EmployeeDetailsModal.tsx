@@ -137,7 +137,7 @@ const ReadOnlyHistoryTable = ({
         <Badge variant="secondary">{data.length} entri</Badge>
       </div>
       <div className="border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-container">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
@@ -188,7 +188,7 @@ const ReadOnlyEducationTable = ({ data }: { data: EducationEntry[] }) => {
         <Badge variant="secondary">{data.length} entri</Badge>
       </div>
       <div className="border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scroll-container">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
@@ -278,7 +278,7 @@ export function EmployeeDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-[90vw] md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Detail Data Pegawai</DialogTitle>
           <DialogDescription>

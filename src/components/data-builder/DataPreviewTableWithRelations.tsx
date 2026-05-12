@@ -159,7 +159,7 @@ export function DataPreviewTableWithRelations({
         )}
       </div>
 
-      <div className="rounded-lg border overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
+      <div className="rounded-lg border overflow-x-auto scroll-container -mx-1 px-1 sm:mx-0 sm:px-0">
         <Table>
           <TableHeader>
             <TableRow>

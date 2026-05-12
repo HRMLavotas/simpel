@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -1746,43 +1747,142 @@ export default function Employees() {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
-        <div className="rounded-lg border bg-card overflow-hidden">
-          {/* Bulk Action Toolbar */}
-          {canEdit && selectedIds.size > 0 && (
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/5 border-b">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Users className="h-4 w-4 text-primary" />
-                <span>{selectedIds.size} pegawai dipilih</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => { setBulkAction('department'); setIsBulkActionOpen(true); }}
-                  className="text-xs"
-                >
-                  Pindah Unit Kerja
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => { setBulkAction('asn_status'); setIsBulkActionOpen(true); }}
-                  className="text-xs"
-                >
-                  Ubah Status ASN
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSelectedIds(new Set())}
-                  className="text-xs text-muted-foreground"
-                >
-                  Batal
-                </Button>
-              </div>
+        {/* Bulk Action Toolbar */}
+        {canEdit && selectedIds.size > 0 && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-primary/5 border rounded-t-lg border-b-0">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Users className="h-4 w-4 text-primary" />
+              <span>{selectedIds.size} pegawai dipilih</span>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => { setBulkAction('department'); setIsBulkActionOpen(true); }}
+                className="text-xs"
+              >
+                Pindah Unit Kerja
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => { setBulkAction('asn_status'); setIsBulkActionOpen(true); }}
+                className="text-xs"
+              >
+                Ubah Status ASN
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs text-muted-foreground"
+              >
+                Batal
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Card View (below md breakpoint) */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2 mb-1" />
+                  <Skeleton className="h-3 w-2/3" />
+                </Card>
+              ))}
+            </div>
+          ) : paginatedEmployees.length === 0 ? (
+            <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+              {searchQuery || statusFilter !== 'all' || departmentFilter !== 'all'
+                ? 'Tidak ada data yang sesuai dengan filter'
+                : 'Belum ada data pegawai'}
+            </div>
+          ) : (
+            paginatedEmployees.map((employee) => (
+              <Card key={employee.id} className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <p className="text-sm font-semibold text-foreground">{formatDisplayName(employee)}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {activeTab === 'non-asn' ? 'NIK' : 'NIP'}: {employee.nip || '-'}
+                    </p>
+                    {employee.position_name && (
+                      <p className="text-xs text-muted-foreground truncate">{employee.position_name}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      {getStatusBadge(employee.asn_status)}
+                      {employee.rank_group && (
+                        <span className="text-xs text-muted-foreground">{employee.rank_group}</span>
+                      )}
+                    </div>
+                    {employee.additional_position && (
+                      <span className={cn(
+                        'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                        employee.additional_position.toUpperCase().includes('PLT')
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                      )}>
+                        {employee.additional_position}
+                      </span>
+                    )}
+                    {employee.satuan_kerja_penugasan && (
+                      <SatpelBadge satpelName={employee.satuan_kerja_penugasan} />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {canEdit && (
+                      <Checkbox
+                        checked={selectedIds.has(employee.id)}
+                        onCheckedChange={() => toggleSelectOne(employee.id)}
+                        aria-label={`Pilih ${employee.name}`}
+                        className="mr-1"
+                      />
+                    )}
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleViewDetails(employee)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Lihat Detail
+                        </DropdownMenuItem>
+                        {canEdit && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteEmployee(employee)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </Card>
+            ))
           )}
-          <div className="overflow-x-auto">
+        </div>
+
+        {/* Desktop Table View (md and above) */}
+        <div className="hidden md:block rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto scroll-container">
           <Table>
             <TableHeader>
               <TableRow>
@@ -1820,7 +1920,6 @@ export default function Employees() {
                 <>
                   {groupedEmployees.map((deptGroup, deptIdx) => (
                     <React.Fragment key={`dept-${deptIdx}`}>
-                      {/* Render Department Header ONLY if viewing all departments or multiple satpels */}
                       {(departmentFilter === 'all' && (canViewAll || hasSupervisedUnits)) && (
                         <TableRow className="bg-primary/5 hover:bg-primary/10 transition-colors">
                           <TableCell 
@@ -1837,7 +1936,6 @@ export default function Employees() {
 
                       {deptGroup.categories.map((group, groupIdx) => (
                         <React.Fragment key={`group-${deptIdx}-${groupIdx}`}>
-                          {/* Category Header Row with Collapse/Expand */}
                           <TableRow 
                             className="bg-muted/50 hover:bg-muted/70 cursor-pointer transition-colors"
                             onClick={() => toggleCategory(group.collapseKey)}
@@ -1863,7 +1961,6 @@ export default function Employees() {
                             </TableCell>
                           </TableRow>
                           
-                          {/* Employee Rows - Only show if not collapsed */}
                           {!collapsedCategories[group.collapseKey] && group.employees.map((employee) => (
                             <TableRow key={employee.id} className={cn(selectedIds.has(employee.id) && "bg-primary/5")}>
                           {canEdit && (
@@ -1886,7 +1983,6 @@ export default function Employees() {
                           <TableCell className="font-medium">
                             <div className="flex flex-col gap-0.5">
                               <span>{formatDisplayName(employee)}</span>
-                              {/* Badge jabatan tambahan di kolom Nama — selalu tampil semua ukuran layar */}
                               {employee.additional_position && (
                                 <span className={cn(
                                   'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full w-fit',
