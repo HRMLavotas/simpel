@@ -71,8 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Gunakan Promise.race untuk mendeteksi hanging request akibat infinite loop Rate Limit
+    let timeoutId: ReturnType<typeof setTimeout>;
     const sessionTimeout = new Promise<never>((_, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         reject(new Error('SESSION_TIMEOUT'));
       }, 5000); // 5 detik batas tunggu sebelum force logout
     });
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.auth.getSession(),
       sessionTimeout
     ]).then((result: any) => {
+      clearTimeout(timeoutId);
       const { data: { session }, error } = result;
       if (error) throw error;
       setSession(session);
@@ -92,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     }).catch((err) => {
+      clearTimeout(timeoutId);
       logger.error('Error getting session:', err);
       // Jika error rate limit / timeout karena hanging loop, paksa bersihkan agar keluar dari cycle 429
       const errorMsg = err.message || '';
