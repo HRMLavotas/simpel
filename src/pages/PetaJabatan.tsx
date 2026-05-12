@@ -72,6 +72,7 @@ interface EducationInfo {
 
 const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
 const POSITION_REFERENCE_COLUMNS = 'id, department, position_category, position_name, grade, abk_count, position_order';
+const SUMMARY_CACHE_TTL_MS = 60_000;
 
 export default function PetaJabatan() {
   const { profile, isAdminPusat, canEdit, canViewAll, role } = useAuth();
@@ -164,6 +165,8 @@ export default function PetaJabatan() {
   const pendingFetchDataRef = useRef(false);
   const isFetchingSummaryRef = useRef(false);
   const pendingFetchSummaryRef = useRef(false);
+  const lastSummaryFetchAtRef = useRef(0);
+  const lastSummaryScopeRef = useRef('');
 
   // Delete Non-ASN confirmation state
   const [deleteNonAsnTarget, setDeleteNonAsnTarget] = useState<EmployeeMatch | null>(null);
@@ -216,13 +219,6 @@ export default function PetaJabatan() {
     setIsLoading(true);
     try {
       logger.debug('Fetching data for department:', selectedDepartment, '(effective:', effectiveDepartment, ')');
-      
-      // Debug: Check all positions in database
-      const { data: allPositions } = await supabase
-        .from('position_references')
-        .select('department')
-        .limit(10);
-      logger.debug('Sample departments in position_references:', allPositions);
       
       // Helper to fetch all records without 1000-row limit
       // Uses a factory function to create fresh query per batch (Supabase builder is mutable)
@@ -467,7 +463,7 @@ export default function PetaJabatan() {
     return educationData.find(e => e.employee_id === employeeId)?.level || '-';
   };
 
-  const fetchSummaryData = async () => {
+  const fetchSummaryData = async (force = false) => {
     if (isFetchingSummaryRef.current) {
       pendingFetchSummaryRef.current = true;
       return;
@@ -500,6 +496,14 @@ export default function PetaJabatan() {
             ? [profile.department, ...getSatpelsByPembina(profile.department)]
             : [profile.department])
         : null; // null = no filter (fetch all)
+
+      const summaryScope = summaryDepts ? summaryDepts.join('|') : '__all__';
+      const isCacheFresh = !force
+        && lastSummaryScopeRef.current === summaryScope
+        && (Date.now() - lastSummaryFetchAtRef.current) < SUMMARY_CACHE_TTL_MS;
+      if (isCacheFresh) {
+        return;
+      }
 
       const [allPosRes, allEmpRes, allNonAsnRes] = await Promise.all([
         fetchAllUnlimited(() => {
@@ -554,6 +558,8 @@ export default function PetaJabatan() {
       setAllPositions(allPosRes.data || []);
       setAllEmployees((allEmpRes.data || []) as EmployeeMatch[]);
       setAllNonAsnEmployees((allNonAsnRes.data || []) as EmployeeMatch[]);
+      lastSummaryScopeRef.current = summaryScope;
+      lastSummaryFetchAtRef.current = Date.now();
       
       logger.debug('Summary data loaded:', {
         positions: allPosRes.data?.length || 0,
@@ -571,10 +577,15 @@ export default function PetaJabatan() {
       setIsSummaryLoading(false);
       if (pendingFetchSummaryRef.current) {
         pendingFetchSummaryRef.current = false;
-        fetchSummaryData();
+        fetchSummaryData(true);
       }
     }
   };
+
+  const invalidateSummaryCache = useCallback(() => {
+    lastSummaryFetchAtRef.current = 0;
+    lastSummaryScopeRef.current = '';
+  }, []);
 
 
 
@@ -820,6 +831,7 @@ export default function PetaJabatan() {
       }
 
       setShowModal(false);
+      invalidateSummaryCache();
       fetchData();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan jabatan';
@@ -833,6 +845,7 @@ export default function PetaJabatan() {
       const { error } = await supabase.from('position_references').delete().eq('id', id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Jabatan berhasil dihapus' });
+      invalidateSummaryCache();
       fetchData();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus jabatan';
@@ -869,6 +882,7 @@ export default function PetaJabatan() {
       }
 
       toast({ title: 'Berhasil', description: `Urutan ${updates.length} jabatan berhasil diperbaiki` });
+      invalidateSummaryCache();
       fetchData();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memperbaiki urutan';
@@ -898,6 +912,7 @@ export default function PetaJabatan() {
       const { error } = await supabase.from('employees').delete().eq('id', deleteNonAsnTarget.id);
       if (error) throw error;
       toast({ title: 'Berhasil', description: 'Pegawai Non-ASN berhasil dihapus' });
+      invalidateSummaryCache();
       fetchData();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus pegawai';

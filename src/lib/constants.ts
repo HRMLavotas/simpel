@@ -371,7 +371,9 @@ export const UNIT_PEMBINA_MAPPING: Record<string, string> = {
 
   // BBPVP Medan
   'Satpel Pekanbaru': 'BBPVP Medan',
+  'Satpel Pekan Baru': 'BBPVP Medan',
   'Satuan Pelayanan Pekanbaru': 'BBPVP Medan',
+  'Satuan Pelayanan Pekan Baru': 'BBPVP Medan',
   'Workshop Batam': 'BBPVP Medan',
 
   // BPVP Surakarta
