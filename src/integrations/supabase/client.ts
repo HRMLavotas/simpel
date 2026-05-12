@@ -20,6 +20,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   auth: {
     storage: localStorage,
     persistSession: true,
-    autoRefreshToken: true,
+    // Menonaktifkan auto-refresh token bawaan Supabase untuk mencegah
+    // loop tak terbatas yang memicu error 429 (Too Many Requests).
+    // Session refresh dikelola secara manual oleh onAuthStateChange di useAuth.tsx.
+    autoRefreshToken: false,
+    // Mencegah Supabase memproses token dari URL (magic link, OAuth)
+    // yang bisa memicu refresh token tambahan saat halaman di-load.
+    detectSessionInUrl: false,
   }
 });
