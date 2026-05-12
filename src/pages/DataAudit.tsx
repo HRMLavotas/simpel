@@ -173,10 +173,10 @@ export default function DataAudit() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Audit Data Pegawai</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="page-header mb-0">
+            <h1 className="page-title">Audit Data Pegawai</h1>
+            <p className="page-description">
               Identifikasi dan perbaiki data pegawai yang tidak lengkap atau tidak sesuai format
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function DataAudit() {
 
         {/* Summary Cards */}
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             {[...Array(3)].map((_, i) => (
               <Card key={i}>
                 <CardHeader className="pb-2">
@@ -197,7 +197,7 @@ export default function DataAudit() {
             ))}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -265,7 +265,7 @@ export default function DataAudit() {
               </div>
               
               {/* Search and Filter */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -275,9 +275,10 @@ export default function DataAudit() {
                     className="pl-9"
                   />
                 </div>
+                <div className="flex gap-2">
                 {isAdminPusat && (
                   <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                       <SelectValue placeholder="Semua Unit" />
                     </SelectTrigger>
                     <SelectContent>
@@ -289,7 +290,7 @@ export default function DataAudit() {
                   </Select>
                 )}
                 <Select value={filterIssue} onValueChange={setFilterIssue}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -301,6 +302,7 @@ export default function DataAudit() {
                     ))}
                   </SelectContent>
                 </Select>
+                </div>
               </div>
               
               {/* Results count and pagination info */}

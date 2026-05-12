@@ -183,7 +183,7 @@ export default function Admins() {
 
         {/* Table */}
         <div className="rounded-lg border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="table-mobile-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -218,13 +218,13 @@ export default function Admins() {
               ) : (
                 filteredAdmins.map((admin) => (
                   <TableRow key={admin.id} className="animate-fade-in">
-                    <TableCell className="font-medium">
+                    <TableCell data-label="Nama" className="font-medium">
                       <div>{admin.full_name}</div>
                       <div className="sm:hidden text-xs text-muted-foreground mt-0.5">{admin.email}</div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground">{admin.email}</TableCell>
-                    <TableCell className="hidden md:table-cell text-sm">{admin.department}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="Email" className="hidden sm:table-cell text-muted-foreground">{admin.email}</TableCell>
+                    <TableCell data-label="Unit Kerja" className="hidden md:table-cell text-sm">{admin.department}</TableCell>
+                    <TableCell data-label="Role">
                       <Badge variant={
                         admin.role === 'admin_pusat' ? 'default' : 
                         admin.role === 'admin_pimpinan' ? 'secondary' : 
@@ -235,12 +235,12 @@ export default function Admins() {
                          'Admin Unit'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell text-muted-foreground">
+                    <TableCell data-label="Terdaftar" className="hidden lg:table-cell text-muted-foreground">
                       {admin.created_at 
                         ? format(new Date(admin.created_at), 'd MMM yyyy', { locale: id })
                         : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Aksi">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">

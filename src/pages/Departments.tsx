@@ -124,7 +124,7 @@ export default function Departments() {
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Cari unit kerja..."
@@ -136,7 +136,7 @@ export default function Departments() {
 
         {/* Table */}
         <div className="rounded-lg border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="table-mobile-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -167,12 +167,12 @@ export default function Departments() {
                 ) : (
                   filteredDepartments.map((dept, index) => (
                     <TableRow key={dept.id} className="animate-fade-in">
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{dept.name}</TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                      <TableCell data-label="No" className="font-medium">{index + 1}</TableCell>
+                      <TableCell data-label="Nama Unit Kerja" className="font-medium">{dept.name}</TableCell>
+                      <TableCell data-label="Tanggal Dibuat" className="hidden md:table-cell text-muted-foreground">
                         {format(new Date(dept.created_at), 'd MMM yyyy', { locale: id })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Aksi">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
