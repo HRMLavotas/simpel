@@ -20,7 +20,7 @@ export interface DetectedChange {
   oldValue: string;
   newValue: string;
   /** Which history table this maps to */
-  historyType: 'rank' | 'position' | 'mutation' | 'title' | 'general';
+  historyType: 'rank' | 'position' | 'mutation' | 'title' | 'general' | 'additional_position';
 }
 
 interface ChangeLogDialogProps {
@@ -53,6 +53,7 @@ export function ChangeLogDialog({
       case 'mutation': return 'Mutasi';
       case 'title': return 'Perubahan Gelar';
       case 'general': return 'Perubahan Data';
+      case 'additional_position': return 'Jabatan Tambahan';
     }
   };
 
@@ -63,6 +64,7 @@ export function ChangeLogDialog({
       case 'mutation': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
       case 'title': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'general': return 'bg-muted text-muted-foreground';
+      case 'additional_position': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200';
     }
   };
 

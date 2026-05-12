@@ -109,6 +109,14 @@ function detectChanges(oldEmp: Employee, newData: EmployeeFormData): DetectedCha
       historyType: 'mutation',
     });
   }
+  // Jabatan Tambahan - simpan ke additional_position_history
+  if (norm(oldEmp.additional_position) !== norm(newData.additional_position)) {
+    changes.push({
+      field: 'additional_position', label: 'Jabatan Tambahan',
+      oldValue: norm(oldEmp.additional_position), newValue: norm(newData.additional_position),
+      historyType: 'additional_position',
+    });
+  }
   if (norm(oldEmp.front_title) !== norm(newData.front_title)) {
     changes.push({
       field: 'front_title', label: 'Gelar Depan',
@@ -270,7 +278,7 @@ export default function Employees() {
       
       // Check if INSERT or UPDATE affects accessible departments
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-        if (newRecord && (!accessibleDepts || accessibleDepts.includes(newRecord.department))) {
+        if (newRecord && (!accessibleDepts || accessibleDepts.includes(newRecord.department as string))) {
           shouldRefresh = true;
           logger.debug('New/Updated record is for accessible department');
         }
@@ -278,7 +286,7 @@ export default function Employees() {
       
       // Check if DELETE or UPDATE (department change) affects accessible departments
       if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
-        if (oldRecord && (!accessibleDepts || accessibleDepts.includes(oldRecord.department))) {
+        if (oldRecord && (!accessibleDepts || accessibleDepts.includes(oldRecord.department as string))) {
           shouldRefresh = true;
           logger.debug('Deleted/Old record was from accessible department');
         }
@@ -789,6 +797,7 @@ export default function Employees() {
     existingRankHistory: HistoryEntry[],
     existingPositionHistory: HistoryEntry[],
     existingMutationHistory: HistoryEntry[],
+    existingAdditionalPositionHistory: AdditionalPositionHistoryEntry[],
   ) => {
     const keterangan = [notes, link].filter(Boolean).join('\nLampiran: ');
 
@@ -797,7 +806,7 @@ export default function Employees() {
         case 'rank': {
           // Skip jika sudah ada di manual history dengan nilai yang sama
           const alreadyInHistory = existingRankHistory.some(
-            e => e.pangkat_baru === change.newValue
+            e => e.pangkat_baru === change.newValue && e.id !== '__current__'
           );
           if (alreadyInHistory) break;
           await supabase.from('rank_history').insert({
@@ -813,7 +822,7 @@ export default function Employees() {
         case 'position': {
           if (change.field !== 'position_name') break;
           const alreadyInHistory = existingPositionHistory.some(
-            e => e.jabatan_baru === change.newValue
+            e => e.jabatan_baru === change.newValue && e.id !== '__current__'
           );
           if (alreadyInHistory) break;
           await supabase.from('position_history').insert({
@@ -827,7 +836,7 @@ export default function Employees() {
         }
         case 'mutation': {
           const alreadyInHistory = existingMutationHistory.some(
-            e => e.ke_unit === change.newValue
+            e => e.ke_unit === change.newValue && e.id !== '__current__'
           );
           if (alreadyInHistory) break;
           await supabase.from('mutation_history').insert({
@@ -839,6 +848,24 @@ export default function Employees() {
           });
           break;
         }
+        case 'additional_position': {
+          // Skip jika sudah ada di riwayat jabatan tambahan dengan nilai yang sama
+          const alreadyInHistory = existingAdditionalPositionHistory.some(
+            e => e.jabatan_tambahan_baru === change.newValue
+          );
+          if (alreadyInHistory) break;
+          await supabase.from('additional_position_history').insert({
+            employee_id: employeeId,
+            tanggal: effectiveDate,
+            jabatan_tambahan_lama: change.oldValue || null,
+            jabatan_tambahan_baru: change.newValue || null,
+            tmt: effectiveDate,
+            keterangan: keterangan || null,
+          });
+          break;
+        }
+        // 'title', 'general' changes: tidak perlu entri riwayat khusus,
+        // perubahan sudah tersimpan langsung di tabel employees via employeeData update.
       }
     }
   };
@@ -848,19 +875,48 @@ export default function Employees() {
     setIsSubmitting(true);
 
     try {
-      // Determine the latest department from mutation history
+      // Tentukan finalDepartment:
+      // Prioritas 1: ambil dari mutation_history terbaru yang valid (punya tanggal & ke_unit)
+      // Prioritas 2: ambil langsung dari form (data.department) sebagai fallback
       let finalDepartment = data.department;
-      let departmentChanged = false;
+      // Cek apakah department berubah langsung dari form (tanpa riwayat mutasi)
+      let departmentChanged = !!(selectedEmployee && data.department !== selectedEmployee.department);
       
       if (data.mutation_history && data.mutation_history.length > 0) {
         const sortedMutations = [...data.mutation_history]
-          .filter(m => m.tanggal && m.ke_unit)
+          .filter(m => m.tanggal && m.ke_unit && m.id !== '__current__')
           .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
         
         if (sortedMutations.length > 0) {
-          const newDepartment = sortedMutations[0].ke_unit || data.department;
-          departmentChanged = !!(selectedEmployee && newDepartment !== selectedEmployee.department);
-          finalDepartment = newDepartment;
+          const latestFromHistory = sortedMutations[0].ke_unit!;
+          finalDepartment = latestFromHistory;
+          departmentChanged = !!(selectedEmployee && latestFromHistory !== selectedEmployee.department);
+        }
+      }
+
+      // Jika department berubah langsung via form tapi TIDAK ada entri mutation_history yang baru,
+      // buat entri riwayat mutasi otomatis agar perubahan ini terekam
+      if (departmentChanged && selectedEmployee) {
+        const hasNewMutationEntry = (data.mutation_history || []).some(
+          m => m.ke_unit === finalDepartment && m.id !== '__current__' && m.tanggal
+        );
+        if (!hasNewMutationEntry) {
+          logger.debug('[executeSave] Department changed directly via form, auto-creating mutation history entry');
+          // Sisipkan entry ke mutation_history agar ikut disimpan
+          const autoEntry = {
+            tanggal: effectiveDate,
+            dari_unit: selectedEmployee.department,
+            ke_unit: finalDepartment,
+            nomor_sk: '',
+            keterangan: 'Perubahan data - Auto-generated',
+          };
+          data = {
+            ...data,
+            mutation_history: [
+              ...(data.mutation_history || []).filter(m => m.id !== '__current__'),
+              autoEntry,
+            ],
+          };
         }
       }
 
@@ -964,18 +1020,48 @@ export default function Employees() {
     if (!user) return;
     // Catatan: setIsSubmitting(true) sudah dipanggil oleh caller
     try {
-      let finalPositionName = data.position_name;
-      let positionChanged = false;
+      // Tentukan finalPositionName:
+      // Prioritas 1: ambil dari position_history terbaru yang valid
+      // Prioritas 2: ambil langsung dari form (data.position_name) sebagai fallback
+      let finalPositionName = data.position_name || selectedEmployee?.position_name || '';
+      // Cek apakah jabatan berubah langsung dari form
+      let positionChanged = !!(selectedEmployee && (data.position_name || '') !== (selectedEmployee.position_name || ''));
       
       if (data.position_history && data.position_history.length > 0) {
         const sortedPositions = [...data.position_history]
-          .filter(p => p.tanggal && p.jabatan_baru)
+          .filter(p => p.tanggal && p.jabatan_baru && p.id !== '__current__')
           .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
         
         if (sortedPositions.length > 0) {
-          const newPosition = sortedPositions[0].jabatan_baru || data.position_name;
-          positionChanged = !!(selectedEmployee && newPosition !== selectedEmployee.position_name);
-          finalPositionName = newPosition;
+          const latestFromHistory = sortedPositions[0].jabatan_baru!;
+          positionChanged = !!(selectedEmployee && latestFromHistory !== selectedEmployee.position_name);
+          finalPositionName = latestFromHistory;
+        }
+      }
+
+      // Jika jabatan berubah via form tapi TIDAK ada entri position_history yang baru,
+      // buat entri riwayat jabatan otomatis
+      if (positionChanged && selectedEmployee && data.position_name) {
+        const hasNewPositionEntry = (data.position_history || []).some(
+          p => p.jabatan_baru === finalPositionName && p.id !== '__current__' && p.tanggal
+        );
+        if (!hasNewPositionEntry) {
+          logger.debug('[doExecuteSave] Position changed directly via form, auto-creating position history entry');
+          const autoEntry = {
+            tanggal: effectiveDate || new Date().toISOString().split('T')[0],
+            jabatan_lama: selectedEmployee.position_name || '',
+            jabatan_baru: finalPositionName,
+            unit_kerja: finalDepartment,
+            nomor_sk: '',
+            keterangan: 'Perubahan data - Auto-generated',
+          };
+          data = {
+            ...data,
+            position_history: [
+              ...(data.position_history || []).filter(p => p.id !== '__current__'),
+              autoEntry,
+            ],
+          };
         }
       }
 
@@ -1003,11 +1089,11 @@ export default function Employees() {
         mobile_phone: data.mobile_phone || null,
         address: data.address || null,
         satuan_kerja_penugasan: data.satuan_kerja_penugasan || null,
-        // Include inactive status fields if present
-        ...(data.is_active !== undefined && {
-          is_active: data.is_active,
-          inactive_date: data.inactive_date || null,
-          inactive_reason: data.inactive_reason || null,
+        // Include inactive status fields if present (added dynamically by Quick Action)
+        ...((data as any).is_active !== undefined && {
+          is_active: (data as any).is_active,
+          inactive_date: (data as any).inactive_date || null,
+          inactive_reason: (data as any).inactive_reason || null,
         }),
       };
 
@@ -1189,14 +1275,15 @@ export default function Employees() {
       }
 
       // Save inactive history if employee was marked as inactive
-      if (data.is_active === false && data.inactive_date && data.inactive_reason) {
+      const dataAny = data as any;
+      if (dataAny.is_active === false && dataAny.inactive_date && dataAny.inactive_reason) {
         // Find SK number from change_notes if available
-        const skNumber = data.change_notes?.find(n => n.note.includes('SK:'))?.note.match(/SK:\s*([^\s-]+)/)?.[1] || null;
+        const skNumber = data.change_notes?.find(n => n.note.includes('SK:'))?.note.match(/SK:\s*(\S+)/)?.[1] || null;
         
         await supabase.from('inactive_history').insert({
           employee_id: employeeId,
-          inactive_date: data.inactive_date,
-          inactive_reason: data.inactive_reason,
+          inactive_date: dataAny.inactive_date,
+          inactive_reason: dataAny.inactive_reason,
           sk_number: skNumber,
           notes: data.change_notes?.find(n => n.note.includes('Status Non-Aktif'))?.note || null,
           created_by: user?.id,
@@ -1214,6 +1301,7 @@ export default function Employees() {
           data.rank_history || [],
           data.position_history || [],
           data.mutation_history || [],
+          data.additional_position_history || [],
         );
       }
 
@@ -1264,7 +1352,8 @@ export default function Employees() {
   };
 
   const handleFormSubmit = async (data: EmployeeFormData) => {
-    // If editing, detect changes and show dialog (unless Quick Action was used)
+    // Jika sedang edit, deteksi semua perubahan dan tampilkan ChangeLogDialog
+    // (kecuali jika perubahan berasal dari Quick Action yang sudah punya handler sendiri)
     if (selectedEmployee && !data._skipChangeDetection) {
       const changes = detectChanges(selectedEmployee, data);
       if (changes.length > 0) {
@@ -1274,9 +1363,11 @@ export default function Employees() {
         setChangeLogOpen(true);
         return;
       }
+      // Jika tidak ada perubahan yang terdeteksi di field utama,
+      // tetap simpan (perubahan mungkin ada di field non-tracked seperti phone, address, dll)
     }
 
-    // No tracked changes, Quick Action was used, or new employee — save directly
+    // Quick Action digunakan, tambah pegawai baru, atau tidak ada perubahan utama — simpan langsung
     await executeSave(data, [], '', '', new Date().toISOString().split('T')[0]);
   };
 
@@ -1511,7 +1602,7 @@ export default function Employees() {
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export Excel</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button className="text-xs sm:text-sm">
                     <Plus className="mr-1 sm:mr-2 h-4 w-4" />
@@ -1719,7 +1810,7 @@ export default function Employees() {
                           
                           {/* Employee Rows - Only show if not collapsed */}
                           {!collapsedCategories[group.collapseKey] && group.employees.map((employee) => (
-                            <TableRow key={employee.id} className={cn("animate-fade-in", selectedIds.has(employee.id) && "bg-primary/5")}>
+                            <TableRow key={employee.id} className={cn(selectedIds.has(employee.id) && "bg-primary/5")}>
                           {canEdit && (
                             <TableCell className="w-[40px]" onClick={(e) => e.stopPropagation()}>
                               <Checkbox
@@ -1760,7 +1851,7 @@ export default function Employees() {
                           <TableCell className="hidden lg:table-cell">{employee.rank_group || '-'}</TableCell>
                           {canViewAll && <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{employee.department}</TableCell>}
                           <TableCell>
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                   <MoreVertical className="h-4 w-4" />
@@ -1854,10 +1945,8 @@ export default function Employees() {
         onOpenChange={setNonAsnModalOpen}
         onSuccess={fetchEmployees}
         editData={selectedEmployee?.asn_status === 'Non ASN' ? selectedEmployee : undefined}
-        userDepartment={profile?.department as Department}
+        userDepartment={profile?.department as import('@/lib/constants').Department}
         isAdminPusat={isAdminPusat}
-        initialEducation={selectedEducation}
-        initialPositionHistory={selectedPositionHistory}
       />
 
       <ChangeLogDialog
