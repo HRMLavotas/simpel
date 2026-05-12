@@ -44,6 +44,7 @@ import { DeleteConfirmDialog } from '@/components/employees/DeleteConfirmDialog'
 import { ChangeLogDialog, type DetectedChange } from '@/components/employees/ChangeLogDialog';
 import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
 import { DuplicateMutationDialog, type DuplicateEmployee } from '@/components/employees/DuplicateMutationDialog';
+import { SatpelBadge } from '@/components/employees/SatpelBadge';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { type AdditionalPositionHistoryEntry } from '@/components/employees/AdditionalPositionHistoryForm';
@@ -1841,6 +1842,9 @@ export default function Employees() {
                                 )}>
                                   {employee.additional_position}
                                 </span>
+                              )}
+                              {employee.satuan_kerja_penugasan && (
+                                <SatpelBadge satpelName={employee.satuan_kerja_penugasan} />
                               )}
                             </div>
                           </TableCell>
