@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import {
@@ -71,6 +71,7 @@ interface EducationInfo {
 }
 
 const POSITION_CATEGORIES = ['Struktural', 'Fungsional', 'Pelaksana'] as const;
+const POSITION_REFERENCE_COLUMNS = 'id, department, position_category, position_name, grade, abk_count, position_order';
 
 export default function PetaJabatan() {
   const { profile, isAdminPusat, canEdit, canViewAll, role } = useAuth();
@@ -159,6 +160,10 @@ export default function PetaJabatan() {
   const [formGrade, setFormGrade] = useState('');
   const [formAbk, setFormAbk] = useState('0');
   const [formOrder, setFormOrder] = useState('0');
+  const isFetchingDataRef = useRef(false);
+  const pendingFetchDataRef = useRef(false);
+  const isFetchingSummaryRef = useRef(false);
+  const pendingFetchSummaryRef = useRef(false);
 
   // Delete Non-ASN confirmation state
   const [deleteNonAsnTarget, setDeleteNonAsnTarget] = useState<EmployeeMatch | null>(null);
@@ -203,6 +208,11 @@ export default function PetaJabatan() {
 
   // Real-time subscription for employee changes
   const fetchData = useCallback(async () => {
+    if (isFetchingDataRef.current) {
+      pendingFetchDataRef.current = true;
+      return;
+    }
+    isFetchingDataRef.current = true;
     setIsLoading(true);
     try {
       logger.debug('Fetching data for department:', selectedDepartment, '(effective:', effectiveDepartment, ')');
@@ -245,7 +255,7 @@ export default function PetaJabatan() {
         fetchAllUnlimited(() =>
           supabase
             .from('position_references')
-            .select('*')
+            .select(POSITION_REFERENCE_COLUMNS)
             .eq('department', effectiveDepartment)
             .order('position_category')
             .order('position_order')
@@ -371,13 +381,19 @@ export default function PetaJabatan() {
       logger.error('Error fetching data:', err);
       toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
+      isFetchingDataRef.current = false;
       setIsLoading(false);
+      if (pendingFetchDataRef.current) {
+        pendingFetchDataRef.current = false;
+        fetchData();
+      }
     }
   }, [effectiveDepartment, activeSatpelFilter, toast]);
 
   // Fetch data when effectiveDepartment changes + real-time subscription
   useEffect(() => {
     if (!effectiveDepartment) return;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
     // Initial fetch
     fetchData();
@@ -418,8 +434,11 @@ export default function PetaJabatan() {
       }
       
       if (shouldRefresh) {
-        logger.debug('Refreshing Peta Jabatan data...');
-        fetchData();
+        logger.debug('Queue refresh Peta Jabatan data...');
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+          fetchData();
+        }, 1000);
       }
     };
     
@@ -437,6 +456,7 @@ export default function PetaJabatan() {
       .subscribe();
 
     return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
       logger.debug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
@@ -448,6 +468,11 @@ export default function PetaJabatan() {
   };
 
   const fetchSummaryData = async () => {
+    if (isFetchingSummaryRef.current) {
+      pendingFetchSummaryRef.current = true;
+      return;
+    }
+    isFetchingSummaryRef.current = true;
     setIsSummaryLoading(true);
     try {
       logger.debug('Fetching summary data', { canViewAll, department: profile?.department });
@@ -480,7 +505,7 @@ export default function PetaJabatan() {
         fetchAllUnlimited(() => {
           let query = supabase
             .from('position_references')
-            .select('*');
+            .select(POSITION_REFERENCE_COLUMNS);
           
           if (summaryDepts) {
             query = summaryDepts.length === 1
@@ -542,7 +567,12 @@ export default function PetaJabatan() {
       logger.error('Error fetching summary data:', err);
       toast({ variant: 'destructive', title: 'Error', description: errorMessage });
     } finally {
+      isFetchingSummaryRef.current = false;
       setIsSummaryLoading(false);
+      if (pendingFetchSummaryRef.current) {
+        pendingFetchSummaryRef.current = false;
+        fetchSummaryData();
+      }
     }
   };
 
@@ -1745,7 +1775,7 @@ export default function PetaJabatan() {
         fetchAllPages((from, to) =>
           supabase
             .from('position_references')
-            .select('*')
+            .select(POSITION_REFERENCE_COLUMNS)
             .order('department')
             .order('position_category')
             .order('position_order')

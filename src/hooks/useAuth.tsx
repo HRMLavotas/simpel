@@ -28,6 +28,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AUTH_RETRY_DELAYS_MS = [400, 900];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -39,6 +40,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let hasFetchedForUser: string | null = null;
     let isFetching = false;
+    let isMounted = true;
+
+    const isRetryableAuthError = (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error || '');
+      return message.includes('Failed to fetch')
+        || message.includes('NetworkError')
+        || message.includes('FetchError')
+        || message.includes('Too Many Requests');
+    };
+
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const loadProfile = async (userId: string) => {
       // Cegah infinite loop refresh token dan double fetch
@@ -55,64 +67,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!isMounted) return;
         setSession(session);
         setUser(session?.user ?? null);
 
-        if (session?.user) {
-          // Defer execution lightly to prevent React render locks
-          setTimeout(() => loadProfile(session.user.id), 0);
-        } else {
+        if (event === 'SIGNED_OUT' || !session?.user) {
           hasFetchedForUser = null;
           setProfile(null);
           setRole(null);
           setIsLoading(false);
+          return;
+        }
+
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          // Defer execution lightly to prevent React render locks
+          setTimeout(() => loadProfile(session.user.id), 0);
         }
       }
     );
 
-    // Gunakan Promise.race untuk mendeteksi hanging request akibat infinite loop Rate Limit
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const sessionTimeout = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new Error('SESSION_TIMEOUT'));
-      }, 5000); // 5 detik batas tunggu sebelum force logout
-    });
+    const initializeSession = async () => {
+      for (let attempt = 0; attempt <= AUTH_RETRY_DELAYS_MS.length; attempt++) {
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (!isMounted) return;
 
-    Promise.race([
-      supabase.auth.getSession(),
-      sessionTimeout
-    ]).then((result: any) => {
-      clearTimeout(timeoutId);
-      const { data: { session }, error } = result;
-      if (error) throw error;
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        loadProfile(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    }).catch((err) => {
-      clearTimeout(timeoutId);
-      logger.error('Error getting session:', err);
-      // Jika error rate limit / timeout karena hanging loop, paksa bersihkan agar keluar dari cycle 429
-      const errorMsg = err.message || '';
-      if (errorMsg.includes('Too Many Requests') || errorMsg.includes('FetchError') || errorMsg === 'SESSION_TIMEOUT' || err.status === 429) {
-        logger.warn('Force clearing auth tokens due to unrecoverable auth state');
-        // Bersihkan spesifik key supabase terlebih dahulu untuk kepastian
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-            localStorage.removeItem(key);
+          setSession(session);
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await loadProfile(session.user.id);
+          } else {
+            setIsLoading(false);
           }
-        });
-        localStorage.clear(); // Hapus sisa cache
-        window.location.href = '/auth'; // Redirect paksa
-      }
-      setIsLoading(false);
-    });
+          return;
+        } catch (err) {
+          const lastAttempt = attempt === AUTH_RETRY_DELAYS_MS.length;
+          logger.error('Error getting session:', err);
 
-    return () => subscription.unsubscribe();
+          if (lastAttempt || !isRetryableAuthError(err)) {
+            if (isMounted) setIsLoading(false);
+            return;
+          }
+
+          await sleep(AUTH_RETRY_DELAYS_MS[attempt]);
+        }
+      }
+    };
+
+    initializeSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -7,9 +7,9 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   || import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
-if (import.meta.env.DEV && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
-  console.warn(
-    '[Supabase] Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env (lihat .env.production.example).'
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    '[Supabase] Missing env: VITE_SUPABASE_URL and/or VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY).'
   );
 }
 
@@ -20,12 +20,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   auth: {
     storage: localStorage,
     persistSession: true,
-    // Menonaktifkan auto-refresh token bawaan Supabase untuk mencegah
-    // loop tak terbatas yang memicu error 429 (Too Many Requests).
-    // Session refresh dikelola secara manual oleh onAuthStateChange di useAuth.tsx.
-    autoRefreshToken: false,
-    // Mencegah Supabase memproses token dari URL (magic link, OAuth)
-    // yang bisa memicu refresh token tambahan saat halaman di-load.
-    detectSessionInUrl: false,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
   }
 });

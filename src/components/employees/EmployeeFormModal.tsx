@@ -609,16 +609,16 @@ export function EmployeeFormModal({
 
       try {
         const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, addPosRes] = await Promise.all([
-          supabase.from('education_history').select('*').eq('employee_id', empId).order('graduation_year', { ascending: true }),
-          supabase.from('mutation_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-          supabase.from('position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-          supabase.from('rank_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-          supabase.from('competency_test_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
-          supabase.from('training_history').select('*').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
-          supabase.from('placement_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-          supabase.from('assignment_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-          supabase.from('change_notes').select('*').eq('employee_id', empId).order('created_at', { ascending: true }),
-          supabase.from('additional_position_history').select('*').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+          supabase.from('education_history').select('id, level, institution_name, major, graduation_year, front_title, back_title').eq('employee_id', empId).order('graduation_year', { ascending: true }),
+          supabase.from('mutation_history').select('id, tanggal, dari_unit, ke_unit, jabatan, nomor_sk, keterangan, created_at').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('position_history').select('id, tanggal, jabatan_lama, jabatan_baru, unit_kerja, nomor_sk, keterangan, created_at').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('rank_history').select('id, tanggal, pangkat_lama, pangkat_baru, nomor_sk, tmt, keterangan, created_at').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+          supabase.from('competency_test_history').select('id, tanggal, jenis_uji, hasil, keterangan').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
+          supabase.from('training_history').select('id, tanggal_mulai, tanggal_selesai, nama_diklat, penyelenggara, sertifikat, keterangan').eq('employee_id', empId).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+          supabase.from('placement_notes').select('id, note, created_at').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('assignment_notes').select('id, note, created_at').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('change_notes').select('id, note, created_at').eq('employee_id', empId).order('created_at', { ascending: true }),
+          supabase.from('additional_position_history').select('id, tanggal, jabatan_tambahan_lama, jabatan_tambahan_baru, nomor_sk, tmt, keterangan').eq('employee_id', empId).order('tanggal', { ascending: true, nullsFirst: false }),
         ]);
 
         interface EducationData {

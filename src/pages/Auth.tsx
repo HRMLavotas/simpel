@@ -94,6 +94,15 @@ export default function Auth() {
     setLoginAttempts(0);
     setCooldownUntil(null);
     toast({ title: 'Login Berhasil', description: 'Selamat datang kembali!' });
+
+    // Tunggu sebentar agar AuthContext menerima session dari listener Supabase,
+    // sehingga mengurangi risiko bounce /auth -> /dashboard.
+    for (let i = 0; i < 5; i++) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) break;
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+
     navigate('/dashboard');
   };
 

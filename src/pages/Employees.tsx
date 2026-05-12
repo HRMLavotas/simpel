@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Plus, Search, Pencil, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown, MoreVertical, Eye, Users } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -68,6 +68,26 @@ import {
 } from '@/lib/excelStyles';
 
 const ITEMS_PER_PAGE = 200;
+const EMPLOYEE_LIST_COLUMNS = [
+  'id',
+  'nip',
+  'name',
+  'front_title',
+  'back_title',
+  'position_type',
+  'position_name',
+  'additional_position',
+  'asn_status',
+  'rank_group',
+  'department',
+  'join_date',
+  'is_active',
+  'satuan_kerja_penugasan',
+  'keterangan_formasi',
+  'keterangan_penempatan',
+  'keterangan_penugasan',
+  'keterangan_perubahan',
+].join(', ');
 
 const formatDisplayName = (emp: Employee) => {
   const parts: string[] = [];
@@ -229,6 +249,8 @@ export default function Employees() {
   const [selectedChangeNotes, setSelectedChangeNotes] = useState<NoteEntry[]>([]);
   const [selectedAdditionalPositionHistory, setSelectedAdditionalPositionHistory] = useState<AdditionalPositionHistoryEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isFetchingEmployeesRef = useRef(false);
+  const pendingEmployeesFetchRef = useRef(false);
 
   // Change log dialog state
   const [changeLogOpen, setChangeLogOpen] = useState(false);
@@ -249,6 +271,7 @@ export default function Employees() {
 
   useEffect(() => {
     if (!profile) return;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     
     // Initial fetch
     fetchEmployees();
@@ -294,8 +317,11 @@ export default function Employees() {
       }
       
       if (shouldRefresh) {
-        logger.debug('Refreshing Employees data...');
-        fetchEmployees(true); // Skip if modal is open
+        logger.debug('Queue refresh Employees data...');
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+          fetchEmployees(true); // Skip if modal is open
+        }, 1000);
       }
     };
     
@@ -313,12 +339,18 @@ export default function Employees() {
       .subscribe();
 
     return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
       logger.debug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [profile, canViewAll, hasSupervisedUnits]);
 
   const fetchEmployees = async (skipIfModalOpen = false) => {
+    if (isFetchingEmployeesRef.current) {
+      pendingEmployeesFetchRef.current = true;
+      return;
+    }
+
     // Skip refresh if modal is open and user is editing
     if (skipIfModalOpen && (formModalOpen || nonAsnModalOpen || changeLogOpen)) {
       logger.debug('Skipping fetchEmployees - modal is open');
@@ -326,6 +358,7 @@ export default function Employees() {
     }
     
     if (!profile) return;
+    isFetchingEmployeesRef.current = true;
     setIsLoading(true);
     logger.debug('=== FETCHING EMPLOYEES ===');
     try {
@@ -392,7 +425,7 @@ export default function Employees() {
         empIterations++;
         let query = supabase
           .from('employees')
-          .select('*')
+          .select(EMPLOYEE_LIST_COLUMNS)
           .range(offset, offset + batchSize - 1)
           .order('department')
           .order('name');
@@ -415,7 +448,7 @@ export default function Employees() {
         if (error) throw error;
         
         if (!batch || batch.length === 0) break;
-        allData.push(...batch);
+        allData.push(...(batch as Employee[]));
         
         if (batch.length < batchSize) break;
         offset += batchSize;
@@ -463,9 +496,28 @@ export default function Employees() {
       logger.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
     } finally {
+      isFetchingEmployeesRef.current = false;
       setIsLoading(false);
+      if (pendingEmployeesFetchRef.current) {
+        pendingEmployeesFetchRef.current = false;
+        fetchEmployees(skipIfModalOpen);
+      }
     }
   };
+
+  const fetchEmployeeById = useCallback(async (employeeId: string): Promise<Employee> => {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('id', employeeId)
+      .single();
+
+    if (error || !data) {
+      throw error ?? new Error('Data pegawai tidak ditemukan');
+    }
+
+    return data as Employee;
+  }, []);
 
   // Helper function to check if employee matches department filter
   // Checks both department AND satuan_kerja_penugasan with normalization
@@ -642,10 +694,11 @@ export default function Employees() {
     logger.debug('Employee ASN Status:', employee.asn_status);
     logger.debug('Full Employee Object:', employee);
     
-    setSelectedEmployee(employee);
-    
     try {
-      if (employee.asn_status === 'Non ASN') {
+      const fullEmployee = await fetchEmployeeById(employee.id);
+      setSelectedEmployee(fullEmployee);
+
+      if (fullEmployee.asn_status === 'Non ASN') {
         setNonAsnModalOpen(true);
         return;
       }
@@ -662,21 +715,22 @@ export default function Employees() {
   };
 
   const handleViewDetails = async (employee: Employee) => {
-    setSelectedEmployee(employee);
-    
     try {
+      const fullEmployee = await fetchEmployeeById(employee.id);
+      setSelectedEmployee(fullEmployee);
+
       // Fetch all related data
       const [eduRes, mutRes, posRes, rankRes, compRes, trainRes, placementRes, assignmentRes, changeRes, additionalPosRes] = await Promise.all([
-        supabase.from('education_history').select('*').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
-        supabase.from('mutation_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-        supabase.from('position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-        supabase.from('rank_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
-        supabase.from('competency_test_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
-        supabase.from('training_history').select('*').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
-        supabase.from('placement_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-        supabase.from('assignment_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-        supabase.from('change_notes').select('*').eq('employee_id', employee.id).order('created_at', { ascending: true }),
-        supabase.from('additional_position_history').select('*').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('education_history').select('id, level, institution_name, major, graduation_year, front_title, back_title').eq('employee_id', employee.id).order('graduation_year', { ascending: true }),
+        supabase.from('mutation_history').select('id, tanggal, dari_unit, ke_unit, jabatan, nomor_sk, keterangan, created_at').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+        supabase.from('position_history').select('id, tanggal, jabatan_lama, jabatan_baru, unit_kerja, nomor_sk, keterangan, created_at').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+        supabase.from('rank_history').select('id, tanggal, pangkat_lama, pangkat_baru, nomor_sk, tmt, keterangan, created_at').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+        supabase.from('competency_test_history').select('id, tanggal, jenis_uji, hasil, keterangan').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
+        supabase.from('training_history').select('id, tanggal_mulai, tanggal_selesai, nama_diklat, penyelenggara, sertifikat, keterangan').eq('employee_id', employee.id).order('tanggal_mulai', { ascending: true, nullsFirst: false }),
+        supabase.from('placement_notes').select('id, note, created_at').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('assignment_notes').select('id, note, created_at').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('change_notes').select('id, note, created_at').eq('employee_id', employee.id).order('created_at', { ascending: true }),
+        supabase.from('additional_position_history').select('id, tanggal, jabatan_tambahan_lama, jabatan_tambahan_baru, nomor_sk, tmt, keterangan').eq('employee_id', employee.id).order('tanggal', { ascending: true, nullsFirst: false }),
       ]);
 
       setSelectedEducation(
