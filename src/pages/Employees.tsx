@@ -524,7 +524,7 @@ export default function Employees() {
       )
     : filteredEmployees;
 
-  // Group employees by position_category dari position_references (sama persis dengan Peta Jabatan)
+  // Group employees by Department -> Category
   const groupedEmployees = useMemo(() => {
     const CATEGORY_ORDER: Record<string, number> = {
       'Struktural': 1,
@@ -534,46 +534,55 @@ export default function Employees() {
       'Lainnya': 5,
     };
 
-    // Reverse map: categoryOrder → category name
     const CATEGORY_NAME: Record<number, string> = { 1: 'Struktural', 2: 'Fungsional', 3: 'Pelaksana' };
 
-    // Tentukan kategori pegawai berdasarkan position_references (sama seperti Peta Jabatan)
-    // bukan dari field position_type di tabel employees
     const getCategory = (emp: Employee): string => {
       if (activeTab === 'non-asn') return 'Non ASN';
 
-      // Lookup dari positionOrderMap menggunakan dept + position_name
-      // PENTING: Gunakan normalizeString() untuk konsistensi dengan PetaJabatan
       const deptKey = `${(emp.department || '').trim()}|||${normalizeString(emp.position_name || '')}`;
       const posRef = positionOrderMap.get(deptKey);
       if (posRef) {
         return CATEGORY_NAME[posRef.categoryOrder] ?? 'Lainnya';
       }
 
-      // Fallback: gunakan position_type jika ada di positionOrderMap
       const cat = emp.position_type;
       if (cat && ['Struktural', 'Fungsional', 'Pelaksana'].includes(cat)) return cat;
 
       return 'Lainnya';
     };
 
-    // Collect all employees into a map per category (preserving order within each category)
-    const categoryMap = new Map<string, Employee[]>();
+    // First group by Department
+    const deptMap = new Map<string, Map<string, Employee[]>>();
+    
     paginatedEmployees.forEach((emp) => {
+      const dept = emp.department || 'Unit Tidak Diketahui';
+      if (!deptMap.has(dept)) deptMap.set(dept, new Map());
+      
       const cat = getCategory(emp);
-      if (!categoryMap.has(cat)) categoryMap.set(cat, []);
-      categoryMap.get(cat)!.push(emp);
+      const catMap = deptMap.get(dept)!;
+      if (!catMap.has(cat)) catMap.set(cat, []);
+      catMap.get(cat)!.push(emp);
     });
 
-    // Sort categories by defined order
-    const sortedCategories = Array.from(categoryMap.keys()).sort(
-      (a, b) => (CATEGORY_ORDER[a] ?? 99) - (CATEGORY_ORDER[b] ?? 99)
-    );
+    // Sort departments alphabetically
+    const sortedDepts = Array.from(deptMap.keys()).sort((a, b) => a.localeCompare(b));
 
-    return sortedCategories.map(cat => ({
-      category: cat,
-      employees: categoryMap.get(cat)!,
-    }));
+    // For each department, sort categories
+    return sortedDepts.map(dept => {
+      const catMap = deptMap.get(dept)!;
+      const sortedCats = Array.from(catMap.keys()).sort(
+        (a, b) => (CATEGORY_ORDER[a] ?? 99) - (CATEGORY_ORDER[b] ?? 99)
+      );
+      
+      return {
+        department: dept,
+        categories: sortedCats.map(cat => ({
+          category: cat,
+          collapseKey: `${dept}|||${cat}`,
+          employees: catMap.get(cat)!,
+        }))
+      };
+    });
   }, [paginatedEmployees, activeTab, positionOrderMap]);
 
   useEffect(() => { setCurrentPage(1); }, [activeTab, debouncedSearchQuery, statusFilter, departmentFilter]);
@@ -1663,34 +1672,54 @@ export default function Employees() {
                 </TableRow>
               ) : (
                 <>
-                  {groupedEmployees.map((group, groupIdx) => (
-                    <React.Fragment key={`group-${groupIdx}`}>
-                      {/* Category Header Row with Collapse/Expand */}
-                      <TableRow 
-                        className="bg-muted/50 hover:bg-muted/70 cursor-pointer transition-colors"
-                        onClick={() => toggleCategory(group.category)}
-                      >
-                        <TableCell 
-                          colSpan={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} 
-                          className="font-semibold text-sm uppercase tracking-wide py-3"
-                        >
-                          <div className="flex items-center gap-2">
-                            {collapsedCategories[group.category] ? (
-                              <ChevronRight className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                            <span>{group.category}</span>
-                            <span className="text-xs font-normal text-muted-foreground ml-2">
-                              ({group.employees.length} pegawai)
-                            </span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* Employee Rows - Only show if not collapsed */}
-                      {!collapsedCategories[group.category] && group.employees.map((employee) => (
-                        <TableRow key={employee.id} className={cn("animate-fade-in", selectedIds.has(employee.id) && "bg-primary/5")}>
+                  {groupedEmployees.map((deptGroup, deptIdx) => (
+                    <React.Fragment key={`dept-${deptIdx}`}>
+                      {/* Render Department Header ONLY if viewing all departments or multiple satpels */}
+                      {(departmentFilter === 'all' && (canViewAll || hasSupervisedUnits)) && (
+                        <TableRow className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                          <TableCell 
+                            colSpan={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} 
+                            className="font-bold text-sm uppercase text-primary py-4"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                              {deptGroup.department}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+
+                      {deptGroup.categories.map((group, groupIdx) => (
+                        <React.Fragment key={`group-${deptIdx}-${groupIdx}`}>
+                          {/* Category Header Row with Collapse/Expand */}
+                          <TableRow 
+                            className="bg-muted/50 hover:bg-muted/70 cursor-pointer transition-colors"
+                            onClick={() => toggleCategory(group.collapseKey)}
+                          >
+                            <TableCell 
+                              colSpan={canViewAll ? (canEdit ? 8 : 7) : (canEdit ? 7 : 6)} 
+                              className={cn(
+                                "font-semibold text-sm tracking-wide py-3",
+                                (departmentFilter === 'all' && (canViewAll || hasSupervisedUnits)) ? "pl-6" : ""
+                              )}
+                            >
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                {collapsedCategories[group.collapseKey] ? (
+                                  <ChevronRight className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                                <span>{group.category}</span>
+                                <span className="text-xs font-normal opacity-70 ml-2">
+                                  ({group.employees.length} pegawai)
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          
+                          {/* Employee Rows - Only show if not collapsed */}
+                          {!collapsedCategories[group.collapseKey] && group.employees.map((employee) => (
+                            <TableRow key={employee.id} className={cn("animate-fade-in", selectedIds.has(employee.id) && "bg-primary/5")}>
                           {canEdit && (
                             <TableCell className="w-[40px]" onClick={(e) => e.stopPropagation()}>
                               <Checkbox
@@ -1767,7 +1796,9 @@ export default function Employees() {
                       ))}
                     </React.Fragment>
                   ))}
-                </>
+                </React.Fragment>
+              ))}
+            </>
               )}
             </TableBody>
           </Table>
