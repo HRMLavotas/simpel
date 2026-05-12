@@ -37,8 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Flag untuk mencegah double-fetch profile (race condition antara onAuthStateChange dan getSession)
+    let hasFetchedForUser: string | null = null;
     let isFetching = false;
+
+    const loadProfile = async (userId: string) => {
+      // Cegah infinite loop refresh token dan double fetch
+      if (isFetching || hasFetchedForUser === userId) return;
+      
+      isFetching = true;
+      try {
+        await fetchUserData(userId);
+        hasFetchedForUser = userId;
+      } finally {
+        isFetching = false;
+      }
+    };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -46,14 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Defer dengan setTimeout untuk mencegah deadlock Supabase
-          setTimeout(() => {
-            if (!isFetching) {
-              isFetching = true;
-              fetchUserData(session.user.id).finally(() => { isFetching = false; });
-            }
-          }, 0);
+          // Defer execution lightly to prevent React render locks
+          setTimeout(() => loadProfile(session.user.id), 0);
         } else {
+          hasFetchedForUser = null;
           setProfile(null);
           setRole(null);
           setIsLoading(false);
@@ -61,23 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Cek existing session — hanya fetch jika onAuthStateChange belum trigger
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Cek existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) throw error;
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user && !isFetching) {
-        isFetching = true;
-        fetchUserData(session.user.id).finally(() => { isFetching = false; });
-      } else if (!session?.user) {
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
         setIsLoading(false);
       }
     }).catch((err) => {
       logger.error('Error getting session:', err);
+      // Jika error rate limit / token rusak, bersihkan session untuk keluar dari infinite loop
+      const errorMsg = err.message || '';
+      if (errorMsg.includes('Too Many Requests') || errorMsg.includes('FetchError') || err.status === 429) {
+        localStorage.clear(); // Force clear auth token
+        window.location.href = '/auth'; // Force redirect
+      }
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserData = async (userId: string) => {
