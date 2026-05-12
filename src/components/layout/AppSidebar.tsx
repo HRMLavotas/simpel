@@ -145,7 +145,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className={cn("hidden lg:fixed lg:left-0 lg:top-0 lg:z-40 lg:flex lg:h-screen lg:flex-col bg-sidebar transition-all duration-300", collapsed ? "lg:w-16" : "lg:w-64")}>
+      <aside className={cn("hidden lg:fixed lg:left-0 lg:top-0 lg:z-40 lg:flex lg:h-screen lg:flex-col bg-sidebar transition-[width] duration-300", collapsed ? "lg:w-16" : "lg:w-64")}>
         {sidebarContent(false)}
       </aside>
 

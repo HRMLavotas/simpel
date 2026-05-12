@@ -25,7 +25,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
 
       {/* Main Content - offset for desktop sidebar, adjusts when collapsed */}
-      <div className={cn("transition-all duration-300", collapsed ? "lg:pl-16" : "lg:pl-64")}>
+      <div className={cn("transition-[padding] duration-300", collapsed ? "lg:pl-16" : "lg:pl-64")}>
         {/* Top Bar */}
         <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between border-b bg-card/80 backdrop-blur-sm px-3 sm:px-4 md:px-5 lg:px-6">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
