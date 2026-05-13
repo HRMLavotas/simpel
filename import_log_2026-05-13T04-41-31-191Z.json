@@ -1,0 +1,72 @@
+[
+  {
+    "nama": "Anindita Pramesthi",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPLK Bekasi",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "fe400fd5-ea4f-45b2-bd3d-2fe053d3b822",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Kartisari Tati",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Dit. Bina Stankomlatker",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "ee741c49-0358-45a2-a98f-cd22493879ec",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Khayu Caroline",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPLK Semarang",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "ec9034f2-5eb6-42df-bf6e-77117189f3d5",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ery Miyarsih",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBLKI Surakarta",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "7e6a85d5-5757-493b-a4f3-339c9afe9bfb",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yogi Aryadhipta",
+    "tahun": 2017,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BBPLK Bandung",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "035c1723-8b46-4647-9ed2-5afb5c3b51dd",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  }
+]

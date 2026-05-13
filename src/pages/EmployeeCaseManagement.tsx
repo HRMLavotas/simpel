@@ -21,10 +21,11 @@ import {
   AlertDialogDescription, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  FileText, Search, Plus, Trash2, Eye, ChevronLeft, ChevronRight, Settings,
+  FileText, Search, Plus, Trash2, Eye, ChevronLeft, ChevronRight, Settings, ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaseAccess } from "@/hooks/useCaseAccess";
+import { useCaseMenuAccess } from "@/hooks/useCaseMenuAccess";
 import { TableSkeleton } from "@/components/skeletons";
 import { NoDataState, SearchState } from "@/components/EmptyState";
 import { getAllCases, deleteCase } from "@/lib/employeeCaseStorage";
@@ -39,7 +40,10 @@ const PAGE_SIZE = 20;
 export default function EmployeeCaseManagement() {
   const { user, role } = useAuth();
   const { canEdit } = useCaseAccess();
+  const { hasAccess: hasCaseMenuAccess, isLoading: isCheckingAccess } = useCaseMenuAccess();
   const navigate = useNavigate();
+  
+  // All hooks must be called before any conditional returns
   const [cases, setCases] = useState<EmployeeCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,12 +97,8 @@ export default function EmployeeCaseManagement() {
     }
   }, []);
 
-  useEffect(() => {
-    loadCases();
-    loadEmployees();
-  }, [loadCases, loadEmployees]);
-
   const debouncedSearch = useDebounce(searchQuery, 250);
+  
   const filteredCases = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
     return cases.filter((c) => {
@@ -118,20 +118,20 @@ export default function EmployeeCaseManagement() {
   const end = start + PAGE_SIZE;
   const paginatedCases = filteredCases.slice(start, end);
 
-  const handleDeleteCase = async () => {
+  const handleDeleteCase = useCallback(async () => {
     if (!caseToDelete) return;
     await deleteCase(caseToDelete.id);
     toast.success("Kasus berhasil dihapus");
     setCaseToDelete(null);
     loadCases();
-  };
+  }, [caseToDelete, loadCases]);
 
-  const handleNewCaseCreated = () => {
+  const handleNewCaseCreated = useCallback(() => {
     loadCases();
     setShowNewCaseDialog(false);
-  };
+  }, [loadCases]);
 
-  const getStatusColor = (status: CaseStatus) => {
+  const getStatusColor = useCallback((status: CaseStatus) => {
     const colors: Record<CaseStatus, string> = {
       baru: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
       diproses: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
@@ -140,9 +140,65 @@ export default function EmployeeCaseManagement() {
       ditutup: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
     };
     return colors[status];
-  };
+  }, []);
 
   const isAdminPusat = role === "admin_pusat";
+
+  useEffect(() => {
+    if (hasCaseMenuAccess) {
+      loadCases();
+      loadEmployees();
+    }
+  }, [hasCaseMenuAccess, loadCases, loadEmployees]);
+
+  // Check access and redirect if no access
+  useEffect(() => {
+    if (!isCheckingAccess && !hasCaseMenuAccess) {
+      toast.error("Anda tidak memiliki akses ke menu Kasus Pegawai");
+      navigate("/dashboard");
+    }
+  }, [hasCaseMenuAccess, isCheckingAccess, navigate]);
+
+  // Show loading while checking access
+  if (isCheckingAccess) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            <Card>
+              <CardContent className="p-8">
+                <TableSkeleton rows={5} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show access denied if no access
+  if (!hasCaseMenuAccess) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            <Card className="border-destructive/50">
+              <CardContent className="p-8 text-center">
+                <ShieldAlert className="h-16 w-16 mx-auto mb-4 text-destructive" />
+                <h2 className="text-2xl font-bold mb-2">Akses Ditolak</h2>
+                <p className="text-muted-foreground mb-6">
+                  Anda tidak memiliki akses ke menu Kasus Pegawai. Silakan hubungi administrator untuk mendapatkan akses.
+                </p>
+                <Button onClick={() => navigate("/dashboard")}>
+                  Kembali ke Dashboard
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

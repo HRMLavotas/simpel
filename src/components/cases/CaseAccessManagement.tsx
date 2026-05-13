@@ -73,41 +73,42 @@ export default function CaseAccessManagement({
 
   const loadAvailableUsers = useCallback(async () => {
     try {
-      // Get users from profiles (admin users)
+      // Get ONLY admin_pusat users from user_roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .eq("role", "admin_pusat"); // Only admin_pusat
+
+      if (rolesError) throw rolesError;
+
+      if (!rolesData || rolesData.length === 0) {
+        setAvailableUsers([]);
+        return;
+      }
+
+      // Get profiles for these admin_pusat users
+      const adminPusatIds = rolesData.map(r => r.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("id, email, full_name, department")
+        .in("id", adminPusatIds)
         .order("full_name");
 
       if (profilesError) throw profilesError;
 
-      // Get their roles from user_roles
-      const profileIds = (profilesData || []).map(p => p.id);
-      const { data: rolesData, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("user_id", profileIds);
-
-      if (rolesError) throw rolesError;
-
-      // Map roles to profiles
-      const rolesMap = (rolesData || []).reduce((acc, r) => {
-        acc[r.user_id] = r.role;
-        return acc;
-      }, {} as Record<string, string>);
-
-      // Combine data
+      // Combine data - only admin_pusat users
       const users = (profilesData || []).map(p => ({
         id: p.id,
-        name: p.full_name,
+        name: p.full_name || p.email,
         nip: p.email, // Use email as identifier
-        role: rolesMap[p.id] || 'admin_unit',
-        department: p.department,
+        role: 'admin_pusat', // All are admin_pusat
+        department: p.department || '-',
       }));
 
       setAvailableUsers(users);
     } catch (error) {
       console.error("Error loading users:", error);
+      toast.error("Gagal memuat daftar admin pusat");
     }
   }, []);
 
@@ -132,6 +133,7 @@ export default function CaseAccessManagement({
       setShowAddDialog(false);
       setSelectedUser(null);
       setCanEdit(true);
+      setSearchQuery(""); // Reset search
       loadAccessList();
       onAccessChange?.();
     } catch (error) {
@@ -177,15 +179,22 @@ export default function CaseAccessManagement({
   return (
     <div className="space-y-6">
       <Card className="border-primary/10 shadow-lg">
-        <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Pengaturan Akses Kasus Pegawai
-          </CardTitle>
-          <Button size="sm" onClick={() => setShowAddDialog(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Tambah Akses
-          </Button>
+        <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Pengaturan Akses Kasus Pegawai
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Kelola Admin Pusat yang dapat mengakses menu Kasus Pegawai
+              </p>
+            </div>
+            <Button size="sm" onClick={() => setShowAddDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Tambah Admin Pusat
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
@@ -193,9 +202,12 @@ export default function CaseAccessManagement({
           ) : accessList.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Belum ada pengguna yang diberikan akses</p>
+              <p className="font-medium">Belum ada Admin Pusat yang diberikan akses</p>
               <p className="text-sm mt-2">
-                Klik "Tambah Akses" untuk memberikan akses kepada pengguna
+                Klik "Tambah Admin Pusat" untuk memberikan akses ke menu Kasus Pegawai
+              </p>
+              <p className="text-xs mt-4 text-muted-foreground/70">
+                Catatan: Hanya Admin Pusat yang dapat ditambahkan ke daftar akses
               </p>
             </div>
           ) : (
@@ -204,10 +216,10 @@ export default function CaseAccessManagement({
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead>Nama</TableHead>
-                    <TableHead>NIP</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Hak Akses</TableHead>
-                    <TableHead>Diberikan Oleh</TableHead>
+                    <TableHead>Diberikan</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -217,9 +229,12 @@ export default function CaseAccessManagement({
                       <TableCell className="font-medium">
                         {access.userName}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {/* NIP not stored in access control, could be enhanced */}
-                        -
+                      <TableCell className="text-muted-foreground font-mono text-sm">
+                        {/* Get email from availableUsers or show placeholder */}
+                        {availableUsers.find(u => u.id === access.userId)?.nip || 
+                         accessList.find(a => a.userId === access.userId)?.userName.toLowerCase().includes('@') 
+                           ? access.userName 
+                           : '-'}
                       </TableCell>
                       <TableCell>{getRoleBadge(access.userRole)}</TableCell>
                       <TableCell>
@@ -231,13 +246,18 @@ export default function CaseAccessManagement({
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(access.grantedAt).toLocaleDateString("id-ID")}
+                        {new Date(access.grantedAt).toLocaleDateString("id-ID", {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setUserToRevoke(access)}
+                          className="hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -258,7 +278,7 @@ export default function CaseAccessManagement({
             <AlertDialogHeader>
               <AlertDialogTitle>Berikan Akses Kasus Pegawai</AlertDialogTitle>
               <AlertDialogDescription>
-                Pilih pengguna yang akan diberikan akses ke sistem kasus pegawai
+                Pilih Admin Pusat yang akan diberikan akses ke sistem kasus pegawai. Hanya Admin Pusat yang dapat ditambahkan.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -312,7 +332,7 @@ export default function CaseAccessManagement({
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Cari nama atau email..."
+                      placeholder="Cari nama atau email Admin Pusat..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -333,7 +353,7 @@ export default function CaseAccessManagement({
                               <p className="text-sm text-muted-foreground">
                                 {u.nip}
                               </p>
-                              {u.department && (
+                              {u.department && u.department !== '-' && (
                                 <p className="text-xs text-muted-foreground">
                                   {u.department}
                                 </p>
@@ -346,8 +366,10 @@ export default function CaseAccessManagement({
                     ) : (
                       <div className="p-8 text-center text-muted-foreground">
                         {searchQuery
-                          ? "Tidak ada pengguna ditemukan"
-                          : "Semua pengguna sudah memiliki akses"}
+                          ? "Tidak ada Admin Pusat ditemukan"
+                          : availableUsers.length === 0
+                          ? "Tidak ada Admin Pusat lain yang tersedia"
+                          : "Semua Admin Pusat sudah memiliki akses"}
                       </div>
                     )}
                   </div>

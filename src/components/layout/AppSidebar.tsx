@@ -2,6 +2,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck, Info, Megaphone, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useCaseMenuAccess } from '@/hooks/useCaseMenuAccess';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { ROLE_LABELS } from '@/lib/constants';
@@ -14,6 +15,7 @@ interface NavItem {
   adminPusatOnly?: boolean;
   hideForPimpinan?: boolean;
   adminPusatOrPimpinan?: boolean;
+  requiresCaseAccess?: boolean; // New flag for case management access
 }
 
 const navItems: NavItem[] = [
@@ -25,7 +27,7 @@ const navItems: NavItem[] = [
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
   { label: 'Monitoring Unit', href: '/monitoring', icon: Activity, adminPusatOrPimpinan: true },
-  { label: 'Kasus Pegawai', href: '/admin/kasus-pegawai', icon: FileText, adminPusatOnly: true, hideForPimpinan: true },
+  { label: 'Kasus Pegawai', href: '/admin/kasus-pegawai', icon: FileText, adminPusatOnly: true, hideForPimpinan: true, requiresCaseAccess: true },
   { label: 'Pengumuman', href: '/announcements', icon: Megaphone, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOnly: true, hideForPimpinan: true },
@@ -41,7 +43,9 @@ interface AppSidebarProps {
 export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const location = useLocation();
   const { profile, signOut, isAdminPusat, isAdminPimpinan, role } = useAuth();
+  const { hasAccess: hasCaseAccess } = useCaseMenuAccess();
   const { collapsed, setCollapsed } = useSidebarContext();
+  
   const filteredNavItems = navItems.filter(item => {
     // Hide admin-only items for non-admin-pusat
     if (item.adminPusatOnly && !isAdminPusat) return false;
@@ -49,6 +53,8 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
     if (item.hideForPimpinan && isAdminPimpinan) return false;
     // Show items for admin_pusat or admin_pimpinan
     if (item.adminPusatOrPimpinan && !isAdminPusat && !isAdminPimpinan) return false;
+    // Check case access for items that require it
+    if (item.requiresCaseAccess && !hasCaseAccess) return false;
     return true;
   });
 

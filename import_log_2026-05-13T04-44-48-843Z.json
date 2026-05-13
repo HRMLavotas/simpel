@@ -1,0 +1,1332 @@
+[
+  {
+    "nama": "Anindita Pramesthi",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPLK Bekasi",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "570c67a5-6ac0-494c-acf4-751f8e0edcdf",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Kartisari Tati",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Dit. Bina Stankomlatker",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "6d444cf3-14e9-4dd1-9b4d-9628f93447d4",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Khayu Caroline",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPLK Semarang",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "c1f89175-00e2-46dc-928f-e2cc6010a1d9",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ery Miyarsih",
+    "tahun": 2016,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBLKI Surakarta",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "dbf3b93f-62d4-4fcd-9445-71d52b3ee7f1",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yogi Aryadhipta",
+    "tahun": 2017,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BBPLK Bandung",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "be91f073-0235-426a-8a5c-4dbefe4da214",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Budi Harta Mulyana",
+    "tahun": 2017,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPLK Bekasi",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "406658f5-3d4b-48d4-9b3a-586100decb5e",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Cornelia",
+    "tahun": 2017,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BLK Ambon",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "57246bc4-7159-4284-aa6c-28b437edcf32",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Septina Sorta Uli",
+    "tahun": 2017,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Dit. Bina Stankom",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "4edbaf81-dd3a-4133-90dd-a015db061a5f",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Asriani Koke",
+    "tahun": 2018,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BLK Kendari",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "54016eee-1404-40ef-989c-d13466657194",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Andan",
+    "tahun": 2018,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Setditjen",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "58ae39b4-50e2-49c5-b21d-e73530036fdb",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Pendi",
+    "tahun": 2018,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit. Bina Lemlat",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "1450da3a-cd86-44cd-b3c6-9ad1dd4b1d40",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Salsa Mulyata",
+    "tahun": 2018,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BLK Ambon",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "0faaf611-1d3e-4c73-903f-88dfb9deefe5",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Bahar",
+    "tahun": 2018,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BLKI Makassar",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "e4524dd7-20d0-47ca-b37c-ca5763d34fec",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ahmad Dhani Marhadi, S.T",
+    "tahun": 2020,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 13,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "f2258aff-c81d-46ec-9a33-9aeeb44d116e",
+    "timelineImported": 13,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Hanny Erlany",
+    "tahun": 2021,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 17,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "39b885a8-7467-46db-b48e-9c7a8b5435ac",
+    "timelineImported": 17,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ade Sukmaji",
+    "tahun": 2021,
+    "jenisKasus": "Hutang",
+    "unitKerja": "Direktorat Bina Intala",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "d222e505-5862-45c5-a467-872f33edc894",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Hendra Margatama Suralaga",
+    "tahun": 2022,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "424dfebc-f722-49cb-9a39-8ca31d859a6c",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Harry Purnama, S.H., M.Si",
+    "tahun": 2022,
+    "jenisKasus": "Presensi",
+    "unitKerja": "Dit. Bina Produktivitas",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3d4f6560-a24c-47e3-84e8-2eb9d6fb5f75",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ksatrya Swarga Putera Farihadhy",
+    "tahun": 2022,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3af5a424-3e1f-4380-9392-e4e84f0c8840",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Morendy Octora ",
+    "tahun": 2022,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Dit Bina Produktivitas",
+    "timelineCount": 14,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "83c134c5-3a4d-4914-a222-3ddb54cef598",
+    "timelineImported": 14,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "ABD Rasyid",
+    "tahun": 2022,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Makassar",
+    "timelineCount": 9,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "dc80dfe4-9eaf-4bb1-8924-09e5d4e35805",
+    "timelineImported": 9,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Lerry Stanziani Herdis, S.T. ",
+    "tahun": 2022,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "Dit Bina Lavogan",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "244d2228-c84a-4276-b904-44452f0d388b",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Syaikhul Islami, S.Kom., M.M ",
+    "tahun": 2022,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BPVP belitung",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "9256e74b-be8a-4ec3-87c1-265475434e8f",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Syamsuddin, S.Kom ",
+    "tahun": 2022,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "Set BNSP",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "6b163cf6-355f-406d-a452-21b8f9a6a162",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Abukasim Tehupelasury, S.H. ",
+    "tahun": 2022,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BPVP Pangkep",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "ed68db89-ec65-45dd-aea4-62e2aa66b9ab",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Laksmi Puspita",
+    "tahun": 2023,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Lotim",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "eb49ca41-9c89-4471-bfbd-b3434a16bbab",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Leuwaradja Henderik marthin Ferdinandus",
+    "tahun": 2023,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "25c63109-4abe-42ae-ae27-b50b74c419cb",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ajen Kurniawan, S.S, M.M",
+    "tahun": 2023,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit Bina Produktivitas",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "14c17d15-e7ef-43cc-b142-16dae2761fd8",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ester Yuanysia, AMd.Par.",
+    "tahun": 2023,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 6,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "1cb8883c-1a61-4f05-a4f5-03a7fd306b8e",
+    "timelineImported": 6,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Rahmi Citra Lestari Upara",
+    "tahun": 2023,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Setditjen Binalavotas",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "652adf5e-6bbf-445a-9ee9-80fede37d5a3",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Bambang Sugiarto, S.E",
+    "tahun": 2023,
+    "jenisKasus": "Presensi",
+    "unitKerja": "Setditjen Binalavotas",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "a4cefe12-a62c-4c50-a2e8-527d975c5ef9",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Syamsiah",
+    "tahun": 2023,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "48aa2e9a-e5b4-4121-84f1-93f4d6c81b1a",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Muhammad Ramdhan, S.T",
+    "tahun": 2024,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Bandung",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "447d779d-9bf0-49c9-8405-0a88679fca50",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Audree Amalia Lestari",
+    "tahun": 2024,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BBPVP Medan",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "8efeb3a9-2cec-42fc-a38e-6a9eabfd218b",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Deviani Natalya Masahe, S.Par.",
+    "tahun": 2024,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BPVP Ternate",
+    "timelineCount": 6,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "5296a3da-8a4b-4d74-9338-f8fb9c6aa4e0",
+    "timelineImported": 6,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Didit Haryadi, A.Md.",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Belitung",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "b6b9fec3-6a32-4fcc-a99b-7ba802c265da",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Agus Ramdhany, SH, M.Si",
+    "tahun": 2024,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BBPVP Bandung",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "8bde2850-9e70-49be-844c-1dae54ca8d45",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Dina Novita, S.E",
+    "tahun": 2024,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BPVP Banda Aceh",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "59266f4e-e13c-405d-ad12-bf64c273b805",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Risky Silwina Yusuf",
+    "tahun": 2024,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BPVP Banda Aceh",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "9efa806e-a648-4b10-a5dd-a379d358da44",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ronaldo Maail",
+    "tahun": 2024,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 30,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "b90e99e8-52f8-4b12-b250-0c21aa2d304c",
+    "timelineImported": 30,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Pitter Lesnussa",
+    "tahun": 2024,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 22,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "9b04b1cd-898d-4b9b-b4b2-207156fc50fd",
+    "timelineImported": 22,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "David Lewaherilla",
+    "tahun": 2024,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 22,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "60ee6c67-3c75-40ee-b500-415f81de81e9",
+    "timelineImported": 22,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Adiba Putri Wirawan",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 9,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "4f63989d-0e3a-4f16-944e-835d480f7ffc",
+    "timelineImported": 9,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "RADEN MUHAMMAD AKBAR",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Produktivitas",
+    "timelineCount": 4,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "f680be9c-7d34-4967-b2b9-4273101a84e9",
+    "timelineImported": 4,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Inoky Tagara",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Banyuwangi",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "1915e62c-ab4c-4633-950a-9f89b4e9d55a",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Khulafaur Rasyidin",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Lemlat",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "9dbfd793-9676-4323-a55c-e0483d2972f5",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Komang Ayu",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Medan",
+    "timelineCount": 4,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "7d99a22d-f638-4c10-a6c9-52b5bd3fa3b0",
+    "timelineImported": 4,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yonnie Maryani",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 4,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "13314eca-ac86-4c91-b9a6-1f954d867e21",
+    "timelineImported": 4,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Rahman Arsyad, S.T., M.S.P",
+    "tahun": 2024,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BPVP Sorong",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "fc444b2d-825f-4a6a-9716-0d3b8a55c2d4",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Heri Prasetio Adha",
+    "tahun": 2024,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Dit Bina Lavogan",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "b8f14d33-188b-4c77-8888-97bcbd3a5322",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Hafni Oktariani, S.E",
+    "tahun": 2024,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BBPVP Semarang",
+    "timelineCount": 12,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "a6e6f594-626e-4548-9121-dad084794b5d",
+    "timelineImported": 12,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Eka Elvira",
+    "tahun": 2024,
+    "jenisKasus": "Pinjol",
+    "unitKerja": "BPVP Pangkep",
+    "timelineCount": 15,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "85c0afbd-d777-430c-b93c-f540c673d819",
+    "timelineImported": 15,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Desmaria Syahril",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Serang",
+    "timelineCount": 6,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "a07b64e8-4362-4336-8a60-477abe0d5b0b",
+    "timelineImported": 6,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Haryono",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Medan",
+    "timelineCount": 9,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "c1bb7d15-67e4-4d87-921c-c9478ca196e2",
+    "timelineImported": 9,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Rohmatullah Ahmadi",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Medan",
+    "timelineCount": 4,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "2f24e2e7-2b31-443f-bf43-c6dc9f46f603",
+    "timelineImported": 4,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yustianto ",
+    "tahun": 2024,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Intala",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3accf4bd-ce0c-465f-b1b7-66aeddf6dd51",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ati Irawati",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Serang",
+    "timelineCount": 14,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "6c6c5fa5-a45b-4882-b4a7-dc6c1bfd14b5",
+    "timelineImported": 14,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Fikri Mahardhika",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "092d9a89-9920-483e-8607-408930e5fc61",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Fitroh A Malik",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Lemlat",
+    "timelineCount": 12,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "8bad285e-680e-4dc8-9b01-9086732229ec",
+    "timelineImported": 12,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yolan Bima Wardana",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Serang",
+    "timelineCount": 8,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "16069f0f-2067-4816-bc2e-7663da85d97f",
+    "timelineImported": 8,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Yulastri",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Ternate",
+    "timelineCount": 10,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "f44c32cb-0e12-4232-a3d8-8ce9da8c7fec",
+    "timelineImported": 10,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Andri Susila, S.T., M.Si",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit Bina Kelembagaan Pelatihan Vokasi",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "2de0a818-72e4-4e29-af49-0555eb5718db",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Asep Mirwan Achmad, S.Sos",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit Bina Lavogan",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "97c7ce6d-ac33-4e53-96d9-077b5ad1ff7d",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Desar Alfianto",
+    "tahun": 2025,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "Dit Bina Instruktur dan tenaga Pelatihan",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3d1677cd-b885-4fe9-a5da-cc3e64f640a7",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Dr. La Ode haji Polondu, S.Pd., M.M.pd",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Makassar",
+    "timelineCount": 5,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "2a93d85c-b097-47b8-8c7e-f223d5f8a18b",
+    "timelineImported": 5,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Burdi Marlan",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Sorong",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "a9681196-966b-4073-8315-c693cc768965",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Nicolas Pelupessy, S.Pd., M.M",
+    "tahun": 2025,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "Dit Bina Produktivitas",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "fa969220-f9a2-4255-9120-040c8bc6ce9e",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Noviansyah Ali, A.Md.",
+    "tahun": 2025,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "892259a7-b03c-4223-bba8-1cf9ee596685",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Nurhani",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit Bina Produktivitas",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "c2754ca7-6901-437f-b46e-7cad4ece39a4",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Rizqi Syahrul Ramadhan S.T",
+    "tahun": 2025,
+    "jenisKasus": "Temuan",
+    "unitKerja": "BBPVP Medan",
+    "timelineCount": 7,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "00870c2b-abc0-4e38-ad16-a9e643828339",
+    "timelineImported": 7,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Saidul Azqa",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Banda Aceh",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "0950fb2e-3a10-4a9d-8684-3aa68c13e5ee",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Naatri Marttatiwi Maddolangan",
+    "tahun": 2025,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BBPVP Makassar",
+    "timelineCount": 9,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "f562420a-d252-4f9e-9c7c-81ecd6c991e8",
+    "timelineImported": 9,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Sindhu Astomo K.",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Dit Lemlat",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "6c822419-e580-4861-9f72-5f52af437774",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Asep Mirwan Achmad",
+    "tahun": 2025,
+    "jenisKasus": "Hutang",
+    "unitKerja": "Direktorat Bina Lavogan",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3dfa1444-d5ce-47c6-8bdd-5566e87c3be6",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Bambang Sugiarto",
+    "tahun": 2025,
+    "jenisKasus": "Hutang",
+    "unitKerja": "Setditjen",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "b9a51ee0-3a4e-4a34-ad74-6daf19e4e364",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Harry Purnama",
+    "tahun": 2025,
+    "jenisKasus": "Hutang",
+    "unitKerja": "Direktorat Bina Produktivitas",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "7274c264-43ed-4fd2-9899-db44d7465752",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Hasan Basri",
+    "tahun": 2025,
+    "jenisKasus": "Pengunduran Diri",
+    "unitKerja": "BPVP Belitung",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "34dee4c7-06c7-43ff-857a-4df279509135",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Heri Prasetio Adha",
+    "tahun": 2025,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Direktorat Bina Lavogan",
+    "timelineCount": 29,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "2b77b998-546a-4481-88ab-a7c5c13b7a93",
+    "timelineImported": 29,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Irwan Setiadi",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Bandung Barat",
+    "timelineCount": 4,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "86568287-4ca7-4705-8ba6-b91b7d3d6e58",
+    "timelineImported": 4,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Wisnu Yudo Nugroho",
+    "tahun": 2025,
+    "jenisKasus": "Hutang",
+    "unitKerja": "Direktorat Bina Lemlatvok",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "5fda32e3-cf95-4e06-9446-6c769358c7cd",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Andreas Simorangkir",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Pangkep",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "0cdff4aa-4419-4a29-a5db-4eca17882be2",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Desti Wulan Sari / Hendy Pranata",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Bandung",
+    "timelineCount": 6,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "bc429be1-9938-417a-813b-78592db15d94",
+    "timelineImported": 6,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Noviani Widiastuti",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "Dit. Bina Intala",
+    "timelineCount": 11,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3d87e3d7-413b-4384-8c6f-715549b794fe",
+    "timelineImported": 11,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Sandra Sukma Wijaya",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BBPVP Semarang",
+    "timelineCount": 10,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "bf385ba3-eaee-46bb-bcc6-cdaea80d1725",
+    "timelineImported": 10,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Sarantiur Simalango",
+    "tahun": 2025,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Banda Aceh",
+    "timelineCount": 6,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "9c95eecd-aa45-4af4-b017-3c43cfc268ec",
+    "timelineImported": 6,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Tito Felix Wibowo",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Ternate",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "c81958af-3229-4bdd-9958-61a6f3f7734e",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Iwan Abdul Raman",
+    "tahun": 2025,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "Satpel Jambi",
+    "timelineCount": 0,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "795f7337-2830-491f-869d-bb9ec21a9db8",
+    "timelineImported": 0,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Pendi",
+    "tahun": 2026,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Setditjen",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "3d88aa4d-e813-406d-be19-583f11e948f8",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Ria Laster Syamsul",
+    "tahun": 2026,
+    "jenisKasus": "Perceraian",
+    "unitKerja": "BPVP Padang",
+    "timelineCount": 9,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "b773cded-7ba9-4698-a4a6-0e04a4a8aad6",
+    "timelineImported": 9,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Gilberth Lesnussa",
+    "tahun": 2026,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Ambon",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "d31e42ac-0b15-478e-b8f3-ecbf9ac2bf8f",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Andri Ramadhan Aditya",
+    "tahun": 2026,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Dit. Bina Lavogan",
+    "timelineCount": 3,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "2a2f4a65-96b1-4737-b4ee-9e3d6147be16",
+    "timelineImported": 3,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Muhammad Aiza Akbar",
+    "tahun": 2026,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BPVP Sidoarjo",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "a440830c-85da-4b7c-bc98-d0cb469a0a71",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Julianto Adi Saputro, S.Kom",
+    "tahun": 2026,
+    "jenisKasus": "Presensi",
+    "unitKerja": "BBPVP Bekasi",
+    "timelineCount": 2,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "e1a6e1aa-dbd9-444f-b10c-0c03d8aa708f",
+    "timelineImported": 2,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Akhirudin",
+    "tahun": 2026,
+    "jenisKasus": "Temuan",
+    "unitKerja": "Setditjen",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "35e640ea-43f9-4af6-9fb1-83e0218d7708",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  },
+  {
+    "nama": "Wika Watiningsih",
+    "tahun": 2026,
+    "jenisKasus": "Dan Lain-lain",
+    "unitKerja": "BBPVP Semarang",
+    "timelineCount": 1,
+    "status": "success",
+    "employeeFound": false,
+    "caseId": "18db874b-1fab-4d38-8b45-be6d78ce16b6",
+    "timelineImported": 1,
+    "errors": [
+      "Employee not found in database, using manual ID"
+    ]
+  }
+]

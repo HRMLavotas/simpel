@@ -30,6 +30,7 @@ interface DbEmployeeCase {
   description: string;
   report_date: string;
   case_details: any;
+  leadership_directive: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -71,6 +72,7 @@ function mapDbCaseToEmployeeCase(
     reportDate: dbCase.report_date,
     timeline: timeline.map(mapDbTimelineToTimelineItem),
     caseDetails: dbCase.case_details || undefined,
+    leadershipDirective: dbCase.leadership_directive || undefined,
     createdBy: dbCase.created_by,
     createdAt: dbCase.created_at,
     updatedAt: dbCase.updated_at,
@@ -266,6 +268,8 @@ export async function updateCase(
       updateData.description = updates.description;
     if (updates.caseDetails !== undefined)
       updateData.case_details = updates.caseDetails;
+    if (updates.leadershipDirective !== undefined)
+      updateData.leadership_directive = updates.leadershipDirective;
 
     const { data, error } = await supabase
       .from("employee_cases")

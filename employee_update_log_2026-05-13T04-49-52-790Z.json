@@ -1,0 +1,709 @@
+{
+  "total": 100,
+  "found": 0,
+  "notFound": 100,
+  "updated": 0,
+  "failed": 0,
+  "details": [
+    {
+      "caseName": "Anindita Pramesthi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Kartisari Tati",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Khayu Caroline",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ery Miyarsih",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yogi Aryadhipta",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Anindita Pramesthi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Kartisari Tati",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Khayu Caroline",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ery Miyarsih",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yogi Aryadhipta",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Budi Harta Mulyana",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Cornelia",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Septina Sorta Uli",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Asriani Koke",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Andan",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Pendi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Salsa Mulyata",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Bahar",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Morendy Octora ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Asep Mirwan Achmad, S.Sos",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Burdi Marlan",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Wisnu Yudo Nugroho",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Andri Ramadhan Aditya",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ahmad Dhani Marhadi, S.T",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Deviani Natalya Masahe, S.Par.",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Didit Haryadi, A.Md.",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Pitter Lesnussa",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Inoky Tagara",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Komang Ayu",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Rohmatullah Ahmadi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yolan Bima Wardana",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Rizqi Syahrul Ramadhan S.T",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Desti Wulan Sari / Hendy Pranata",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Iwan Abdul Raman",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Hanny Erlany",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ade Sukmaji",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Audree Amalia Lestari",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Rahman Arsyad, S.T., M.S.P",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Noviansyah Ali, A.Md.",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Heri Prasetio Adha",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Gilberth Lesnussa",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Hendra Margatama Suralaga",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "ABD Rasyid",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Muhammad Ramdhan, S.T",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Fitroh A Malik",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Dr. La Ode haji Polondu, S.Pd., M.M.pd",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Nicolas Pelupessy, S.Pd., M.M",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Nurhani",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Tito Felix Wibowo",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Harry Purnama, S.H., M.Si",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "David Lewaherilla",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Adiba Putri Wirawan",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yonnie Maryani",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Andri Susila, S.T., M.Si",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Asep Mirwan Achmad",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Irwan Setiadi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ria Laster Syamsul",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ksatrya Swarga Putera Farihadhy",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Lerry Stanziani Herdis, S.T. ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Syaikhul Islami, S.Kom., M.M ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Syamsuddin, S.Kom ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Abukasim Tehupelasury, S.H. ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ajen Kurniawan, S.S, M.M",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ester Yuanysia, AMd.Par.",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Rahmi Citra Lestari Upara",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Bambang Sugiarto, S.E",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Syamsiah",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Agus Ramdhany, SH, M.Si",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Dina Novita, S.E",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Risky Silwina Yusuf",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ronaldo Maail",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Khulafaur Rasyidin",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Hafni Oktariani, S.E",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yulastri",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Saidul Azqa",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Laksmi Puspita",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "RADEN MUHAMMAD AKBAR",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Desmaria Syahril",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Haryono",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Ati Irawati",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Harry Purnama",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Noviani Widiastuti",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Leuwaradja Henderik marthin Ferdinandus",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Heri Prasetio Adha",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Eka Elvira",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Yustianto ",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Fikri Mahardhika",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Desar Alfianto",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Naatri Marttatiwi Maddolangan",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Sarantiur Simalango",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Muhammad Aiza Akbar",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Akhirudin",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Sindhu Astomo K.",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Bambang Sugiarto",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Sandra Sukma Wijaya",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Wika Watiningsih",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Hasan Basri",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Andreas Simorangkir",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Pendi",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    },
+    {
+      "caseName": "Julianto Adi Saputro, S.Kom",
+      "foundName": null,
+      "foundNip": null,
+      "matchType": null,
+      "updated": false
+    }
+  ]
+}

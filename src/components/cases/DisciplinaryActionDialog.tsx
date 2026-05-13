@@ -72,6 +72,7 @@ export interface DisciplinaryAction {
 interface DisciplinaryActionDialogProps {
   employeeName: string;
   employeeNip: string;
+  existingAction?: DisciplinaryAction | null;
   onClose: () => void;
   onSubmit: (data: DisciplinaryAction) => Promise<void>;
 }
@@ -79,21 +80,41 @@ interface DisciplinaryActionDialogProps {
 export default function DisciplinaryActionDialog({
   employeeName,
   employeeNip,
+  existingAction,
   onClose,
   onSubmit,
 }: DisciplinaryActionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<DisciplinaryAction>({
-    level: "ringan",
-    type: "",
-    decisionNumber: "",
-    decisionDate: new Date().toISOString().split("T")[0],
-    effectiveDate: new Date().toISOString().split("T")[0],
-    endDate: "",
-    issuedBy: "",
-    violation: "",
-    notes: "",
-    documentLink: "",
+  
+  // Initialize form with existing data if available
+  const [formData, setFormData] = useState<DisciplinaryAction>(() => {
+    if (existingAction) {
+      return {
+        level: existingAction.level,
+        type: existingAction.type,
+        decisionNumber: existingAction.decisionNumber,
+        decisionDate: existingAction.decisionDate,
+        effectiveDate: existingAction.effectiveDate,
+        endDate: existingAction.endDate || "",
+        issuedBy: existingAction.issuedBy,
+        violation: existingAction.violation,
+        notes: existingAction.notes || "",
+        documentLink: existingAction.documentLink || "",
+      };
+    }
+    
+    return {
+      level: "ringan",
+      type: "",
+      decisionNumber: "",
+      decisionDate: new Date().toISOString().split("T")[0],
+      effectiveDate: new Date().toISOString().split("T")[0],
+      endDate: "",
+      issuedBy: "",
+      violation: "",
+      notes: "",
+      documentLink: "",
+    };
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,11 +141,14 @@ export default function DisciplinaryActionDialog({
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
-      toast.success("Hukuman disiplin berhasil ditambahkan");
+      toast.success(existingAction 
+        ? "Hukuman disiplin berhasil diupdate" 
+        : "Hukuman disiplin berhasil ditambahkan"
+      );
       onClose();
     } catch (error: any) {
-      console.error("Error adding disciplinary action:", error);
-      toast.error(error.message || "Gagal menambahkan hukuman disiplin");
+      console.error("Error saving disciplinary action:", error);
+      toast.error(error.message || "Gagal menyimpan hukuman disiplin");
     } finally {
       setIsSubmitting(false);
     }
@@ -150,9 +174,14 @@ export default function DisciplinaryActionDialog({
               <Scale className="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <DialogTitle>Update Hukuman Disiplin</DialogTitle>
+              <DialogTitle>
+                {existingAction ? "Edit Hukuman Disiplin" : "Tambah Hukuman Disiplin"}
+              </DialogTitle>
               <DialogDescription>
-                Tambahkan informasi hukuman disiplin untuk {employeeName} (NIP: {employeeNip})
+                {existingAction 
+                  ? `Edit informasi hukuman disiplin untuk ${employeeName} (NIP: ${employeeNip})`
+                  : `Tambahkan informasi hukuman disiplin untuk ${employeeName} (NIP: ${employeeNip})`
+                }
               </DialogDescription>
             </div>
           </div>
@@ -342,7 +371,12 @@ export default function DisciplinaryActionDialog({
           {/* Actions */}
           <div className="flex gap-2 pt-4 border-t">
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? "Menyimpan..." : "Simpan Hukuman Disiplin"}
+              {isSubmitting 
+                ? "Menyimpan..." 
+                : existingAction 
+                  ? "Update Hukuman Disiplin" 
+                  : "Simpan Hukuman Disiplin"
+              }
             </Button>
             <Button
               type="button"

@@ -113,6 +113,7 @@ export interface EmployeeCase {
   reportDate: string;
   timeline: TimelineItem[];
   caseDetails?: CaseDetails;
+  leadershipDirective?: string; // Arahan Pimpinan - direct instructions from leadership
   createdBy: string;
   createdAt: string;
   updatedAt: string;

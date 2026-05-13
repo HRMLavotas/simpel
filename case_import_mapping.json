@@ -1,0 +1,74 @@
+{
+  "excelStructure": {
+    "columns": [
+      "Tahun",
+      "Nama",
+      "Unit Kerja",
+      "Jenis Kasus",
+      "Timeline Kasus",
+      "__EMPTY (Detail Timeline)"
+    ],
+    "description": "Excel has nested structure where timeline entries follow the main case row"
+  },
+  "databaseStructure": {
+    "employee_cases": {
+      "id": "UUID (auto-generated)",
+      "case_number": "TEXT (auto-generated)",
+      "employee_id": "TEXT (from employees table or manual)",
+      "employee_name": "TEXT (from Excel: Nama)",
+      "employee_nip": "TEXT (lookup from employees table)",
+      "case_type": "TEXT (map from Excel: Jenis Kasus)",
+      "status": "TEXT (default: baru)",
+      "severity": "TEXT (null or default)",
+      "description": "TEXT (from first timeline or summary)",
+      "report_date": "DATE (from Excel: first Timeline Kasus date)",
+      "case_details": "JSONB (store original data)",
+      "created_by": "UUID (admin user)",
+      "created_at": "TIMESTAMPTZ (now)",
+      "updated_at": "TIMESTAMPTZ (now)"
+    },
+    "case_timeline": {
+      "id": "UUID (auto-generated)",
+      "case_id": "UUID (reference to employee_cases)",
+      "date": "DATE (from Excel: Timeline Kasus)",
+      "description": "TEXT (from Excel: __EMPTY)",
+      "status": "TEXT (empty or derived)",
+      "documents": "JSONB (empty array)",
+      "created_at": "TIMESTAMPTZ (now)",
+      "updated_at": "TIMESTAMPTZ (now)"
+    }
+  },
+  "mappingRules": {
+    "jenisKasus": {
+      "Perceraian": "perceraian",
+      "Hutang": "hutang",
+      "Pinjaman Online": "pinjaman_online",
+      "Presensi": "presensi",
+      "Pengunduran Diri": "pengunduran_diri",
+      "Temuan": "temuan",
+      "Dan Lain-lain": "lainnya",
+      "default": "lainnya"
+    },
+    "status": "baru (default for all imported cases)",
+    "severity": "null (not specified in Excel)",
+    "reportDate": "Parse from first timeline date or use year",
+    "employeeId": "Lookup from employees table by name, or create manual entry",
+    "employeeNip": "Lookup from employees table, or use placeholder"
+  },
+  "challenges": [
+    "Employee names in Excel may not match exactly with employees table",
+    "NIP not provided in Excel - need to lookup or use placeholder",
+    "Timeline dates are in various formats (need parsing)",
+    "Some timeline dates are just year (2017) without specific date",
+    "Unit Kerja names may not match work_units table exactly",
+    "Need to handle cases where employee not found in database"
+  ],
+  "recommendations": [
+    "Create manual employee entries for cases where employee not found",
+    "Use fuzzy matching for employee names",
+    "Parse timeline dates carefully with fallback to year-01-01",
+    "Store original Excel data in case_details for reference",
+    "Mark imported cases with a flag in case_details",
+    "Create import log to track success/failures"
+  ]
+}

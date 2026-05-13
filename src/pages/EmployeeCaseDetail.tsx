@@ -29,14 +29,28 @@ import {
 } from "@/lib/employeeCaseTypes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseAccess } from "@/hooks/useCaseAccess";
+import { useAuth } from "@/hooks/useAuth";
 import CaseDetailCard from "@/components/cases/CaseDetailCard";
 import DisciplinaryActionsCard from "@/components/cases/DisciplinaryActionsCard";
 import { supabase } from "@/integrations/supabase/client";
 import DisciplinaryActionDialog, {
-  DisciplinaryAction,
   DISCIPLINARY_LEVELS,
   DISCIPLINARY_TYPES,
 } from "@/components/cases/DisciplinaryActionDialog";
+import LeadershipDirectiveDialog from "@/components/cases/LeadershipDirectiveDialog";
+import LeadershipDirectivesCard from "@/components/cases/LeadershipDirectivesCard";
+import {
+  DisciplinaryAction,
+  createDisciplinaryAction,
+  getDisciplinaryActionsByCase,
+} from "@/lib/disciplinaryActionStorage";
+import {
+  LeadershipDirective,
+  getDirectivesByCase,
+  createDirective,
+  updateDirective,
+  deleteDirective,
+} from "@/lib/leadershipDirectiveStorage";
 
 interface TimelineFormState {
   date: string;
@@ -63,6 +77,7 @@ export default function EmployeeCaseDetail() {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
   const { canEdit } = useCaseAccess();
+  const { user } = useAuth();
   const [employeeCase, setEmployeeCase] = useState<EmployeeCase | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -71,6 +86,10 @@ export default function EmployeeCaseDetail() {
   const [timelineToDelete, setTimelineToDelete] = useState<TimelineItem | null>(null);
   const [extraInfo, setExtraInfo] = useState<EmployeeExtraInfo>({});
   const [showDisciplinaryDialog, setShowDisciplinaryDialog] = useState(false);
+  const [disciplinaryActions, setDisciplinaryActions] = useState<DisciplinaryAction[]>([]);
+  const [showLeadershipDirectiveDialog, setShowLeadershipDirectiveDialog] = useState(false);
+  const [leadershipDirectives, setLeadershipDirectives] = useState<LeadershipDirective[]>([]);
+  const [editingDirective, setEditingDirective] = useState<LeadershipDirective | null>(null);
 
   const [formData, setFormData] = useState({ status: "baru" as CaseStatus, description: "" });
   const [timelineForm, setTimelineForm] = useState<TimelineFormState>({ ...emptyTimelineForm });
@@ -87,6 +106,10 @@ export default function EmployeeCaseDetail() {
         setFormData({ status: data.status, description: data.description });
         // Load extra info
         loadExtraInfo(data);
+        // Load disciplinary actions from dedicated table
+        loadDisciplinaryActions(caseId);
+        // Load leadership directives from dedicated table
+        loadLeadershipDirectives(caseId);
       } else {
         toast.error("Kasus tidak ditemukan");
         navigate("/admin/kasus-pegawai");
@@ -96,6 +119,24 @@ export default function EmployeeCaseDetail() {
       toast.error("Gagal memuat kasus");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadDisciplinaryActions = async (caseId: string) => {
+    try {
+      const actions = await getDisciplinaryActionsByCase(caseId);
+      setDisciplinaryActions(actions);
+    } catch (error) {
+      console.error("Error loading disciplinary actions:", error);
+    }
+  };
+
+  const loadLeadershipDirectives = async (caseId: string) => {
+    try {
+      const directives = await getDirectivesByCase(caseId);
+      setLeadershipDirectives(directives);
+    } catch (error) {
+      console.error("Error loading leadership directives:", error);
     }
   };
 
@@ -262,50 +303,138 @@ export default function EmployeeCaseDetail() {
     if (!employeeCase) return;
 
     try {
-      // 1. Update case details with disciplinary action
-      const currentDetails = employeeCase.caseDetails || {};
-      const disciplinaryActions = currentDetails.disciplinaryActions || [];
+      const existingAction = disciplinaryActions && disciplinaryActions.length > 0 ? disciplinaryActions[0] : null;
       
-      const newAction = {
-        ...data,
-        addedAt: new Date().toISOString(),
-      };
+      if (existingAction && existingAction.id) {
+        // UPDATE existing disciplinary action
+        const { updateDisciplinaryAction } = await import("@/lib/disciplinaryActionStorage");
+        
+        await updateDisciplinaryAction(existingAction.id, {
+          level: data.level,
+          type: data.type,
+          decisionNumber: data.decisionNumber,
+          decisionDate: data.decisionDate,
+          effectiveDate: data.effectiveDate,
+          endDate: data.endDate,
+          issuedBy: data.issuedBy,
+          violation: data.violation,
+          notes: data.notes,
+          documentLink: data.documentLink,
+        });
 
-      const updatedDetails = {
-        ...currentDetails,
-        disciplinaryActions: [...disciplinaryActions, newAction],
-      };
+        // Reload case data and disciplinary actions
+        await loadCase();
+        toast.success("Hukuman disiplin berhasil diupdate");
+      } else {
+        // CREATE new disciplinary action
+        await createDisciplinaryAction({
+          caseId: employeeCase.id,
+          employeeId: employeeCase.employeeId,
+          employeeName: employeeCase.employeeName,
+          employeeNip: employeeCase.employeeNip,
+          level: data.level,
+          type: data.type,
+          decisionNumber: data.decisionNumber,
+          decisionDate: data.decisionDate,
+          effectiveDate: data.effectiveDate,
+          endDate: data.endDate,
+          issuedBy: data.issuedBy,
+          violation: data.violation,
+          notes: data.notes,
+          documentLink: data.documentLink,
+          createdBy: user?.id || "unknown",
+        });
 
-      await updateCase(employeeCase.id, {
-        caseDetails: updatedDetails,
-      });
+        // Auto-add timeline entry
+        const typeLabel = DISCIPLINARY_TYPES[data.level].find(t => t.value === data.type)?.label || data.type;
+        const timelineDescription = `Hukuman Disiplin ${DISCIPLINARY_LEVELS[data.level]} diterbitkan: ${typeLabel}. SK No. ${data.decisionNumber} oleh ${data.issuedBy}.`;
+        
+        const documents = data.documentLink
+          ? [{ name: `SK Hukuman Disiplin No. ${data.decisionNumber}`, link: data.documentLink }]
+          : [];
 
-      // 2. Auto-add timeline entry
-      const typeLabel = DISCIPLINARY_TYPES[data.level].find(t => t.value === data.type)?.label || data.type;
-      const timelineDescription = `Hukuman Disiplin ${DISCIPLINARY_LEVELS[data.level]} diterbitkan: ${typeLabel}. SK No. ${data.decisionNumber} oleh ${data.issuedBy}.`;
-      
-      const documents = data.documentLink
-        ? [{ name: `SK Hukuman Disiplin No. ${data.decisionNumber}`, link: data.documentLink }]
-        : [];
+        await addTimelineItem(
+          employeeCase.id,
+          data.decisionDate,
+          timelineDescription,
+          "Hukuman Disiplin Diterbitkan",
+          undefined,
+          undefined,
+          undefined,
+          documents,
+          []
+        );
 
-      await addTimelineItem(
-        employeeCase.id,
-        data.decisionDate,
-        timelineDescription,
-        "Hukuman Disiplin Diterbitkan",
-        undefined,
-        undefined,
-        undefined,
-        documents,
-        []
-      );
-
-      // 3. Reload case data
-      await loadCase();
-      toast.success("Hukuman disiplin berhasil ditambahkan dan timeline diperbarui");
+        // Reload case data and disciplinary actions
+        await loadCase();
+        toast.success("Hukuman disiplin berhasil ditambahkan dan timeline diperbarui");
+      }
     } catch (error) {
-      console.error("Error adding disciplinary action:", error);
+      console.error("Error saving disciplinary action:", error);
       throw error;
+    }
+  };
+
+  // Handle leadership directive submission
+  const handleSaveLeadershipDirective = async (
+    directive: Omit<LeadershipDirective, "id" | "caseId" | "createdBy" | "createdAt" | "updatedAt">
+  ) => {
+    if (!employeeCase || !user) return;
+
+    try {
+      if (editingDirective && editingDirective.id) {
+        // UPDATE existing directive
+        await updateDirective(editingDirective.id, {
+          directiveText: directive.directiveText,
+          directiveDate: directive.directiveDate,
+          issuedByName: directive.issuedByName,
+          issuedByPosition: directive.issuedByPosition,
+          issuedById: directive.issuedById,
+        });
+        toast.success("Arahan pimpinan berhasil diupdate");
+      } else {
+        // CREATE new directive
+        await createDirective({
+          caseId: employeeCase.id,
+          directiveText: directive.directiveText,
+          directiveDate: directive.directiveDate,
+          issuedByName: directive.issuedByName,
+          issuedByPosition: directive.issuedByPosition,
+          issuedById: directive.issuedById,
+          createdBy: user.id,
+        });
+        toast.success("Arahan pimpinan berhasil ditambahkan");
+      }
+
+      // Reload directives
+      await loadLeadershipDirectives(employeeCase.id);
+      setEditingDirective(null);
+    } catch (error) {
+      console.error("Error saving leadership directive:", error);
+      throw error;
+    }
+  };
+
+  const handleAddDirective = () => {
+    setEditingDirective(null);
+    setShowLeadershipDirectiveDialog(true);
+  };
+
+  const handleEditDirective = (directive: LeadershipDirective) => {
+    setEditingDirective(directive);
+    setShowLeadershipDirectiveDialog(true);
+  };
+
+  const handleDeleteDirective = async (directiveId: string) => {
+    if (!employeeCase) return;
+
+    try {
+      await deleteDirective(directiveId);
+      toast.success("Arahan pimpinan berhasil dihapus");
+      await loadLeadershipDirectives(employeeCase.id);
+    } catch (error) {
+      console.error("Error deleting leadership directive:", error);
+      toast.error("Gagal menghapus arahan pimpinan");
     }
   };
 
@@ -427,19 +556,19 @@ export default function EmployeeCaseDetail() {
                       <p className="text-sm text-muted-foreground">Tingkat Keparahan</p>
                       <Badge variant="outline" className="mt-1">{employeeCase.severity && CASE_SEVERITY_LABELS[employeeCase.severity]}</Badge>
                     </div>
-                    {employeeCase.caseDetails?.disciplinaryActions && employeeCase.caseDetails.disciplinaryActions.length > 0 && (
+                    {disciplinaryActions && disciplinaryActions.length > 0 && (
                       <div>
                         <p className="text-sm text-muted-foreground">Hukuman Disiplin</p>
                         <Badge 
                           className={`mt-1 ${
-                            employeeCase.caseDetails.disciplinaryActions[0].level === 'ringan' 
+                            disciplinaryActions[0].level === 'ringan' 
                               ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                              : employeeCase.caseDetails.disciplinaryActions[0].level === 'sedang'
+                              : disciplinaryActions[0].level === 'sedang'
                               ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
                               : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                           }`}
                         >
-                          {DISCIPLINARY_LEVELS[employeeCase.caseDetails.disciplinaryActions[0].level]}
+                          {DISCIPLINARY_LEVELS[disciplinaryActions[0].level]}
                         </Badge>
                       </div>
                     )}
@@ -485,10 +614,19 @@ export default function EmployeeCaseDetail() {
               {/* Case-specific Detail Card */}
               <CaseDetailCard employeeCase={employeeCase} />
 
+              {/* Leadership Directives Card */}
+              <LeadershipDirectivesCard
+                directives={leadershipDirectives}
+                canEdit={canEdit}
+                onAdd={handleAddDirective}
+                onEdit={handleEditDirective}
+                onDelete={handleDeleteDirective}
+              />
+
               {/* Disciplinary Actions Card */}
-              {employeeCase.caseDetails?.disciplinaryActions && (
+              {disciplinaryActions && disciplinaryActions.length > 0 && (
                 <DisciplinaryActionsCard
-                  disciplinaryActions={employeeCase.caseDetails.disciplinaryActions}
+                  disciplinaryActions={disciplinaryActions}
                 />
               )}
 
@@ -746,10 +884,22 @@ export default function EmployeeCaseDetail() {
         <DisciplinaryActionDialog
           employeeName={employeeCase.employeeName}
           employeeNip={employeeCase.employeeNip}
+          existingAction={disciplinaryActions && disciplinaryActions.length > 0 ? disciplinaryActions[0] : null}
           onClose={() => setShowDisciplinaryDialog(false)}
           onSubmit={handleDisciplinaryAction}
         />
       )}
+
+      {/* Leadership Directive Dialog */}
+      <LeadershipDirectiveDialog
+        open={showLeadershipDirectiveDialog}
+        onClose={() => {
+          setShowLeadershipDirectiveDialog(false);
+          setEditingDirective(null);
+        }}
+        onSubmit={handleSaveLeadershipDirective}
+        existingDirective={editingDirective}
+      />
     </DashboardLayout>
   );
 }
