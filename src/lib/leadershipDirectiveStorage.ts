@@ -102,17 +102,19 @@ export async function createDirective(
   directive: Omit<LeadershipDirective, "id" | "createdAt" | "updatedAt">
 ): Promise<LeadershipDirective> {
   try {
+    const insertData = {
+      case_id: directive.caseId,
+      directive_text: directive.directiveText,
+      directive_date: directive.directiveDate,
+      issued_by_id: directive.issuedById || null,
+      issued_by_name: directive.issuedByName,
+      issued_by_position: directive.issuedByPosition || null,
+      created_by: directive.createdBy,
+    };
+
     const { data, error } = await supabase
       .from("leadership_directives")
-      .insert({
-        case_id: directive.caseId,
-        directive_text: directive.directiveText,
-        directive_date: directive.directiveDate,
-        issued_by_id: directive.issuedById || null,
-        issued_by_name: directive.issuedByName,
-        issued_by_position: directive.issuedByPosition || null,
-        created_by: directive.createdBy,
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -180,6 +182,7 @@ export async function deleteDirective(id: string): Promise<void> {
 
 /**
  * Search for leadership/management personnel by name
+ * Searches from employees table (ASN data)
  */
 export async function searchLeadershipPersonnel(searchTerm: string): Promise<Array<{
   id: string;
@@ -189,19 +192,28 @@ export async function searchLeadershipPersonnel(searchTerm: string): Promise<Arr
   try {
     if (!searchTerm || searchTerm.length < 2) return [];
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, name, jabatan")
-      .or(`name.ilike.%${searchTerm}%,jabatan.ilike.%${searchTerm}%`)
-      .limit(10);
+    // Search from employees table (ASN data) - this has the most data
+    const { data: employees, error: empError } = await supabase
+      .from("employees")
+      .select("id, name, position_name")
+      .ilike("name", `%${searchTerm}%`)
+      .limit(20);
 
-    if (error) throw error;
+    if (empError) {
+      console.error("Error searching employees:", empError);
+      return [];
+    }
 
-    return (data || []).map(p => ({
-      id: p.id,
-      name: p.name || "",
-      position: p.jabatan || "",
-    }));
+    // Map results
+    const results = (employees || [])
+      .filter(e => e.name) // Only include if has name
+      .map(e => ({
+        id: e.id,
+        name: e.name,
+        position: e.position_name || "Tidak ada jabatan",
+      }));
+
+    return results;
   } catch (error) {
     console.error("Error searching leadership personnel:", error);
     return [];

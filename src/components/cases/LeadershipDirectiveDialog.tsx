@@ -12,10 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { LeadershipDirective, searchLeadershipPersonnel } from "@/lib/leadershipDirectiveStorage";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Search, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface LeadershipDirectiveDialogProps {
   open: boolean;
@@ -36,12 +34,12 @@ export default function LeadershipDirectiveDialog({
   const [issuedByPosition, setIssuedByPosition] = useState("");
   const [issuedById, setIssuedById] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAutoFilled, setIsAutoFilled] = useState(false); // Track if data is from auto-complete
+  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<any | null>(null);
 
-  // Auto-complete state
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; position: string }>>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (existingDirective) {
@@ -50,19 +48,33 @@ export default function LeadershipDirectiveDialog({
       setIssuedByName(existingDirective.issuedByName);
       setIssuedByPosition(existingDirective.issuedByPosition || "");
       setIssuedById(existingDirective.issuedById);
-      setIsAutoFilled(!!existingDirective.issuedById); // If has ID, it was auto-filled
+      
+      // If has ID, set as selected person
+      if (existingDirective.issuedById) {
+        setSelectedPerson({
+          id: existingDirective.issuedById,
+          name: existingDirective.issuedByName,
+          position: existingDirective.issuedByPosition || "",
+        });
+        setIsManualEntry(false);
+      } else {
+        // Manual entry
+        setIsManualEntry(true);
+        setSelectedPerson(null);
+      }
     } else {
       // Set default date to today
       setDirectiveDate(new Date().toISOString().split("T")[0]);
-      setIsAutoFilled(false);
+      setIsManualEntry(false);
+      setSelectedPerson(null);
     }
   }, [existingDirective, open]);
 
-  // Search for personnel when name changes
+  // Search for personnel when query changes
   useEffect(() => {
     const searchPersonnel = async () => {
-      if (searchTerm.length >= 2) {
-        const results = await searchLeadershipPersonnel(searchTerm);
+      if (searchQuery.length >= 2) {
+        const results = await searchLeadershipPersonnel(searchQuery);
         setSearchResults(results);
       } else {
         setSearchResults([]);
@@ -71,34 +83,31 @@ export default function LeadershipDirectiveDialog({
 
     const debounce = setTimeout(searchPersonnel, 300);
     return () => clearTimeout(debounce);
-  }, [searchTerm]);
+  }, [searchQuery]);
 
-  const handleSelectPerson = (person: { id: string; name: string; position: string }) => {
+  const handlePersonSelect = (person: { id: string; name: string; position: string }) => {
+    setSelectedPerson(person);
     setIssuedByName(person.name);
     setIssuedByPosition(person.position);
     setIssuedById(person.id);
-    setSearchTerm("");
-    setShowSuggestions(false);
-    setIsAutoFilled(true); // Mark as auto-filled
+    setSearchQuery("");
+    setIsManualEntry(false);
   };
 
-  const handleNameChange = (value: string) => {
-    setIssuedByName(value);
-    setSearchTerm(value);
-    setShowSuggestions(true);
-    
-    // If user manually types, clear auto-fill state
-    if (isAutoFilled) {
-      setIsAutoFilled(false);
-      setIssuedById(undefined);
-      setIssuedByPosition(""); // Clear position when manually typing
-    }
-  };
-
-  const handleClearAutoFill = () => {
-    setIsAutoFilled(false);
-    setIssuedById(undefined);
+  const handleManualEntry = () => {
+    setIsManualEntry(true);
+    setSelectedPerson(null);
+    setIssuedByName("");
     setIssuedByPosition("");
+    setIssuedById(undefined);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPerson(null);
+    setIsManualEntry(false);
+    setIssuedByName("");
+    setIssuedByPosition("");
+    setIssuedById(undefined);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,8 +145,9 @@ export default function LeadershipDirectiveDialog({
       setIssuedByName("");
       setIssuedByPosition("");
       setIssuedById(undefined);
-      setSearchTerm("");
-      setIsAutoFilled(false);
+      setSearchQuery("");
+      setSelectedPerson(null);
+      setIsManualEntry(false);
 
       onClose();
     } catch (error) {
@@ -155,8 +165,9 @@ export default function LeadershipDirectiveDialog({
       setIssuedByName("");
       setIssuedByPosition("");
       setIssuedById(undefined);
-      setSearchTerm("");
-      setIsAutoFilled(false);
+      setSearchQuery("");
+      setSelectedPerson(null);
+      setIsManualEntry(false);
       onClose();
     }
   };
@@ -205,96 +216,113 @@ export default function LeadershipDirectiveDialog({
             />
           </div>
 
-          {/* Issued By Name with Auto-complete */}
+          {/* Issued By Name with Search */}
           <div className="space-y-2">
-            <Label htmlFor="issued-by-name" className="text-sm font-medium">
-              Nama Pemberi Arahan <span className="text-destructive">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                id="issued-by-name"
-                value={issuedByName}
-                onChange={(e) => handleNameChange(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder="Ketik nama untuk mencari..."
-                required
-                className="w-full"
-              />
-              {showSuggestions && searchResults.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {searchResults.map((person) => (
-                    <button
-                      key={person.id}
-                      type="button"
-                      onClick={() => handleSelectPerson(person)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
-                    >
-                      <span className="font-medium">{person.name}</span>
-                      {person.position && (
-                        <span className="text-sm text-muted-foreground">{person.position}</span>
-                      )}
-                    </button>
-                  ))}
+            <Label>Pilih Pemberi Arahan *</Label>
+            {selectedPerson ? (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted">
+                <div className="flex-1">
+                  <p className="font-medium">{selectedPerson.name}</p>
+                  {selectedPerson.position && (
+                    <p className="text-sm text-muted-foreground">
+                      Jabatan: {selectedPerson.position}
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
-            {isAutoFilled ? (
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Data dari database
-                </p>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={handleClearAutoFill}
-                  className="h-6 text-xs"
+                  onClick={handleClearSelection}
                 >
-                  Ketik Manual
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : isManualEntry ? (
+              <div className="space-y-3 p-3 border rounded-lg bg-muted">
+                <Badge variant="secondary">Input Manual</Badge>
+                <div className="space-y-2">
+                  <Label htmlFor="manualName">Nama Pemberi Arahan *</Label>
+                  <Input
+                    id="manualName"
+                    value={issuedByName}
+                    onChange={(e) => setIssuedByName(e.target.value)}
+                    placeholder="Masukkan nama..."
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manualPosition">Jabatan</Label>
+                  <Input
+                    id="manualPosition"
+                    value={issuedByPosition}
+                    onChange={(e) => setIssuedByPosition(e.target.value)}
+                    placeholder="Contoh: Direktur Jenderal, Kepala Biro, dll"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsManualEntry(false);
+                    setIssuedByName("");
+                    setIssuedByPosition("");
+                  }}
+                >
+                  Kembali ke Pencarian
                 </Button>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Mulai ketik untuk mencari dari database pegawai
-              </p>
-            )}
-          </div>
-
-          {/* Issued By Position */}
-          <div className="space-y-2">
-            <Label htmlFor="issued-by-position" className="text-sm font-medium">
-              Jabatan Pemberi Arahan
-            </Label>
-            <div className="relative">
-              <Input
-                id="issued-by-position"
-                value={issuedByPosition}
-                onChange={(e) => setIssuedByPosition(e.target.value)}
-                placeholder="Contoh: Direktur Jenderal, Kepala Biro, dll"
-                className="w-full"
-                readOnly={isAutoFilled}
-                disabled={isAutoFilled}
-              />
-              {isAutoFilled && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari nama pegawai..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              )}
-            </div>
-            {isAutoFilled ? (
-              <p className="text-xs text-green-600 dark:text-green-400">
-                Jabatan terisi otomatis dari database
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Opsional - akan terisi otomatis jika memilih dari database
-              </p>
+                {searchQuery && (
+                  <div className="max-h-48 overflow-y-auto border rounded-lg">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((person) => (
+                        <button
+                          key={person.id}
+                          type="button"
+                          onClick={() => handlePersonSelect(person)}
+                          className="w-full text-left p-3 hover:bg-muted transition-colors border-b last:border-b-0"
+                        >
+                          <p className="font-medium">{person.name}</p>
+                          {person.position && (
+                            <p className="text-sm text-muted-foreground">
+                              {person.position}
+                            </p>
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-muted-foreground">
+                        Tidak ada pegawai ditemukan
+                      </div>
+                    )}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualEntry}
+                  className="w-full"
+                >
+                  Atau Input Manual
+                </Button>
+              </div>
             )}
+            <p className="text-xs text-muted-foreground">
+              Cari dari database pegawai atau input manual
+            </p>
           </div>
 
           {/* Directive Text */}
