@@ -7,6 +7,7 @@ import { Info, Wrench, Sparkles, CheckCircle2, Clock, ChevronDown, ChevronRight,
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface ChangeItem {
   type: 'fix' | 'feature' | 'improvement';
@@ -591,32 +592,24 @@ export default function SystemInfo() {
   return (
     <AppLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="page-header">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 flex-shrink-0 mt-0.5">
-                <Info className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="page-title">Informasi Sistem</h1>
-                <p className="page-description">
-                  Riwayat pembaruan, fitur, dan perbaikan aplikasi SIMPEL.
-                </p>
-              </div>
-            </div>
-            <Button
-              variant={updateAvailable ? 'default' : 'outline'}
-              size="sm"
-              onClick={handleManualCheck}
-              disabled={isChecking}
-              className="flex-shrink-0 gap-2"
-            >
-              <RefreshCw className={cn('h-4 w-4', isChecking && 'animate-spin')} />
-              {updateAvailable ? 'Perbarui Sekarang' : isChecking ? 'Memeriksa...' : 'Periksa Pembaruan'}
-            </Button>
-          </div>
-        </div>
+        {/* Header with action button inside */}
+        <PageHeader
+          icon={Info}
+          title="Informasi Sistem"
+          description="Riwayat pembaruan, fitur, dan perbaikan aplikasi SIMPEL"
+          gradient="blue"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleManualCheck}
+            disabled={isChecking}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30 flex-shrink-0 gap-2"
+          >
+            <RefreshCw className={cn('h-4 w-4', isChecking && 'animate-spin')} />
+            {updateAvailable ? 'Perbarui Sekarang' : isChecking ? 'Memeriksa...' : 'Periksa Pembaruan'}
+          </Button>
+        </PageHeader>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

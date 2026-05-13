@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ROLE_LABELS } from '@/lib/constants';
+import { PageHeader } from '@/components/ui/page-header';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(6, 'Password minimal 6 karakter'),
@@ -110,10 +111,12 @@ export default function Profile() {
   return (
     <AppLayout>
       <div className="space-y-6 w-full max-w-2xl">
-        <div className="page-header">
-          <h1 className="page-title">Profil Saya</h1>
-          <p className="page-description">Lihat dan kelola informasi akun Anda</p>
-        </div>
+        <PageHeader
+          icon={User}
+          title="Profil Saya"
+          description="Lihat dan kelola informasi akun Anda"
+          gradient="purple"
+        />
 
         {/* Profile Info */}
         <Card>

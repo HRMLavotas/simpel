@@ -57,6 +57,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { AnnouncementBanner } from '@/components/notifications/AnnouncementBanner';
+import { PageHeader } from '@/components/ui/page-header';
 
 // Available chart categories
 const CHART_CATEGORIES = [
@@ -205,20 +206,18 @@ export default function Dashboard() {
         {/* Announcement Banner - appears at the top */}
         <AnnouncementBanner />
 
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <div className="page-header mb-0">
-            <h1 className="page-title flex items-center gap-2 text-xl sm:text-2xl md:text-3xl">
-              <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-primary flex-shrink-0" />
-              <span className="truncate">{pageTitle}</span>
-            </h1>
-            <p className="page-description text-xs sm:text-sm">Dashboard eksekutif untuk monitoring data pegawai</p>
-          </div>
-
+        {/* Header with filters inside */}
+        <PageHeader
+          icon={TrendingUp}
+          title={pageTitle}
+          description="Dashboard eksekutif untuk monitoring data pegawai"
+          gradient="indigo"
+        >
           <div className="flex flex-col sm:flex-row gap-2">
             {canViewAll && (
               <>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                  <SelectTrigger className="w-full sm:w-[240px] h-9 sm:h-10">
+                  <SelectTrigger className="w-full sm:w-[240px] h-9 sm:h-10 bg-white/20 border-white/30 text-white">
                     <SelectValue placeholder="Pilih Unit Kerja" />
                   </SelectTrigger>
                   <SelectContent>
@@ -230,7 +229,7 @@ export default function Dashboard() {
                 </Select>
 
                 <Select value={selectedAsnStatus} onValueChange={setSelectedAsnStatus}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-9 sm:h-10">
+                  <SelectTrigger className="w-full sm:w-[200px] h-9 sm:h-10 bg-white/20 border-white/30 text-white">
                     <SelectValue placeholder="Status ASN" />
                   </SelectTrigger>
                   <SelectContent>
@@ -247,7 +246,7 @@ export default function Dashboard() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2 h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto">
+                <Button variant="ghost" className="bg-white/20 hover:bg-white/30 text-white border-white/30 gap-2 h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-auto">
                   <Settings2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Pilih Data ({selectedCharts.length})
                 </Button>
@@ -277,7 +276,7 @@ export default function Dashboard() {
               </SheetContent>
             </Sheet>
           </div>
-        </div>
+        </PageHeader>
 
         {dashboardError && (
           <Card className="border-destructive bg-destructive/5 p-4 text-destructive">{dashboardError}</Card>

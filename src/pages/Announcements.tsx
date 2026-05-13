@@ -46,6 +46,7 @@ import { useForm } from 'react-hook-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface AnnouncementFormData {
   title: string;
@@ -179,23 +180,18 @@ export default function Announcements() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="page-header">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="page-title flex items-center gap-2">
-                <Megaphone className="h-7 w-7 text-primary" />
-                Kelola Pengumuman
-              </h1>
-              <p className="page-description">
-                Buat dan kelola pengumuman yang akan muncul di dashboard semua admin unit
-              </p>
-            </div>
-            <Button onClick={handleCreate} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Buat Pengumuman
-            </Button>
-          </div>
-        </div>
+        {/* Header with action button inside */}
+        <PageHeader
+          icon={Megaphone}
+          title="Kelola Pengumuman"
+          description="Buat dan kelola pengumuman yang akan muncul di dashboard semua admin unit"
+          gradient="orange"
+        >
+          <Button onClick={handleCreate} className="bg-white/20 hover:bg-white/30 text-white border-white/30 gap-2">
+            <Plus className="h-4 w-4" />
+            Buat Pengumuman
+          </Button>
+        </PageHeader>
 
         {isLoading ? (
           <div className="space-y-4">

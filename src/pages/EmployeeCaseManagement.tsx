@@ -21,7 +21,7 @@ import {
   AlertDialogDescription, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  FileText, Search, Plus, Trash2, Eye, ChevronLeft, ChevronRight, Settings, ShieldAlert,
+  FileText, Search, Plus, Trash2, Eye, ChevronLeft, ChevronRight, Settings, ShieldAlert, Clock, CheckCircle, BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaseAccess } from "@/hooks/useCaseAccess";
@@ -34,6 +34,8 @@ import {
 } from "@/lib/employeeCaseTypes";
 import CaseFormDialog from "@/components/cases/CaseFormDialog";
 import CaseAccessManagement from "@/components/cases/CaseAccessManagement";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
 
 const PAGE_SIZE = 20;
 
@@ -234,109 +236,56 @@ export default function EmployeeCaseManagement() {
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 p-6 md:p-8 text-white shadow-xl mb-8">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-16 -translate-x-16 blur-2xl" />
-            <div className="relative flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <FileText className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Kasus Pegawai</h1>
-                <p className="text-white/90 mt-2 text-sm md:text-base">Kelola kasus pegawai dan timeline tindak lanjutnya</p>
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            icon={FileText}
+            title="Kasus Pegawai"
+            description="Kelola kasus pegawai dan timeline tindak lanjutnya"
+            gradient="blue"
+          />
 
           {/* Statistics Cards - Above Tabs */}
-          <div className="space-y-6 mb-6">
+          <div className="space-y-4 mb-6">
             {/* Main Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Total Cases */}
-                <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950 dark:to-background">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Total Kasus</p>
-                        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-                          {statistics.total}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                        <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <StatCard
+                label="Total Kasus"
+                value={statistics.total}
+                icon={FileText}
+                color="blue"
+              />
+              
+              <StatCard
+                label="Diproses"
+                value={statistics.diproses}
+                icon={Clock}
+                color="yellow"
+              />
+              
+              <StatCard
+                label="Selesai"
+                value={statistics.selesai}
+                icon={CheckCircle}
+                color="green"
+              />
+              
+              <StatCard
+                label="Dengan Hukuman"
+                value={cases.filter(c => c.hasDisciplinaryAction).length}
+                icon={ShieldAlert}
+                color="red"
+              />
+            </div>
 
-                {/* In Progress */}
-                <Card className="border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-950 dark:to-background">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Diproses</p>
-                        <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">
-                          {statistics.diproses}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Completed */}
-                <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-white dark:from-green-950 dark:to-background">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Selesai</p>
-                        <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
-                          {statistics.selesai}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* With Disciplinary Action */}
-                <Card className="border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-white dark:from-red-950 dark:to-background">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Dengan Hukuman</p>
-                        <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">
-                          {cases.filter(c => c.hasDisciplinaryAction).length}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-lg">
-                        <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Statistics by Case Type - New Design */}
+              {/* Statistics by Case Type - Compact 2 Column Layout */}
               <Card className="border-primary/10">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-primary" />
                     Statistik Berdasarkan Jenis Kasus
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(CASE_TYPE_LABELS).map(([type, label]) => {
                       const count = statistics.byType[type] || 0;
                       const percentage = statistics.total > 0 ? ((count / statistics.total) * 100) : 0;
@@ -355,17 +304,17 @@ export default function EmployeeCaseManagement() {
                       const color = colors[type] || colors.lainnya;
                       
                       return (
-                        <div key={type} className={`p-4 rounded-lg ${color.bg} transition-all hover:shadow-md`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-sm">{label}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-2xl font-bold ${color.text}`}>{count}</span>
-                              <span className="text-sm text-muted-foreground">
+                        <div key={type} className={`p-3 rounded-lg ${color.bg} transition-all hover:shadow-sm`}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-medium text-xs">{label}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-lg font-bold ${color.text}`}>{count}</span>
+                              <span className="text-xs text-muted-foreground">
                                 ({percentage.toFixed(1)}%)
                               </span>
                             </div>
                           </div>
-                          <div className="w-full bg-white/50 dark:bg-black/20 rounded-full h-2 overflow-hidden">
+                          <div className="w-full bg-white/50 dark:bg-black/20 rounded-full h-1.5 overflow-hidden">
                             <div 
                               className={`h-full ${color.bar} transition-all duration-500 ease-out rounded-full`}
                               style={{ width: `${percentage}%` }}

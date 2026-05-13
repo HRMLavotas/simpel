@@ -27,6 +27,7 @@ import { DepartmentFormModal } from '@/components/departments/DepartmentFormModa
 import { DeleteDepartmentDialog } from '@/components/departments/DeleteDepartmentDialog';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface Department {
   id: string;
@@ -108,20 +109,18 @@ export default function Departments() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="page-header mb-0">
-            <h1 className="page-title flex items-center gap-2">
-              <Building2 className="h-7 w-7 text-primary" />
-              Manajemen Unit Kerja
-            </h1>
-            <p className="page-description">Kelola daftar unit kerja organisasi</p>
-          </div>
-          <Button onClick={handleAdd}>
+        {/* Header with action button inside */}
+        <PageHeader
+          icon={Building2}
+          title="Manajemen Unit Kerja"
+          description="Kelola daftar unit kerja organisasi"
+          gradient="cyan"
+        >
+          <Button onClick={handleAdd} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
             <Plus className="mr-2 h-4 w-4" />
             Tambah Unit Kerja
           </Button>
-        </div>
+        </PageHeader>
 
         {/* Search */}
         <div className="relative w-full max-w-md">

@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
 
 export default function DataAudit() {
   const { toast } = useToast();
@@ -173,14 +175,12 @@ export default function DataAudit() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="page-header mb-0">
-            <h1 className="page-title">Audit Data Pegawai</h1>
-            <p className="page-description">
-              Identifikasi dan perbaiki data pegawai yang tidak lengkap atau tidak sesuai format
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          icon={AlertTriangle}
+          title="Audit Data Pegawai"
+          description="Identifikasi dan perbaiki data pegawai yang tidak lengkap atau tidak sesuai format"
+          gradient="orange"
+        />
 
         {/* Summary Cards */}
         {isLoading ? (
@@ -198,56 +198,28 @@ export default function DataAudit() {
           </div>
         ) : (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-500" />
-                  Data Bermasalah
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {auditData?.length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  pegawai perlu diperbaiki
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <XCircle className="h-4 w-4 text-orange-500" />
-                  Total Masalah
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {auditData?.reduce((sum, d) => sum + d.issues.length, 0) || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  masalah terdeteksi
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Tingkat Kelengkapan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {totalEmployees > 0
-                    ? Math.round(((totalEmployees - (auditData?.length || 0)) / totalEmployees) * 100)
-                    : 100}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  data lengkap
-                </p>
-              </CardContent>
-            </Card>
+            <StatCard
+              label="Data Bermasalah"
+              value={auditData?.length || 0}
+              icon={AlertTriangle}
+              color="red"
+            />
+            
+            <StatCard
+              label="Total Masalah"
+              value={auditData?.reduce((sum, d) => sum + d.issues.length, 0) || 0}
+              icon={XCircle}
+              color="orange"
+            />
+            
+            <StatCard
+              label="Tingkat Kelengkapan"
+              value={`${totalEmployees > 0
+                ? Math.round(((totalEmployees - (auditData?.length || 0)) / totalEmployees) * 100)
+                : 100}%`}
+              icon={CheckCircle2}
+              color="green"
+            />
           </div>
         )}
 

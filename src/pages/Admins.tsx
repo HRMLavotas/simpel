@@ -36,6 +36,7 @@ import { EditAdminModal } from '@/components/admins/EditAdminModal';
 import { DeleteAdminDialog } from '@/components/admins/DeleteAdminDialog';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface AdminUser {
   id: string;
@@ -145,17 +146,18 @@ export default function Admins() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="page-header mb-0">
-            <h1 className="page-title">Kelola Admin</h1>
-            <p className="page-description">Kelola daftar admin unit kerja</p>
-          </div>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
+        {/* Header with action button inside */}
+        <PageHeader
+          icon={Shield}
+          title="Kelola Admin"
+          description="Kelola daftar admin unit kerja"
+          gradient="red"
+        >
+          <Button onClick={() => setIsCreateModalOpen(true)} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
             <UserPlus className="mr-2 h-4 w-4" />
             Tambah Admin
           </Button>
-        </div>
+        </PageHeader>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">

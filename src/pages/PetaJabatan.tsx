@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle } from 'lucide-react';
+import { Plus, Download, Pencil, Trash2, Save, X, ChevronDown, ChevronRight, Search, RefreshCw, MoreVertical, Info, AlertCircle, FileText } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import {
   applyWorksheetStyling,
@@ -35,6 +35,7 @@ import { SatpelBadge } from '@/components/employees/SatpelBadge';
 import { useDepartments } from '@/hooks/useDepartments';
 import { cn, normalizeString } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface PositionReference {
   id: string;
@@ -3210,15 +3211,17 @@ export default function PetaJabatan() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="page-title">Peta Jabatan</h1>
-            <p className="page-description">Jabatan Sesuai Kepmen 202 Tahun 2024</p>
-          </div>
+        {/* Header with filters and actions inside */}
+        <PageHeader
+          icon={FileText}
+          title="Peta Jabatan"
+          description="Jabatan Sesuai Kepmen 202 Tahun 2024"
+          gradient="indigo"
+        >
           <div className="flex flex-wrap items-center gap-2">
             {showDepartmentFilter && (
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger id="department-filter" className="w-full sm:w-[240px]">
+                <SelectTrigger id="department-filter" className="w-full sm:w-[240px] bg-white/20 border-white/30 text-white">
                   <SelectValue>
                     {selectedDepartment || "Pilih Unit Kerja"}
                   </SelectValue>
@@ -3231,22 +3234,23 @@ export default function PetaJabatan() {
               </Select>
             )}
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="icon"
               onClick={() => fetchData()} 
               disabled={isLoading}
               title="Refresh data"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
             >
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
             {isAdminPusat && (
-              <Button onClick={openAddModal} className="text-xs sm:text-sm" disabled={isReadOnlyMode || !canEdit}>
+              <Button onClick={openAddModal} className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm" disabled={isReadOnlyMode || !canEdit}>
                 <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
               </Button>
             )}
           </div>
-        </div>
+        </PageHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn' | 'summary-asn' | 'summary-non-asn')} className="space-y-4">
           <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-auto">

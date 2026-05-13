@@ -24,6 +24,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExportMonitoringButton } from '@/components/monitoring/ExportMonitoringButton';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
 
 export default function UnitActivityMonitoring() {
   const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
@@ -139,18 +141,17 @@ export default function UnitActivityMonitoring() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Monitoring Aktivitas Unit Kerja</h1>
-            <p className="text-muted-foreground">
-              Pantau update data pegawai per unit kerja setiap bulan
-            </p>
-          </div>
+        {/* Header with filters inside */}
+        <PageHeader
+          icon={TrendingUp}
+          title="Monitoring Aktivitas Unit Kerja"
+          description="Pantau update data pegawai per unit kerja setiap bulan"
+          gradient="green"
+        >
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-white" />
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[200px] bg-white/20 border-white/30 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -163,7 +164,7 @@ export default function UnitActivityMonitoring() {
             </Select>
             <ExportMonitoringButton data={activityData || []} month={selectedMonth} />
           </div>
-        </div>
+        </PageHeader>
 
         {/* Summary Cards */}
         {isLoading ? (
@@ -181,64 +182,33 @@ export default function UnitActivityMonitoring() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  Total Unit Aktif
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {activityData?.filter((d) => d.total_changes > 0).length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  dari {activityData?.length || 0} unit
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  Unit Tidak Aktif
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {activityData?.filter((d) => d.total_changes === 0).length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">perlu follow up</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-500" />
-                  Total Perubahan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {activityData?.reduce((sum, d) => sum + d.total_changes, 0) || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">perubahan data</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Users className="h-4 w-4 text-purple-500" />
-                  Pegawai Diupdate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {activityData?.reduce((sum, d) => sum + d.employees_updated, 0) || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">pegawai</p>
-              </CardContent>
-            </Card>
+            <StatCard
+              label="Total Unit Aktif"
+              value={activityData?.filter((d) => d.total_changes > 0).length || 0}
+              icon={TrendingUp}
+              color="green"
+            />
+            
+            <StatCard
+              label="Unit Tidak Aktif"
+              value={activityData?.filter((d) => d.total_changes === 0).length || 0}
+              icon={AlertCircle}
+              color="red"
+            />
+            
+            <StatCard
+              label="Total Perubahan"
+              value={activityData?.reduce((sum, d) => sum + d.total_changes, 0) || 0}
+              icon={FileText}
+              color="blue"
+            />
+            
+            <StatCard
+              label="Pegawai Diupdate"
+              value={activityData?.reduce((sum, d) => sum + d.employees_updated, 0) || 0}
+              icon={Users}
+              color="purple"
+            />
           </div>
         )}
 

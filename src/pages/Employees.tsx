@@ -67,6 +67,7 @@ import {
   applyWorksheetStyling,
   setColumnWidths,
 } from '@/lib/excelStyles';
+import { PageHeader } from '@/components/ui/page-header';
 
 const ITEMS_PER_PAGE = 200;
 const EMPLOYEE_LIST_COLUMNS = [
@@ -1646,21 +1647,21 @@ export default function Employees() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="page-header mb-0">
-            <h1 className="page-title">Data Pegawai</h1>
-            <p className="page-description">
-              Kelola data nominatif pegawai {!canViewAll && profile?.department}
-            </p>
-          </div>
+        {/* Header with action buttons inside */}
+        <PageHeader
+          icon={Users}
+          title="Data Pegawai"
+          description={`Kelola data nominatif pegawai ${!canViewAll && profile?.department ? profile.department : ''}`}
+          gradient="purple"
+        >
           <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" onClick={handleExport} disabled={filteredEmployees.length === 0} className="text-xs sm:text-sm">
+            <Button variant="ghost" onClick={handleExport} disabled={filteredEmployees.length === 0} className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm">
               <Download className="mr-1 sm:mr-2 h-4 w-4" /><span className="hidden sm:inline">Export Excel</span><span className="sm:hidden">Export</span>
             </Button>
             {canEdit && (
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button className="text-xs sm:text-sm">
+                  <Button className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm">
                     <Plus className="mr-1 sm:mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">Tambah Pegawai</span>
                     <span className="sm:hidden">Tambah</span>
@@ -1687,7 +1688,7 @@ export default function Employees() {
               </DropdownMenu>
             )}
           </div>
-        </div>
+        </PageHeader>
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">

@@ -23,6 +23,7 @@ import {
 } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { PageHeader } from '@/components/ui/page-header';
 
 // ============ SHARED TYPES ============
 
@@ -1421,12 +1422,12 @@ export default function Import() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="page-header">
-          <h1 className="page-title">Import Data Stankom ASN</h1>
-          <p className="page-description">
-            Import data pegawai dan peta jabatan sekaligus dari satu file Excel
-          </p>
-        </div>
+        <PageHeader
+          icon={Upload}
+          title="Import Data Stankom ASN"
+          description="Import data pegawai dan peta jabatan sekaligus dari satu file Excel"
+          gradient="green"
+        />
 
         {/* ===== SECTION: IMPORT DAFTAR PEGAWAI ===== */}
         <Card className="border-blue-200 bg-blue-50/30">

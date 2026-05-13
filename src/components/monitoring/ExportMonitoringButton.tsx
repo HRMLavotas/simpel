@@ -72,11 +72,11 @@ export function ExportMonitoringButton({ data, month }: ExportMonitoringButtonPr
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       onClick={handleExport}
       disabled={!data || data.length === 0}
-      className="gap-2"
+      className="bg-white/20 hover:bg-white/30 text-white border-white/30 gap-2"
     >
       <Download className="h-4 w-4" />
       Export CSV

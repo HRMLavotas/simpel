@@ -23,6 +23,7 @@ import {
 } from '@/lib/excelStyles';
 import { logger } from '@/lib/logger';
 import { randomId } from '@/lib/utils';
+import { PageHeader } from '@/components/ui/page-header';
 
 /** Excel melarang karakter \ / * ? : [ ] pada nama sheet — tanpa sanitasi, export gagal diam-diam */
 const EXCEL_SHEET_NAME_MAX = 31;
@@ -720,18 +721,12 @@ export default function DataBuilder() {
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="page-title flex items-center gap-2">
-              <FileSpreadsheet className="h-7 w-7 text-primary" />
-              Data Builder
-            </h1>
-            <p className="page-description max-w-2xl">
-              Pilih kolom dan filter, lalu muat data dari tabel <code className="text-xs bg-muted px-1 rounded">employees</code>.
-              Preview mendukung data relasi; export menghasilkan workbook Excel multi-sheet.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          icon={FileSpreadsheet}
+          title="Data Builder"
+          description="Pilih kolom dan filter, lalu muat data dari tabel employees. Preview mendukung data relasi; export menghasilkan workbook Excel multi-sheet."
+          gradient="cyan"
+        />
 
         <Card>
           <CardHeader className="pb-3">
