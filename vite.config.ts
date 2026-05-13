@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { readFileSync } from "fs";
@@ -37,6 +37,11 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     __APP_VERSION__: JSON.stringify(packageVersion),
+  },
+  optimizeDeps: {
+    // Vite 8 uses Rolldown instead of Rollup for optimization
+    // Ensure dependencies are properly optimized
+    include: ['react', 'react-dom', 'react-router-dom'],
   },
   build: {
     rollupOptions: {
