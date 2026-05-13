@@ -854,43 +854,6 @@ export default function PetaJabatan() {
     }
   };
 
-  // Perbaiki position_order semua jabatan di unit yang sedang aktif
-  // berdasarkan urutan tampil saat ini (category → posisi dalam kategori)
-  const handleFixPositionOrder = async () => {
-    if (!positions.length) return;
-
-    try {
-      // Kelompokkan per kategori, urutkan seperti yang ditampilkan sekarang
-      const updates: { id: string; position_order: number }[] = [];
-      POSITION_CATEGORIES.forEach(category => {
-        const catPositions = positions
-          .filter(p => p.position_category === category)
-          .sort((a, b) => a.position_order - b.position_order || a.position_name.localeCompare(b.position_name));
-
-        catPositions.forEach((pos, idx) => {
-          updates.push({ id: pos.id, position_order: idx + 1 });
-        });
-      });
-
-      // Update satu per satu (Supabase tidak support bulk update via JS client)
-      for (const { id, position_order } of updates) {
-        const { error } = await supabase
-          .from('position_references')
-          .update({ position_order })
-          .eq('id', id);
-        if (error) throw error;
-      }
-
-      toast({ title: 'Berhasil', description: `Urutan ${updates.length} jabatan berhasil diperbaiki` });
-      invalidateSummaryCache();
-      fetchData();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memperbaiki urutan';
-      logger.error('Error fixing position order:', err);
-      toast({ variant: 'destructive', title: 'Error', description: errorMessage });
-    }
-  };
-
   const handleEditNonAsnEmployee = (employee: EmployeeMatch) => {
     // Redirect to Data Pegawai page with employee ID
     // Or open a modal to edit employee
@@ -3277,21 +3240,10 @@ export default function PetaJabatan() {
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
             {isAdminPusat && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleFixPositionOrder}
-                  disabled={isLoading || positions.length === 0}
-                  className="text-xs sm:text-sm"
-                  title="Perbaiki urutan semua jabatan berdasarkan urutan tampil saat ini"
-                >
-                  <span className="hidden sm:inline">Perbaiki Urutan</span><span className="sm:hidden">Urutan</span>
-                </Button>
-                <Button onClick={openAddModal} className="text-xs sm:text-sm" disabled={isReadOnlyMode || !canEdit}>
-                  <Plus className="mr-1 sm:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
-                </Button>
-              </>
+              <Button onClick={openAddModal} className="text-xs sm:text-sm" disabled={isReadOnlyMode || !canEdit}>
+                <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Tambah Jabatan</span><span className="sm:hidden">Tambah</span>
+              </Button>
             )}
           </div>
         </div>
