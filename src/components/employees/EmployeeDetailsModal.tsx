@@ -7,6 +7,9 @@ import { id } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import { type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
+import { getActiveDisciplinaryActions, type DisciplinaryAction } from '@/lib/disciplinaryActionStorage';
+import { Scale, Calendar, User, AlertCircle, FileText } from 'lucide-react';
+import { DisciplinaryBadge } from './DisciplinaryBadge';
 
 interface Employee {
   id: string;
@@ -249,6 +252,139 @@ const ReadOnlyNotes = ({ title, data }: { title: string; data: NoteEntry[] }) =>
   );
 };
 
+// Read-only disciplinary actions
+const ReadOnlyDisciplinaryActions = ({ data }: { data: DisciplinaryAction[] }) => {
+  const getLevelColor = (level: string) => {
+    const colors = {
+      ringan: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      sedang: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+      berat: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    };
+    return colors[level as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
+  const getLevelLabel = (level: string) => {
+    const labels = {
+      ringan: "Ringan",
+      sedang: "Sedang",
+      berat: "Berat",
+    };
+    return labels[level as keyof typeof labels] || level;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Scale className="h-5 w-5 text-red-600" />
+          <label className="text-base font-semibold text-red-900 dark:text-red-100">
+            Riwayat Hukuman Disiplin Aktif
+          </label>
+        </div>
+        <Badge variant="destructive">{data.length} aktif</Badge>
+      </div>
+      
+      <div className="space-y-4">
+        {data.map((action, idx) => (
+          <div
+            key={idx}
+            className="p-4 border-2 border-red-200 dark:border-red-900 rounded-lg bg-red-50/50 dark:bg-red-950/20 space-y-3"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={getLevelColor(action.level)}>
+                    {getLevelLabel(action.level)}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    SK No. {action.decisionNumber}
+                  </span>
+                </div>
+                <h4 className="font-semibold text-foreground">{action.type}</h4>
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <div>
+                  <p className="text-xs">Tanggal Keputusan</p>
+                  <p className="font-medium text-foreground">
+                    {formatDate(action.decisionDate)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <div>
+                  <p className="text-xs">Mulai Berlaku</p>
+                  <p className="font-medium text-foreground">
+                    {formatDate(action.effectiveDate)}
+                  </p>
+                </div>
+              </div>
+              {action.endDate && (
+                <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
+                  <Calendar className="h-4 w-4" />
+                  <div>
+                    <p className="text-xs">Berakhir</p>
+                    <p className="font-medium text-foreground">
+                      {formatDate(action.endDate)}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Issued By */}
+            <div className="flex items-start gap-2 text-sm">
+              <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs text-muted-foreground">Ditetapkan oleh</p>
+                <p className="font-medium text-foreground">{action.issuedBy}</p>
+              </div>
+            </div>
+
+            {/* Violation */}
+            <div className="flex items-start gap-2 text-sm">
+              <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs text-muted-foreground">Pelanggaran</p>
+                <p className="text-foreground">{action.violation}</p>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {action.notes && (
+              <div className="pt-2 border-t border-red-200 dark:border-red-900/50">
+                <p className="text-xs text-muted-foreground mb-1">Catatan</p>
+                <p className="text-sm text-foreground">{action.notes}</p>
+              </div>
+            )}
+
+            {/* Document Link */}
+            {action.documentLink && (
+              <div className="pt-2 border-t border-red-200 dark:border-red-900/50">
+                <a
+                  href={action.documentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  <FileText className="h-4 w-4" />
+                  Lihat Dokumen
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export function EmployeeDetailsModal({ 
   open, 
   onOpenChange, 
@@ -265,14 +401,32 @@ export function EmployeeDetailsModal({
   additionalPositionHistory = [],
 }: EmployeeDetailsModalProps) {
   const [activeTab, setActiveTab] = useState<'main' | 'history' | 'notes'>('main');
+  const [disciplinaryActions, setDisciplinaryActions] = useState<DisciplinaryAction[]>([]);
+  const [isLoadingDisciplinary, setIsLoadingDisciplinary] = useState(false);
 
   // Reset tab ke 'main' saat employee berubah
   useEffect(() => {
     if (employee) {
       setActiveTab('main');
       logger.debug('=== EMPLOYEE DETAILS MODAL ===', employee.name);
+      loadDisciplinaryActions();
     }
   }, [employee]);
+
+  // Load active disciplinary actions for this employee
+  const loadDisciplinaryActions = async () => {
+    if (!employee?.id) return;
+    
+    setIsLoadingDisciplinary(true);
+    try {
+      const actions = await getActiveDisciplinaryActions(employee.id);
+      setDisciplinaryActions(actions);
+    } catch (error) {
+      console.error('Error loading disciplinary actions:', error);
+    } finally {
+      setIsLoadingDisciplinary(false);
+    }
+  };
 
   if (!employee) return null;
 
@@ -280,10 +434,17 @@ export function EmployeeDetailsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-[90vw] md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Detail Data Pegawai</DialogTitle>
-          <DialogDescription>
-            Informasi lengkap pegawai (mode tampilan)
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <DialogTitle>Detail Data Pegawai</DialogTitle>
+              <DialogDescription>
+                Informasi lengkap pegawai (mode tampilan)
+              </DialogDescription>
+            </div>
+            {disciplinaryActions.length > 0 && (
+              <DisciplinaryBadge count={disciplinaryActions.length} />
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
@@ -369,6 +530,16 @@ export function EmployeeDetailsModal({
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6 focus:outline-none focus-visible:outline-none">
+              {/* Disciplinary Actions - Show first if exists */}
+              {isLoadingDisciplinary ? (
+                <div className="text-sm text-muted-foreground">Memuat data hukuman disiplin...</div>
+              ) : disciplinaryActions.length > 0 ? (
+                <>
+                  <ReadOnlyDisciplinaryActions data={disciplinaryActions} />
+                  <Separator />
+                </>
+              ) : null}
+
               {/* Mutation History */}
               <ReadOnlyHistoryTable
                 title="Riwayat Mutasi"

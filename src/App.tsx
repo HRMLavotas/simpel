@@ -30,6 +30,7 @@ const SystemInfo = lazy(() => import("./pages/SystemInfo"));
 const Announcements = lazy(() => import("./pages/Announcements"));
 const EmployeeCaseManagement = lazy(() => import("./pages/EmployeeCaseManagement"));
 const EmployeeCaseDetail = lazy(() => import("./pages/EmployeeCaseDetail"));
+const CaseConnectionValidator = lazy(() => import("./pages/CaseConnectionValidator"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
@@ -115,6 +116,7 @@ const App = () => (
               <Route path="/announcements" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Announcements /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admin/kasus-pegawai" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><EmployeeCaseManagement /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admin/kasus-pegawai/:caseId" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><EmployeeCaseDetail /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/admin/kasus-pegawai-validator" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><CaseConnectionValidator /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/system-info" element={<ProtectedRoute><ErrorBoundary><SystemInfo /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>

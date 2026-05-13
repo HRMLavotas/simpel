@@ -46,6 +46,7 @@ import { ChangeLogDialog, type DetectedChange } from '@/components/employees/Cha
 import { EmployeeDetailsModal } from '@/components/employees/EmployeeDetailsModal';
 import { DuplicateMutationDialog, type DuplicateEmployee } from '@/components/employees/DuplicateMutationDialog';
 import { SatpelBadge } from '@/components/employees/SatpelBadge';
+import { DisciplinaryBadge } from '@/components/employees/DisciplinaryBadge';
 import { type EducationEntry } from '@/components/employees/EducationHistoryForm';
 import { type HistoryEntry } from '@/components/employees/EmployeeHistoryForm';
 import { type AdditionalPositionHistoryEntry } from '@/components/employees/AdditionalPositionHistoryForm';
@@ -62,6 +63,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { HistoryRowData, Employee } from '@/types/employee';
 import { createNotification } from '@/hooks/useNotifications';
+import { getActiveDisciplinaryActions } from '@/lib/disciplinaryActionStorage';
 import * as XLSX from 'xlsx-js-style';
 import {
   applyWorksheetStyling,
@@ -253,6 +255,9 @@ export default function Employees() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isFetchingEmployeesRef = useRef(false);
   const pendingEmployeesFetchRef = useRef(false);
+
+  // Disciplinary actions state - Map of employee ID to count of active disciplinary actions
+  const [employeeDisciplinaryCount, setEmployeeDisciplinaryCount] = useState<Map<string, number>>(new Map());
 
   // Change log dialog state
   const [changeLogOpen, setChangeLogOpen] = useState(false);
@@ -494,6 +499,9 @@ export default function Employees() {
       
       setEmployees(sortedData);
       logger.debug('Employees state updated, count:', sortedData.length);
+
+      // Load disciplinary actions count for all employees
+      await loadDisciplinaryActionsCount(sortedData.map(e => e.id));
     } catch (error) {
       logger.error('Error fetching employees:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat data pegawai' });
@@ -504,6 +512,28 @@ export default function Employees() {
         pendingEmployeesFetchRef.current = false;
         fetchEmployees(skipIfModalOpen);
       }
+    }
+  };
+
+  // Load disciplinary actions count for employees
+  const loadDisciplinaryActionsCount = async (employeeIds: string[]) => {
+    if (employeeIds.length === 0) return;
+
+    try {
+      // Get all active disciplinary actions
+      const actions = await getActiveDisciplinaryActions();
+      
+      // Count by employee ID
+      const countMap = new Map<string, number>();
+      actions.forEach(action => {
+        const current = countMap.get(action.employeeId) || 0;
+        countMap.set(action.employeeId, current + 1);
+      });
+
+      setEmployeeDisciplinaryCount(countMap);
+    } catch (error) {
+      console.error('Error loading disciplinary actions count:', error);
+      // Don't show error toast, this is not critical
     }
   };
 
@@ -1996,6 +2026,12 @@ export default function Employees() {
                               )}
                               {employee.satuan_kerja_penugasan && (
                                 <SatpelBadge satpelName={employee.satuan_kerja_penugasan} />
+                              )}
+                              {employeeDisciplinaryCount.has(employee.id) && employeeDisciplinaryCount.get(employee.id)! > 0 && (
+                                <DisciplinaryBadge 
+                                  count={employeeDisciplinaryCount.get(employee.id)} 
+                                  variant="compact"
+                                />
                               )}
                             </div>
                           </TableCell>
