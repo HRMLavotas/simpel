@@ -228,7 +228,10 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
   const educationOrder: Record<string, number> = {
     'SD': 1,
     'SMP': 2,
+    'SLTP': 2,      // SLTP = Sekolah Lanjutan Tingkat Pertama (setara SMP)
     'SMA': 3,
+    'SMK': 3,
+    'SLTA': 3,      // SLTA = Sekolah Lanjutan Tingkat Atas (setara SMA/SMK)
     'D1': 4,
     'D2': 5,
     'D3': 6,
@@ -238,8 +241,88 @@ export function EducationPieChart({ data }: EducationPieChartProps) {
     'S3': 10,
   };
   
+  // Normalize education level to standard Indonesian education levels
+  const normalizeEducationLevel = (level: string): string => {
+    const normalized = level.trim().toUpperCase();
+    
+    // SD (Sekolah Dasar) - check if contains SD or SR
+    if (normalized.includes('SD') || normalized.includes('SR') || normalized.includes('SEKOLAH DASAR')) {
+      return 'SD';
+    }
+    
+    // SMP (Sekolah Menengah Pertama) - check if contains SMP or SLTP
+    if (normalized.includes('SMP') || normalized.includes('SLTP') || normalized.includes('SEKOLAH MENENGAH PERTAMA')) {
+      return 'SMP';
+    }
+    
+    // SMA (Sekolah Menengah Atas) - check if contains SMA, SMK, or SLTA
+    // This includes: "SMA", "SMK", "SLTA", "SMA/SMK", "SLTA/SMA Sederajat", "SMK Teknik Mesin", etc.
+    if (normalized.includes('SMA') || normalized.includes('SMK') || normalized.includes('SLTA') ||
+        normalized.includes('SEKOLAH MENENGAH ATAS') || normalized.includes('SEKOLAH MENENGAH KEJURUAN')) {
+      return 'SMA';
+    }
+    
+    // Diploma levels - check for exact match first, then contains
+    // Handle: D1, D-1, DI, DI - Akuntansi, DIII, DIII - Teknik, Diploma 1, Diploma I, D1/Sederajat, etc.
+    if (normalized === 'D1' || normalized === 'D-1' || normalized === 'DI' ||
+        normalized.match(/^D1[\s\/\-]/i) || normalized.match(/^D-1[\s\/\-]/i) || normalized.match(/^DI[\s\/\-]/i) ||
+        normalized.includes('DIPLOMA 1') || normalized.includes('DIPLOMA I')) {
+      return 'D1';
+    }
+    if (normalized === 'D2' || normalized === 'D-2' || normalized === 'DII' ||
+        normalized.match(/^D2[\s\/\-]/i) || normalized.match(/^D-2[\s\/\-]/i) || normalized.match(/^DII[\s\/\-]/i) ||
+        normalized.includes('DIPLOMA 2') || normalized.includes('DIPLOMA II')) {
+      return 'D2';
+    }
+    if (normalized === 'D3' || normalized === 'D-3' || normalized === 'DIII' ||
+        normalized.match(/^D3[\s\/\-]/i) || normalized.match(/^D-3[\s\/\-]/i) || normalized.match(/^DIII[\s\/\-]/i) ||
+        normalized.includes('DIPLOMA 3') || normalized.includes('DIPLOMA III')) {
+      return 'D3';
+    }
+    if (normalized === 'D4' || normalized === 'D-4' || normalized === 'DIV' ||
+        normalized.match(/^D4[\s\/\-]/i) || normalized.match(/^D-4[\s\/\-]/i) || normalized.match(/^DIV[\s\/\-]/i) ||
+        normalized.includes('DIPLOMA 4') || normalized.includes('DIPLOMA IV')) {
+      return 'D4';
+    }
+    
+    // Sarjana (S1) - check for exact match first, then contains
+    if (normalized === 'S1' || normalized === 'S-1' || 
+        normalized.match(/^S1[\s\/]/i) || normalized.match(/^S-1[\s\/]/i) ||
+        normalized.includes('SARJANA') || normalized.includes('STRATA 1') || normalized.includes('STRATA I')) {
+      return 'S1';
+    }
+    
+    // Magister (S2) - check for exact match first, then contains
+    if (normalized === 'S2' || normalized === 'S-2' || 
+        normalized.match(/^S2[\s\/]/i) || normalized.match(/^S-2[\s\/]/i) ||
+        normalized.includes('MAGISTER') || normalized.includes('STRATA 2') || normalized.includes('STRATA II')) {
+      return 'S2';
+    }
+    
+    // Doktor (S3) - check for exact match first, then contains
+    if (normalized === 'S3' || normalized === 'S-3' || 
+        normalized.match(/^S3[\s\/]/i) || normalized.match(/^S-3[\s\/]/i) ||
+        normalized.includes('DOKTOR') || normalized.includes('STRATA 3') || normalized.includes('STRATA III')) {
+      return 'S3';
+    }
+    
+    return level;
+  };
+  
+  // Normalize and aggregate data
+  const normalizedData: Record<string, number> = {};
+  data.forEach(item => {
+    const normalizedLevel = normalizeEducationLevel(item.level);
+    normalizedData[normalizedLevel] = (normalizedData[normalizedLevel] || 0) + item.count;
+  });
+  
+  const aggregatedData = Object.entries(normalizedData).map(([level, count]) => ({
+    level,
+    count,
+  }));
+  
   // Sort by education level
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = aggregatedData.sort((a, b) => {
     const orderA = educationOrder[a.level] || 999;
     const orderB = educationOrder[b.level] || 999;
     return orderA - orderB;

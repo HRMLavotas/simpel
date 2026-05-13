@@ -5,11 +5,16 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { ChartWrapper } from '@/components/dashboard/ChartWrapper';
 import { StatsGridSkeleton, ChartSkeleton } from '@/components/ui/skeleton-screens';
 import { 
-  AsnPieChart, 
+  AsnPieChart,
+  AsnPieChartBare,
   RankBarChart, 
   DepartmentBarChart, 
   PositionTypePieChart,
+  PositionTypePieChartBare,
   GenderPieChart,
+  GenderPieChartBare,
+  ReligionPieChart,
+  ReligionPieChartBare,
   WorkDurationBarChart,
   COLORS 
 } from '@/components/dashboard/Charts';
@@ -21,6 +26,9 @@ import {
 } from '@/components/dashboard/AdditionalCharts';
 import { PetaJabatanAsnTable, NonAsnPositionChart } from '@/components/dashboard/PetaJabatanCharts';
 import { GolonganPerUnitChart } from '@/components/dashboard/GolonganPerUnitChart';
+import { EducationDistributionChart } from '@/components/dashboard/EducationDistributionChart';
+import { DepartmentDistributionChart } from '@/components/dashboard/DepartmentDistributionChart';
+import { PositionGradeChart } from '@/components/dashboard/PositionGradeChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { usePetaJabatanStats } from '@/hooks/usePetaJabatanStats';
@@ -52,8 +60,7 @@ import { AnnouncementBanner } from '@/components/notifications/AnnouncementBanne
 
 // Available chart categories
 const CHART_CATEGORIES = [
-  { id: 'asn_status', label: 'Status ASN', description: 'Distribusi PNS, PPPK, Non ASN' },
-  { id: 'rank', label: 'Golongan', description: 'Distribusi per golongan/pangkat' },
+  { id: 'asn_status', label: 'Status ASN', description: 'Distribusi PNS, CPNS, PPPK, Non ASN' },
   { id: 'position_type', label: 'Jenis Jabatan', description: 'Struktural, Fungsional, Pelaksana' },
   { id: 'department', label: 'Unit Kerja', description: 'Distribusi per unit kerja' },
   { id: 'work_duration', label: 'Masa Kerja', description: 'Distribusi masa kerja pegawai' },
@@ -62,6 +69,7 @@ const CHART_CATEGORIES = [
   { id: 'retirement_year', label: 'Tahun Pensiun', description: 'Tren pegawai pensiun per tahun' },
   { id: 'education', label: 'Jenjang Pendidikan', description: 'Distribusi berdasarkan pendidikan terakhir' },
   { id: 'gender', label: 'Jenis Kelamin', description: 'Distribusi berdasarkan gender' },
+  { id: 'religion', label: 'Agama', description: 'Distribusi berdasarkan agama' },
   { id: 'peta_jabatan_asn', label: 'Summary Peta Jabatan ASN', description: 'Perbandingan Target ABK vs Total ASN' },
   { id: 'non_asn_formasi', label: 'Distribusi Formasi Non ASN', description: 'Top 15 Formasi/Penugasan terbanyak untuk Non ASN' },
   { id: 'golongan_per_unit', label: 'Golongan ASN per Unit', description: 'Distribusi PNS Gol I–IV dan PPPK per unit kerja' },
@@ -78,7 +86,7 @@ export default function Dashboard() {
     'asn_status',
     'peta_jabatan_asn',
     'position_type',
-    'rank'
+    'golongan_per_unit'
   ];
 
   const [selectedCharts, setSelectedCharts] = useState<string[]>(EXECUTIVE_DEFAULT_CHARTS);
@@ -89,7 +97,8 @@ export default function Dashboard() {
     rankData, 
     departmentData, 
     positionTypeData, 
-    genderData, 
+    genderData,
+    religionData,
     workDurationData,
     gradeData,
     ageData,
@@ -179,6 +188,7 @@ export default function Dashboard() {
 
   const asnChartData = [
     { name: 'PNS', value: stats.pns, color: COLORS.PNS },
+    { name: 'CPNS', value: stats.cpns, color: COLORS.CPNS },
     { name: 'PPPK', value: stats.pppk, color: COLORS.PPPK },
     { name: 'Non ASN', value: stats.nonAsn, color: COLORS['Non ASN'] },
   ].filter(d => d.value > 0);
@@ -384,39 +394,99 @@ export default function Dashboard() {
         )}
 
         {(isLoading || isPetaLoading || isLoadingPreferences) ? (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2"><ChartSkeleton /><ChartSkeleton /></div>
+          <div className="grid gap-6 grid-cols-1"><ChartSkeleton /><ChartSkeleton /></div>
         ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 [&>.col-span-full]:col-span-1 md:[&>.col-span-full]:col-span-2">
-            {selectedCharts.includes('asn_status') && <AsnPieChart data={asnChartData} />}
-            {selectedCharts.includes('non_asn_formasi') && <NonAsnPositionChart data={nonAsnStats} />}
-            {selectedCharts.includes('position_type') && (
-              <ChartWrapper title="Jenis Jabatan" data={positionTypeData}><PositionTypePieChart data={positionTypeData} /></ChartWrapper>
+          <div className="grid gap-6 grid-cols-1">
+            {/* Combined small charts: ASN Status + Position Type */}
+            {(selectedCharts.includes('asn_status') || selectedCharts.includes('position_type')) && (
+              <Card className="col-span-full animate-fade-in hover:shadow-md transition-all duration-300">
+                <CardHeader className="pb-3 border-b">
+                  <CardTitle className="text-base">Distribusi Status ASN & Jenis Jabatan</CardTitle>
+                  <CardDescription>Komposisi pegawai berdasarkan status dan jenis jabatan</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {selectedCharts.includes('asn_status') && (
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold mb-4 text-center">Status ASN</h3>
+                        <AsnPieChartBare data={asnChartData} />
+                      </div>
+                    )}
+                    {selectedCharts.includes('position_type') && (
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold mb-4 text-center">Jenis Jabatan</h3>
+                        <PositionTypePieChartBare data={positionTypeData} />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-            {selectedCharts.includes('retirement_year') && (
-              <ChartWrapper title="Tahun Pensiun" data={retirementYearData}><RetirementYearBarChart data={retirementYearData} /></ChartWrapper>
-            )}
-            {selectedCharts.includes('rank') && (
-              <ChartWrapper title="Distribusi Golongan" data={rankData}><RankBarChart data={rankData} /></ChartWrapper>
+
+            {/* Full width charts */}
+            {selectedCharts.includes('department') && canViewAll && selectedDepartment === 'all' && (
+              <DepartmentDistributionChart 
+                userDepartment={profile?.department || null}
+                isAdminPusat={canViewAll}
+                selectedDepartment={selectedDepartment}
+              />
             )}
             
-            {/* Other Secondary Charts */}
-            {selectedCharts.includes('department') && canViewAll && selectedDepartment === 'all' && (
-              <ChartWrapper title="Distribusi Unit Kerja" data={departmentData}><DepartmentBarChart data={departmentData} /></ChartWrapper>
+            {/* Combined small charts: Gender + Religion */}
+            {(selectedCharts.includes('gender') || selectedCharts.includes('religion')) && (
+              <Card className="col-span-full animate-fade-in hover:shadow-md transition-all duration-300">
+                <CardHeader className="pb-3 border-b">
+                  <CardTitle className="text-base">Distribusi Jenis Kelamin & Agama</CardTitle>
+                  <CardDescription>Komposisi pegawai berdasarkan jenis kelamin dan agama</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {selectedCharts.includes('gender') && (
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold mb-4 text-center">Jenis Kelamin</h3>
+                        <GenderPieChartBare data={genderData} />
+                      </div>
+                    )}
+                    {selectedCharts.includes('religion') && (
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold mb-4 text-center">Agama</h3>
+                        <ReligionPieChartBare data={religionData} />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-            {selectedCharts.includes('gender') && (
-              <ChartWrapper title="Jenis Kelamin" data={genderData}><GenderPieChart data={genderData} /></ChartWrapper>
-            )}
+            
             {selectedCharts.includes('work_duration') && (
               <ChartWrapper title="Masa Kerja" data={workDurationData}><WorkDurationBarChart data={workDurationData} /></ChartWrapper>
             )}
+            
             {selectedCharts.includes('grade') && (
-              <ChartWrapper title="Grade Jabatan" data={gradeData}><GradeBarChart data={gradeData} /></ChartWrapper>
+              <PositionGradeChart 
+                userDepartment={profile?.department || null}
+                isAdminPusat={canViewAll}
+                selectedDepartment={selectedDepartment}
+              />
             )}
+            
             {selectedCharts.includes('age') && (
               <ChartWrapper title="Usia Pegawai" data={ageData}><AgeBarChart data={ageData} /></ChartWrapper>
             )}
+            
+            {selectedCharts.includes('retirement_year') && (
+              <ChartWrapper title="Tahun Pensiun" data={retirementYearData}><RetirementYearBarChart data={retirementYearData} /></ChartWrapper>
+            )}
+
+            {selectedCharts.includes('non_asn_formasi') && <NonAsnPositionChart data={nonAsnStats} />}
+
+            {/* Education Distribution - Full width with tabs */}
             {selectedCharts.includes('education') && (
-              <ChartWrapper title="Jenjang Pendidikan" data={educationData}><EducationPieChart data={educationData} /></ChartWrapper>
+              <EducationDistributionChart 
+                userDepartment={profile?.department || null}
+                isAdminPusat={canViewAll}
+                selectedDepartment={selectedDepartment}
+              />
             )}
 
             {/* Golongan per Unit - Full width chart */}

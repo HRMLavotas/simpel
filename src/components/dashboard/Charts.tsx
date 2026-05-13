@@ -126,9 +126,10 @@ interface RetirementYearBarChartProps {
 }
 
 const COLORS = {
-  PNS: 'hsl(217, 91%, 60%)',
-  PPPK: 'hsl(142, 76%, 36%)',
-  'Non ASN': 'hsl(38, 92%, 50%)',
+  PNS: 'hsl(217, 91%, 60%)',      // Blue
+  CPNS: 'hsl(280, 65%, 60%)',     // Purple
+  PPPK: 'hsl(142, 76%, 36%)',     // Green
+  'Non ASN': 'hsl(38, 92%, 50%)', // Yellow/Orange
 };
 
 const POSITION_COLORS = [
@@ -207,6 +208,56 @@ export function AsnPieChart({ data }: AsnPieChartProps) {
   );
 }
 
+// Bare version without Card wrapper for combined charts
+export function AsnPieChartBare({ data }: AsnPieChartProps) {
+  const isMobile = useIsMobile();
+  
+  return (
+    <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={isMobile ? 40 : 60}
+          outerRadius={isMobile ? 70 : 100}
+          paddingAngle={3}
+          dataKey="value"
+          label={isMobile ? undefined : ({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          labelLine={!isMobile}
+        >
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={entry.color}
+              strokeWidth={0}
+            />
+          ))}
+        </Pie>
+        <Tooltip 
+          formatter={(value: number, name: string) => [
+            `${value} pegawai`, 
+            name
+          ]}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            fontSize: '12px',
+          }}
+        />
+        <Legend 
+          wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+          formatter={(value: string) => {
+            const item = data.find(d => d.name === value);
+            return `${value} (${item?.value || 0})`;
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function RankBarChart({ data }: RankBarChartProps) {
   const isMobile = useIsMobile();
   
@@ -278,71 +329,67 @@ export function RankBarChart({ data }: RankBarChartProps) {
 export function DepartmentBarChart({ data }: DepartmentBarChartProps) {
   const isMobile = useIsMobile();
   
-  // Sort by count descending and take top 10
-  const sortedData = [...data]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
-    .map(item => ({
-      ...item,
-      shortDept: item.department.length > (isMobile ? 12 : 20) 
-        ? item.department.substring(0, isMobile ? 12 : 20) + '...' 
-        : item.department,
-    }));
+  // Sort by count descending (show all departments)
+  const sortedData = [...data].sort((a, b) => b.count - a.count);
+  const totalCount = sortedData.reduce((sum, item) => sum + item.count, 0);
 
   return (
     <Card className="animate-fade-in flex flex-col h-full hover:shadow-md transition-all duration-300">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Distribusi per Unit Kerja</CardTitle>
-        <CardDescription>Top 10 unit kerja dengan jumlah pegawai terbanyak</CardDescription>
+      <CardHeader className="pb-3 border-b">
+        <CardTitle className="text-base">Distribusi per Unit Kerja</CardTitle>
+        <CardDescription>Daftar lengkap semua unit kerja dengan jumlah pegawai</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-center">
-        <ResponsiveContainer width="100%" height={isMobile ? 350 : 380}>
-          <BarChart 
-            data={sortedData} 
-            layout="vertical" 
-            margin={{ 
-              left: isMobile ? 10 : 20, 
-              right: isMobile ? 10 : 20,
-              top: 10,
-              bottom: 10
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
-            <XAxis 
-              type="number"
-              tick={{ fontSize: isMobile ? 10 : 12 }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-            />
-            <YAxis 
-              type="category" 
-              dataKey="shortDept" 
-              width={isMobile ? 90 : 150}
-              tick={{ fontSize: isMobile ? 9 : 11 }} 
-              axisLine={{ stroke: 'hsl(var(--border))' }}
-            />
-            <Tooltip 
-              formatter={(value: number) => [`${value} pegawai`, 'Jumlah']}
-              labelFormatter={(label, payload) => {
-                if (payload && payload[0]) {
-                  return payload[0].payload.department;
-                }
-                return label;
-              }}
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
-            />
-            <Bar 
-              dataKey="count" 
-              fill="hsl(142, 76%, 36%)" 
-              radius={[0, 4, 4, 0]}
-              name="Jumlah Pegawai"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+      <CardContent className="pt-4">
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">
+            Total: <span className="font-semibold text-foreground">{totalCount.toLocaleString('id-ID')}</span> pegawai
+            {' • '}
+            <span className="font-semibold text-foreground">{sortedData.length}</span> unit kerja
+          </div>
+          <div className="rounded-lg border shadow-sm overflow-hidden">
+            <div className="max-h-[500px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/80 backdrop-blur-sm sticky top-0 z-10">
+                  <tr className="border-b">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-12">
+                      No
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Unit Kerja
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-24">
+                      Jumlah
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-24">
+                      Persentase
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedData.map((item, i) => (
+                    <tr 
+                      key={i} 
+                      className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {i + 1}
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {item.department}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium">
+                        {item.count.toLocaleString('id-ID')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">
+                        {((item.count / totalCount) * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -403,6 +450,57 @@ export function PositionTypePieChart({ data }: PositionTypePieChartProps) {
         </ResponsiveContainer>
       </CardContent>
     </Card>
+  );
+}
+
+// Bare version without Card wrapper for combined charts
+export function PositionTypePieChartBare({ data }: PositionTypePieChartProps) {
+  const isMobile = useIsMobile();
+  
+  return (
+    <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={isMobile ? 40 : 60}
+          outerRadius={isMobile ? 70 : 100}
+          paddingAngle={3}
+          dataKey="count"
+          nameKey="type"
+          label={isMobile ? undefined : ({ type, percent }) => `${type} ${(percent * 100).toFixed(0)}%`}
+          labelLine={!isMobile}
+        >
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={POSITION_COLORS[index % POSITION_COLORS.length]}
+              strokeWidth={0}
+            />
+          ))}
+        </Pie>
+        <Tooltip 
+          formatter={(value: number, name: string) => [
+            `${value} pegawai`, 
+            name
+          ]}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            fontSize: '12px',
+          }}
+        />
+        <Legend 
+          wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+          formatter={(value: string) => {
+            const item = data.find(d => d.type === value);
+            return `${value} (${item?.count || 0})`;
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -524,6 +622,62 @@ export function GenderPieChart({ data }: GenderPieChartProps) {
   );
 }
 
+// Bare version without Card wrapper for combined charts
+export function GenderPieChartBare({ data }: GenderPieChartProps) {
+  const isMobile = useIsMobile();
+  
+  const GENDER_COLORS = [
+    'hsl(217, 91%, 60%)',  // Male - blue
+    'hsl(330, 65%, 55%)',  // Female - pink
+  ];
+  
+  return (
+    <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={isMobile ? 40 : 60}
+          outerRadius={isMobile ? 70 : 100}
+          paddingAngle={2}
+          dataKey="count"
+          nameKey="gender"
+          label={isMobile ? undefined : ({ gender, percent }) => `${gender} ${(percent * 100).toFixed(0)}%`}
+          labelLine={!isMobile}
+        >
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+              strokeWidth={0}
+            />
+          ))}
+        </Pie>
+        <Tooltip 
+          formatter={(value: number, name: string) => [
+            `${value} pegawai`, 
+            name
+          ]}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            fontSize: '12px',
+          }}
+        />
+        <Legend 
+          wrapperStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+          formatter={(value: string) => {
+            const item = data.find(d => d.gender === value);
+            return `${value} (${item?.count || 0})`;
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function ReligionPieChart({ data }: ReligionPieChartProps) {
   const isMobile = useIsMobile();
   
@@ -588,6 +742,70 @@ export function ReligionPieChart({ data }: ReligionPieChartProps) {
         </ResponsiveContainer>
       </CardContent>
     </Card>
+  );
+}
+
+// Bare version without Card wrapper for combined charts - using Bar Chart
+export function ReligionPieChartBare({ data }: ReligionPieChartProps) {
+  const isMobile = useIsMobile();
+  
+  const RELIGION_COLORS = [
+    'hsl(217, 91%, 60%)',
+    'hsl(142, 76%, 36%)',
+    'hsl(38, 92%, 50%)',
+    'hsl(280, 65%, 60%)',
+    'hsl(0, 84%, 60%)',
+    'hsl(199, 89%, 48%)',
+  ];
+  
+  // Sort by count descending
+  const sortedData = [...data].sort((a, b) => b.count - a.count);
+  
+  return (
+    <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+      <BarChart 
+        data={sortedData} 
+        layout="vertical" 
+        margin={{ 
+          left: isMobile ? 10 : 20, 
+          right: isMobile ? 10 : 20,
+          top: 10,
+          bottom: 10
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
+        <XAxis 
+          type="number"
+          tick={{ fontSize: isMobile ? 10 : 12 }}
+          axisLine={{ stroke: 'hsl(var(--border))' }}
+        />
+        <YAxis 
+          type="category" 
+          dataKey="religion" 
+          width={isMobile ? 60 : 80}
+          tick={{ fontSize: isMobile ? 10 : 12 }} 
+          axisLine={{ stroke: 'hsl(var(--border))' }}
+        />
+        <Tooltip 
+          formatter={(value: number) => [`${value} pegawai`, 'Jumlah']}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            fontSize: '12px',
+          }}
+        />
+        <Bar 
+          dataKey="count" 
+          radius={[0, 4, 4, 0]}
+          name="Jumlah Pegawai"
+        >
+          {sortedData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={RELIGION_COLORS[index % RELIGION_COLORS.length]} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 
