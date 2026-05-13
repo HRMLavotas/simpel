@@ -3208,17 +3208,31 @@ export default function PetaJabatan() {
       const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
         const matched = getMatchingEmployees(pos.position_name);
-        if (matched.length === 0) {
-          result.push({ type: 'position', position: pos, isFirst: true, existing: 0, rowSpan: 1 });
+        
+        // Filter employees by search query if search is active
+        const filteredEmployees = searchQuery 
+          ? matched.filter(emp => {
+              const query = searchQuery.toLowerCase();
+              const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+              return fullName.includes(query) || emp.nip?.includes(query);
+            })
+          : matched;
+        
+        if (filteredEmployees.length === 0) {
+          // Only show empty row if no search query (to show all positions)
+          // Or if search matches position name but no employees match
+          if (!searchQuery) {
+            result.push({ type: 'position', position: pos, isFirst: true, existing: matched.length, rowSpan: 1 });
+          }
         } else {
-          matched.forEach((emp, idx) => {
+          filteredEmployees.forEach((emp, idx) => {
             result.push({
               type: 'position',
               position: pos,
               employee: emp,
               isFirst: idx === 0,
-              existing: matched.length,
-              rowSpan: matched.length,
+              existing: matched.length, // Keep total count, not filtered count
+              rowSpan: filteredEmployees.length,
             });
           });
         }
@@ -3226,7 +3240,7 @@ export default function PetaJabatan() {
     });
 
     return result;
-  }, [groupsData, getMatchingEmployees]);
+  }, [groupsData, getMatchingEmployees, searchQuery]);
 
   let positionNo = 0;
 
@@ -3283,29 +3297,45 @@ export default function PetaJabatan() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'asn' | 'non-asn' | 'summary-asn' | 'summary-non-asn')} className="space-y-4">
-          <TabsList className="w-full">
-            <TabsTrigger value="asn" className="flex-1 min-w-0">
-              <span className="hidden sm:inline">Peta Jabatan ASN</span>
-              <span className="sm:hidden">ASN</span>
-              <span className="ml-1.5 text-xs hidden md:inline">({positions.length} jabatan, {employees.length} pegawai)</span>
-            </TabsTrigger>
-            <TabsTrigger value="non-asn" className="flex-1 min-w-0">
-              <span className="hidden sm:inline">Formasi Non-ASN</span>
-              <span className="sm:hidden">Non-ASN</span>
-              <span className="ml-1.5 text-xs hidden md:inline">
-                ({(() => {
-                  const uniquePositions = new Set(nonAsnEmployees.map(e => e.position_name || 'Tidak Ada Jabatan'));
-                  return uniquePositions.size;
-                })()} jabatan, {nonAsnEmployees.length} pegawai)
+          <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="asn" className="flex flex-col items-center justify-center py-2 px-2 h-auto data-[state=active]:bg-background">
+              <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                <span className="hidden sm:inline">Peta Jabatan ASN</span>
+                <span className="sm:hidden">ASN</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate w-full text-center">
+                {positions.length} jab, {employees.length} peg
               </span>
             </TabsTrigger>
-            <TabsTrigger value="summary-asn" className="flex-1 min-w-0">
-              <span className="hidden sm:inline">Summary ASN</span>
-              <span className="sm:hidden">Sum. ASN</span>
+            <TabsTrigger value="non-asn" className="flex flex-col items-center justify-center py-2 px-2 h-auto data-[state=active]:bg-background">
+              <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                <span className="hidden sm:inline">Formasi Non-ASN</span>
+                <span className="sm:hidden">Non-ASN</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate w-full text-center">
+                {(() => {
+                  const uniquePositions = new Set(nonAsnEmployees.map(e => e.position_name || 'Tidak Ada Jabatan'));
+                  return uniquePositions.size;
+                })()} jab, {nonAsnEmployees.length} peg
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="summary-non-asn" className="flex-1 min-w-0">
-              <span className="hidden sm:inline">Summary Non-ASN</span>
-              <span className="sm:hidden">Sum. Non-ASN</span>
+            <TabsTrigger value="summary-asn" className="flex flex-col items-center justify-center py-2 px-2 h-auto data-[state=active]:bg-background">
+              <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                <span className="hidden sm:inline">Summary ASN</span>
+                <span className="sm:hidden">Sum. ASN</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 invisible">
+                placeholder
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="summary-non-asn" className="flex flex-col items-center justify-center py-2 px-2 h-auto data-[state=active]:bg-background">
+              <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                <span className="hidden sm:inline">Summary Non-ASN</span>
+                <span className="sm:hidden">Sum. Non-ASN</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 invisible">
+                placeholder
+              </span>
             </TabsTrigger>
           </TabsList>
 
