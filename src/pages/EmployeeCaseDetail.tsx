@@ -17,8 +17,8 @@ import {
   AlertDialogDescription, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  ChevronLeft, FileText, Plus, Trash2, Edit2, Calendar, Users,
-  Link as LinkIcon, Clock, Building2, Briefcase, User,
+  ChevronLeft, FileText, Plus, Trash2, Edit2, Calendar,
+  Link as LinkIcon, Clock, Building2, Briefcase, User, Scale,
 } from "lucide-react";
 import {
   getCaseById, updateCase, addTimelineItem, updateTimelineItem, deleteTimelineItem,
@@ -26,18 +26,23 @@ import {
 import {
   CASE_STATUS_LABELS, CASE_SEVERITY_LABELS, getCaseTypeLabel,
   EmployeeCase, TimelineItem, CaseStatus, SupportingDocument,
-  InvolvedParty, PARTY_ROLE_OPTIONS, PARTY_ROLE_LABELS,
 } from "@/lib/employeeCaseTypes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCaseAccess } from "@/hooks/useCaseAccess";
 import CaseDetailCard from "@/components/cases/CaseDetailCard";
+import DisciplinaryActionsCard from "@/components/cases/DisciplinaryActionsCard";
 import { supabase } from "@/integrations/supabase/client";
+import DisciplinaryActionDialog, {
+  DisciplinaryAction,
+  DISCIPLINARY_LEVELS,
+  DISCIPLINARY_TYPES,
+} from "@/components/cases/DisciplinaryActionDialog";
 
 interface TimelineFormState {
   date: string;
   description: string;
   status: string;
-  involvedPartiesList: InvolvedParty[];
+  involvedPartiesList: any[];
   documents: SupportingDocument[];
 }
 
@@ -46,6 +51,9 @@ const emptyTimelineForm: TimelineFormState = {
 };
 
 interface EmployeeExtraInfo {
+  name?: string;
+  nip?: string;
+  pangkatGolongan?: string;
   jabatan?: string;
   unitKerja?: string;
   createdByName?: string;
@@ -62,6 +70,7 @@ export default function EmployeeCaseDetail() {
   const [editingTimelineId, setEditingTimelineId] = useState<string | null>(null);
   const [timelineToDelete, setTimelineToDelete] = useState<TimelineItem | null>(null);
   const [extraInfo, setExtraInfo] = useState<EmployeeExtraInfo>({});
+  const [showDisciplinaryDialog, setShowDisciplinaryDialog] = useState(false);
 
   const [formData, setFormData] = useState({ status: "baru" as CaseStatus, description: "" });
   const [timelineForm, setTimelineForm] = useState<TimelineFormState>({ ...emptyTimelineForm });
@@ -93,30 +102,53 @@ export default function EmployeeCaseDetail() {
   const loadExtraInfo = async (c: EmployeeCase) => {
     const info: EmployeeExtraInfo = {};
     
+    // Set basic info from case
+    info.name = c.employeeName;
+    info.nip = c.employeeNip;
+    
     // Check structured caseDetails first, then legacy JSONB
     const manualData = c.caseDetails?.isManualEntry ? c.caseDetails : (c as any).manualEmployeeData;
     
-    // Get employee profile for jabatan & unit kerja
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('jabatan, work_unit_id')
+    // Try to get employee data from employees table (ASN)
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('name, nip, rank, position_name, department')
       .eq('id', c.employeeId)
       .maybeSingle();
-    if (profile) {
-      info.jabatan = profile.jabatan || undefined;
-      if (profile.work_unit_id) {
-        const { data: unit } = await supabase
-          .from('work_units')
-          .select('name')
-          .eq('id', profile.work_unit_id)
-          .maybeSingle();
-        info.unitKerja = unit?.name || undefined;
+    
+    if (employee) {
+      // Data from employees table (ASN)
+      info.name = employee.name || c.employeeName;
+      info.nip = employee.nip || c.employeeNip;
+      info.pangkatGolongan = employee.rank || undefined;
+      info.jabatan = employee.position_name || undefined;
+      info.unitKerja = employee.department || undefined;
+    } else {
+      // Try profiles table as fallback
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, jabatan, work_unit_id')
+        .eq('id', c.employeeId)
+        .maybeSingle();
+      
+      if (profile) {
+        info.name = profile.name || c.employeeName;
+        info.jabatan = profile.jabatan || undefined;
+        if (profile.work_unit_id) {
+          const { data: unit } = await supabase
+            .from('work_units')
+            .select('name')
+            .eq('id', profile.work_unit_id)
+            .maybeSingle();
+          info.unitKerja = unit?.name || undefined;
+        }
+      } else if (manualData) {
+        // Fallback to manual employee data (structured or legacy)
+        info.jabatan = manualData.manualJabatan || manualData.jabatan || undefined;
+        info.unitKerja = manualData.manualUnitKerja || manualData.unitKerja || undefined;
       }
-    } else if (manualData) {
-      // Fallback to manual employee data (structured or legacy)
-      info.jabatan = manualData.manualJabatan || manualData.jabatan || undefined;
-      info.unitKerja = manualData.manualUnitKerja || manualData.unitKerja || undefined;
     }
+    
     // Get creator name
     const creatorId = c.createdBy;
     if (creatorId) {
@@ -152,21 +184,20 @@ export default function EmployeeCaseDetail() {
     }
     try {
       const validDocs = timelineForm.documents.filter(d => d.link.trim());
-      const validParties = timelineForm.involvedPartiesList.filter(p => p.name.trim());
       if (editingTimelineId) {
         await updateTimelineItem(employeeCase.id, editingTimelineId, {
           date: timelineForm.date,
           description: timelineForm.description,
-          status: timelineForm.status,
-          involvedPartiesList: validParties,
+          status: "",
+          involvedPartiesList: [],
           documents: validDocs,
         });
         toast.success("Timeline berhasil diperbarui");
       } else {
         await addTimelineItem(
           employeeCase.id, timelineForm.date, timelineForm.description,
-          timelineForm.status, undefined,
-          undefined, undefined, validDocs, validParties
+          "", undefined,
+          undefined, undefined, validDocs, []
         );
         toast.success("Timeline berhasil ditambahkan");
       }
@@ -198,12 +229,8 @@ export default function EmployeeCaseDetail() {
     setTimelineForm({
       date: item.date,
       description: item.description,
-      status: item.status,
-      involvedPartiesList: item.involvedPartiesList?.length
-        ? [...item.involvedPartiesList]
-        : item.involvedParties
-          ? [{ name: item.involvedParties, role: 'lainnya' }]
-          : [],
+      status: "",
+      involvedPartiesList: [],
       documents: item.documents.length > 0 ? [...item.documents] : [],
     });
     setShowTimelineForm(true);
@@ -230,25 +257,56 @@ export default function EmployeeCaseDetail() {
     }));
   };
 
-  // Involved parties management
-  const addParty = () => {
-    setTimelineForm(prev => ({
-      ...prev,
-      involvedPartiesList: [...prev.involvedPartiesList, { name: "", role: "lainnya" }],
-    }));
-  };
-  const updateParty = (index: number, field: 'name' | 'role', value: string) => {
-    setTimelineForm(prev => {
-      const parties = [...prev.involvedPartiesList];
-      parties[index] = { ...parties[index], [field]: value };
-      return { ...prev, involvedPartiesList: parties };
-    });
-  };
-  const removeParty = (index: number) => {
-    setTimelineForm(prev => ({
-      ...prev,
-      involvedPartiesList: prev.involvedPartiesList.filter((_, i) => i !== index),
-    }));
+  // Handle disciplinary action submission
+  const handleDisciplinaryAction = async (data: DisciplinaryAction) => {
+    if (!employeeCase) return;
+
+    try {
+      // 1. Update case details with disciplinary action
+      const currentDetails = employeeCase.caseDetails || {};
+      const disciplinaryActions = currentDetails.disciplinaryActions || [];
+      
+      const newAction = {
+        ...data,
+        addedAt: new Date().toISOString(),
+      };
+
+      const updatedDetails = {
+        ...currentDetails,
+        disciplinaryActions: [...disciplinaryActions, newAction],
+      };
+
+      await updateCase(employeeCase.id, {
+        caseDetails: updatedDetails,
+      });
+
+      // 2. Auto-add timeline entry
+      const typeLabel = DISCIPLINARY_TYPES[data.level].find(t => t.value === data.type)?.label || data.type;
+      const timelineDescription = `Hukuman Disiplin ${DISCIPLINARY_LEVELS[data.level]} diterbitkan: ${typeLabel}. SK No. ${data.decisionNumber} oleh ${data.issuedBy}.`;
+      
+      const documents = data.documentLink
+        ? [{ name: `SK Hukuman Disiplin No. ${data.decisionNumber}`, link: data.documentLink }]
+        : [];
+
+      await addTimelineItem(
+        employeeCase.id,
+        data.decisionDate,
+        timelineDescription,
+        "Hukuman Disiplin Diterbitkan",
+        undefined,
+        undefined,
+        undefined,
+        documents,
+        []
+      );
+
+      // 3. Reload case data
+      await loadCase();
+      toast.success("Hukuman disiplin berhasil ditambahkan dan timeline diperbarui");
+    } catch (error) {
+      console.error("Error adding disciplinary action:", error);
+      throw error;
+    }
   };
 
   if (isLoading) {
@@ -292,19 +350,6 @@ export default function EmployeeCaseDetail() {
     return colors[status];
   };
 
-  const getPartyRoleColor = (role: string) => {
-    const colors: Record<string, string> = {
-      pelapor: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-      terlapor: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-      saksi: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300",
-      mediator: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
-      penyidik: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300",
-      atasan_langsung: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300",
-      pihak_ketiga: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300",
-    };
-    return colors[role] || "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-  };
-
   // Calculate case duration
   const caseDurationDays = Math.floor(
     (new Date().getTime() - new Date(employeeCase.reportDate).getTime()) / (1000 * 60 * 60 * 24)
@@ -337,9 +382,24 @@ export default function EmployeeCaseDetail() {
                 </div>
                 <div className="flex gap-2">
                   {canEdit && !isEditing && (
-                    <Button variant="outline" onClick={() => setIsEditing(true)} className="bg-white/20 hover:bg-white/30 border-white/50 text-white">
-                      <Edit2 className="h-4 w-4 mr-2" />Edit
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowDisciplinaryDialog(true)}
+                        className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-white"
+                      >
+                        <Scale className="h-4 w-4 mr-2" />
+                        Update Hukuman Disiplin
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        className="bg-white/20 hover:bg-white/30 border-white/50 text-white"
+                      >
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -356,10 +416,6 @@ export default function EmployeeCaseDetail() {
                 <CardContent className="pt-6 space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">NIP</p>
-                      <p className="font-semibold">{employeeCase.employeeNip}</p>
-                    </div>
-                    <div>
                       <p className="text-sm text-muted-foreground">Jenis Kasus</p>
                       <Badge variant="outline" className="mt-1">{getCaseTypeLabel(employeeCase.caseType)}</Badge>
                     </div>
@@ -371,6 +427,22 @@ export default function EmployeeCaseDetail() {
                       <p className="text-sm text-muted-foreground">Tingkat Keparahan</p>
                       <Badge variant="outline" className="mt-1">{employeeCase.severity && CASE_SEVERITY_LABELS[employeeCase.severity]}</Badge>
                     </div>
+                    {employeeCase.caseDetails?.disciplinaryActions && employeeCase.caseDetails.disciplinaryActions.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Hukuman Disiplin</p>
+                        <Badge 
+                          className={`mt-1 ${
+                            employeeCase.caseDetails.disciplinaryActions[0].level === 'ringan' 
+                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              : employeeCase.caseDetails.disciplinaryActions[0].level === 'sedang'
+                              ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}
+                        >
+                          {DISCIPLINARY_LEVELS[employeeCase.caseDetails.disciplinaryActions[0].level]}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   {isEditing ? (
@@ -413,6 +485,13 @@ export default function EmployeeCaseDetail() {
               {/* Case-specific Detail Card */}
               <CaseDetailCard employeeCase={employeeCase} />
 
+              {/* Disciplinary Actions Card */}
+              {employeeCase.caseDetails?.disciplinaryActions && (
+                <DisciplinaryActionsCard
+                  disciplinaryActions={employeeCase.caseDetails.disciplinaryActions}
+                />
+              )}
+
               {/* Timeline */}
               <Card className="border-primary/10 shadow-lg">
                 <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent flex flex-row items-center justify-between">
@@ -434,48 +513,6 @@ export default function EmployeeCaseDetail() {
                       <div className="space-y-2">
                         <Label htmlFor="timeline-description">Deskripsi Tindakan *</Label>
                         <Textarea id="timeline-description" value={timelineForm.description} onChange={(e) => setTimelineForm({ ...timelineForm, description: e.target.value })} rows={3} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="timeline-status">Status Singkat</Label>
-                        <Input id="timeline-status" placeholder='Contoh: "di proses ke Biro"' value={timelineForm.status} onChange={(e) => setTimelineForm({ ...timelineForm, status: e.target.value })} />
-                      </div>
-
-                      {/* Structured Involved Parties */}
-                      <div className="space-y-3">
-                        <Label>Pihak yang Terlibat (Opsional)</Label>
-                        {timelineForm.involvedPartiesList.map((party, idx) => (
-                          <div key={idx} className="p-3 border rounded-lg space-y-2 bg-background">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-xs">Nama</Label>
-                                <Input
-                                  placeholder="Nama pihak terlibat"
-                                  value={party.name}
-                                  onChange={(e) => updateParty(idx, 'name', e.target.value)}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs">Peran / Kapasitas</Label>
-                                <Select value={party.role} onValueChange={(val) => updateParty(idx, 'role', val)}>
-                                  <SelectTrigger><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    {PARTY_ROLE_OPTIONS.map((opt) => (
-                                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <Button type="button" variant="ghost" size="sm" onClick={() => removeParty(idx)} className="text-destructive text-xs">
-                                <Trash2 className="h-3 w-3 mr-1" />Hapus
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        <Button type="button" variant="outline" size="sm" onClick={addParty}>
-                          <Plus className="h-3 w-3 mr-1" />Tambah Pihak
-                        </Button>
                       </div>
 
                       {/* Multiple Documents Section */}
@@ -525,7 +562,6 @@ export default function EmployeeCaseDetail() {
                                   <Calendar className="h-4 w-4" />
                                   {formatDateID(item.date, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                                 </p>
-                                {item.status && <Badge variant="secondary" className="mt-2">{item.status}</Badge>}
                               </div>
                               {canEdit && (
                                 <div className="flex gap-2">
@@ -535,31 +571,6 @@ export default function EmployeeCaseDetail() {
                               )}
                             </div>
                             <p className="font-semibold mb-3">{item.description}</p>
-
-                            {/* Structured Involved Parties Display */}
-                            {item.involvedPartiesList && item.involvedPartiesList.length > 0 ? (
-                              <div className="mb-3">
-                                <p className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
-                                  <Users className="h-4 w-4" />
-                                  <span className="font-medium">Pihak yang Terlibat:</span>
-                                </p>
-                                <div className="ml-6 flex flex-wrap gap-2">
-                                  {item.involvedPartiesList.map((party, idx) => (
-                                    <div key={idx} className="flex items-center gap-1.5">
-                                      <span className="text-sm font-medium text-foreground">{party.name}</span>
-                                      <Badge className={`text-[10px] px-1.5 py-0 ${getPartyRoleColor(party.role)}`}>
-                                        {PARTY_ROLE_LABELS[party.role] || party.role}
-                                      </Badge>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : item.involvedParties ? (
-                              <p className="text-sm text-muted-foreground flex items-center gap-2 mb-3">
-                                <Users className="h-4 w-4" />
-                                <span className="font-medium">Pihak yang Terlibat:</span> {item.involvedParties}
-                              </p>
-                            ) : null}
 
                             {/* Documents display */}
                             {(() => {
@@ -655,6 +666,33 @@ export default function EmployeeCaseDetail() {
               <Card className="border-primary/10 shadow-lg">
                 <CardHeader><CardTitle className="text-base">Informasi Pegawai</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
+                  {extraInfo.name && (
+                    <div className="flex items-start gap-2">
+                      <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Nama</p>
+                        <p className="text-sm font-medium">{extraInfo.name}</p>
+                      </div>
+                    </div>
+                  )}
+                  {extraInfo.nip && (
+                    <div className="flex items-start gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">NIP</p>
+                        <p className="text-sm font-medium font-mono">{extraInfo.nip}</p>
+                      </div>
+                    </div>
+                  )}
+                  {extraInfo.pangkatGolongan && (
+                    <div className="flex items-start gap-2">
+                      <Scale className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pangkat / Golongan</p>
+                        <p className="text-sm font-medium">{extraInfo.pangkatGolongan}</p>
+                      </div>
+                    </div>
+                  )}
                   {extraInfo.jabatan && (
                     <div className="flex items-start gap-2">
                       <Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
@@ -673,15 +711,17 @@ export default function EmployeeCaseDetail() {
                       </div>
                     </div>
                   )}
-                  {extraInfo.createdByName && (
-                    <div className="flex items-start gap-2">
-                      <User className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Dibuat oleh</p>
-                        <p className="text-sm font-medium">{extraInfo.createdByName}</p>
+                  <div className="pt-3 border-t border-muted">
+                    {extraInfo.createdByName && (
+                      <div className="flex items-start gap-2">
+                        <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Kasus Dibuat oleh</p>
+                          <p className="text-sm font-medium">{extraInfo.createdByName}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -701,6 +741,15 @@ export default function EmployeeCaseDetail() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showDisciplinaryDialog && employeeCase && (
+        <DisciplinaryActionDialog
+          employeeName={employeeCase.employeeName}
+          employeeNip={employeeCase.employeeNip}
+          onClose={() => setShowDisciplinaryDialog(false)}
+          onSubmit={handleDisciplinaryAction}
+        />
+      )}
     </DashboardLayout>
   );
 }
