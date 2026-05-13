@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -114,17 +114,41 @@ export function QuickActionForm({
     return ['Tidak Ada'];
   };
 
-  const handleRankPromotion = () => {
-    if (!newRank) {
-      toast({ variant: 'destructive', title: 'Pilih pangkat baru terlebih dahulu' });
-      return;
+  // Auto-apply rank change when newRank is selected
+  useEffect(() => {
+    if (newRank && newRank !== currentRank && rankDate && rankTMT) {
+      // Use setTimeout to avoid calling setState during render
+      setTimeout(() => applyRankChange(), 0);
     }
-    
-    // Validate: new rank must be different from current
-    if (newRank === currentRank) {
-      toast({ variant: 'destructive', title: 'Pangkat baru harus berbeda dari pangkat saat ini' });
-      return;
+  }, [newRank, rankDate, rankTMT]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-apply mutation when department is selected
+  useEffect(() => {
+    if (newDepartment && newDepartment !== currentDepartment && mutationDate) {
+      // Use setTimeout to avoid calling setState during render
+      setTimeout(() => applyMutation(), 0);
     }
+  }, [newDepartment, mutationDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-apply position change when newPosition is filled
+  useEffect(() => {
+    if (newPosition && newPosition.trim() !== currentPosition.trim() && positionDate) {
+      // Use setTimeout to avoid calling setState during render
+      setTimeout(() => applyPositionChange(), 0);
+    }
+  }, [newPosition, positionDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-apply inactive status when reason is selected
+  useEffect(() => {
+    if (inactiveReason && inactiveDate) {
+      // Use setTimeout to avoid calling setState during render
+      setTimeout(() => applyInactiveStatus(), 0);
+    }
+  }, [inactiveReason, inactiveDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-apply rank change when all required fields are filled
+  const applyRankChange = () => {
+    if (!newRank || newRank === currentRank) return;
     
     const entry: HistoryEntry = {
       tanggal: rankDate,
@@ -136,27 +160,13 @@ export function QuickActionForm({
     };
     
     onRankChange(newRank, entry);
-    
-    // Show success message
     setRankSuccess(true);
-    setTimeout(() => setRankSuccess(false), 3000);
-    
-    // Reset form
-    setNewRank('');
-    setRankSK('');
-    setRankNotes('');
+    setTimeout(() => setRankSuccess(false), 2000);
   };
 
-  const handleMutation = () => {
-    if (!newDepartment) {
-      toast({ variant: 'destructive', title: 'Pilih unit kerja tujuan terlebih dahulu' });
-      return;
-    }
-    
-    if (newDepartment === currentDepartment) {
-      toast({ variant: 'destructive', title: 'Unit kerja tujuan harus berbeda dari unit kerja saat ini' });
-      return;
-    }
+  // Auto-apply mutation when department is selected
+  const applyMutation = () => {
+    if (!newDepartment || newDepartment === currentDepartment) return;
     
     const entry: HistoryEntry = {
       tanggal: mutationDate,
@@ -178,24 +188,12 @@ export function QuickActionForm({
     setShowMutationConfirm(false);
     setPendingMutation(null);
     setMutationSuccess(true);
-    setTimeout(() => setMutationSuccess(false), 3000);
-    setNewDepartment('');
-    setMutationPosition('');
-    setMutationSK('');
-    setMutationNotes('');
+    setTimeout(() => setMutationSuccess(false), 2000);
   };
 
-  const handlePositionChange = () => {
-    if (!newPosition) {
-      toast({ variant: 'destructive', title: 'Isi nama jabatan baru terlebih dahulu' });
-      return;
-    }
-    
-    // Validate: new position must be different from current
-    if (newPosition.trim() === currentPosition.trim()) {
-      toast({ variant: 'destructive', title: 'Jabatan baru harus berbeda dari jabatan saat ini' });
-      return;
-    }
+  // Auto-apply position change when position is filled
+  const applyPositionChange = () => {
+    if (!newPosition || newPosition.trim() === currentPosition.trim()) return;
     
     const entry: HistoryEntry = {
       tanggal: positionDate,
@@ -206,24 +204,14 @@ export function QuickActionForm({
     };
     
     onPositionChange(newPosition, entry);
-    
-    // Show success message
     setPositionSuccess(true);
-    setTimeout(() => setPositionSuccess(false), 3000);
-    
-    // Reset form
-    setNewPosition('');
-    setPositionSK('');
-    setPositionNotes('');
+    setTimeout(() => setPositionSuccess(false), 2000);
   };
 
-  const handleInactiveStatus = () => {
-    if (!inactiveReason) {
-      toast({ variant: 'destructive', title: 'Pilih alasan non-aktif terlebih dahulu' });
-      return;
-    }
+  // Auto-apply inactive status when reason is selected
+  const applyInactiveStatus = () => {
+    if (!inactiveReason) return;
     
-    // Langsung apply tanpa dialog konfirmasi untuk menghindari nested modal issue
     const entry: HistoryEntry = {
       tanggal: inactiveDate,
       nomor_sk: inactiveSK,
@@ -231,15 +219,8 @@ export function QuickActionForm({
     };
     
     onInactiveChange(false, inactiveDate, inactiveReason, entry);
-    
-    // Show success message
     setInactiveSuccess(true);
-    setTimeout(() => setInactiveSuccess(false), 3000);
-    
-    // Reset form
-    setInactiveReason('');
-    setInactiveSK('');
-    setInactiveNotes('');
+    setTimeout(() => setInactiveSuccess(false), 2000);
   };
 
   return (
@@ -247,11 +228,11 @@ export function QuickActionForm({
       <Alert>
         <AlertDescription>
           💡 <strong>Cara Kerja Quick Action:</strong><br/>
-          1. Pilih aksi (Naik Pangkat/Mutasi/Ganti Jabatan)<br/>
-          2. Isi form dan klik tombol "Terapkan" → Data diupdate di form (belum tersimpan)<br/>
-          3. Klik tombol "Simpan Perubahan" di bawah → Data tersimpan ke database<br/>
+          1. Pilih aksi (Naik Pangkat/Mutasi/Ganti Jabatan/Non-Aktif)<br/>
+          2. Isi form yang tersedia - data akan otomatis terupdate di form utama<br/>
+          3. Klik tombol <strong>"Simpan Perubahan"</strong> di bawah untuk menyimpan ke database<br/>
           <br/>
-          ⚠️ <strong>Penting:</strong> Tombol "Terapkan" hanya mengupdate form, belum menyimpan ke database!
+          ⚠️ <strong>Penting:</strong> Perubahan belum tersimpan sampai Anda klik "Simpan Perubahan"!
         </AlertDescription>
       </Alert>
 
@@ -296,7 +277,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Pangkat berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
+                    ✅ Pangkat berhasil diupdate! Klik "Simpan Perubahan" di bawah untuk menyimpan.
                   </AlertDescription>
                 </Alert>
               )}
@@ -364,15 +345,6 @@ export function QuickActionForm({
                   />
                 </div>
               </div>
-
-              <Button 
-                onClick={handleRankPromotion} 
-                className="w-full"
-                disabled={!newRank}
-              >
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Terapkan Kenaikan Pangkat
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -394,7 +366,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Mutasi berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
+                    ✅ Mutasi berhasil diupdate! Klik "Simpan Perubahan" di bawah untuk menyimpan.
                   </AlertDescription>
                 </Alert>
               )}
@@ -470,15 +442,6 @@ export function QuickActionForm({
                   />
                 </div>
               </div>
-
-              <Button 
-                onClick={handleMutation} 
-                className="w-full"
-                disabled={!newDepartment}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Terapkan Mutasi
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -500,7 +463,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Jabatan berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
+                    ✅ Jabatan berhasil diupdate! Klik "Simpan Perubahan" di bawah untuk menyimpan.
                   </AlertDescription>
                 </Alert>
               )}
@@ -558,15 +521,6 @@ export function QuickActionForm({
                   />
                 </div>
               </div>
-
-              <Button 
-                onClick={handlePositionChange} 
-                className="w-full"
-                disabled={!newPosition}
-              >
-                <Briefcase className="mr-2 h-4 w-4" />
-                Terapkan Pergantian Jabatan
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -588,7 +542,7 @@ export function QuickActionForm({
                 <Alert className="bg-green-50 border-green-200">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    ✅ Status non-aktif berhasil diupdate di form! Klik "Simpan Perubahan" di bawah untuk menyimpan ke database.
+                    ✅ Status non-aktif berhasil diupdate! Klik "Simpan Perubahan" di bawah untuk menyimpan.
                   </AlertDescription>
                 </Alert>
               )}
@@ -646,24 +600,6 @@ export function QuickActionForm({
                     rows={2}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Alert className="bg-red-50 border-red-200">
-                  <AlertDescription className="text-red-800 text-sm">
-                    <strong>Konfirmasi:</strong> Dengan menekan tombol di bawah, pegawai akan ditandai sebagai non-aktif. Anda masih perlu klik <strong>"Simpan Perubahan"</strong> untuk menyimpan ke database.
-                  </AlertDescription>
-                </Alert>
-                
-                <Button 
-                  onClick={handleInactiveStatus} 
-                  className="w-full"
-                  variant="destructive"
-                  disabled={!inactiveReason}
-                >
-                  <UserX className="mr-2 h-4 w-4" />
-                  Terapkan Status Non-Aktif
-                </Button>
               </div>
             </CardContent>
           </Card>

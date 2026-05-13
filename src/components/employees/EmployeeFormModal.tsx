@@ -524,19 +524,16 @@ export function EmployeeFormModal({
         satuan_kerja_penugasan: employee.satuan_kerja_penugasan || '',
       });
       
-      // Explicitly set rank_group to ensure it's set
-      if (employee.rank_group) {
-        setTimeout(() => {
-          form.setValue('rank_group', employee.rank_group!, { shouldValidate: false });
-          logger.debug('Rank group set to:', employee.rank_group);
-        }, 0);
-      }
-      
       initialLoadCompleteRef.current = true;
       formModifiedRef.current = false;
       
       // Set form ready after ensuring all updates are done
       setTimeout(() => {
+        // Explicitly set rank_group again to ensure it's set
+        if (employee.rank_group) {
+          form.setValue('rank_group', employee.rank_group, { shouldValidate: false });
+          logger.debug('Rank group set to:', employee.rank_group);
+        }
         setIsFormReady(true);
         logger.debug('Form ready. Current rank:', form.getValues('rank_group'));
       }, 100);
