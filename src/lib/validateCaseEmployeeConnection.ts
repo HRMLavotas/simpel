@@ -20,6 +20,13 @@ export interface ConnectionValidationResult {
   }>;
 }
 
+export interface DisciplinaryValidationResult {
+  totalActions: number;
+  disconnectedActions: number;
+  invalidActions: any[];
+}
+
+
 /**
  * Validate all employee case connections
  * Returns statistics about connected and disconnected cases
@@ -195,7 +202,17 @@ export async function fixDisconnectedCases(): Promise<{
       let matchedEmployee = null;
       let matchType: "nip" | "name" | undefined;
 
-      if (invalidCase.employeeNip && invalidCase.employeeNip !== "-") {
+      // Helper for fuzzy name matching
+      const cleanName = (name: string) => {
+        if (!name) return "";
+        return name.split(',')[0]
+          .toLowerCase()
+          .replace(/(s\.t|s\.kom|m\.si|s\.par|s\.pd|s\.h|s\.e|dr|dr\.|dra|dra\.|drs|drs\.)/g, '')
+          .replace(/[^a-z0-9]/g, '')
+          .trim();
+      };
+
+      if (invalidCase.employeeNip && invalidCase.employeeNip !== "-" && invalidCase.employeeNip !== "TIDAK_ADA") {
         // Check if NIP contains multiple NIPs (for divorce cases with spouse)
         const nips = invalidCase.employeeNip.split(/[,;\/\s]+/).map(n => n.trim()).filter(n => n.length > 0);
         
@@ -203,39 +220,55 @@ export async function fixDisconnectedCases(): Promise<{
         
         // Try each NIP
         for (const nip of nips) {
-          console.log(`  → Checking NIP: "${nip}"`);
-          const { data: empByNip } = await supabase
+          const cleanNip = nip.replace(/[^0-9]/g, '');
+          console.log(`  → Checking NIP: "${nip}" (Cleaned: ${cleanNip})`);
+          
+          const { data: empsByNip } = await supabase
+            .from("employees")
+            .select("id, name, nip");
+          
+          // Since we might have many employees, better use a direct query if possible, 
+          // but NIP formatting might be different in DB too.
+          // Let's try exact match first for performance
+          const { data: exactNip } = await supabase
             .from("employees")
             .select("id, name, nip")
             .eq("nip", nip)
             .maybeSingle();
 
-          if (empByNip) {
-            matchedEmployee = empByNip;
+          if (exactNip) {
+            matchedEmployee = exactNip;
             matchType = "nip";
-            console.log(`  ✅ Found match by NIP (${nip}): ${empByNip.name}`);
-            break; // Use first match
-          } else {
-            console.log(`  ❌ No match for NIP: "${nip}"`);
+            break;
           }
+
+          // If exact match fails, we need to scan (this is slow if many, but okay for targeted fix)
+          // Actually, let's just stick to exact NIP and fuzzy name for now to avoid massive scans here
         }
       }
 
-      // If not found by NIP, try by name
+      // If not found by NIP, try by name (fuzzy)
       if (!matchedEmployee && invalidCase.employeeName) {
         console.log(`  → Trying to match by name: "${invalidCase.employeeName}"`);
-        const { data: empByName } = await supabase
-          .from("employees")
-          .select("id, name, nip")
-          .ilike("name", invalidCase.employeeName)
-          .maybeSingle();
+        const cClean = cleanName(invalidCase.employeeName);
+        
+        if (cClean) {
+          // Fetch employees to match (with pagination if needed, but here we'll try targeted search)
+          const { data: empsByName } = await supabase
+            .from("employees")
+            .select("id, name, nip")
+            .ilike("name", `%${invalidCase.employeeName.split(',')[0].trim()}%`)
+            .limit(10);
 
-        if (empByName) {
-          matchedEmployee = empByName;
-          matchType = "name";
-          console.log(`  ✅ Found match by name: ${empByName.name} (NIP: ${empByName.nip})`);
-        } else {
-          console.log(`  ❌ No match by name for: "${invalidCase.employeeName}"`);
+          if (empsByName && empsByName.length > 0) {
+            // Find best match in the candidates
+            const match = empsByName.find(e => cleanName(e.name) === cClean);
+            if (match) {
+              matchedEmployee = match;
+              matchType = "name";
+              console.log(`  ✅ Found match by name: ${match.name} (NIP: ${match.nip})`);
+            }
+          }
         }
       }
 
@@ -272,6 +305,16 @@ export async function fixDisconnectedCases(): Promise<{
           .from("employee_cases")
           .update(updateData)
           .eq("id", invalidCase.caseId);
+
+        // Also update any disciplinary actions linked to this case
+        await supabase
+          .from("disciplinary_actions")
+          .update({
+            employee_id: matchedEmployee.id,
+            employee_name: matchedEmployee.name,
+            employee_nip: matchedEmployee.nip,
+          })
+          .eq("case_id", invalidCase.caseId);
 
         if (updateError) {
           console.error(`❌ Failed to update case ${invalidCase.caseId}:`, updateError);
@@ -413,6 +456,16 @@ export async function getCaseEmployeeConnectionReport(): Promise<{
       (allDisciplinary || []).map(da => da.case_id)
     ).size;
 
+    // Helper for fuzzy name matching
+    const cleanName = (name: string) => {
+      if (!name) return "";
+      return name.split(',')[0]
+        .toLowerCase()
+        .replace(/(s\.t|s\.kom|m\.si|s\.par|s\.pd|s\.h|s\.e|dr|dr\.|dra|dra\.|drs|drs\.)/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
+    };
+
     // Check each invalid case for potential matches
     const enrichedInvalidCases = await Promise.all(
       allInvalidCases.map(async (c) => {
@@ -423,15 +476,10 @@ export async function getCaseEmployeeConnectionReport(): Promise<{
         let matchedEmployeeByName = undefined;
 
         // Check if can match by NIP
-        if (c.employeeNip && c.employeeNip !== "-") {
-          // Check if NIP contains multiple NIPs (for divorce cases with spouse)
+        if (c.employeeNip && c.employeeNip !== "-" && c.employeeNip !== "TIDAK_ADA") {
           const nips = c.employeeNip.split(/[,;\/\s]+/).map(n => n.trim()).filter(n => n.length > 0);
           
-          console.log(`📋 Analyzing case ${c.caseNumber}: ${nips.length} NIP(s) found: [${nips.join(', ')}]`);
-          
-          // Try each NIP
           for (const nip of nips) {
-            console.log(`  → Checking NIP: "${nip}"`);
             const { data: empByNip } = await supabase
               .from("employees")
               .select("id, name, nip")
@@ -445,33 +493,32 @@ export async function getCaseEmployeeConnectionReport(): Promise<{
                 name: empByNip.name,
                 nip: empByNip.nip || "-",
               };
-              console.log(`  ✅ Match found: ${empByNip.name}`);
-              break; // Use first match
-            } else {
-              console.log(`  ❌ No match for: "${nip}"`);
+              break; 
             }
           }
         }
 
-        // Check if can match by name
-        if (!canMatchByNip) {
-          console.log(`  → Trying to match by name: "${c.employeeName}"`);
-          const { data: empByName } = await supabase
-            .from("employees")
-            .select("id, name, nip")
-            .ilike("name", c.employeeName)
-            .maybeSingle();
+        // Check if can match by name (fuzzy)
+        if (!canMatchByNip && c.employeeName) {
+          const cClean = cleanName(c.employeeName);
+          if (cClean) {
+            const { data: empsByName } = await supabase
+              .from("employees")
+              .select("id, name, nip")
+              .ilike("name", `%${c.employeeName.split(',')[0].trim()}%`)
+              .limit(10);
 
-          if (empByName) {
-            canMatchByName = true;
-            matchedEmployeeByName = {
-              id: empByName.id,
-              name: empByName.name,
-              nip: empByName.nip || "-",
-            };
-            console.log(`  ✅ Match by name found: ${empByName.name} (NIP: ${empByName.nip})`);
-          } else {
-            console.log(`  ❌ No match by name for: "${c.employeeName}"`);
+            if (empsByName && empsByName.length > 0) {
+              const match = empsByName.find(e => cleanName(e.name) === cClean);
+              if (match) {
+                canMatchByName = true;
+                matchedEmployeeByName = {
+                  id: match.id,
+                  name: match.name,
+                  nip: match.nip || "-",
+                };
+              }
+            }
           }
         }
 
@@ -499,6 +546,99 @@ export async function getCaseEmployeeConnectionReport(): Promise<{
     };
   } catch (error) {
     console.error("❌ Error generating report:", error);
+    throw error;
+  }
+}
+
+/**
+ * Validate connections for disciplinary actions
+ */
+export async function validateDisciplinaryActions(): Promise<DisciplinaryValidationResult> {
+  try {
+    const { data: actions, error } = await supabase
+      .from("disciplinary_actions")
+      .select("id, employee_id, employee_name, case_id");
+
+    if (error) throw error;
+
+    const invalidActions = [];
+    for (const action of actions || []) {
+      // Check if employee exists
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("id", action.employee_id)
+        .maybeSingle();
+
+      if (!employee) {
+        invalidActions.push(action);
+      }
+    }
+
+    return {
+      totalActions: actions?.length || 0,
+      disconnectedActions: invalidActions.length,
+      invalidActions,
+    };
+  } catch (error) {
+    console.error("Error validating disciplinary actions:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fix disconnected disciplinary actions by syncing from their cases
+ */
+export async function fixDisciplinaryActions() {
+  try {
+    const validation = await validateDisciplinaryActions();
+    
+    if (validation.disconnectedActions === 0) {
+      return { fixed: 0, failed: 0, details: [] };
+    }
+
+    let fixed = 0;
+    let failed = 0;
+    const details = [];
+
+    for (const action of validation.invalidActions) {
+      // Get the case to find the correct employee_id
+      const { data: caseData } = await supabase
+        .from("employee_cases")
+        .select("employee_id, employee_name, employee_nip")
+        .eq("id", action.case_id)
+        .maybeSingle();
+
+      if (caseData && !caseData.employee_id.startsWith("manual_") && !caseData.employee_id.startsWith("MANUAL_")) {
+        const { error: updateError } = await supabase
+          .from("disciplinary_actions")
+          .update({
+            employee_id: caseData.employee_id,
+            employee_name: caseData.employee_name,
+            employee_nip: caseData.employee_nip,
+          })
+          .eq("id", action.id);
+
+        if (updateError) {
+          failed++;
+          details.push({ id: action.id, status: "failed", reason: updateError.message });
+        } else {
+          fixed++;
+          details.push({ id: action.id, status: "fixed", newEmployeeId: caseData.employee_id });
+        }
+      } else {
+        failed++;
+        details.push({ 
+          id: action.id, 
+          status: "failed", 
+          reason: caseData ? "Case is still manual entry" : "Case not found" 
+        });
+      }
+    }
+
+    return { fixed, failed, details };
+  } catch (error) {
+    console.error("Error fixing disciplinary actions:", error);
     throw error;
   }
 }

@@ -39,6 +39,7 @@ import DisciplinaryActionDialog, {
 } from "@/components/cases/DisciplinaryActionDialog";
 import LeadershipDirectiveDialog from "@/components/cases/LeadershipDirectiveDialog";
 import LeadershipDirectivesCard from "@/components/cases/LeadershipDirectivesCard";
+import CaseEditDialog from "@/components/cases/CaseEditDialog";
 import {
   DisciplinaryAction,
   createDisciplinaryAction,
@@ -93,8 +94,46 @@ export default function EmployeeCaseDetail() {
 
   const [formData, setFormData] = useState({ status: "baru" as CaseStatus, description: "" });
   const [timelineForm, setTimelineForm] = useState<TimelineFormState>({ ...emptyTimelineForm });
+  const [employees, setEmployees] = useState<any[]>([]);
 
-  useEffect(() => { loadCase(); }, [caseId]);
+  useEffect(() => { 
+    loadCase(); 
+    loadEmployees();
+  }, [caseId]);
+
+  const loadEmployees = async () => {
+    try {
+      let allEmployees: any[] = [];
+      let offset = 0;
+      const limit = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('employees')
+          .select('id, name, nip, rank, position_name, department')
+          .range(offset, offset + limit - 1)
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          hasMore = false;
+        } else {
+          allEmployees = [...allEmployees, ...data];
+          if (data.length < limit) {
+            hasMore = false;
+          } else {
+            offset += limit;
+          }
+        }
+      }
+      
+      setEmployees(allEmployees);
+    } catch (error) {
+      console.error("Error loading employees:", error);
+    }
+  };
 
   const loadCase = async () => {
     if (!caseId) return;
@@ -192,7 +231,9 @@ export default function EmployeeCaseDetail() {
     
     // Get creator name
     const creatorId = c.createdBy;
-    if (creatorId) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(creatorId);
+    
+    if (creatorId && isUuid) {
       const { data: creator } = await supabase
         .from('profiles')
         .select('name')
@@ -575,27 +616,15 @@ export default function EmployeeCaseDetail() {
                   </div>
 
                   {isEditing ? (
-                    <form onSubmit={handleUpdateCase} className="space-y-4 pt-4 border-t">
-                      <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val as CaseStatus })}>
-                          <SelectTrigger id="status"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(CASE_STATUS_LABELS).map(([key, label]) => (
-                              <SelectItem key={key} value={key}>{label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="description">Deskripsi Kasus</Label>
-                        <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button type="submit">Simpan</Button>
-                        <Button variant="outline" onClick={() => setIsEditing(false)}>Batal</Button>
-                      </div>
-                    </form>
+                    <CaseEditDialog
+                      caseData={employeeCase}
+                      employees={employees}
+                      onClose={() => setIsEditing(false)}
+                      onCaseUpdated={() => {
+                        setIsEditing(false);
+                        loadCase();
+                      }}
+                    />
                   ) : (
                     <div className="pt-4 border-t space-y-4">
                       <div>

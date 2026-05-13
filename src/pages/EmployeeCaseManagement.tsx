@@ -97,24 +97,43 @@ export default function EmployeeCaseManagement() {
 
   const loadEmployees = useCallback(async () => {
     try {
-      // Load from employees table (ASN)
-      const { data: asnData, error: asnError } = await supabase
-        .from("employees")
-        .select("id, nip, name, position_name, department")
-        .order("name");
+      let allEmployees: any[] = [];
+      let offset = 0;
+      const limit = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: asnData, error: asnError } = await supabase
+          .from("employees")
+          .select("id, nip, name, position_name, department")
+          .range(offset, offset + limit - 1)
+          .order("name");
+        
+        if (asnError) throw asnError;
+        
+        if (!asnData || asnData.length === 0) {
+          hasMore = false;
+        } else {
+          // Map to consistent format
+          const mappedBatch = asnData.map(emp => ({
+            id: emp.id,
+            name: emp.name,
+            nip: emp.nip || '-',
+            jabatan: emp.position_name || '-',
+            department: emp.department || '-',
+          }));
+          
+          allEmployees = [...allEmployees, ...mappedBatch];
+          
+          if (asnData.length < limit) {
+            hasMore = false;
+          } else {
+            offset += limit;
+          }
+        }
+      }
       
-      if (asnError) throw asnError;
-      
-      // Map to consistent format
-      const mappedEmployees = (asnData || []).map(emp => ({
-        id: emp.id,
-        name: emp.name,
-        nip: emp.nip || '-',
-        jabatan: emp.position_name || '-',
-        department: emp.department || '-',
-      }));
-      
-      setEmployees(mappedEmployees);
+      setEmployees(allEmployees);
     } catch (error) {
       console.error("Error loading employees:", error);
     }

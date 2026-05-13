@@ -21,9 +21,12 @@ import {
   validateCaseEmployeeConnections,
   fixDisconnectedCases,
   getCaseEmployeeConnectionReport,
+  validateDisciplinaryActions,
+  fixDisciplinaryActions,
   type ConnectionValidationResult,
+  type DisciplinaryValidationResult,
 } from "@/lib/validateCaseEmployeeConnection";
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, FileText, Users, Link, Settings } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, FileText, Users, Link, Settings, Scale, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +40,8 @@ export default function CaseConnectionValidator() {
   const [validationResult, setValidationResult] = useState<ConnectionValidationResult | null>(null);
   const [fixResult, setFixResult] = useState<any>(null);
   const [detailedReport, setDetailedReport] = useState<any>(null);
+  const [disciplinaryResult, setDisciplinaryResult] = useState<DisciplinaryValidationResult | null>(null);
+  const [isFixingDisciplinary, setIsFixingDisciplinary] = useState(false);
 
   const isAdminPusat = role === "admin_pusat";
 
@@ -70,6 +75,10 @@ export default function CaseConnectionValidator() {
       } else {
         toast.warning(`Ditemukan ${result.disconnectedCases} kasus yang tidak terhubung`);
       }
+
+      // Also validate disciplinary actions
+      const discResult = await validateDisciplinaryActions();
+      setDisciplinaryResult(discResult);
     } catch (error) {
       console.error("Error validating:", error);
       toast.error("Gagal memvalidasi koneksi");
@@ -116,6 +125,31 @@ export default function CaseConnectionValidator() {
       toast.error("Gagal menganalisis detail");
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleFixDisciplinary = async () => {
+    if (!disciplinaryResult || disciplinaryResult.disconnectedActions === 0) {
+      toast.info("Tidak ada hukuman disiplin yang perlu diperbaiki");
+      return;
+    }
+
+    setIsFixingDisciplinary(true);
+    try {
+      const result = await fixDisciplinaryActions();
+      if (result.fixed > 0) {
+        toast.success(`Berhasil memperbaiki ${result.fixed} hukuman disiplin`);
+        // Refresh validation
+        const discResult = await validateDisciplinaryActions();
+        setDisciplinaryResult(discResult);
+      } else {
+        toast.warning("Tidak ada hukuman disiplin yang dapat diperbaiki");
+      }
+    } catch (error) {
+      console.error("Error fixing disciplinary:", error);
+      toast.error("Gagal memperbaiki hukuman disiplin");
+    } finally {
+      setIsFixingDisciplinary(false);
     }
   };
 
@@ -277,6 +311,53 @@ export default function CaseConnectionValidator() {
                   </Card>
                 )}
               </div>
+
+              {/* Disciplinary Summary */}
+              {disciplinaryResult && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <Card className="border-red-100 bg-red-50/10">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Scale className="h-4 w-4 text-red-600" />
+                        Total Hukuman Disiplin
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                      <div className="text-3xl font-bold">{disciplinaryResult.totalActions}</div>
+                      {disciplinaryResult.disconnectedActions > 0 && (
+                        <Button 
+                          onClick={handleFixDisciplinary} 
+                          disabled={isFixingDisciplinary}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          {isFixingDisciplinary ? <RefreshCw className="h-3 w-3 animate-spin mr-2" /> : <RefreshCw className="h-3 w-3 mr-2" />}
+                          Perbaiki {disciplinaryResult.disconnectedActions} Orphan
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card className={disciplinaryResult.disconnectedActions > 0 ? "border-orange-200 bg-orange-50/20" : "border-green-100 bg-green-50/10"}>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        Hukuman Disiplin Tidak Terhubung
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className={`text-3xl font-bold ${disciplinaryResult.disconnectedActions > 0 ? "text-orange-600" : "text-green-600"}`}>
+                        {disciplinaryResult.disconnectedActions}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {disciplinaryResult.disconnectedActions > 0 
+                          ? "Membutuhkan sinkronisasi dari data kasus" 
+                          : "Semua hukuman terhubung ke pegawai yang valid"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               {/* Invalid Cases Table */}
               {validationResult.disconnectedCases > 0 && (

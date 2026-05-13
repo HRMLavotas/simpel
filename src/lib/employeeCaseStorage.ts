@@ -289,6 +289,16 @@ export async function updateCase(
       updateData.case_details = updates.caseDetails;
     if (updates.leadershipDirective !== undefined)
       updateData.leadership_directive = updates.leadershipDirective;
+    if (updates.employeeId !== undefined)
+      updateData.employee_id = updates.employeeId;
+    if (updates.employeeName !== undefined)
+      updateData.employee_name = updates.employeeName;
+    if (updates.employeeNip !== undefined)
+      updateData.employee_nip = updates.employeeNip;
+    if (updates.caseType !== undefined)
+      updateData.case_type = updates.caseType;
+    if (updates.reportDate !== undefined)
+      updateData.report_date = updates.reportDate;
 
     const { data, error } = await supabase
       .from("employee_cases")
@@ -298,6 +308,18 @@ export async function updateCase(
       .single();
 
     if (error) throw error;
+
+    // If employee info was updated, also update any linked disciplinary actions
+    if (updates.employeeId !== undefined || updates.employeeName !== undefined || updates.employeeNip !== undefined) {
+      await supabase
+        .from("disciplinary_actions")
+        .update({
+          employee_id: data.employee_id,
+          employee_name: data.employee_name,
+          employee_nip: data.employee_nip,
+        })
+        .eq("case_id", id);
+    }
 
     // Fetch timeline
     const { data: timelines } = await supabase

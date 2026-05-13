@@ -7,9 +7,10 @@ import { id } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import { type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
-import { getActiveDisciplinaryActions, type DisciplinaryAction } from '@/lib/disciplinaryActionStorage';
+import { getDisciplinaryActionsByEmployee, type DisciplinaryAction } from '@/lib/disciplinaryActionStorage';
 import { Scale, Calendar, User, AlertCircle, FileText } from 'lucide-react';
 import { DisciplinaryBadge } from './DisciplinaryBadge';
+import { cn } from '@/lib/utils';
 
 interface Employee {
   id: string;
@@ -253,7 +254,13 @@ const ReadOnlyNotes = ({ title, data }: { title: string; data: NoteEntry[] }) =>
 };
 
 // Read-only disciplinary actions
-const ReadOnlyDisciplinaryActions = ({ data }: { data: DisciplinaryAction[] }) => {
+const ReadOnlyDisciplinaryActions = ({ 
+  data, 
+  isActionExpired 
+}: { 
+  data: DisciplinaryAction[];
+  isActionExpired: (endDate?: string) => boolean;
+}) => {
   const getLevelColor = (level: string) => {
     const colors = {
       ringan: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
@@ -272,35 +279,52 @@ const ReadOnlyDisciplinaryActions = ({ data }: { data: DisciplinaryAction[] }) =
     return labels[level as keyof typeof labels] || level;
   };
 
+  const activeCount = data.filter(a => !isActionExpired(a.endDate)).length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Scale className="h-5 w-5 text-red-600" />
           <label className="text-base font-semibold text-red-900 dark:text-red-100">
-            Riwayat Hukuman Disiplin Aktif
+            Riwayat Hukuman Disiplin
           </label>
         </div>
-        <Badge variant="destructive">{data.length} aktif</Badge>
+        <div className="flex gap-2">
+          <Badge variant="secondary">{data.length} Total</Badge>
+          {activeCount > 0 && <Badge variant="destructive">{activeCount} Aktif</Badge>}
+        </div>
       </div>
       
       <div className="space-y-4">
-        {data.map((action, idx) => (
-          <div
-            key={idx}
-            className="p-4 border-2 border-red-200 dark:border-red-900 rounded-lg bg-red-50/50 dark:bg-red-950/20 space-y-3"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className={getLevelColor(action.level)}>
-                    {getLevelLabel(action.level)}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    SK No. {action.decisionNumber}
-                  </span>
-                </div>
+        {data.map((action, idx) => {
+          const expired = isActionExpired(action.endDate);
+          return (
+            <div
+              key={idx}
+              className={cn(
+                "p-4 border-2 rounded-lg space-y-3",
+                expired 
+                  ? "border-muted bg-muted/30 opacity-80" 
+                  : "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20"
+              )}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className={getLevelColor(action.level)}>
+                      {getLevelLabel(action.level)}
+                    </Badge>
+                    {expired ? (
+                      <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800">Selesai / Kadaluwarsa</Badge>
+                    ) : (
+                      <Badge className="bg-green-600 text-white">Sedang Berjalan</Badge>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      SK No. {action.decisionNumber}
+                    </span>
+                  </div>
                 <h4 className="font-semibold text-foreground">{action.type}</h4>
               </div>
             </div>
@@ -379,10 +403,11 @@ const ReadOnlyDisciplinaryActions = ({ data }: { data: DisciplinaryAction[] }) =
               </div>
             )}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
-  );
+  </div>
+);
 };
 
 export function EmployeeDetailsModal({ 
@@ -404,6 +429,17 @@ export function EmployeeDetailsModal({
   const [disciplinaryActions, setDisciplinaryActions] = useState<DisciplinaryAction[]>([]);
   const [isLoadingDisciplinary, setIsLoadingDisciplinary] = useState(false);
 
+  const isActionExpired = (endDate?: string) => {
+    if (!endDate) return false;
+    try {
+      return new Date(endDate) < new Date();
+    } catch {
+      return false;
+    }
+  };
+
+  const activeCount = disciplinaryActions.filter(a => !isActionExpired(a.endDate)).length;
+
   // Reset tab ke 'main' saat employee berubah
   useEffect(() => {
     if (employee) {
@@ -419,7 +455,7 @@ export function EmployeeDetailsModal({
     
     setIsLoadingDisciplinary(true);
     try {
-      const actions = await getActiveDisciplinaryActions(employee.id);
+      const actions = await getDisciplinaryActionsByEmployee(employee.id);
       setDisciplinaryActions(actions);
     } catch (error) {
       console.error('Error loading disciplinary actions:', error);
@@ -441,8 +477,8 @@ export function EmployeeDetailsModal({
                 Informasi lengkap pegawai (mode tampilan)
               </DialogDescription>
             </div>
-            {disciplinaryActions.length > 0 && (
-              <DisciplinaryBadge count={disciplinaryActions.length} />
+            {activeCount > 0 && (
+              <DisciplinaryBadge count={activeCount} />
             )}
           </div>
         </DialogHeader>
@@ -535,7 +571,10 @@ export function EmployeeDetailsModal({
                 <div className="text-sm text-muted-foreground">Memuat data hukuman disiplin...</div>
               ) : disciplinaryActions.length > 0 ? (
                 <>
-                  <ReadOnlyDisciplinaryActions data={disciplinaryActions} />
+                  <ReadOnlyDisciplinaryActions 
+                    data={disciplinaryActions} 
+                    isActionExpired={isActionExpired}
+                  />
                   <Separator />
                 </>
               ) : null}

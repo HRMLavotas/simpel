@@ -255,6 +255,28 @@ export async function deleteDisciplinaryAction(id: string): Promise<void> {
 }
 
 /**
+ * Get all disciplinary actions for an employee (active and expired)
+ */
+export async function getDisciplinaryActionsByEmployee(
+  employeeId: string
+): Promise<DisciplinaryAction[]> {
+  try {
+    const { data, error } = await supabase
+      .from("disciplinary_actions")
+      .select("*")
+      .eq("employee_id", employeeId)
+      .order("decision_date", { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map(mapDbToDisciplinaryAction);
+  } catch (error) {
+    console.error("Error fetching disciplinary actions by employee:", error);
+    throw error;
+  }
+}
+
+/**
  * Get active disciplinary actions (not expired)
  */
 export async function getActiveDisciplinaryActions(

@@ -1,8 +1,3 @@
-/**
- * CaseFormDialog Component
- * Dialog form for creating new employee cases
- */
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,49 +18,60 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { createCase } from "@/lib/employeeCaseStorage";
+import { updateCase } from "@/lib/employeeCaseStorage";
 import {
   CASE_TYPE_OPTIONS,
   CASE_STATUS_OPTIONS,
   CaseType,
   CaseStatus,
   CaseDetails,
+  EmployeeCase,
 } from "@/lib/employeeCaseTypes";
-import { useAuth } from "@/hooks/useAuth";
 import { Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-interface CaseFormDialogProps {
+interface CaseEditDialogProps {
+  caseData: EmployeeCase;
   employees: any[];
   onClose: () => void;
-  onCaseCreated: () => void;
+  onCaseUpdated: () => void;
 }
 
-export default function CaseFormDialog({
+export default function CaseEditDialog({
+  caseData,
   employees,
   onClose,
-  onCaseCreated,
-}: CaseFormDialogProps) {
-  const { user } = useAuth();
+  onCaseUpdated,
+}: CaseEditDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
-  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(caseData.employeeId.startsWith('manual_'));
 
   const [formData, setFormData] = useState({
-    employeeId: "",
-    employeeName: "",
-    employeeNip: "",
-    caseType: "perceraian" as CaseType,
-    status: "baru" as CaseStatus,
-    description: "",
-    reportDate: new Date().toISOString().split("T")[0],
-    manualJabatan: "",
-    manualUnitKerja: "",
-    lainnyaKategori: "", // For "Lainnya" category
+    employeeId: caseData.employeeId,
+    employeeName: caseData.employeeName,
+    employeeNip: caseData.employeeNip,
+    caseType: caseData.caseType,
+    status: caseData.status,
+    description: caseData.description,
+    reportDate: caseData.reportDate.split("T")[0],
+    manualJabatan: caseData.caseDetails?.manualJabatan || "",
+    manualUnitKerja: caseData.caseDetails?.manualUnitKerja || "",
+    lainnyaKategori: caseData.caseDetails?.lainnyaKategori || "",
   });
 
-  const [caseSpecificData, setCaseSpecificData] = useState<Partial<CaseDetails>>({});
+  const [caseSpecificData, setCaseSpecificData] = useState<Partial<CaseDetails>>(caseData.caseDetails || {});
+
+  useEffect(() => {
+    // If it's not a manual entry, try to find the employee in the list to display details
+    if (!isManualEntry) {
+      const emp = employees.find(e => e.id === caseData.employeeId);
+      if (emp) {
+        setSelectedEmployee(emp);
+      }
+    }
+  }, [caseData, employees, isManualEntry]);
 
   const filteredEmployees = employees.filter(
     (emp) =>
@@ -90,9 +96,8 @@ export default function CaseFormDialog({
     setSelectedEmployee(null);
     setFormData({
       ...formData,
-      employeeId: `manual_${Date.now()}`,
-      employeeName: "",
-      employeeNip: "",
+      // Keep existing ID if it was already manual, otherwise create new manual ID
+      employeeId: formData.employeeId.startsWith('manual_') ? formData.employeeId : `manual_${Date.now()}`,
     });
   };
 
@@ -120,6 +125,11 @@ export default function CaseFormDialog({
         caseDetails.isManualEntry = true;
         caseDetails.manualJabatan = formData.manualJabatan;
         caseDetails.manualUnitKerja = formData.manualUnitKerja;
+      } else {
+        // If switched from manual to selected employee
+        delete caseDetails.isManualEntry;
+        delete caseDetails.manualJabatan;
+        delete caseDetails.manualUnitKerja;
       }
 
       // Add lainnya kategori if selected
@@ -127,66 +137,41 @@ export default function CaseFormDialog({
         caseDetails.lainnyaKategori = formData.lainnyaKategori;
       }
 
-      await createCase({
+      await updateCase(caseData.id, {
         employeeId: formData.employeeId,
         employeeName: formData.employeeName,
         employeeNip: formData.employeeNip,
         caseType: formData.caseType,
         status: formData.status,
-        severity: undefined, // Remove severity
         description: formData.description,
         reportDate: formData.reportDate,
         caseDetails,
-        createdBy: user?.id || "unknown",
       });
 
-      toast.success("Kasus berhasil dibuat");
-      onCaseCreated();
+      toast.success("Kasus berhasil diperbarui");
+      onCaseUpdated();
     } catch (error: any) {
-      console.error("Error creating case:", error);
-      toast.error(error.message || "Gagal membuat kasus");
+      console.error("Error updating case:", error);
+      toast.error(error.message || "Gagal memperbarui kasus");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const renderCaseSpecificFields = () => {
-    // Only show additional field for "Lainnya" category
-    if (formData.caseType === "lainnya") {
-      return (
-        <div className="space-y-2">
-          <Label htmlFor="lainnyaKategori">Kategori Lainnya (Opsional)</Label>
-          <Input
-            id="lainnyaKategori"
-            placeholder="Sebutkan kategori kasus..."
-            value={formData.lainnyaKategori}
-            onChange={(e) =>
-              setFormData({ ...formData, lainnyaKategori: e.target.value })
-            }
-          />
-          <p className="text-xs text-muted-foreground">
-            Contoh: Masalah Keluarga, Konflik Internal, dll.
-          </p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Tambah Kasus Baru</DialogTitle>
+          <DialogTitle>Edit Kasus</DialogTitle>
           <DialogDescription>
-            Isi formulir di bawah untuk membuat kasus pegawai baru
+            Perbarui informasi kasus pegawai di bawah ini
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Employee Selection */}
           <div className="space-y-2">
-            <Label>Pilih Pegawai</Label>
+            <Label>Pegawai Bersangkutan</Label>
             {selectedEmployee ? (
               <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted">
                 <div className="flex-1">
@@ -211,20 +196,27 @@ export default function CaseFormDialog({
                   size="sm"
                   onClick={() => {
                     setSelectedEmployee(null);
-                    setFormData({
-                      ...formData,
-                      employeeId: "",
-                      employeeName: "",
-                      employeeNip: "",
-                    });
                   }}
                 >
-                  <X className="h-4 w-4" />
+                  Ganti Pegawai
                 </Button>
               </div>
             ) : isManualEntry ? (
               <div className="space-y-3 p-3 border rounded-lg bg-muted">
-                <Badge variant="secondary">Input Manual</Badge>
+                <div className="flex justify-between items-center">
+                  <Badge variant="secondary">Input Manual</Badge>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsManualEntry(false);
+                      setSelectedEmployee(null);
+                    }}
+                  >
+                    Ganti ke Pencarian
+                  </Button>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="manualName">Nama Pegawai *</Label>
                   <Input
@@ -270,24 +262,6 @@ export default function CaseFormDialog({
                     }
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setIsManualEntry(false);
-                    setFormData({
-                      ...formData,
-                      employeeId: "",
-                      employeeName: "",
-                      employeeNip: "",
-                      manualJabatan: "",
-                      manualUnitKerja: "",
-                    });
-                  }}
-                >
-                  Kembali ke Pencarian
-                </Button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -314,11 +288,6 @@ export default function CaseFormDialog({
                           <p className="text-sm text-muted-foreground">
                             NIP: {emp.nip}
                           </p>
-                          {emp.jabatan && emp.jabatan !== '-' && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {emp.jabatan} • {emp.department}
-                            </p>
-                          )}
                         </button>
                       ))
                     ) : (
@@ -335,7 +304,7 @@ export default function CaseFormDialog({
                   onClick={handleManualEntry}
                   className="w-full"
                 >
-                  Atau Input Manual
+                  Gunakan Input Manual
                 </Button>
               </div>
             )}
@@ -363,8 +332,20 @@ export default function CaseFormDialog({
             </Select>
           </div>
 
-          {/* Case-specific fields */}
-          {renderCaseSpecificFields()}
+          {/* Lainnya Kategori */}
+          {formData.caseType === "lainnya" && (
+            <div className="space-y-2">
+              <Label htmlFor="lainnyaKategori">Kategori Lainnya (Opsional)</Label>
+              <Input
+                id="lainnyaKategori"
+                placeholder="Sebutkan kategori kasus..."
+                value={formData.lainnyaKategori}
+                onChange={(e) =>
+                  setFormData({ ...formData, lainnyaKategori: e.target.value })
+                }
+              />
+            </div>
+          )}
 
           {/* Status */}
           <div className="space-y-2">
@@ -412,7 +393,6 @@ export default function CaseFormDialog({
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={4}
-              placeholder="Jelaskan detail kasus..."
               required
             />
           </div>
@@ -420,7 +400,7 @@ export default function CaseFormDialog({
           {/* Actions */}
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? "Menyimpan..." : "Simpan Kasus"}
+              {isSubmitting ? "Memperbarui..." : "Perbarui Kasus"}
             </Button>
             <Button
               type="button"
