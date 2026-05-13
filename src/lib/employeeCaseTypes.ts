@@ -114,6 +114,7 @@ export interface EmployeeCase {
   timeline: TimelineItem[];
   caseDetails?: CaseDetails;
   leadershipDirective?: string; // Arahan Pimpinan - direct instructions from leadership
+  hasDisciplinaryAction?: boolean; // Flag to indicate if case has disciplinary actions
   createdBy: string;
   createdAt: string;
   updatedAt: string;

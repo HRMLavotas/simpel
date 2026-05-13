@@ -140,6 +140,21 @@ export async function getAllCases(): Promise<EmployeeCase[]> {
 
     console.log(`📝 Found ${timelines?.length || 0} timeline items`);
 
+    // Fetch disciplinary actions count for all cases
+    const { data: disciplinaryActions, error: disciplinaryError } = await supabase
+      .from("disciplinary_actions")
+      .select("case_id")
+      .in("case_id", caseIds);
+
+    if (disciplinaryError) {
+      console.error("❌ Error fetching disciplinary actions:", disciplinaryError);
+    }
+
+    // Create a set of case IDs that have disciplinary actions
+    const casesWithDisciplinary = new Set(
+      (disciplinaryActions || []).map(da => da.case_id)
+    );
+
     // Group timelines by case_id
     const timelinesByCase = (timelines || []).reduce((acc, timeline) => {
       if (!acc[timeline.case_id]) {
@@ -149,10 +164,14 @@ export async function getAllCases(): Promise<EmployeeCase[]> {
       return acc;
     }, {} as Record<string, DbCaseTimeline[]>);
 
-    // Map to EmployeeCase objects
-    const mappedCases = cases.map((c) =>
-      mapDbCaseToEmployeeCase(c, timelinesByCase[c.id] || [])
-    );
+    // Map to EmployeeCase objects with hasDisciplinaryAction flag
+    const mappedCases = cases.map((c) => {
+      const employeeCase = mapDbCaseToEmployeeCase(c, timelinesByCase[c.id] || []);
+      return {
+        ...employeeCase,
+        hasDisciplinaryAction: casesWithDisciplinary.has(c.id),
+      };
+    });
     
     console.log("✅ Mapped cases:", mappedCases);
     

@@ -55,6 +55,12 @@ export default function EmployeeCaseManagement() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("cases");
   const [accessChanged, setAccessChanged] = useState(false);
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    diproses: 0,
+    selesai: 0,
+    byType: {} as Record<string, number>,
+  });
 
   const loadCases = useCallback(async () => {
     console.log("🔄 Loading cases...");
@@ -64,6 +70,21 @@ export default function EmployeeCaseManagement() {
       console.log("📦 Cases loaded:", allCases);
       setCases(allCases);
       console.log("✅ Cases state updated, total:", allCases.length);
+      
+      // Calculate statistics
+      const stats = {
+        total: allCases.length,
+        diproses: allCases.filter(c => c.status === 'diproses').length,
+        selesai: allCases.filter(c => c.status === 'selesai').length,
+        byType: {} as Record<string, number>,
+      };
+      
+      // Count by case type
+      allCases.forEach(c => {
+        stats.byType[c.caseType] = (stats.byType[c.caseType] || 0) + 1;
+      });
+      
+      setStatistics(stats);
     } catch (error) {
       console.error("❌ Error loading cases:", error);
       toast.error("Gagal memuat data kasus");
@@ -108,7 +129,16 @@ export default function EmployeeCaseManagement() {
         c.employeeNip.toLowerCase().includes(q) ||
         c.description.toLowerCase().includes(q);
       const matchesType = caseTypeFilter === "all" || c.caseType === caseTypeFilter;
-      const matchesStatus = caseStatusFilter === "all" || c.status === caseStatusFilter;
+      
+      // Handle special "dengan_hukuman" filter
+      let matchesStatus = true;
+      if (caseStatusFilter === "dengan_hukuman") {
+        // Only show cases that have disciplinary actions
+        matchesStatus = c.hasDisciplinaryAction === true;
+      } else {
+        matchesStatus = caseStatusFilter === "all" || c.status === caseStatusFilter;
+      }
+      
       return matchesSearch && matchesType && matchesStatus;
     });
   }, [cases, debouncedSearch, caseTypeFilter, caseStatusFilter]);
@@ -218,22 +248,155 @@ export default function EmployeeCaseManagement() {
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className={`grid w-full ${isAdminPusat ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              <TabsTrigger value="cases" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Daftar Kasus
-              </TabsTrigger>
-              {isAdminPusat && (
-                <TabsTrigger value="access" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Pengaturan Akses
-                </TabsTrigger>
-              )}
-            </TabsList>
+          {/* Statistics Cards - Above Tabs */}
+          <div className="space-y-6 mb-6">
+            {/* Main Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Total Cases */}
+                <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950 dark:to-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Total Kasus</p>
+                        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                          {statistics.total}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                        <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <TabsContent value="cases" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {/* In Progress */}
+                <Card className="border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-950 dark:to-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Diproses</p>
+                        <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">
+                          {statistics.diproses}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Completed */}
+                <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-white dark:from-green-950 dark:to-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Selesai</p>
+                        <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
+                          {statistics.selesai}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* With Disciplinary Action */}
+                <Card className="border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-white dark:from-red-950 dark:to-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Dengan Hukuman</p>
+                        <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">
+                          {cases.filter(c => c.hasDisciplinaryAction).length}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-lg">
+                        <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Statistics by Case Type - New Design */}
+              <Card className="border-primary/10">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Statistik Berdasarkan Jenis Kasus
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(CASE_TYPE_LABELS).map(([type, label]) => {
+                      const count = statistics.byType[type] || 0;
+                      const percentage = statistics.total > 0 ? ((count / statistics.total) * 100) : 0;
+                      
+                      // Color scheme for each type
+                      const colors: Record<string, { bg: string; bar: string; text: string }> = {
+                        perceraian: { bg: 'bg-purple-50 dark:bg-purple-950/30', bar: 'bg-purple-500', text: 'text-purple-700 dark:text-purple-300' },
+                        hutang: { bg: 'bg-orange-50 dark:bg-orange-950/30', bar: 'bg-orange-500', text: 'text-orange-700 dark:text-orange-300' },
+                        pinjaman_online: { bg: 'bg-pink-50 dark:bg-pink-950/30', bar: 'bg-pink-500', text: 'text-pink-700 dark:text-pink-300' },
+                        presensi: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', bar: 'bg-cyan-500', text: 'text-cyan-700 dark:text-cyan-300' },
+                        pengunduran_diri: { bg: 'bg-indigo-50 dark:bg-indigo-950/30', bar: 'bg-indigo-500', text: 'text-indigo-700 dark:text-indigo-300' },
+                        temuan: { bg: 'bg-amber-50 dark:bg-amber-950/30', bar: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-300' },
+                        lainnya: { bg: 'bg-gray-50 dark:bg-gray-950/30', bar: 'bg-gray-500', text: 'text-gray-700 dark:text-gray-300' },
+                      };
+                      
+                      const color = colors[type] || colors.lainnya;
+                      
+                      return (
+                        <div key={type} className={`p-4 rounded-lg ${color.bg} transition-all hover:shadow-md`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">{label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-2xl font-bold ${color.text}`}>{count}</span>
+                              <span className="text-sm text-muted-foreground">
+                                ({percentage.toFixed(1)}%)
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-full bg-white/50 dark:bg-black/20 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className={`h-full ${color.bar} transition-all duration-500 ease-out rounded-full`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList className={`grid w-full ${isAdminPusat ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                <TabsTrigger value="cases" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Daftar Kasus
+                </TabsTrigger>
+                {isAdminPusat && (
+                  <TabsTrigger value="access" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Pengaturan Akses
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="cases" className="space-y-6">
+                {/* Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Cari nama, NIP, atau deskripsi..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pl-10" />
@@ -254,6 +417,12 @@ export default function EmployeeCaseManagement() {
                     {Object.entries(CASE_STATUS_LABELS).map(([key, label]) => (
                       <SelectItem key={key} value={key}>{label}</SelectItem>
                     ))}
+                    <SelectItem value="dengan_hukuman">
+                      <div className="flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4 text-red-600" />
+                        Dengan Hukuman Disiplin
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {canEdit && (
