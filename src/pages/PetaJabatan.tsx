@@ -1766,7 +1766,6 @@ export default function PetaJabatan() {
             .from('employees')
             .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('is_active', true)
-            .or('asn_status.is.null,asn_status.neq.Non ASN')
             .range(from, to)
         ),
       ]);
@@ -1831,12 +1830,51 @@ export default function PetaJabatan() {
 
       // Kumpulkan semua unit kerja yang punya data jabatan
       // Filter: exclude Pusat dan Satpel/Workshop (karena Satpel menginduk ke unit pembina)
-      const depts = dynamicDepartments.filter(d => {
+      const deptsUnsorted = dynamicDepartments.filter(d => {
         if (d === 'Pusat') return false;
         // Exclude Satpel dan Workshop karena mereka menginduk ke unit pembina
         if (d.startsWith('Satpel ') || d.startsWith('Workshop ')) return false;
         return true;
       });
+
+      // Urutan resmi unit kerja untuk sheet data utama
+      const OFFICIAL_DEPT_ORDER_FOR_SHEETS: string[] = [
+        'Setditjen Binalavotas',
+        'Direktorat Bina Stankomproglat',
+        'Direktorat Bina Lemlatvok',
+        'Direktorat Bina Penyelenggaraan Latvogan',
+        'Direktorat Bina Intala',
+        'Direktorat Bina Peningkatan Produktivitas',
+        'Sekretariat BNSP',
+        'BBPVP Bekasi',
+        'BBPVP Bandung',
+        'BBPVP Serang',
+        'BBPVP Medan',
+        'BBPVP Semarang',
+        'BBPVP Makassar',
+        'BPVP Surakarta',
+        'BPVP Ambon',
+        'BPVP Ternate',
+        'BPVP Banda Aceh',
+        'BPVP Sorong',
+        'BPVP Kendari',
+        'BPVP Samarinda',
+        'BPVP Padang',
+        'BPVP Bandung Barat',
+        'BPVP Lombok Timur',
+        'BPVP Bantaeng',
+        'BPVP Banyuwangi',
+        'BPVP Sidoarjo',
+        'BPVP Pangkep',
+        'BPVP Belitung',
+      ];
+
+      // Urutkan depts sesuai OFFICIAL_DEPT_ORDER_FOR_SHEETS
+      const deptsSet = new Set(deptsUnsorted);
+      const depts = [
+        ...OFFICIAL_DEPT_ORDER_FOR_SHEETS.filter(d => deptsSet.has(d)),
+        ...deptsUnsorted.filter(d => !OFFICIAL_DEPT_ORDER_FOR_SHEETS.includes(d)).sort(),
+      ];
 
       // Buat worksheet per unit kerja
       for (const dept of depts) {
