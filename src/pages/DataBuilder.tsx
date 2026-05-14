@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ import {
   setColumnWidths,
 } from '@/lib/excelStyles';
 import { logger } from '@/lib/logger';
-import { randomId } from '@/lib/utils';
+import { randomId, normalizeString } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 
 /** Excel melarang karakter \ / * ? : [ ] pada nama sheet — tanpa sanitasi, export gagal diam-diam */
@@ -49,6 +49,129 @@ function allocateExcelSheetName(raw: string, used: Set<string>): string {
 
 /** Supabase/PostgREST membatasi panjang query; .in() dengan ribuan UUID sering gagal */
 const RELATED_EXPORT_ID_CHUNK = 120;
+
+/** Urutan Unit Kerja sesuai permintaan user untuk export terstruktur */
+const UNIT_KERJA_ORDER = [
+  'Setditjen Binalavotas',
+  'Direktorat Bina Stankomproglat',
+  'Direktorat Bina Lemlatvok',
+  'Direktorat Bina Penyelenggaraan Latvogan',
+  'Direktorat Bina Intala',
+  'Direktorat Bina Peningkatan Produktivitas',
+  'Sekretariat BNSP',
+  'BBPVP Bekasi',
+  'BBPVP Bandung',
+  'BBPVP Serang',
+  'BBPVP Medan',
+  'BBPVP Semarang',
+  'BBPVP Makassar',
+  'BPVP Surakarta',
+  'BPVP Ambon',
+  'BPVP Ternate',
+  'BPVP Banda Aceh',
+  'BPVP Sorong',
+  'BPVP Kendari',
+  'BPVP Samarinda',
+  'BPVP Padang',
+  'BPVP Bandung Barat',
+  'BPVP Lombok Timur',
+  'BPVP Bantaeng',
+  'BPVP Banyuwangi',
+  'BPVP Sidoarjo',
+  'BPVP Pangkep',
+  'BPVP Belitung',
+];
+
+/** 
+ * Hierarki level Jabatan Fungsional dan Pelaksana untuk fallback sorting jika tidak ada position_order.
+ * Semakin kecil angka, semakin tinggi posisinya.
+ */
+const POSITION_LEVEL_RANK: Record<string, number> = {
+  'ahli utama': 10,
+  'ahli madya': 20,
+  'ahli muda': 30,
+  'ahli pertama': 40,
+  'penyelia': 50,
+  'mahir': 60,
+  'terampil': 70,
+  'pemula': 80,
+  'pelaksana': 90,
+};
+
+/** 
+ * Mengurutkan data pegawai berdasarkan:
+ * 1. Unit Kerja (sesuai UNIT_KERJA_ORDER)
+ * 2. Hirarki Jabatan (Struktural -> Fungsional -> Pelaksana)
+ * 3. Urutan Jabatan (berdasarkan position_references jika ada, atau fallback ke level)
+ * 4. Status ASN (Non ASN di paling bawah setiap unit)
+ * 5. Nama (Alfabetis)
+ */
+function sortEmployeesHierarchical(
+  data: Record<string, unknown>[], 
+  posRefs?: Map<string, Map<string, number>>
+): Record<string, unknown>[] {
+  const getDeptRank = (dept: unknown) => {
+    if (typeof dept !== 'string') return 999;
+    const idx = UNIT_KERJA_ORDER.indexOf(dept);
+    return idx === -1 ? 999 : idx;
+  };
+
+  const getPositionTypeRank = (row: Record<string, unknown>) => {
+    const asnStatus = String(row['asn_status'] || '').trim();
+    const posType = String(row['position_type'] || '').trim().toLowerCase();
+    
+    if (asnStatus === 'Non ASN') return 4;
+    
+    if (posType.includes('struktural')) return 0;
+    if (posType.includes('fungsional')) return 1;
+    if (posType.includes('pelaksana')) return 2;
+    
+    return 3; 
+  };
+
+  const getPositionOrderRank = (row: Record<string, unknown>) => {
+    const dept = String(row['department'] || '');
+    const posName = String(row['position_name'] || '');
+    const normPos = normalizeString(posName);
+
+    // 1. Coba gunakan position_order dari database (Peta Jabatan)
+    if (posRefs && posRefs.has(dept)) {
+      const deptRefs = posRefs.get(dept);
+      if (deptRefs && deptRefs.has(normPos)) {
+        return deptRefs.get(normPos) || 999;
+      }
+    }
+
+    // 2. Fallback: Gunakan keyword ranking (Ahli Madya > Muda dll)
+    for (const [keyword, rank] of Object.entries(POSITION_LEVEL_RANK)) {
+      if (normPos.includes(keyword)) return rank;
+    }
+
+    return 999;
+  };
+
+  return [...data].sort((a, b) => {
+    // 1. Urutkan berdasarkan Unit Kerja
+    const rankDeptA = getDeptRank(a['department']);
+    const rankDeptB = getDeptRank(b['department']);
+    if (rankDeptA !== rankDeptB) return rankDeptA - rankDeptB;
+
+    // 2. Urutkan berdasarkan Jenis Jabatan (Struktural -> Fungsional -> Pelaksana)
+    const rankTypeA = getPositionTypeRank(a);
+    const rankTypeB = getPositionTypeRank(b);
+    if (rankTypeA !== rankTypeB) return rankTypeA - rankTypeB;
+
+    // 3. Urutkan berdasarkan Hirarki/Order Jabatan (Peta Jabatan or Keywords)
+    const rankOrderA = getPositionOrderRank(a);
+    const rankOrderB = getPositionOrderRank(b);
+    if (rankOrderA !== rankOrderB) return rankOrderA - rankOrderB;
+
+    // 4. Urutkan berdasarkan Nama (Alphabetical)
+    const nameA = String(a['name'] || '').toLowerCase();
+    const nameB = String(b['name'] || '').toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+}
 
 /** Field inti pegawai — selalu di-select agar relasi, pagination, dan export konsisten */
 const EMPLOYEE_BASE_SELECT_FIELDS = ['id', 'nip', 'name', 'front_title', 'back_title', 'department'] as const;
@@ -435,10 +558,33 @@ export default function DataBuilder() {
       }
 
       const filtered = applyClientSideFilters(all);
+      
+      // Ambil referensi jabatan untuk urutan yang sama persis dengan Peta Jabatan
+      const departments = [...new Set(filtered.map(r => r.department as string).filter(Boolean))];
+      let posRefsMap: Map<string, Map<string, number>> | undefined;
 
-      setAllData(filtered);
-      setTotalCount(filtered.length);
-      setData(filtered.slice(0, PAGE_SIZE));
+      if (departments.length > 0) {
+        const { data: posRefs, error: posError } = await supabase
+          .from('position_references')
+          .select('department, position_name, position_order')
+          .in('department', departments);
+        
+        if (!posError && posRefs) {
+          posRefsMap = new Map();
+          posRefs.forEach(ref => {
+            const dept = ref.department;
+            const normPos = normalizeString(ref.position_name);
+            if (!posRefsMap!.has(dept)) posRefsMap!.set(dept, new Map());
+            posRefsMap!.get(dept)!.set(normPos, ref.position_order);
+          });
+        }
+      }
+
+      const sorted = sortEmployeesHierarchical(filtered, posRefsMap);
+
+      setAllData(sorted);
+      setTotalCount(sorted.length);
+      setData(sorted.slice(0, PAGE_SIZE));
     } catch (error) {
       logger.error('[DataBuilder] Gagal mengambil data:', error);
       toast({
