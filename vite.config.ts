@@ -15,6 +15,20 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     // @ts-expect-error - Vite types don't support boolean for allowedHosts in this version
     allowedHosts: process.env.TEMPO === "true" ? true : undefined,
+    proxy: {
+      '/bps-api': {
+        target: 'https://webapi.bps.go.id',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/bps-api/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.removeHeader('Origin');
+            proxyReq.removeHeader('Referer');
+          });
+        }
+      },
+    },
   },
   plugins: [
     react(),

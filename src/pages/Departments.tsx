@@ -28,10 +28,12 @@ import { DeleteDepartmentDialog } from '@/components/departments/DeleteDepartmen
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
+import { logger } from '@/lib/logger';
 
 interface Department {
   id: string;
   name: string;
+  sarpras?: string;
   created_at: string;
 }
 
