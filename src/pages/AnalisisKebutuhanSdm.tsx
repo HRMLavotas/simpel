@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { BrainCircuit, MapPin, Building, Briefcase, Activity, FileText, CheckCircle2, Loader2, BarChart3, Info, Database, AlertCircle, Sparkles, Users } from 'lucide-react';
+import { 
+  BrainCircuit, MapPin, Building, Briefcase, Activity, FileText, 
+  CheckCircle2, Loader2, BarChart3, Info, Database, AlertCircle, 
+  Sparkles, Users, History, Trash2, Clock, Cpu, UserPlus, TrendingUp 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { History, Trash2, Clock, Cpu } from 'lucide-react';
 
 // API Keys from environment
 const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
@@ -104,6 +107,10 @@ export default function AnalisisKebutuhanSdm() {
     analisisRisiko?: string[];
     kesiapanDigital?: { skor: number; rekomendasi: string };
     timeline?: { tahap: string; aksi: string }[];
+    formasiIdeal?: {
+      eksisting: { nama: string; jumlah: number; alasan: string }[];
+      baru: { nama: string; jumlah: number; alasan: string }[];
+    };
     rincianStrategi?: any[];
     skorKesiapan: number;
     summary: string;
@@ -523,9 +530,10 @@ ${contextData.strategi_pilihan.join(', ')}
 Tugas Anda:
 1. Validasi Gap SDM & Distribusi Kejuruan: Apakah kejuruan instruktur saat ini sudah selaras dengan sektor ${contextData.external_bps.sektor_dominan}? Jika ada kejuruan yang dominan tapi tidak relevan, berikan catatan kritis.
 2. Analisis Mismatch: Identifikasi kejuruan apa yang paling mendesak untuk ditambah (rekrutmen/pelatihan instruktur).
-3. Rencana Aksi: Berikan langkah strategis untuk SETIAP pilihan strategi yang dicentang.
-4. Rekomendasi 6 intervensi sarpras (Wajib mencakup: 3 Alat Pelatihan Utama, 2 Bangunan/Gedung, 1 Fasilitas Penunjang).
-5. Rekomendasi 4 program pelatihan (SKKNI).
+3. Analisis Formasi Ideal: Berikan rekomendasi jumlah formasi jabatan yang ideal dibanding kondisi saat ini. Sebutkan jabatan apa yang perlu ditambah kuotanya dan JABATAN BARU apa yang harus diusulkan (misal: Ahli AI, Spesialis PLTS, dll) sesuai kebutuhan wilayah.
+4. Rencana Aksi: Berikan langkah strategis untuk SETIAP pilihan strategi yang dicentang.
+5. Rekomendasi 6 intervensi sarpras (Wajib mencakup: 3 Alat Pelatihan Utama, 2 Bangunan/Gedung, 1 Fasilitas Penunjang).
+6. Rekomendasi 4 program pelatihan (SKKNI).
 
 WAJIB OUTPUT DALAM FORMAT JSON BERIKUT (TANPA PENJELASAN LAIN DI LUAR JSON, PASTIKAN SELURUH STRING DIAPIT TANDA KUTIP GANDA DAN TIDAK ADA KARAKTER KONTROL UNESCAPED):
 {
@@ -533,6 +541,10 @@ WAJIB OUTPUT DALAM FORMAT JSON BERIKUT (TANPA PENJELASAN LAIN DI LUAR JSON, PAST
   "rekrutmen": ["..."],
   "pelatihan": ["..."],
   "sarpras": ["..."],
+  "formasi_ideal": {
+    "jabatan_eksisting_disarankan": [{ "nama": "...", "jumlah_ideal": 0, "alasan": "..." }],
+    "jabatan_baru_usulan": [{ "nama": "...", "jumlah_ideal": 0, "alasan": "..." }]
+  },
   "analisis_risiko": ["..."],
   "kesiapan_digital": 85,
   "rekomendasi_digital": "Tingkatkan bandwidth dan sistem Cloud.",
@@ -617,9 +629,12 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
         const robustJsonParse = (str: string) => {
           let cleaned = str.trim();
           
-          // 1. Initial attempt
+          // Helper to remove non-printable characters
+          const cleanChars = (s: string) => s.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+          // 1. First attempt: Standard parse
           try {
-            return JSON.parse(cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ""));
+            return JSON.parse(cleanChars(cleaned));
           } catch (e) {
             console.warn("Standard JSON parse failed, attempting advanced repair...");
           }
@@ -629,25 +644,20 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
             // Remove markdown artifacts
             cleaned = cleaned.replace(/```json\n?|```/g, "").trim();
             
-            // Fix unescaped newlines inside strings
-            cleaned = cleaned.replace(/\n/g, "\\n");
-            
-            // Fix common AI mistake: "key": value without quotes
-            // This is complex, but we can try to wrap obviously non-quoted strings
-            // However, let's try a safer approach first: 
-            // Replace common problematic patterns like unescaped quotes inside values
-            
-            // Find the start and end of JSON
+            // Find the start and end of the JSON object
             const firstBrace = cleaned.indexOf('{');
             const lastBrace = cleaned.lastIndexOf('}');
             if (firstBrace !== -1 && lastBrace !== -1) {
               cleaned = cleaned.substring(firstBrace, lastBrace + 1);
             }
 
-            // Fix missing quotes for keys or values (risky but often needed)
-            // If the error is "Unexpected token K", it might be a value starting with K but no quote
+            // Fix unescaped newlines inside string values ONLY
+            // This regex finds content between double quotes and fixes newlines
+            cleaned = cleaned.replace(/"([^"]*)"/g, (match, content) => {
+              return '"' + content.replace(/\n/g, "\\n") + '"';
+            });
             
-            // Let's try to balance braces
+            // Fix missing closing braces if truncated
             let openBraces = (cleaned.match(/\{/g) || []).length;
             let closeBraces = (cleaned.match(/\}/g) || []).length;
             while (openBraces > closeBraces) {
@@ -655,13 +665,45 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
               closeBraces++;
             }
 
-            // Remove non-printable chars again
-            cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
-
-            return JSON.parse(cleaned);
+            return JSON.parse(cleanChars(cleaned));
           } catch (finalError) {
-            console.error("All JSON repair attempts failed:", finalError);
-            throw finalError;
+            // Last resort: If still failing, try to fix common "Unexpected token" errors
+            try {
+              let fixed = cleanChars(cleaned)
+                // 1. Fix missing colons: "key" "value" -> "key": "value"
+                .replace(/"([^"]+)"\s+"([^"]+)"/g, '"$1": "$2"')
+                // 2. Fix equals sign instead of colon: "key" = "value"
+                .replace(/"([^"]+)"\s*=\s*/g, '"$1": ')
+                // 3. Fix missing commas between properties
+                // Match "value" "nextKey": or number "nextKey":
+                .replace(/("(?:\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"|\d+|true|false|null)\s+"([^"]+)"\s*:/g, '$1, "$2":')
+                // 4. Fix unquoted values starting with letters
+                .replace(/:\s*([A-Za-z][^,}\]]+)/g, (match, p1) => {
+                  const trimmed = p1.trim();
+                  if (trimmed === "true" || trimmed === "false" || trimmed === "null" || !isNaN(Number(trimmed))) {
+                    return match;
+                  }
+                  if (trimmed.startsWith('"') || trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                    return match;
+                  }
+                  return ': "' + trimmed + '"';
+                });
+                
+              return JSON.parse(fixed);
+            } catch (superFinalError) {
+              // Last attempt: Try to close the JSON if it seems truncated or has garbage at the end
+              try {
+                let truncated = cleanChars(cleaned);
+                const lastValidBrace = truncated.lastIndexOf('}');
+                if (lastValidBrace !== -1) {
+                  truncated = truncated.substring(0, lastValidBrace + 1);
+                  return JSON.parse(truncated);
+                }
+              } catch (e) {}
+              
+              console.error("All JSON repair attempts failed:", superFinalError);
+              throw superFinalError;
+            }
           }
         };
 
@@ -690,6 +732,18 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
             rekomendasi: aiData.rekomendasi_digital || "Perlu peningkatan infrastruktur IT." 
           },
           timeline: aiData.timeline || [],
+          formasiIdeal: aiData.formasi_ideal ? {
+            eksisting: (aiData.formasi_ideal.jabatan_eksisting_disarankan || []).map((i: any) => ({
+              nama: i.nama,
+              jumlah: i.jumlah_ideal,
+              alasan: i.alasan
+            })),
+            baru: (aiData.formasi_ideal.jabatan_baru_usulan || []).map((i: any) => ({
+              nama: i.nama,
+              jumlah: i.jumlah_ideal,
+              alasan: i.alasan
+            }))
+          } : undefined,
           rincianStrategi: aiData.rincian_strategi || aiData.strategies || [],
           skorKesiapan: aiData.skor || aiData.score || 70,
           summary: aiData.summary || aiData.executive_summary
@@ -1416,6 +1470,54 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
                 <h3 className="text-lg font-bold text-primary mb-2">Kesimpulan Utama (Executive Summary)</h3>
                 <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 relative z-10 whitespace-pre-wrap">{aiResult.summary}</p>
               </div>
+
+              {/* NEW: IDEAL POSITION ANALYSIS SECTION */}
+              {aiResult.formasiIdeal && (
+                <div className="bg-slate-50 dark:bg-slate-900/40 border rounded-2xl p-6 space-y-6">
+                  <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200 border-b pb-3">
+                    <UserPlus className="h-6 w-6 text-blue-600" />
+                    Analisis Formasi Jabatan Ideal & Usulan Baru
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    {/* Existing Position Adjustments */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" /> Optimasi Jabatan Eksisting
+                      </h4>
+                      <div className="space-y-3">
+                        {aiResult.formasiIdeal.eksisting.map((item, idx) => (
+                          <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-xl border shadow-sm flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-slate-800 dark:text-slate-200">{item.nama}</span>
+                              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">Target: {item.jumlah}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 italic leading-relaxed">"{item.alasan}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* New Position Proposals */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" /> Usulan Jabatan Baru (Masa Depan)
+                      </h4>
+                      <div className="space-y-3">
+                        {aiResult.formasiIdeal.baru.map((item, idx) => (
+                          <div key={idx} className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-emerald-800 dark:text-emerald-300">{item.nama}</span>
+                              <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-black">Usulan: {item.jumlah}</span>
+                            </div>
+                            <p className="text-xs text-emerald-700/70 dark:text-emerald-400/70 italic leading-relaxed">"{item.alasan}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* DYNAMIC STRATEGY DETAILS */}
               {aiResult.rincianStrategi && aiResult.rincianStrategi.length > 0 && (
