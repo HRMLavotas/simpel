@@ -11,9 +11,11 @@ import { cn } from '@/lib/utils';
 import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { History, Trash2, Clock, Cpu } from 'lucide-react';
 
-// BPS API Key provided by user
-const BPS_API_KEY = '49b3ee3219c4030633b6fff5e581ddc5';
+// API Keys from environment
+const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
 
 interface DomainItem {
   domain_id: string;
@@ -30,6 +32,7 @@ interface PositionDetail {
   totalExisting: number;
   abkCount: number;
   gap: number;
+  kejuruanDetails?: Record<string, number>;
 }
 
 export default function AnalisisKebutuhanSdm() {
@@ -48,6 +51,27 @@ export default function AnalisisKebutuhanSdm() {
   const [selectedProvince, setSelectedProvince] = useState<string>('');
   const [selectedRegency, setSelectedRegency] = useState<string>("");
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
+  const [aiProgress, setAiProgress] = useState<string>("");
+  const [aiThinking, setAiThinking] = useState<string>("");
+  const [aiStreamingResult, setAiStreamingResult] = useState<string>("");
+  const [analysisHistory, setAnalysisHistory] = useState<any[]>([]);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('simpel_sdm_analysis_history');
+    if (savedHistory) {
+      try {
+        setAnalysisHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse analysis history", e);
+      }
+    }
+  }, []);
+
+  const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
+  const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
+  const locName = kabName ? `${kabName}, ${provName}` : provName;
+
   const [isFetchingProvinces, setIsFetchingProvinces] = useState(false);
   const [isFetchingRegencies, setIsFetchingRegencies] = useState(false);
 
@@ -69,10 +93,18 @@ export default function AnalisisKebutuhanSdm() {
   // AI State
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiResult, setAiResult] = useState<{
+    id?: string;
+    timestamp?: string;
+    unit_kerja?: string;
+    wilayah?: string;
     kebutuhan: number;
     rekrutmenSpesifik: string[];
     pelatihan: string[];
     sarprasRekomendasi: string[];
+    analisisRisiko?: string[];
+    kesiapanDigital?: { skor: number; rekomendasi: string };
+    timeline?: { tahap: string; aksi: string }[];
+    rincianStrategi?: any[];
     skorKesiapan: number;
     summary: string;
   } | null>(null);
@@ -97,8 +129,17 @@ export default function AnalisisKebutuhanSdm() {
         }
 
         const [empRes, posRes, deptRes] = await Promise.all([
-          supabase.from('employees').select('asn_status, satuan_kerja_penugasan, position_name').eq('department', effectiveDepartment).eq('is_active', true),
-          supabase.from('position_references').select('id, abk_count, position_name, position_category').eq('department', effectiveDepartment),
+          // Fetch employees that belong to this unit OR are assigned to this Satpel
+          supabase.from('employees')
+            .select('asn_status, satuan_kerja_penugasan, position_name, department, kejuruan')
+            .eq('is_active', true)
+            .or(`department.eq."${selectedDepartment}",satuan_kerja_penugasan.eq."${selectedDepartment}"`),
+          
+          // Fetch position references specific to this department (including Satpels)
+          supabase.from('position_references')
+            .select('id, abk_count, position_name, position_category')
+            .eq('department', selectedDepartment),
+            
           supabase.from('departments').select('sarpras').eq('name', selectedDepartment).maybeSingle()
         ]);
         
@@ -128,7 +169,14 @@ export default function AnalisisKebutuhanSdm() {
         }
 
         const isSatpel = isSatpelOrWorkshop(selectedDepartment);
-        const normalizeForComparison = (name: string) => name.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+        const normalizeForComparison = (name: string) => {
+          if (!name) return '';
+          let n = name.trim();
+          n = n.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
+          // Harmonize Pekanbaru naming
+          n = n.replace(/^Satuan Pelayanan Pekan Baru$/, 'Satuan Pelayanan Pekanbaru');
+          return n;
+        };
 
         const emps = isSatpel 
           ? rawEmps.filter(e => e.satuan_kerja_penugasan && normalizeForComparison(e.satuan_kerja_penugasan) === normalizeForComparison(selectedDepartment))
@@ -140,18 +188,30 @@ export default function AnalisisKebutuhanSdm() {
         let tAbk = 0;
         let tGap = 0;
 
+        const { isInstrukturPosition } = await import('@/lib/constants');
+
         const details: PositionDetail[] = rawPositions.map(pos => {
           const empMatch = emps.filter(e => e.position_name === pos.position_name);
           const asn = empMatch.filter(e => e.asn_status !== 'Non ASN').length;
           const nonAsn = empMatch.filter(e => e.asn_status === 'Non ASN').length;
           const total = asn + nonAsn;
           const abk = pos.abk_count || 0;
-          const gap = abk - total; // positive means we need more people
+          const gap = abk - total; 
           
           tAsn += asn;
           tNonAsn += nonAsn;
           tAbk += abk;
           if (gap > 0) tGap += gap;
+
+          // Process Kejuruan for Instructors
+          let kejMap: Record<string, number> | undefined = undefined;
+          if (isInstrukturPosition(pos.position_name)) {
+            kejMap = {};
+            empMatch.forEach(e => {
+              const k = e.kejuruan || 'Umum/Lainnya';
+              kejMap![k] = (kejMap![k] || 0) + 1;
+            });
+          }
 
           return {
             id: pos.id,
@@ -161,17 +221,23 @@ export default function AnalisisKebutuhanSdm() {
             existingNonAsn: nonAsn,
             totalExisting: total,
             abkCount: abk,
-            gap: gap
+            gap: gap,
+            kejuruanDetails: kejMap
           };
-        }).sort((a, b) => b.gap - a.gap); // sort by highest gap first
+        }).sort((a, b) => b.gap - a.gap); 
 
-        // Add employees whose positions are not in position_references (anomalies)
         const unmappedEmps = emps.filter(e => !rawPositions.some(p => p.position_name === e.position_name));
-        const unmappedGroups = new Map<string, {asn: number, nonAsn: number}>();
+        const unmappedGroups = new Map<string, {asn: number, nonAsn: number, kejuruan?: Record<string, number>}>();
         unmappedEmps.forEach(e => {
           const pName = e.position_name || 'Tidak Diketahui';
-          const current = unmappedGroups.get(pName) || { asn: 0, nonAsn: 0 };
+          const current = unmappedGroups.get(pName) || { asn: 0, nonAsn: 0, kejuruan: isInstrukturPosition(pName) ? {} : undefined };
           if (e.asn_status !== 'Non ASN') current.asn++; else current.nonAsn++;
+          
+          if (current.kejuruan) {
+            const k = e.kejuruan || 'Umum/Lainnya';
+            current.kejuruan[k] = (current.kejuruan[k] || 0) + 1;
+          }
+          
           unmappedGroups.set(pName, current);
         });
 
@@ -179,7 +245,7 @@ export default function AnalisisKebutuhanSdm() {
           tAsn += counts.asn;
           tNonAsn += counts.nonAsn;
           const total = counts.asn + counts.nonAsn;
-          const gap = 0 - total; // Overstaffed since ABK is 0
+          const gap = 0 - total; 
           details.push({
             id: `unmapped-${pName}`,
             name: pName,
@@ -188,7 +254,8 @@ export default function AnalisisKebutuhanSdm() {
             existingNonAsn: counts.nonAsn,
             totalExisting: total,
             abkCount: 0,
-            gap: gap
+            gap: gap,
+            kejuruanDetails: counts.kejuruan
           });
         });
 
@@ -254,10 +321,8 @@ export default function AnalisisKebutuhanSdm() {
     
     setIsGeneratingBps(true);
     
-    const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
-    const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
-    const locName = kabName ? `${kabName}, ${provName}` : provName;
-
+    setIsGeneratingBps(true);
+    
     try {
       // Attempt to hit BPS SDDS API (Var 543: TPT)
       // Realistically, BPS API requires 'th' parameter which fluctuates, and WAF might block.
@@ -394,7 +459,7 @@ export default function AnalisisKebutuhanSdm() {
     }
   };
 
-  const handleProcessAI = () => {
+  const handleProcessAI = async () => {
     if (!selectedDepartment || !selectedProvince || !bpsSektor) {
       toast({
         title: "Konteks Tidak Lengkap",
@@ -406,105 +471,390 @@ export default function AnalisisKebutuhanSdm() {
 
     setIsProcessingAI(true);
     setAiResult(null);
+    setAiThinking("");
+    setAiStreamingResult("");
+    setAiProgress("Menghubungkan ke DeepSeek Reasoning Engine...");
 
-    setTimeout(() => {
-      const locName = selectedRegency ? regencies.find(r => r.domain_id === selectedRegency)?.domain_name : provinces.find(p => p.domain_id === selectedProvince)?.domain_name;
-      
-      const neededPositions = positionDetails.filter(p => p.gap > 0).sort((a,b) => b.gap - a.gap).slice(0, 4);
-      const rekrutmen = neededPositions.map(p => `Butuh ${p.gap} orang untuk formasi ${p.name}`);
-      
-      if (rekrutmen.length === 0) {
-        rekrutmen.push("Formasi saat ini sudah terpenuhi sesuai ABK.");
+    const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    
+    const contextData = {
+      unit_kerja: selectedDepartment,
+      wilayah: locName,
+      internal: {
+        total_pegawai: internalTotals.asn + internalTotals.nonAsn,
+        asn: internalTotals.asn,
+        non_asn: internalTotals.nonAsn,
+        abk_kebutuhan: internalTotals.abk,
+        defisit_gap: internalTotals.gap,
+        posisi_kritis: positionDetails.filter(p => p.gap > 0).map(p => `${p.name} (Gap: ${p.gap})`)
+      },
+      external_bps: {
+        tpt: bpsTpt,
+        neet: bpsNeet,
+        tik: bpsTik,
+        sektor_dominan: bpsSektor,
+        industri_pdrb: bpsIndustri,
+        angkatan_kerja: bpsAngkatanKerja,
+        lulusan_pendidikan: bpsLulusan,
+        kemiskinan_ipm: bpsKemiskinan,
+        infrastruktur: bpsInfrastruktur
+      },
+      strategi_pilihan: selectedStrategies,
+      sarpras_eksisting: sarpras,
+      distribusi_kejuruan: positionDetails
+        .filter(p => p.kejuruanDetails && Object.keys(p.kejuruanDetails).length > 0)
+        .map(p => ({
+          jabatan: p.name,
+          breakdown: p.kejuruanDetails
+        }))
+    };
+
+    const prompt = `Analisis Ketenagakerjaan Strategis - Ditjen Binalavotas Kemnaker RI.
+Unit: ${contextData.unit_kerja} | Wilayah: ${contextData.wilayah}.
+Defisit SDM Internal: ${contextData.internal.defisit_gap} orang.
+Sektor Dominan (BPS): ${contextData.external_bps.sektor_dominan}.
+
+DATA KEJURUAN INSTRUKTUR EKSISTING:
+${JSON.stringify(contextData.distribusi_kejuruan, null, 2)}
+
+STRATEGI YANG HARUS DIANALISIS:
+${contextData.strategi_pilihan.join(', ')}
+
+Tugas Anda:
+1. Validasi Gap SDM & Distribusi Kejuruan: Apakah kejuruan instruktur saat ini sudah selaras dengan sektor ${contextData.external_bps.sektor_dominan}? Jika ada kejuruan yang dominan tapi tidak relevan, berikan catatan kritis.
+2. Analisis Mismatch: Identifikasi kejuruan apa yang paling mendesak untuk ditambah (rekrutmen/pelatihan instruktur).
+3. Rencana Aksi: Berikan langkah strategis untuk SETIAP pilihan strategi yang dicentang.
+4. Rekomendasi 6 intervensi sarpras (Wajib mencakup: 3 Alat Pelatihan Utama, 2 Bangunan/Gedung, 1 Fasilitas Penunjang).
+5. Rekomendasi 4 program pelatihan (SKKNI).
+
+WAJIB OUTPUT DALAM FORMAT JSON BERIKUT (TANPA PENJELASAN LAIN DI LUAR JSON, PASTIKAN SELURUH STRING DIAPIT TANDA KUTIP GANDA DAN TIDAK ADA KARAKTER KONTROL UNESCAPED):
+{
+  "summary": "...",
+  "rekrutmen": ["..."],
+  "pelatihan": ["..."],
+  "sarpras": ["..."],
+  "analisis_risiko": ["..."],
+  "kesiapan_digital": 85,
+  "rekomendasi_digital": "Tingkatkan bandwidth dan sistem Cloud.",
+  "timeline": [
+    { "tahap": "Jangka Pendek", "aksi": "..." },
+    { "tahap": "Jangka Menengah", "aksi": "..." }
+  ],
+  "rincian_strategi": [
+    { "nama": "Nama Strategi", "langkah": ["Langkah 1", "Langkah 2"], "impact": "High" }
+  ],
+  "skor": 85
+}
+
+CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan tanda kutip tunggal jika perlu. JANGAN tambahkan teks apa pun setelah penutup JSON.`;
+
+    try {
+      if (!apiKey || apiKey === "YOUR_DEEPSEEK_API_KEY_HERE") {
+        throw new Error("API Key DeepSeek belum dikonfigurasi.");
       }
 
-      const isDigitalMarket = bpsSektor.toLowerCase().includes('digital') || bpsSektor.toLowerCase().includes('jasa');
-      const isManufacture = bpsSektor.toLowerCase().includes('manufaktur');
-      const isAgriculture = bpsSektor.toLowerCase().includes('pertanian');
-      const isTourism = bpsSektor.toLowerCase().includes('akomodasi') || bpsSektor.toLowerCase().includes('pariwisata');
+      setAiProgress("Menganalisis dengan DeepSeek V4 Reasoner Engine...");
 
-      const pelatihan = [];
-      if (isDigitalMarket) pelatihan.push('Up-skilling Instruktur Kejuruan TIK/Digital Marketing (Prioritas Digitalisasi)');
-      if (isManufacture) pelatihan.push('Pelatihan Teknik Otomasi & Maintenance Mesin Industri Modern');
-      if (isAgriculture) pelatihan.push('Pengembangan Instruktur Smart Farming & Mekanisasi Pertanian');
-      if (isTourism) pelatihan.push('Sertifikasi Instruktur Hospitality & Pariwisata Internasional');
-      
-      if (selectedStrategies.includes('Up-skilling Instruktur Eksisting')) {
-        pelatihan.push('Sertifikasi Metodologi Pelatihan Vokasi (ToT) Berkelanjutan');
-      }
-      pelatihan.push('Workshop Penyusunan Kurikulum Berbasis SKKNI & Industri Lokal');
-
-      const sarprasRek = [];
-      if (isManufacture) sarprasRek.push('Modernisasi Workshop dengan Peralatan Produksi Presisi.');
-      if (isDigitalMarket) sarprasRek.push('Upgrade Infrastruktur Jaringan & Server untuk Lab IT.');
-      if (isAgriculture) sarprasRek.push('Implementasi Lab Agribisnis Terintegrasi (Indoor/Outdoor).');
-      if (isTourism) sarprasRek.push('Simulasi Laboratorium Perhotelan & Tata Boga Standar Industri.');
-      
-      if (selectedStrategies.includes('Pengadaan Sarpras Prioritas Tinggi')) {
-        sarprasRek.push('Prioritas Pengadaan Alat Utama Kejuruan (Daya Serap Tinggi).');
-      }
-      if (selectedStrategies.includes('Standarisasi Workshop (K3)')) {
-        sarprasRek.push('Implementasi Rambu & Standar Keselamatan Kerja (K3) di Workshop.');
-      }
-      if (selectedStrategies.includes('Hibah & Re-utilisasi Sarpras')) {
-        sarprasRek.push('Audit & Re-utilisasi Alat dari UPT Surplus untuk Satpel Baru.');
-      }
-      
-      if (sarpras) sarprasRek.push(`Optimalisasi Data Sarpras Eksisting: ${sarpras.substring(0, 60)}...`);
-      sarprasRek.push('Implementasi Ruang Kolaborasi & Digital Library untuk Instruktur.');
-
-      const tptNum = parseFloat(bpsTpt || '0');
-      const neetNum = parseFloat(bpsNeet || '0');
-      const urgencyLevel = tptNum > 7 ? 'KRITIS' : tptNum > 4 ? 'WASPADA' : 'OPTIMAL';
-
-      const strategiesText = selectedStrategies.length > 0 
-        ? `\n\n📌 STRATEGI PILIHAN PIMPINAN:\n${selectedStrategies.map(s => `• ${s}`).join('\n')}` 
-        : '';
-
-      const summaryFormatted = `[LAPORAN ANALISIS STRATEGIS AI — ${selectedDepartment.toUpperCase()}]
-
-1. ANALISIS MAKRO WILAYAH (${locName}):
-• Urgensi Pasar Kerja: ${urgencyLevel} (TPT: ${bpsTpt})
-• Potensi Peserta (NEET): ${bpsNeet} → Ketersediaan angkatan kerja baru melimpah.
-• Sektor Penggerak: ${bpsSektor} (Fokus utama pengembangan kompetensi).
-• Tantangan Lulusan: ${bpsLulusan.split('\n')[2] || 'Mismatch sedang'}
-• Kesiapan TIK: ${bpsTik} (Menentukan metode pelatihan: Blended/Full Offline).
-
-2. EVALUASI INTERNAL & GAP SDM:
-• Kesiapan Formasi: ${(100 - (internalTotals.gap / internalTotals.abk * 100)).toFixed(1)}% (Defisit: ${internalTotals.gap} posisi).
-• Rasio ASN/Non-ASN: ${((internalTotals.asn / (internalTotals.asn + internalTotals.nonAsn)) * 100).toFixed(0)}% ASN.${strategiesText}
-
-3. REKOMENDASI TINDAK LANJUT:
-Berdasarkan integrasi data internal dan eksternal, unit ${selectedDepartment} direkomendasikan untuk segera melakukan pengisian formasi di sektor ${bpsSektor}. Tingkat pengangguran muda (NEET) yang mencapai ${bpsNeet} menuntut UPT untuk meningkatkan kapasitas daya tampung pelatihan melalui penambahan instruktur dan modernisasi sarpras.
-
-Langkah Prioritas: Segera eksekusi ${selectedStrategies.length > 0 ? selectedStrategies[0] : 'Rekrutmen Jabfung'} untuk menutup celah ${internalTotals.gap} formasi, selaraskan kurikulum dengan SKKNI sektor ${bpsSektor}, dan pastikan sarpras mendukung standar industri terbaru.`;
-
-      setAiResult({
-        kebutuhan: internalTotals.gap,
-        rekrutmenSpesifik: rekrutmen,
-        pelatihan: pelatihan,
-        sarprasRekomendasi: sarprasRek,
-        skorKesiapan: Math.max(40, 100 - (internalTotals.gap * 2.5)),
-        summary: summaryFormatted
+      const response = await fetch("/deepseek-api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-reasoner", // Mapped to DeepSeek V4 Reasoner in proxy/WAF configuration
+          messages: [
+            { role: "system", content: "You are a professional Labor Market Analyst expert for Kemnaker RI. You must provide a highly detailed thought process and then output strictly in JSON format as requested." },
+            { role: "user", content: prompt }
+          ],
+          stream: true
+        })
       });
+
+      if (!response.ok) throw new Error("Gagal menghubungi DeepSeek API");
+      
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = "";
+      let fullReasoning = "";
+
+      if (!reader) throw new Error("Gagal membaca stream data AI");
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+        
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.replace("data: ", "").trim();
+            if (dataStr === "[DONE]") continue;
+
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices[0].delta;
+              
+              if (delta.reasoning_content) {
+                fullReasoning += delta.reasoning_content;
+                setAiThinking(fullReasoning);
+              }
+              
+              if (delta.content) {
+                fullContent += delta.content;
+                setAiStreamingResult(fullContent);
+              }
+            } catch (e) {
+              // Ignore parse errors for partial chunks
+            }
+          }
+        }
+      }
+
+      // Final parsing of the JSON content
+      try {
+        const robustJsonParse = (str: string) => {
+          let cleaned = str.trim();
+          
+          // 1. Initial attempt
+          try {
+            return JSON.parse(cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ""));
+          } catch (e) {
+            console.warn("Standard JSON parse failed, attempting advanced repair...");
+          }
+
+          // 2. Advanced Repair
+          try {
+            // Remove markdown artifacts
+            cleaned = cleaned.replace(/```json\n?|```/g, "").trim();
+            
+            // Fix unescaped newlines inside strings
+            cleaned = cleaned.replace(/\n/g, "\\n");
+            
+            // Fix common AI mistake: "key": value without quotes
+            // This is complex, but we can try to wrap obviously non-quoted strings
+            // However, let's try a safer approach first: 
+            // Replace common problematic patterns like unescaped quotes inside values
+            
+            // Find the start and end of JSON
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+              cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+
+            // Fix missing quotes for keys or values (risky but often needed)
+            // If the error is "Unexpected token K", it might be a value starting with K but no quote
+            
+            // Let's try to balance braces
+            let openBraces = (cleaned.match(/\{/g) || []).length;
+            let closeBraces = (cleaned.match(/\}/g) || []).length;
+            while (openBraces > closeBraces) {
+              cleaned += "}";
+              closeBraces++;
+            }
+
+            // Remove non-printable chars again
+            cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+            return JSON.parse(cleaned);
+          } catch (finalError) {
+            console.error("All JSON repair attempts failed:", finalError);
+            throw finalError;
+          }
+        };
+
+        const startIndex = fullContent.indexOf('{');
+        const endIndex = fullContent.lastIndexOf('}');
+        
+        if (startIndex === -1 || endIndex === -1) {
+          throw new Error("JSON not found in AI response");
+        }
+        
+        const jsonStr = fullContent.substring(startIndex, endIndex + 1);
+        const aiData = robustJsonParse(jsonStr);
+
+        const finalResult = {
+          id: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+          unit_kerja: selectedDepartment,
+          wilayah: locName,
+          kebutuhan: contextData.internal.defisit_gap,
+          rekrutmenSpesifik: aiData.rekrutmen || aiData.recommendaions || contextData.internal.posisi_kritis,
+          pelatihan: aiData.pelatihan || aiData.training || [],
+          sarprasRekomendasi: aiData.sarpras || aiData.sarana_prasarana || aiData.infrastructure || [],
+          analisisRisiko: aiData.analisis_risiko || [],
+          kesiapanDigital: { 
+            skor: aiData.kesiapan_digital || 0, 
+            rekomendasi: aiData.rekomendasi_digital || "Perlu peningkatan infrastruktur IT." 
+          },
+          timeline: aiData.timeline || [],
+          rincianStrategi: aiData.rincian_strategi || aiData.strategies || [],
+          skorKesiapan: aiData.skor || aiData.score || 70,
+          summary: aiData.summary || aiData.executive_summary
+        };
+
+        setAiResult(finalResult);
+
+        // Save to history
+        const updatedHistory = [finalResult, ...analysisHistory].slice(0, 20); // Keep last 20
+        setAnalysisHistory(updatedHistory);
+        localStorage.setItem('simpel_sdm_analysis_history', JSON.stringify(updatedHistory));
+
+    } catch (parseError) {
+        console.error("Parse Error after stream:", parseError);
+        // Fallback to local if JSON is malformed
+        handleProcessLocalAI(contextData, locName);
+      }
+
+    } catch (error) {
+      console.error("DeepSeek Stream Error:", error);
+      toast({
+        title: "DeepSeek API Error",
+        description: error instanceof Error ? error.message : "Gagal memproses analisis streaming.",
+        variant: "destructive"
+      });
+      handleProcessLocalAI(contextData, locName);
+    } finally {
       setIsProcessingAI(false);
-    }, 4000);
+      setAiProgress("");
+    }
+  };
+
+  const handleProcessLocalAI = (contextData: any, locName: string | undefined) => {
+    // Re-use previous local logic as fallback
+    const tptNum = parseFloat(contextData.external_bps.tpt || '0');
+    const urgencyLevel = tptNum > 7 ? 'KRITIS' : tptNum > 4 ? 'WASPADA' : 'OPTIMAL';
+    
+    setAiResult({
+      kebutuhan: contextData.internal.defisit_gap,
+      rekrutmenSpesifik: contextData.internal.posisi_kritis,
+      pelatihan: [
+        'Up-skilling Instruktur Kejuruan Terkait Sektor Dominan',
+        'Workshop Penyusunan Kurikulum Berbasis SKKNI',
+        'Sertifikasi Metodologi Pelatihan (Wajib)'
+      ],
+      sarprasRekomendasi: [
+'Modernisasi Workshop sesuai standar industri.',
+        'Audit K3 dan perbaikan fasilitas utama.',
+        'Penyediaan Smart Workspace untuk instruktur.'
+      ],
+      skorKesiapan: 65,
+      summary: `[ANALISIS LOKAL (FALLBACK) — ${contextData.unit_kerja}]\n\nIntegrasi DeepSeek gagal atau belum terkonfigurasi. Menggunakan analisis berbasis aturan lokal.\n\nWilayah: ${locName}\nStatus Urgensi: ${urgencyLevel} (TPT: ${contextData.external_bps.tpt})\nDefisit SDM: ${contextData.internal.defisit_gap} posisi.\nSektor Utama: ${contextData.external_bps.sektor_dominan}\n\nSangat direkomendasikan untuk segera melakukan pengisian formasi instruktur di sektor ${contextData.external_bps.sektor_dominan} untuk menyerap angka NEET sebesar ${contextData.external_bps.neet}.`
+    });
   };
 
   return (
     <AppLayout>
       <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between space-y-2 md:space-y-0">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Analisis Kebutuhan SDM UPT</h2>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Modul cerdas yang mengawinkan <strong>Peta Jabatan Eksisting</strong> dengan <strong>Big Data BPS</strong> untuk rekomendasi formasi yang presisi.
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Analisis Kebutuhan SDM UPT</h2>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">
+              Modul cerdas yang mengawinkan <strong>Peta Jabatan Eksisting</strong> dengan <strong>Big Data BPS</strong> untuk rekomendasi formasi yang presisi.
+            </p>
+          </div>
+          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="shadow-sm border-primary/20 hover:bg-primary/5 transition-all">
+                <History className="mr-2 h-4 w-4 text-primary" />
+                Riwayat Analisis
+                {analysisHistory.length > 0 && (
+                  <span className="ml-2 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">
+                    {analysisHistory.length}
+                  </span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md md:max-w-xl overflow-y-auto">
+              <SheetHeader className="pb-6 border-b">
+                <SheetTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Riwayat Analisis AI
+                </SheetTitle>
+                <SheetDescription>
+                  Daftar laporan analisis kebutuhan SDM yang telah Anda buat sebelumnya.
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="py-6 space-y-4">
+                {analysisHistory.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <History className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                    <p>Belum ada riwayat analisis.</p>
+                  </div>
+                ) : (
+                  analysisHistory.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="group relative bg-white dark:bg-slate-900 border rounded-xl p-4 hover:border-primary/50 transition-all cursor-pointer shadow-sm"
+                      onClick={() => {
+                        setAiResult(item);
+                        setSelectedDepartment(item.unit_kerja);
+                        // Province/Regency might need more state sync but for now we restore the report
+                        toast({ title: "Laporan Dipulihkan", description: `Menampilkan hasil analisis untuk ${item.unit_kerja}` });
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="space-y-0.5">
+                          <div className="text-sm font-bold text-primary">{item.unit_kerja}</div>
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {item.wilayah}
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                          item.skorKesiapan > 80 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                        )}>
+                          Skor: {item.skorKesiapan}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-slate-100 pl-2 mb-3">
+                        {item.summary}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          {new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newHistory = analysisHistory.filter(h => h.id !== item.id);
+                            setAnalysisHistory(newHistory);
+                            localStorage.setItem('simpel_sdm_analysis_history', JSON.stringify(newHistory));
+                            toast({ title: "Dihapus", description: "Riwayat analisis telah dihapus." });
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {analysisHistory.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4 text-xs"
+                  onClick={() => {
+                    if (confirm("Hapus semua riwayat analisis?")) {
+                      setAnalysisHistory([]);
+                      localStorage.removeItem('simpel_sdm_analysis_history');
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-3 w-3" /> Bersihkan Semua Riwayat
+                </Button>
+              )}
+            </SheetContent>
+          </Sheet>
         </div>
-        <Button variant="outline" className="hidden md:flex shadow-sm">
-          <BarChart3 className="mr-2 h-4 w-4" />
-          Riwayat Analisis
-        </Button>
-      </div>
 
       {/* SECTION 1: DATA INTERNAL (PETA JABATAN) */}
       <Card className="shadow-lg border-primary/20 overflow-hidden">
@@ -582,7 +932,20 @@ Langkah Prioritas: Segera eksekusi ${selectedStrategies.length > 0 ? selectedStr
                     <TableBody>
                       {positionDetails.map((pos) => (
                         <TableRow key={pos.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                          <TableCell className="font-medium text-sm">{pos.name}</TableCell>
+                          <TableCell className="font-medium text-sm">
+                            <div className="flex flex-col gap-1">
+                              <span>{pos.name}</span>
+                              {pos.kejuruanDetails && Object.keys(pos.kejuruanDetails).length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {Object.entries(pos.kejuruanDetails).map(([kej, count]) => (
+                                    <span key={kej} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                      {kej}: {count}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-sm text-muted-foreground">{pos.category}</TableCell>
                           <TableCell className="text-center">{pos.totalExisting}</TableCell>
                           <TableCell className="text-center">{pos.abkCount}</TableCell>
@@ -990,16 +1353,36 @@ Langkah Prioritas: Segera eksekusi ${selectedStrategies.length > 0 ? selectedStr
         </CardHeader>
         <CardContent className="pt-2 min-h-[300px]">
           {isProcessingAI ? (
-             <div className="flex flex-col items-center justify-center h-64 text-center space-y-6 text-muted-foreground">
-               <div className="relative h-24 w-24">
-                 <div className="absolute inset-0 rounded-full border-4 border-primary/10"></div>
-                 <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                 <BrainCircuit className="absolute inset-0 m-auto h-10 w-10 text-primary animate-pulse" />
+             <div className="space-y-6 animate-in fade-in duration-500">
+               {/* PROGRESS & THINKING BLOCK */}
+               <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
+                 <div className="relative h-16 w-16">
+                   <div className="absolute inset-0 rounded-full border-4 border-primary/10"></div>
+                   <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                   <BrainCircuit className="absolute inset-0 m-auto h-8 w-8 text-primary animate-pulse" />
+                 </div>
+                 <div className="space-y-1">
+                   <p className="text-base font-medium text-foreground animate-pulse">{aiProgress || "DeepSeek sedang menganalisis data..."}</p>
+                   <p className="text-xs text-muted-foreground italic">Menghubungkan data BPS {locName} dengan Peta Jabatan {selectedDepartment}.</p>
+                 </div>
                </div>
-               <div className="space-y-2">
-                 <p className="text-lg font-medium text-foreground animate-pulse">Menyelaraskan Kekosongan Formasi dengan Tren Wilayah...</p>
-                 <p className="text-sm">Menghitung matriks korelasi Peta Jabatan {selectedDepartment} dengan TPT BPS.</p>
-               </div>
+
+               {/* REASONING BOX (The "Thinking" part - only as loading) */}
+               {aiThinking && (
+                 <div className="bg-slate-50 dark:bg-slate-900/80 border rounded-xl p-5 space-y-3 relative overflow-hidden group">
+                   <div className="flex items-center justify-between border-b pb-2 mb-2 border-slate-200 dark:border-slate-800">
+                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                       <Sparkles className="mr-2 h-3 w-3 text-amber-500 animate-pulse" />
+                       Proses Berpikir (Chain of Thought)
+                     </h4>
+                     <div className="text-[10px] text-primary animate-bounce font-mono uppercase">Thinking...</div>
+                   </div>
+                   <div className="text-sm text-slate-600 dark:text-slate-400 font-mono leading-relaxed max-h-[300px] overflow-y-auto whitespace-pre-wrap custom-scrollbar">
+                     {aiThinking}
+                     <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse" />
+                   </div>
+                 </div>
+               )}
              </div>
           ) : !aiResult ? (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed rounded-xl m-4 bg-muted/10">
@@ -1010,12 +1393,129 @@ Langkah Prioritas: Segera eksekusi ${selectedStrategies.length > 0 ? selectedStr
           ) : (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 p-2 md:p-4">
               
+              {/* Optional: Show Reasoning even after done, but collapsible */}
+              {aiThinking && (
+                <details className="group border rounded-xl bg-slate-50/50 dark:bg-slate-900/50 overflow-hidden transition-all">
+                  <summary className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 list-none">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center">
+                      <Sparkles className="mr-2 h-3 w-3 text-amber-500" />
+                      Lihat Kembali Proses Berpikir AI
+                    </span>
+                    <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="p-4 border-t text-[11px] font-mono text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto bg-white/50 dark:bg-black/20">
+                    {aiThinking}
+                  </div>
+                </details>
+              )}
+
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <BrainCircuit className="w-32 h-32" />
                 </div>
                 <h3 className="text-lg font-bold text-primary mb-2">Kesimpulan Utama (Executive Summary)</h3>
                 <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 relative z-10 whitespace-pre-wrap">{aiResult.summary}</p>
+              </div>
+
+              {/* DYNAMIC STRATEGY DETAILS */}
+              {aiResult.rincianStrategi && aiResult.rincianStrategi.length > 0 && (
+                <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-700">
+                  <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    Rencana Implementasi Strategis (Berdasarkan Pilihan Anda)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {aiResult.rincianStrategi.map((strat: any, idx: number) => (
+                      <div key={idx} className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-5 space-y-3 hover:shadow-md transition-all group">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-primary leading-tight group-hover:text-blue-600 transition-colors">{strat.nama}</h4>
+                          <span className={cn(
+                            "text-[10px] px-2 py-0.5 rounded-full font-bold border",
+                            strat.impact === 'High' ? "bg-red-50 text-red-700 border-red-200" : "bg-blue-50 text-blue-700 border-blue-200"
+                          )}>
+                            IMPACT: {strat.impact}
+                          </span>
+                        </div>
+                        <ul className="space-y-2">
+                          {strat.langkah && Array.isArray(strat.langkah) && strat.langkah.map((l: string, lIdx: number) => (
+                            <li key={lIdx} className="text-xs flex items-start gap-2 text-slate-600 dark:text-slate-400">
+                              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 mt-1.5 shrink-0" />
+                              {l}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* NEW: DIGITAL READINESS SECTION */}
+              {aiResult.kesiapanDigital && (
+                <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-950/20 dark:to-blue-950/20 border border-sky-100 dark:border-sky-900 rounded-2xl p-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-lg font-bold flex items-center gap-2 text-sky-800 dark:text-sky-300">
+                        <Cpu className="h-5 w-5" />
+                        Tingkat Kesiapan Digital (Digital Readiness)
+                      </h3>
+                      <p className="text-sm text-sky-600 dark:text-sky-400">Skor infrastruktur IT dan adopsi digital untuk operasional unit kerja.</p>
+                    </div>
+                    <div className="flex items-center gap-4 bg-white/50 dark:bg-black/20 p-4 rounded-xl border border-sky-100 dark:border-sky-900">
+                      <div className="text-center">
+                        <div className="text-3xl font-black text-sky-600">{aiResult.kesiapanDigital.skor}%</div>
+                        <div className="text-[10px] uppercase font-bold text-sky-800/60 tracking-wider">Score</div>
+                      </div>
+                      <div className="text-sm font-medium italic text-sky-700 dark:text-sky-300 max-w-[200px]">
+                        "{aiResult.kesiapanDigital.rekomendasi}"
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* NEW: RISK & TIMELINE SECTION */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Risk Analysis */}
+                {aiResult.analisisRisiko && aiResult.analisisRisiko.length > 0 && (
+                  <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-200/50 rounded-2xl p-6 space-y-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-red-700 dark:text-red-400">
+                      <AlertCircle className="h-5 w-5" />
+                      Analisis Risiko & Hambatan
+                    </h3>
+                    <div className="space-y-3">
+                      {aiResult.analisisRisiko.map((risk: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 bg-white/80 dark:bg-black/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
+                          <div className="h-2 w-2 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse" />
+                          <p className="text-sm text-slate-700 dark:text-slate-300">{risk}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline Implementation */}
+                {aiResult.timeline && aiResult.timeline.length > 0 && (
+                  <div className="bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/50 rounded-2xl p-6 space-y-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+                      <Clock className="h-5 w-5" />
+                      Timeline Implementasi
+                    </h3>
+                    <div className="relative space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-indigo-200 dark:before:bg-indigo-800">
+                      {aiResult.timeline.map((item: any, idx: number) => (
+                        <div key={idx} className="relative pl-8">
+                          <div className="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-indigo-600 border-4 border-white dark:border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">
+                            {idx + 1}
+                          </div>
+                          <div className="bg-white/80 dark:bg-black/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                            <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">{item.tahap}</h4>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{item.aksi}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1050,17 +1550,23 @@ Langkah Prioritas: Segera eksekusi ${selectedStrategies.length > 0 ? selectedStr
                 </div>
 
                 {/* Rekomendasi Sarpras */}
-                <div className="space-y-4 md:col-span-2">
-                  <h4 className="text-lg font-bold flex items-center border-b pb-2">
-                    <Building className="mr-2 h-5 w-5 text-orange-500" /> Intervensi Sarana & Prasarana
+                <div className="space-y-4 md:col-span-2 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+                  <h4 className="text-lg font-bold flex items-center border-b pb-2 text-orange-700 dark:text-orange-400">
+                    <Building className="mr-2 h-5 w-5" /> Pengadaan Sarpras Prioritas Tinggi
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {aiResult.sarprasRekomendasi.map((s, idx) => (
-                      <div key={idx} className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl border border-orange-100 dark:border-orange-900/50">
-                        <p className="text-sm">{s}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {aiResult.sarprasRekomendasi && aiResult.sarprasRekomendasi.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {aiResult.sarprasRekomendasi.map((s, idx) => (
+                        <div key={idx} className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl border border-orange-100 dark:border-orange-900/50 shadow-sm hover:shadow-md transition-all">
+                          <p className="text-sm font-medium leading-relaxed">{s}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-orange-50/50 dark:bg-orange-950/10 p-8 rounded-xl border border-dashed border-orange-200 dark:border-orange-900/50 text-center">
+                      <p className="text-sm text-orange-600 dark:text-orange-400 italic">AI tidak menemukan rekomendasi sarpras spesifik untuk skenario ini.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

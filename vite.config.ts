@@ -13,8 +13,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: process.env.TEMPO === "true" ? "0.0.0.0" : "::",
     port: 8080,
-    // @ts-expect-error - Vite types don't support boolean for allowedHosts in this version
-    allowedHosts: process.env.TEMPO === "true" ? true : undefined,
+    // allowedHosts: process.env.TEMPO === "true" ? true : undefined,
     proxy: {
       '/bps-api': {
         target: 'https://webapi.bps.go.id',
@@ -28,6 +27,12 @@ export default defineConfig(({ mode }) => ({
           });
         }
       },
+      '/deepseek-api': {
+        target: 'https://api.deepseek.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/deepseek-api/, ''),
+      },
     },
   },
   plugins: [
@@ -36,7 +41,7 @@ export default defineConfig(({ mode }) => ({
     // Inject app version as meta tag into index.html so the update checker can read it
     {
       name: 'inject-app-version',
-      transformIndexHtml(html) {
+      transformIndexHtml(html: string) {
         return html.replace(
           '<meta name="author" content="Lavotas" />',
           `<meta name="author" content="Lavotas" />\n    <meta name="app-version" content="${packageVersion}" />`
@@ -60,28 +65,17 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React core libraries
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // UI component libraries
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-select',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip',
-          ],
-          // Chart library
-          'chart-vendor': ['recharts'],
-          // Excel processing
-          'excel-vendor': ['xlsx'],
-          // Supabase
-          'supabase-vendor': ['@supabase/supabase-js'],
-          // Form libraries
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          // Date utilities
-          'date-vendor': ['date-fns'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
+            if (id.includes('@radix-ui') || id.includes('lucide-react')) return 'ui-vendor';
+            if (id.includes('recharts')) return 'chart-vendor';
+            if (id.includes('xlsx')) return 'excel-vendor';
+            if (id.includes('@supabase')) return 'supabase-vendor';
+            if (id.includes('react-hook-form') || id.includes('zod')) return 'form-vendor';
+            if (id.includes('date-fns')) return 'date-vendor';
+            return 'vendor';
+          }
         },
       },
     },
