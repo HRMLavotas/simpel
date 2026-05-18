@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { getAccessibleDepartments } from '@/lib/constants';
 
 export interface AuditIssue {
   type: 'missing_field' | 'invalid_format' | 'incomplete_data';
@@ -259,7 +260,20 @@ const auditUnknownStatusEmployee = (employee: RawEmployeeAuditData): AuditIssue[
   return issues;
 };
 
-// ── Entry point audit per pegawai ─────────────────────────────────────────────
+export interface AuditDepartmentIssue {
+  type: 'missing_sarpras' | 'missing_prasarana' | 'missing_sarana' | 'missing_kejuruan';
+  field: string;
+  message: string;
+}
+
+export interface AuditDepartment {
+  id: string;
+  name: string;
+  issues: AuditDepartmentIssue[];
+  sarpras: string | null;
+}
+
+// Entry point audit per pegawai
 const auditEmployee = (employee: RawEmployeeAuditData): AuditEmployee => {
   let issues: AuditIssue[];
 
@@ -294,7 +308,8 @@ export function useDataAudit() {
   return useQuery({
     queryKey: ['data-audit', profile?.department],
     queryFn: async () => {
-      let query = supabase
+      // 1. Audit Employees
+      let employeeQuery = supabase
         .from('employees')
         .select(`
           id, nip, name, department, asn_status, rank_group, position_name, gender, birth_date, birth_place, religion,
@@ -304,19 +319,109 @@ export function useDataAudit() {
           rank_history(tanggal, pangkat_baru, nomor_sk)
         `);
 
-      if (!isAdminPusat && profile?.department) {
-        query = query.eq('department', profile.department);
+      if (!isAdminPusat && profile?.department && profile?.app_role) {
+        const accessible = getAccessibleDepartments(profile.department, profile.app_role);
+        employeeQuery = employeeQuery.in('department', accessible);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
+      const { data: employeeData, error: employeeError } = await employeeQuery;
+      if (employeeError) throw employeeError;
 
-      const totalEmployees = (data || []).length;
-      const auditedData = (data || [])
+      const totalEmployees = (employeeData || []).length;
+      const auditedData = (employeeData || [])
         .map(auditEmployee)
         .filter(employee => employee.issues.length > 0);
 
-      return { auditedData, totalEmployees };
+      // 2. Audit Departments (Unit Kerja)
+      let deptQuery = supabase
+        .from('departments')
+        .select('id, name, sarpras');
+
+      if (!isAdminPusat && profile?.department && profile?.app_role) {
+        const accessible = getAccessibleDepartments(profile.department, profile.app_role);
+        deptQuery = deptQuery.in('name', accessible);
+      }
+
+      const { data: deptData, error: deptError } = await deptQuery;
+      if (deptError) throw deptError;
+
+      const totalDepartments = (deptData || []).length;
+      const auditedDepartments: AuditDepartment[] = (deptData || [])
+        .map(dept => {
+          const issues: AuditDepartmentIssue[] = [];
+          
+          let prasarana: string[] = [];
+          let sarana: string[] = [];
+          let kejuruan: string[] = [];
+          
+          if (!dept.sarpras) {
+            issues.push({
+              type: 'missing_prasarana',
+              field: 'prasarana',
+              message: 'Prasarana (Bangunan) belum diisi'
+            });
+            issues.push({
+              type: 'missing_sarana',
+              field: 'sarana',
+              message: 'Sarana (Alat Praktik) belum diisi'
+            });
+            issues.push({
+              type: 'missing_kejuruan',
+              field: 'kejuruan',
+              message: 'Kejuruan Pelatihan belum diisi'
+            });
+          } else {
+            try {
+              const parsed = JSON.parse(dept.sarpras);
+              prasarana = parsed.prasarana || parsed.bangunan || [];
+              sarana = parsed.sarana || parsed.alat || [];
+              kejuruan = parsed.kejuruan || parsed.fasilitas || [];
+              
+              if (!Array.isArray(prasarana) || prasarana.length === 0) {
+                issues.push({
+                  type: 'missing_prasarana',
+                  field: 'prasarana',
+                  message: 'Prasarana (Bangunan) belum diisi'
+                });
+              }
+              if (!Array.isArray(sarana) || sarana.length === 0) {
+                issues.push({
+                  type: 'missing_sarana',
+                  field: 'sarana',
+                  message: 'Sarana (Alat Praktik) belum diisi'
+                });
+              }
+              if (!Array.isArray(kejuruan) || kejuruan.length === 0) {
+                issues.push({
+                  type: 'missing_kejuruan',
+                  field: 'kejuruan',
+                  message: 'Kejuruan Pelatihan belum diisi'
+                });
+              }
+            } catch {
+              issues.push({
+                type: 'missing_sarpras',
+                field: 'sarpras',
+                message: 'Format profil sarpras rusak / tidak valid'
+              });
+            }
+          }
+          
+          return {
+            id: dept.id,
+            name: dept.name,
+            issues,
+            sarpras: dept.sarpras
+          };
+        })
+        .filter(dept => dept.issues.length > 0);
+
+      return { 
+        auditedData, 
+        totalEmployees,
+        auditedDepartments,
+        totalDepartments
+      };
     },
     enabled: !!profile,
   });
