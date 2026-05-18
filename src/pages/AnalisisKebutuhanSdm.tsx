@@ -412,16 +412,68 @@ Pada "7. Rencana Implementasi per Strategi" dan "8. Analisis Risiko", kamu WAJIB
 Jangan memberikan detail rencana implementasi untuk strategi yang TIDAK dipilih/dicentang. Sesuaikan rekomendasi usulan jabatan dan timeline pelatihan agar sejalan dengan strategi aktif tersebut.
 Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mematuhi Parameter Regulasi & Kebijakan di atas.`;
     try {
-      if (!apiKey || apiKey === 'YOUR_DEEPSEEK_API_KEY_HERE') throw new Error('API Key DeepSeek belum dikonfigurasi.');
-      setAiProgress('Menganalisis dengan DeepSeek Reasoner...');
-      const res = await fetch('/deepseek-api/v1/chat/completions', {
-        method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-        body: JSON.stringify({model:'deepseek-reasoner',messages:[
-          {role:'system',content:'Kamu analis SDM profesional Kemnaker RI. Tulis laporan dalam Markdown terstruktur.'},
-          {role:'user',content:prompt}
-        ],stream:true})
-      });
-      if (!res.ok) throw new Error('Gagal menghubungi DeepSeek API');
+      let res;
+      let usingEdgeFunction = false;
+      
+      try {
+        setAiProgress('Menganalisis dengan DeepSeek Reasoner (Secure Server)...');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Sesi aktif tidak ditemukan. Silakan login kembali.');
+        
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        res = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+          },
+          body: JSON.stringify({
+            mode: 'analysis',
+            model: 'deepseek-reasoner',
+            messages: [
+              { role: 'system', content: 'Kamu analis SDM profesional Kemnaker RI. Tulis laporan dalam Markdown terstruktur.' },
+              { role: 'user', content: prompt }
+            ],
+            stream: true
+          })
+        });
+        
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          const errMsg = errBody.error || `HTTP ${res.status}`;
+          throw new Error(`Edge Function returned: ${errMsg}`);
+        }
+        usingEdgeFunction = true;
+      } catch (edgeErr) {
+        console.warn('Gagal menggunakan secure Edge Function, mencoba client-side API Key:', edgeErr);
+        
+        if (!apiKey || apiKey === 'YOUR_DEEPSEEK_API_KEY_HERE') {
+          throw new Error('API Key DeepSeek belum dikonfigurasi secara lokal.');
+        }
+        
+        setAiProgress('Menganalisis dengan DeepSeek Reasoner (Direct Client)...');
+        res = await fetch('/deepseek-api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-reasoner',
+            messages: [
+              { role: 'system', content: 'Kamu analis SDM profesional Kemnaker RI. Tulis laporan dalam Markdown terstruktur.' },
+              { role: 'user', content: prompt }
+            ],
+            stream: true
+          })
+        });
+        
+        if (!res.ok) throw new Error('Gagal menghubungi DeepSeek API secara langsung');
+      }
+
       const reader = res.body?.getReader(); const dec = new TextDecoder();
       if (!reader) throw new Error('Gagal membaca stream');
       let full='', thinking='';
@@ -440,7 +492,7 @@ Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mema
       const entry={id:crypto.randomUUID(),timestamp:new Date().toISOString(),unit_kerja:selectedDepartment,wilayah:locName,markdown:full,preview:full.substring(0,200)};
       const hist=[entry,...analysisHistory].slice(0,20);
       setAnalysisHistory(hist); localStorage.setItem('simpel_sdm_analysis_history',JSON.stringify(hist));
-      toast({title:'✅ Analisis Selesai',description:'Laporan berhasil di-generate.'});
+      toast({title:'✅ Analisis Selesai',description:`Laporan berhasil di-generate menggunakan DeepSeek ${usingEdgeFunction ? '(Secure)' : '(Lokal API Key)'}.`});
     } catch(err) {
       console.error(err);
       const tptN = parseFloat(bpsTpt || '0');
@@ -668,7 +720,7 @@ ${isStr4 ? `| **Tahap Kapasitas (Str 4)** | Bulan 9 - 10 | Pengiriman instruktur
           theme: 'striped',
           headStyles: { fillColor:[59,130,246], fontSize:7, fontStyle:'bold' },
           bodyStyles: { fontSize:7 },
-          columnStyles: { 0:{cellWidth:55}, 1:{cellWidth:32}, 2:{cellWidth:18,halign:'center'}, 3:{cellWidth:18,halign:'center'}, 4:{cellWidth:28,halign:'center'} },
+          columnStyles: { 0:{cellWidth:84}, 1:{cellWidth:32}, 2:{cellWidth:18,halign:'center'}, 3:{cellWidth:18,halign:'center'}, 4:{cellWidth:28,halign:'center'} },
           margin: { left:margin, right:margin }
         });
         y = (doc as any).lastAutoTable.finalY + 6;

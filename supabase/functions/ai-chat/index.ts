@@ -14,8 +14,14 @@ interface ChatMessage {
 }
 
 interface ChatRequest {
-  message: string
+  message?: string
   history?: ChatMessage[]
+  mode?: 'chat' | 'analysis'
+  messages?: ChatMessage[]
+  model?: string
+  stream?: boolean
+  temperature?: number
+  max_tokens?: number
 }
 
 // Define available tools for AI
@@ -295,11 +301,64 @@ serve(async (req) => {
 
     const userRole = roleData?.role
     const userDepartment = profile.department
-    const { message, history = [] }: ChatRequest = await req.json()
+    const body = await req.json()
+    const { message = '', history = [], mode, messages: customMessages, model, stream, temperature, max_tokens }: ChatRequest = body
 
     const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY')
     if (!deepseekApiKey) {
       throw new Error('DeepSeek API key not configured')
+    }
+
+    if (mode === 'analysis') {
+      console.log('Running secure analysis mode directly with DeepSeek');
+      
+      const isReasoner = (model || 'deepseek-reasoner') === 'deepseek-reasoner';
+      const payload: any = {
+        model: model || 'deepseek-reasoner',
+        messages: customMessages || [
+          { role: 'system', content: 'Kamu analis SDM profesional Kemnaker RI. Tulis laporan dalam Markdown terstruktur.' },
+          { role: 'user', content: message }
+        ],
+        stream: stream || false
+      };
+      
+      if (!isReasoner) {
+        payload.temperature = temperature !== undefined ? temperature : 0.7;
+        payload.max_tokens = max_tokens || 4000;
+      }
+
+      const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${deepseekApiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!deepseekResponse.ok) {
+        const errorText = await deepseekResponse.text();
+        console.error('DeepSeek API error in secure analysis mode:', errorText);
+        throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
+      }
+
+      if (stream) {
+        return new Response(deepseekResponse.body, {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+          },
+          status: 200
+        });
+      } else {
+        const data = await deepseekResponse.json();
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
     }
 
     const isAdminPusat = userRole === 'admin_pusat'
