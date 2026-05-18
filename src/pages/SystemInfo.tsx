@@ -23,9 +23,19 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '2.22.0',
+    version: '2.23.0',
     date: '18 Mei 2026',
     label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'Audit Kelengkapan Data Unit Kerja (Sarpras & Kejuruan): Menambahkan sistem dual-tab ("Pegawai" & "Unit Kerja") untuk mendeteksi unit kerja yang belum mengisi data Sarana, Prasarana, atau Kejuruan.' },
+      { type: 'feature', text: 'Ekspansi Akses Audit Unit Pembina & Binaan: Admin Unit Pembina (BBPVP/BPVP) secara otomatis dapat memantau kelengkapan data pegawai serta profil sarpras unit binaan (Satpel/Workshop) di bawah naungannya.' },
+      { type: 'improvement', text: 'Filter Unit Kerja Adaptif & Komprehensif: Menyediakan dropdown seleksi unit binaan yang cerdas bagi Admin Unit Pembina di menu Audit Data untuk penyaringan masalah secara dinamis.' },
+      { type: 'improvement', text: 'Integrasi Modal Perbaikan Langsung: Membuka modal pengeditan profil sarpras unit kerja secara langsung dari baris audit dan melakukan hot-reload otomatis sehingga data yang diperbaiki langsung lenyap dari daftar isu.' },
+    ],
+  },
+  {
+    version: '2.22.0',
+    date: '18 Mei 2026',
     changes: [
       { type: 'feature', text: 'CRUD Parameter Kebijakan & Regulasi (Section 2B): antarmuka interaktif terintegrasi penuh untuk menambah, mengedit, dan menghapus regulasi utama beserta poin-poin ketentuannya (2-Tier sub-entry) dengan database Supabase.' },
       { type: 'feature', text: '4 Pilar Strategi Spesifik Penyiapan SDM Berbasis Analisis Lokal: merumuskan opsi taktis berorientasi data riil pasar kerja lokal dan indikator BPS wilayah.' },
@@ -496,9 +506,13 @@ const FEATURES_OVERVIEW = [
     category: 'Audit Data',
     icon: '🔍',
     items: [
-      'Deteksi data pegawai yang tidak lengkap atau tidak konsisten',
-      'Laporan audit dapat diexport ke Excel',
-      'Tersedia untuk admin unit dan admin pusat',
+      'Sistem Dua Tab Premium: Tab Data Pegawai dan Tab Profil Unit Kerja (Sarpras & Kejuruan).',
+      'Deteksi data pegawai tidak lengkap (NIP, Tempat/Tgl Lahir, Pangkat/Golongan, Agama, Gender, Riwayat Pendidikan, Riwayat Jabatan).',
+      'Deteksi kelengkapan profil Sarpras Unit Kerja (Prasarana, Sarana, dan Kejuruan).',
+      'Ekspansi Unit Pembina: Admin Unit Pembina otomatis dapat memantau audit data unit binaan (Satpel/Workshop).',
+      'Filter pencarian dan penyaringan unit binaan yang adaptif.',
+      'Integrasi Form Perbaikan Langsung: lengkapi profil sarpras langsung via modal terintegrasi dengan pembaruan data real-time.',
+      'Laporan audit dapat diexport ke Excel.',
     ],
   },
   {
