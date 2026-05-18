@@ -23,9 +23,19 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.22.0',
+    date: '18 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'feature', text: 'CRUD Parameter Kebijakan & Regulasi (Section 2B): antarmuka interaktif terintegrasi penuh untuk menambah, mengedit, dan menghapus regulasi utama beserta poin-poin ketentuannya (2-Tier sub-entry) dengan database Supabase.' },
+      { type: 'feature', text: '4 Pilar Strategi Spesifik Penyiapan SDM Berbasis Analisis Lokal: merumuskan opsi taktis berorientasi data riil pasar kerja lokal dan indikator BPS wilayah.' },
+      { type: 'improvement', text: 'Mesin Linkage Aturan Vokasi Lokal Dinamis: seluruh bagian laporan analisis sdm (formasi, sarpras, program PBK, aksi mitigasi risiko, timeline) kini secara real-time beradaptasi menyesuaikan checkbox strategi yang dipilih pengguna.' },
+      { type: 'improvement', text: 'Ekspansi Hak Akses Peran Seluruh Pengguna: menu Analisis SDM UPT dibuka aksesibilitasnya agar dapat dinikmati oleh Admin Pusat, Admin Unit, dan Admin Pimpinan sekaligus.' },
+    ],
+  },
+  {
     version: '2.21.0',
     date: '11 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Export Peta Jabatan Unit Individu: tambahan 3 tabel agregasi (Golongan, Pendidikan, Jenis Kelamin) — export unit individu kini memiliki 4 sheets seperti export semua unit.' },
       { type: 'feature', text: 'Tabel Golongan: distribusi PNS per golongan (I-IV), PPPK per golongan (III, V, VII, IX), dan jenis kelamin (L/P) untuk unit yang dipilih.' },
@@ -361,6 +371,40 @@ const TYPE_CONFIG = {
 };
 
 const FEATURES_OVERVIEW = [
+  {
+    category: 'Analisis & Regulasi SDM',
+    icon: '📊',
+    items: [
+      'Analisis Kebutuhan SDM UPT terintegrasi BPS Web API daerah',
+      'CRUD Parameter Regulasi & Kebijakan Ditjen Binalavotas',
+      '2-Tier CRUD Sub-Entry (Regulasi Utama & Poin Parameter Ketentuan)',
+      '4 Pilar Strategi Spesifik Penyiapan SDM Berbasis Analisis Lokal',
+      'Mesin Aturan Vokasi Dinamis (Formasi, Sarpras, Program, Rencana Aksi, Risiko, Timeline GANTT kustom)',
+      'Ekspansi Hak Akses Menu untuk Seluruh Peran (Admin Pusat, Unit, Pimpinan)',
+    ],
+  },
+  {
+    category: 'Disiplin & Kasus Pegawai',
+    icon: '⚖️',
+    items: [
+      'Pencatatan komprehensif kasus pelanggaran disiplin & hukum pegawai',
+      'Detail resume kasus, dokumen pemeriksaan digital, serta riwayat hukuman disiplin',
+      'Validasi interaktif status konektivitas integritas data kasus dengan database pusat',
+      'Proteksi RLS ketat — menu kelola kasus sensitif khusus berotorisasi admin pusat',
+      'Pelacakan status perkembangan hukum/pemeriksaan secara real-time',
+    ],
+  },
+  {
+    category: 'Akses & Unit Kerja Binaan',
+    icon: '🏢',
+    items: [
+      'Hak Kelola Multi-Unit: Admin Unit Pembina (BBPVP/BPVP) dapat mengakses data pegawai di Satpel/Workshop binaannya',
+      'Peta Jabatan Satpel: Sinkronisasi dan render otomatis dari Peta Jabatan induk unit pembina',
+      'Field "Satuan Kerja Penugasan": Pencatatan lokasi tugas fisik pegawai secara presisi',
+      'Pembedaan badge khusus penugasan Satpel (warna amber) di Peta Jabatan',
+      'Pencegahan human error: dropdown pilihan Satpel dibatasi hanya untuk yang merupakan binaan sah dari unit pembina',
+    ],
+  },
   {
     category: 'AI Chatbot',
     icon: '🤖',

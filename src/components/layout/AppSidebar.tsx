@@ -15,6 +15,7 @@ interface NavItem {
   adminPusatOnly?: boolean;
   hideForPimpinan?: boolean;
   adminPusatOrPimpinan?: boolean;
+  adminPusatOrUnit?: boolean;
   requiresCaseAccess?: boolean; // New flag for case management access
 }
 
@@ -27,11 +28,11 @@ const navItems: NavItem[] = [
   { label: 'Peta Jabatan', href: '/peta-jabatan', icon: LayoutList },
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
   { label: 'Monitoring Unit', href: '/monitoring', icon: Activity, adminPusatOrPimpinan: true },
-  { label: 'Analisis SDM UPT', href: '/analisis-sdm', icon: BrainCircuit, adminPusatOrPimpinan: true },
+  { label: 'Analisis SDM UPT', href: '/analisis-sdm', icon: BrainCircuit },
   { label: 'Kasus Pegawai', href: '/admin/kasus-pegawai', icon: FileText, adminPusatOnly: true, hideForPimpinan: true, requiresCaseAccess: true },
   { label: 'Pengumuman', href: '/announcements', icon: Megaphone, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
-  { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOnly: true, hideForPimpinan: true },
+  { label: 'Unit Kerja', href: '/departments', icon: Building, adminPusatOrUnit: true, hideForPimpinan: true },
   { label: 'Info Sistem', href: '/system-info', icon: Info },
   { label: 'Profile', href: '/profile', icon: User },
 ];
@@ -54,6 +55,8 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
     if (item.hideForPimpinan && isAdminPimpinan) return false;
     // Show items for admin_pusat or admin_pimpinan
     if (item.adminPusatOrPimpinan && !isAdminPusat && !isAdminPimpinan) return false;
+    // Hide items that require admin-pusat or admin-unit
+    if (item.adminPusatOrUnit && !isAdminPusat && role !== 'admin_unit') return false;
     // Check case access for items that require it
     if (item.requiresCaseAccess && !hasCaseAccess) return false;
     return true;

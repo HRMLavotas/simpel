@@ -110,7 +110,7 @@ const App = () => (
               <Route path="/import-non-asn" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><ImportNonAsn /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ErrorBoundary><Profile /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admins" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Admins /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/departments" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/departments" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_unit']}><ErrorBoundary><Departments /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/peta-jabatan" element={<ProtectedRoute><ErrorBoundary><PetaJabatan /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/data-builder" element={<ProtectedRoute allowedRoles={['admin_unit', 'admin_pusat', 'admin_pimpinan']}><ErrorBoundary><DataBuilder /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/monitoring" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan']}><ErrorBoundary><UnitActivityMonitoring /></ErrorBoundary></ProtectedRoute>} />
@@ -118,7 +118,7 @@ const App = () => (
               <Route path="/admin/kasus-pegawai" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><EmployeeCaseManagement /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admin/kasus-pegawai/:caseId" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><EmployeeCaseDetail /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admin/kasus-pegawai-validator" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><CaseConnectionValidator /></ErrorBoundary></ProtectedRoute>} />
-              <Route path="/analisis-sdm" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan']}><ErrorBoundary><AnalisisKebutuhanSdm /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/analisis-sdm" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan', 'admin_unit']}><ErrorBoundary><AnalisisKebutuhanSdm /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/system-info" element={<ProtectedRoute><ErrorBoundary><SystemInfo /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>

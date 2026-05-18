@@ -28,6 +28,7 @@ import { DeleteDepartmentDialog } from '@/components/departments/DeleteDepartmen
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { PageHeader } from '@/components/ui/page-header';
+import { getAccessibleDepartments } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 
 interface Department {
@@ -38,7 +39,7 @@ interface Department {
 }
 
 export default function Departments() {
-  const { isAdminPusat } = useAuth();
+  const { isAdminPusat, role, profile } = useAuth();
   const { toast } = useToast();
 
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -47,6 +48,8 @@ export default function Departments() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+
+  const isAuthorized = isAdminPusat || role === 'admin_unit';
 
   const fetchDepartments = useCallback(async () => {
     setIsLoading(true);
@@ -57,7 +60,14 @@ export default function Departments() {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setDepartments(data || []);
+
+      const rawData = data || [];
+      if (!isAdminPusat && role === 'admin_unit' && profile?.department) {
+        const accessible = getAccessibleDepartments(profile.department, 'admin_unit');
+        setDepartments(rawData.filter(d => accessible.includes(d.name)));
+      } else {
+        setDepartments(rawData);
+      }
     } catch (error) {
       logger.error('Error fetching departments:', error);
       toast({
@@ -68,12 +78,12 @@ export default function Departments() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, isAdminPusat, role, profile]);
 
   useEffect(() => {
-    if (!isAdminPusat) return;
+    if (!isAuthorized) return;
     fetchDepartments();
-  }, [isAdminPusat, fetchDepartments]);
+  }, [isAuthorized, fetchDepartments]);
 
   const filteredDepartments = departments.filter((dept) =>
     dept.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -94,14 +104,14 @@ export default function Departments() {
     setIsDeleteDialogOpen(true);
   };
 
-  if (!isAdminPusat) {
+  if (!isAuthorized) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold">Akses Ditolak</h2>
           <p className="text-muted-foreground mt-2">
-            Halaman ini hanya dapat diakses oleh Admin Pusat
+            Halaman ini hanya dapat diakses oleh Admin Pusat dan Admin Unit.
           </p>
         </div>
       </AppLayout>
@@ -118,10 +128,12 @@ export default function Departments() {
           description="Kelola daftar unit kerja organisasi"
           gradient="cyan"
         >
-          <Button onClick={handleAdd} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Unit Kerja
-          </Button>
+          {isAdminPusat && (
+            <Button onClick={handleAdd} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Unit Kerja
+            </Button>
+          )}
         </PageHeader>
 
         {/* Search */}
@@ -187,14 +199,18 @@ export default function Departments() {
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDelete(dept)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
+                            {isAdminPusat && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDelete(dept)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

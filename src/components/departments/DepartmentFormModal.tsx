@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Department {
   id: string;
@@ -43,6 +44,7 @@ const departmentSchema = z.object({
 
 export function DepartmentFormModal({ open, onOpenChange, department, onSuccess }: DepartmentFormModalProps) {
   const { toast } = useToast();
+  const { isAdminPusat } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -283,9 +285,14 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
                   placeholder="Contoh: BBPVP Jakarta"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isAdminPusat}
                   className="bg-background"
                 />
+                {!isAdminPusat && (
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                    * Hanya Admin Pusat yang dapat mengubah nama unit kerja. Anda dapat memperbarui profil Sarpras di bawah.
+                  </p>
+                )}
                 {errors.name && (
                   <p className="text-sm text-destructive">{errors.name}</p>
                 )}
