@@ -16,6 +16,7 @@ import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { BPS_PROVINCES, BPS_REGENCIES } from '@/data/bps-provinces';
 
 // API Keys from environment
 const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
@@ -282,14 +283,30 @@ export default function AnalisisKebutuhanSdm() {
   useEffect(() => {
     const fetchProvinces = async () => {
       setIsFetchingProvinces(true);
+      
       try {
-        const response = await fetch(`/bps-api/v1/api/domain?type=prov&key=${BPS_API_KEY}`);
-        const json = await response.json();
-        if (json.status === 'OK' && json.data && json.data.length > 1) {
-          setProvinces(json.data[1]);
+        // Try idn-area API (free, no API key needed, more reliable than BPS)
+        const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
+        
+        const data = await response.json();
+        
+        // Transform to match BPS format
+        const transformedData = data.map((prov: any) => ({
+          domain_id: prov.id,
+          domain_name: prov.name.toUpperCase(),
+          domain_url: `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${prov.id}.json`
+        }));
+        
+        setProvinces(transformedData);
+        console.log('✅ Provinces loaded from idn-area API (34 provinces)');
       } catch (error) {
-        console.error('Failed to fetch BPS provinces:', error);
+        console.error('Failed to fetch provinces from idn-area API:', error);
+        console.log('📦 Using static province data');
+        setProvinces(BPS_PROVINCES);
       } finally {
         setIsFetchingProvinces(false);
       }
@@ -303,20 +320,45 @@ export default function AnalisisKebutuhanSdm() {
       setRegencies([]);
       return;
     }
+    
     const fetchRegencies = async () => {
       setIsFetchingRegencies(true);
+      
       try {
-        const response = await fetch(`/bps-api/v1/api/domain?type=kabbyprov&prov=${selectedProvince}&key=${BPS_API_KEY}`);
-        const json = await response.json();
-        if (json.status === 'OK' && json.data && json.data.length > 1) {
-          setRegencies(json.data[1]);
+        // Try idn-area API (free, no API key needed)
+        const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProvince}.json`);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
+        
+        const data = await response.json();
+        
+        // Transform to match BPS format
+        const transformedData = data.map((reg: any) => ({
+          domain_id: reg.id,
+          domain_name: reg.name.toUpperCase(),
+          domain_url: `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${reg.id}.json`
+        }));
+        
+        setRegencies(transformedData);
+        console.log(`✅ Regencies loaded for province ${selectedProvince} (${transformedData.length} items)`);
       } catch (error) {
-        console.error('Failed to fetch BPS regencies:', error);
+        console.error(`Failed to fetch regencies for province ${selectedProvince}:`, error);
+        
+        // Fallback to static data if available
+        if (BPS_REGENCIES[selectedProvince]) {
+          console.log(`📦 Using static regency data for province ${selectedProvince}`);
+          setRegencies(BPS_REGENCIES[selectedProvince]);
+        } else {
+          console.log(`⚠️ No data available for province ${selectedProvince}`);
+          setRegencies([]);
+        }
       } finally {
         setIsFetchingRegencies(false);
       }
     };
+    
     fetchRegencies();
   }, [selectedProvince]);
 
@@ -325,6 +367,20 @@ export default function AnalisisKebutuhanSdm() {
       toast({ variant: 'destructive', title: 'Pilih Provinsi', description: 'Harap pilih provinsi BPS terlebih dahulu.' });
       return;
     }
+    
+    // Validate and log selected location
+    const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
+    const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
+    const locName = kabName ? `${kabName}, ${provName}` : provName;
+    
+    console.log('🔍 Generating BPS data for:');
+    console.log(`   Province ID: ${selectedProvince}`);
+    console.log(`   Province Name: ${provName}`);
+    if (selectedRegency) {
+      console.log(`   Regency ID: ${selectedRegency}`);
+      console.log(`   Regency Name: ${kabName}`);
+    }
+    console.log(`   Full Location: ${locName}`);
     
     setIsGeneratingBps(true);
     
@@ -388,6 +444,7 @@ export default function AnalisisKebutuhanSdm() {
         setBpsSektor(domSektor);
 
         setBpsSintesis(
+          `✅ DATA WILAYAH: ${locName}\n\n` +
           `Berdasarkan integrasi data SDDS & SDGs BPS untuk ${locName}:\n` +
           `- TPT: ${tpt}% | NEET Pemuda: ${neet}% | Literasi TIK: ${tik}%\n` +
           `- IPM: ${ipm} | Gini Ratio: ${gini} | Kemiskinan: ${kemiskinan}%\n` +
@@ -1082,6 +1139,24 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
                 </select>
               </div>
             </div>
+
+            {/* Display selected location for verification */}
+            {selectedProvince && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="font-semibold text-blue-900 dark:text-blue-100">
+                    Wilayah Terpilih:
+                  </span>
+                  <span className="text-blue-700 dark:text-blue-300">
+                    {locName}
+                  </span>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 ml-6">
+                  Data BPS yang akan di-generate sesuai dengan wilayah ini
+                </p>
+              </div>
+            )}
 
             <Button 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
