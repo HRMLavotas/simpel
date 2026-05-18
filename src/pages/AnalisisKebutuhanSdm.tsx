@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { 
   BrainCircuit, MapPin, Building, Briefcase, Activity, FileText, 
   CheckCircle2, Loader2, BarChart3, Info, Database, AlertCircle, 
-  Sparkles, Users, History, Trash2, Clock, Cpu, UserPlus, TrendingUp 
+  Sparkles, Users, History, Trash2, Clock, Cpu, UserPlus, TrendingUp, Download 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -17,6 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { BPS_PROVINCES, BPS_REGENCIES } from '@/data/bps-provinces';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // API Keys from environment
 const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
@@ -710,6 +712,30 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
               cleaned = cleaned.substring(firstBrace, lastBrace + 1);
             }
 
+            // Fix common streaming errors
+            // 1. Fix missing commas between array elements and next property
+            cleaned = cleaned.replace(/"\s*\]\s*"([^"]+)":/g, '"], "$1":');
+            
+            // 2. Fix missing commas between array items (e.g., "item1""item2")
+            cleaned = cleaned.replace(/"\s*"([^"]+)"/g, '", "$1"');
+            
+            // 3. Fix broken words in array items (e.g., "Instktur -> "Instruktur")
+            // This is a heuristic fix for common typos
+            cleaned = cleaned.replace(/"Instktur/g, '"Instruktur');
+            cleaned = cleaned.replace(/"ruktur/g, '"Instruktur');
+            cleaned = cleaned.replace(/aikanan"/g, ' Perikanan"');
+            cleaned = cleaned.replace(/Agribis"/g, 'Agribisnis"');
+            
+            // 4. Fix missing closing quotes in array items
+            cleaned = cleaned.replace(/,\s*([A-Z][a-zA-Z\s]+)\s*\]/g, ', "$1"]');
+            
+            // 5. Fix missing commas between array closing and next key
+            cleaned = cleaned.replace(/\]\s*"([^"]+)":/g, '], "$1":');
+            
+            // 6. Fix missing quotes around standalone words in arrays
+            cleaned = cleaned.replace(/\[\s*([A-Z][a-zA-Z\s]+)\s*,/g, '["$1",');
+            cleaned = cleaned.replace(/,\s*([A-Z][a-zA-Z\s]+)\s*,/g, ', "$1",');
+            
             // Fix unescaped quotes and special characters in string values
             // This is more aggressive - find all string values and escape them properly
             cleaned = cleaned.replace(/"([^"]*(?:""[^"]*)*)"/g, (match, content) => {
@@ -744,6 +770,16 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
             // Last resort: If still failing, try to fix common "Unexpected token" errors
             try {
               let fixed = cleanChars(cleaned);
+              
+              // More aggressive fixes for malformed arrays
+              // Fix pattern: "item1""key": -> "item1"], "key":
+              fixed = fixed.replace(/"([^"]+)""([^"]+)":/g, '"$1"], "$2":');
+              
+              // Fix pattern: "item1"Instruktur -> "item1", "Instruktur
+              fixed = fixed.replace(/"([^"]+)"([A-Z][a-z]+)/g, '"$1", "$2');
+              
+              // Fix pattern: item,Instruktur -> "item", "Instruktur
+              fixed = fixed.replace(/,([A-Z][a-zA-Z\s]+)([,\]])/g, ', "$1"$2');
               
               // Try to find the last valid complete JSON object
               let depth = 0;
@@ -884,6 +920,442 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
       skorKesiapan: 65,
       summary: `[ANALISIS LOKAL (FALLBACK) — ${contextData.unit_kerja}]\n\nIntegrasi DeepSeek gagal atau belum terkonfigurasi. Menggunakan analisis berbasis aturan lokal.\n\nWilayah: ${locName}\nStatus Urgensi: ${urgencyLevel} (TPT: ${contextData.external_bps.tpt})\nDefisit SDM: ${contextData.internal.defisit_gap} posisi.\nSektor Utama: ${contextData.external_bps.sektor_dominan}\n\nSangat direkomendasikan untuk segera melakukan pengisian formasi instruktur di sektor ${contextData.external_bps.sektor_dominan} untuk menyerap angka NEET sebesar ${contextData.external_bps.neet}.`
     });
+  };
+
+  const handleDownloadPDF = () => {
+    if (!aiResult) {
+      toast({ 
+        title: "Tidak Ada Data", 
+        description: "Harap jalankan analisis terlebih dahulu sebelum mengunduh laporan.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Helper function to clean emoji and special characters for PDF
+      const cleanTextForPDF = (text: string): string => {
+        if (!text) return '';
+        return text
+          // Remove all emoji (Unicode ranges)
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Emoticons
+          .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+          .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+          .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport & Map
+          .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
+          // Replace common emoji with text equivalents
+          .replace(/🏭/g, '[Industri]')
+          .replace(/🌾/g, '[Pertanian]')
+          .replace(/🛒/g, '[Perdagangan]')
+          .replace(/🏨/g, '[Jasa]')
+          .replace(/🔧/g, '[Konstruksi]')
+          .replace(/📦/g, '[Lainnya]')
+          .replace(/👥/g, '[Penduduk]')
+          .replace(/⚙️/g, '[Angkatan Kerja]')
+          .replace(/📉/g, '[TPT]')
+          .replace(/🔄/g, '[Pekerja]')
+          .replace(/⏱️/g, '[Waktu]')
+          .replace(/💵/g, '[Upah]')
+          .replace(/🎓/g, '[Lulusan]')
+          .replace(/🏫/g, '[Sekolah]')
+          .replace(/🏛️/g, '[PT]')
+          .replace(/📊/g, '[Data]')
+          .replace(/📚/g, '[Pendidikan]')
+          .replace(/💰/g, '[Ekonomi]')
+          .replace(/📈/g, '[IPM]')
+          .replace(/⚖️/g, '[Gini]')
+          .replace(/🏘️/g, '[Sanitasi]')
+          .replace(/🏠/g, '[Perumahan]')
+          .replace(/⚡/g, '[Listrik]')
+          .replace(/🌐/g, '[Internet]')
+          .replace(/📱/g, '[HP]')
+          .replace(/🛣️/g, '[Jalan]')
+          .replace(/🚉/g, '[Transportasi]')
+          // Replace arrow symbols
+          .replace(/→/g, '->')
+          .replace(/•/g, '- ')
+          // Clean up multiple spaces
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+
+      const doc = new jsPDF();
+      let yPos = 20;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+
+      // Header
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, pageWidth, 35, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('LAPORAN ANALISIS KEBUTUHAN SDM UPT', pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text('Ditjen Binalavotas - Kementerian Ketenagakerjaan RI', pageWidth / 2, 25, { align: 'center' });
+      
+      yPos = 45;
+      doc.setTextColor(0, 0, 0);
+
+      // Metadata
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, yPos, contentWidth, 25, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Unit Kerja:', margin + 5, yPos + 7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(aiResult.unit_kerja || selectedDepartment, margin + 35, yPos + 7);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Wilayah:', margin + 5, yPos + 14);
+      doc.setFont('helvetica', 'normal');
+      doc.text(aiResult.wilayah || locName, margin + 35, yPos + 14);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tanggal:', margin + 5, yPos + 21);
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date().toLocaleDateString('id-ID', { dateStyle: 'long' }), margin + 35, yPos + 21);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Skor Kesiapan:', pageWidth - 70, yPos + 14);
+      doc.setFontSize(16);
+      doc.setTextColor(34, 197, 94);
+      doc.text(`${aiResult.skorKesiapan}%`, pageWidth - 25, yPos + 16);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+
+      yPos += 35;
+
+      // Section 1: Data Internal
+      doc.setFillColor(59, 130, 246);
+      doc.rect(margin, yPos, contentWidth, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('1. DATA INTERNAL (PETA JABATAN)', margin + 3, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      yPos += 12;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Pegawai ASN', 'Pegawai Non-ASN', 'Batas ABK', 'Defisit']],
+        body: [[
+          internalTotals.asn.toString(),
+          internalTotals.nonAsn.toString(),
+          internalTotals.abk.toString(),
+          internalTotals.gap.toString()
+        ]],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 10;
+
+      if (positionDetails.length > 0) {
+        const positionData = positionDetails.slice(0, 10).map(pos => [
+          pos.name,
+          pos.category,
+          pos.totalExisting.toString(),
+          pos.abkCount.toString(),
+          pos.gap > 0 ? `Kurang ${pos.gap}` : pos.gap < 0 ? `Lebih ${Math.abs(pos.gap)}` : 'Sesuai'
+        ]);
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Nama Jabatan', 'Kategori', 'Eksisting', 'ABK', 'Status']],
+          body: positionData,
+          theme: 'striped',
+          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: {
+            0: { cellWidth: 60 },
+            1: { cellWidth: 35 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25 },
+            4: { cellWidth: 30 }
+          }
+        });
+
+        yPos = (doc as any).lastAutoTable.finalY + 10;
+      }
+
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Section 2: Data BPS
+      doc.setFillColor(59, 130, 246);
+      doc.rect(margin, yPos, contentWidth, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('2. DATA EKSTERNAL BPS', margin + 3, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      yPos += 12;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Indikator', 'Nilai']],
+        body: [
+          ['TPT (Tingkat Pengangguran)', bpsTpt || '-'],
+          ['NEET Pemuda', bpsNeet || '-'],
+          ['Literasi TIK', bpsTik || '-'],
+          ['Sektor PDRB Dominan', bpsSektor || '-']
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 10;
+
+      if (bpsSintesis) {
+        if (yPos > 240) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Sintesis Data BPS:', margin, yPos);
+        yPos += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        const cleanedSintesis = cleanTextForPDF(bpsSintesis);
+        const sintesisLines = doc.splitTextToSize(cleanedSintesis, contentWidth);
+        doc.text(sintesisLines.slice(0, 15), margin, yPos);
+        yPos += (Math.min(sintesisLines.length, 15) * 3) + 5;
+      }
+
+      const bpsDataSections = [
+        { title: 'Profil Industri per Sektor', data: cleanTextForPDF(bpsIndustri) },
+        { title: 'Profil Angkatan Kerja', data: cleanTextForPDF(bpsAngkatanKerja) },
+        { title: 'Data Lulusan Pendidikan', data: cleanTextForPDF(bpsLulusan) },
+        { title: 'Kemiskinan & IPM', data: cleanTextForPDF(bpsKemiskinan) },
+        { title: 'Infrastruktur & Konektivitas', data: cleanTextForPDF(bpsInfrastruktur) }
+      ];
+
+      for (const section of bpsDataSections) {
+        if (section.data) {
+          if (yPos > 240) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text(section.title + ':', margin, yPos);
+          yPos += 5;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          const dataLines = doc.splitTextToSize(section.data, contentWidth);
+          doc.text(dataLines.slice(0, 12), margin, yPos);
+          yPos += (Math.min(dataLines.length, 12) * 2.5) + 5;
+        }
+      }
+
+      doc.addPage();
+      yPos = 20;
+
+      // Section 3: Hasil Analisis AI
+      doc.setFillColor(34, 197, 94);
+      doc.rect(margin, yPos, contentWidth, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('3. HASIL ANALISIS & REKOMENDASI', margin + 3, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      yPos += 12;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Kesimpulan Utama:', margin, yPos);
+      yPos += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const summaryLines = doc.splitTextToSize(aiResult.summary, contentWidth);
+      doc.text(summaryLines, margin, yPos);
+      yPos += (summaryLines.length * 4) + 8;
+
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      if (aiResult.formasiIdeal) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Formasi Jabatan Ideal:', margin, yPos);
+        yPos += 6;
+
+        if (aiResult.formasiIdeal.eksisting && aiResult.formasiIdeal.eksisting.length > 0) {
+          doc.setFontSize(9);
+          doc.text('Optimasi Jabatan Eksisting:', margin + 3, yPos);
+          yPos += 5;
+          
+          const eksistingData = aiResult.formasiIdeal.eksisting.map((item: any) => [
+            item.nama,
+            item.jumlah.toString(),
+            item.alasan
+          ]);
+
+          autoTable(doc, {
+            startY: yPos,
+            head: [['Jabatan', 'Target', 'Alasan']],
+            body: eksistingData,
+            theme: 'striped',
+            headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
+            bodyStyles: { fontSize: 7 },
+            margin: { left: margin, right: margin },
+            columnStyles: {
+              0: { cellWidth: 50 },
+              1: { cellWidth: 20 },
+              2: { cellWidth: 'auto' }
+            }
+          });
+
+          yPos = (doc as any).lastAutoTable.finalY + 8;
+        }
+
+        if (aiResult.formasiIdeal.baru && aiResult.formasiIdeal.baru.length > 0) {
+          if (yPos > 240) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Usulan Jabatan Baru:', margin + 3, yPos);
+          yPos += 5;
+          
+          const baruData = aiResult.formasiIdeal.baru.map((item: any) => [
+            item.nama,
+            item.jumlah.toString(),
+            item.alasan
+          ]);
+
+          autoTable(doc, {
+            startY: yPos,
+            head: [['Jabatan Baru', 'Usulan', 'Alasan']],
+            body: baruData,
+            theme: 'striped',
+            headStyles: { fillColor: [16, 185, 129], fontSize: 8 },
+            bodyStyles: { fontSize: 7 },
+            margin: { left: margin, right: margin },
+            columnStyles: {
+              0: { cellWidth: 50 },
+              1: { cellWidth: 20 },
+              2: { cellWidth: 'auto' }
+            }
+          });
+
+          yPos = (doc as any).lastAutoTable.finalY + 8;
+        }
+      }
+
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      if (aiResult.rekrutmenSpesifik && aiResult.rekrutmenSpesifik.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Rekomendasi Rekrutmen:', margin, yPos);
+        yPos += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        aiResult.rekrutmenSpesifik.forEach((rec: string, idx: number) => {
+          const recLines = doc.splitTextToSize(`${idx + 1}. ${rec}`, contentWidth - 5);
+          doc.text(recLines, margin + 3, yPos);
+          yPos += (recLines.length * 3.5) + 2;
+          if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+          }
+        });
+        yPos += 5;
+      }
+
+      if (aiResult.pelatihan && aiResult.pelatihan.length > 0) {
+        if (yPos > 240) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Program Pelatihan:', margin, yPos);
+        yPos += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        aiResult.pelatihan.forEach((p: string) => {
+          const pLines = doc.splitTextToSize(`• ${p}`, contentWidth - 5);
+          doc.text(pLines, margin + 3, yPos);
+          yPos += (pLines.length * 3.5) + 2;
+          if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+          }
+        });
+        yPos += 5;
+      }
+
+      if (aiResult.sarprasRekomendasi && aiResult.sarprasRekomendasi.length > 0) {
+        if (yPos > 240) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Pengadaan Sarpras:', margin, yPos);
+        yPos += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        aiResult.sarprasRekomendasi.forEach((s: string) => {
+          const sLines = doc.splitTextToSize(`• ${s}`, contentWidth - 5);
+          doc.text(sLines, margin + 3, yPos);
+          yPos += (sLines.length * 3.5) + 2;
+          if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+          }
+        });
+      }
+
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Halaman ${i} dari ${pageCount} | Generated by SIMPEL SDM - ${new Date().toLocaleDateString('id-ID')}`,
+          pageWidth / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+
+      const fileName = `Laporan_Analisis_SDM_${selectedDepartment.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      toast({ 
+        title: "✅ PDF Berhasil Diunduh", 
+        description: `Laporan lengkap dengan data BPS telah disimpan sebagai ${fileName}` 
+      });
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({ 
+        title: "❌ Gagal Membuat PDF", 
+        description: "Terjadi kesalahan saat membuat laporan PDF. Silakan coba lagi.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -1781,9 +2253,15 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
           )}
         </CardContent>
         {aiResult && (
-          <CardFooter className="bg-muted/30 border-t pt-6 pb-6 flex justify-end">
-            <Button size="lg" className="shadow-md" onClick={() => toast({ title: "Fitur Cetak", description: "Mengekspor laporan ke PDF..." })}>
-              Unduh Laporan PDF
+          <CardFooter className="bg-muted/30 border-t pt-6 pb-6 flex justify-end gap-3">
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="shadow-md" 
+              onClick={handleDownloadPDF}
+            >
+              <Download className="mr-2 h-5 w-5" />
+              Unduh Laporan PDF (dengan Data BPS)
             </Button>
           </CardFooter>
         )}
