@@ -362,7 +362,7 @@ export default function AnalisisKebutuhanSdm() {
 - **Sektor Dominan BPS:** ${bpsSektor}
 - **TPT:** ${bpsTpt} | **NEET:** ${bpsNeet} | **TIK:** ${bpsTik}
 - **Distribusi Kejuruan:** ${JSON.stringify(kejuruan)}
-- **Strategi Dipilih:** ${selectedStrategies.length>0?selectedStrategies.join(', '):'(tidak ada)'}
+- **Strategi Dipilih (Aktif):** ${selectedStrategies.length>0?selectedStrategies.join(', '):'(tidak ada)'}
 - **Sarpras:** ${sarpras||'(tidak ada data)'}
 
 ## Parameter Regulasi & Kebijakan Ditjen Binalavotas Saat Ini (Disesuaikan oleh Pengguna):
@@ -405,7 +405,12 @@ Buat laporan analisis kebutuhan SDM lengkap dalam **Markdown**. Gunakan heading 
 ### 9. Timeline Implementasi (tabel: Tahap | Periode | Aksi | PIC)
 ### 10. Skor Kesiapan Operasional: X/100
 
-Tulis dalam Bahasa Indonesia yang profesional. Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mematuhi Parameter Regulasi & Kebijakan di atas.`;
+Tulis dalam Bahasa Indonesia yang profesional.
+
+⚠️ PENTING - INSTRUKSI KHUSUS STRATEGI:
+Pada "7. Rencana Implementasi per Strategi" dan "8. Analisis Risiko", kamu WAJIB memfokuskan analisis secara mendalam HANYA pada strategi-strategi penyiapan/pengelolaan SDM yang telah dipilih/dicentang oleh pengguna: [${selectedStrategies.join(', ') || 'Semua Strategi Penyiapan SDM'}]. 
+Jangan memberikan detail rencana implementasi untuk strategi yang TIDAK dipilih/dicentang. Sesuaikan rekomendasi usulan jabatan dan timeline pelatihan agar sejalan dengan strategi aktif tersebut.
+Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mematuhi Parameter Regulasi & Kebijakan di atas.`;
     try {
       if (!apiKey || apiKey === 'YOUR_DEEPSEEK_API_KEY_HERE') throw new Error('API Key DeepSeek belum dikonfigurasi.');
       setAiProgress('Menganalisis dengan DeepSeek Reasoner...');
@@ -447,8 +452,16 @@ Tulis dalam Bahasa Indonesia yang profesional. Pastikan seluruh rekomendasi dan 
       const programs = policyParams.filter(p => p.category === 'program' && p.parent_id);
       const strategis = policyParams.filter(p => p.category === 'strategi' && p.parent_id);
 
-      // Extract specific scenarios
-      const riskScenarios = strategis.filter(s => s.title.includes('Skenario'));
+      // Filter strategies to only include selected ones (or all if none are checked)
+      const activeStrategis = selectedStrategies.length > 0
+        ? strategis.filter(s => selectedStrategies.some(sel => s.title.includes(sel)))
+        : strategis;
+
+      const isStrSelected = selectedStrategies.length > 0;
+      const isStr1 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 1'));
+      const isStr2 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 2'));
+      const isStr3 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 3'));
+      const isStr4 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 4'));
 
       // Calculate operational readiness score
       let score = 50;
@@ -478,65 +491,82 @@ ${positionDetails.map(p => `| ${p.name} | ${p.category} | ${p.totalExisting} | $
 
 ---
 
-### 3. Formasi Jabatan Ideal
-Guna mendukung akselerasi ketenagakerjaan daerah, Balai harus mengadopsi penataan posisi yang ideal:
+${isStr1 ? `### 3. Formasi Jabatan Ideal (Aktif via Strategi 1: Penyiapan SDM Satpel)
+Guna mendukung akselerasi ketenagakerjaan di **${locName}**, UPT/Satpel baru harus mengadopsi alokasi penataan posisi berdasarkan hasil analisis gap riil beban kerja:
 
-#### Optimasi Jabatan Eksisting
-* **Alih Kompetensi (Reskilling)**: Instruktur pada kejuruan tradisional/jenuh dialihkan untuk menguasai kejuruan prioritas baru yang selaras dengan sektor **${bpsSektor}**.
-* **Penerapan Kelas Paralel**: Optimalisasi instruktur eksisting dengan pembagian beban mengajar terjadwal untuk memperluas daya tampung peserta didik.
-
-#### Usulan Jabatan Baru
 | Jabatan Baru | Target Jumlah | Alasan Strategis Pemenuhan |
 | :--- | :---: | :--- |
 ${positionDetails.filter(p => p.gap > 0).map(p => `| ${p.name} | ${p.gap} | Pemenuhan standar pelayanan minimum UPT & rasio peserta praktik. |`).join('\n') || '| Instruktur Kejuruan Baru | 2 | Penguatan formasi kejuruan prioritas daerah. |'}
 
+*Rekomendasi Penempatan*: Berdasarkan TPT sebesar **${bpsTpt}**, prioritaskan penugasan formasi pengajar pada kelas kejuruan berbasis **${bpsSektor}** guna memotong kesenjangan penyerapan tenaga kerja daerah.` : `### 3. Formasi Jabatan Ideal
+*(Strategi 1: Penyiapan & Alokasi SDM Satpel Baru tidak diaktifkan. Menggunakan konfigurasi alokasi personel administratif standar).*`}
+
 ---
 
-### 4. Rekomendasi Rekrutmen & Kualifikasi
-Sesuai dengan regulasi formal yang berlaku di lingkungan **Kementerian Ketenagakerjaan RI**, rekrutmen wajib mengacu pada parameter kualifikasi standar:
+${isStr4 ? `### 4. Rekomendasi Rekrutmen & Kualifikasi (Aktif via Strategi 4: Peningkatan Kapasitas SDM)
+Sesuai dengan regulasi formal Kemnaker RI, peningkatan kompetensi instruktur eksisting difokuskan pada:
 
-* **Standar Kelayakan Pengajar (Permenpan RB No. 82/2020 & No. 47/2021)**:
-${jabfungs.map(jf => `  - **${jf.title}** (Golongan ${jf.value}): ${jf.description}`).join('\n')}
+* **Peningkatan Kapasitas Terarah**:
+${jabfungs.map(jf => `  - **Upgrading ke ${jf.title}** (Golongan ${jf.value}): Akselerasi program pelatihan asesor lisensi dan metodologi mengajar.`).join('\n')}
 * **Rasio Kelas Praktik (Permenaker No. 6/2025)**:
-  - Kelas praktik dibatasi dengan rasio **1 Instruktur : 16 Peserta** guna menjamin keselamatan kerja (K3) dan efektivitas transfer kompetensi.
-  - Instruktur wajib dibekali sertifikasi kompetensi teknis serta sertifikasi metodologi pelatihan (ToT).
+  - Kelas praktik wajib menggunakan rasio **1 Instruktur : 16 Peserta** dengan pendampingan penuh instruktur tersertifikasi.` : `### 4. Rekomendasi Rekrutmen & Kualifikasi
+*(Strategi 4: Peningkatan Kapasitas & Upgrading Instruktur tidak diaktifkan. Kualifikasi rekrutmen mengikuti panduan dasar).*`}
 
 ---
 
-### 5. Program Pelatihan Prioritas (PBK)
-Kejuruan yang dibuka wajib memiliki keterkaitan erat dengan kebutuhan industri regional. Kejuruan prioritas utama balai diselaraskan sebagai berikut:
+${isStr3 ? `### 5. Program Pelatihan Prioritas (PBK) (Aktif via Strategi 3: Penyelarasan Program Pelatihan)
+Program pelatihan diselaraskan secara langsung dengan kebutuhan pasar kerja lokal di **${locName}** dan sektor **${bpsSektor}**:
 
-${programs.map(pr => `* **${pr.title}** (${pr.value}): ${pr.description || 'Pilar utama pelatihan berbasis kompetensi.'}`).join('\n')}
+${programs.map(pr => `* **PBK ${pr.title}**: Penyiapan kurikulum khusus bersertifikat BNSP untuk meningkatkan daya saing kelulusan lokal di bidang ${pr.value}.`).join('\n')}` : `### 5. Program Pelatihan Prioritas (PBK)
+*(Strategi 3: Penyelarasan Program Pelatihan tidak diaktifkan. Program diklat diselenggarakan menggunakan standar kurikulum nasional umum).*`}
 
 ---
 
-### 6. Pengadaan Sarpras Prioritas
-Kondisi sarpras UPT saat ini:
+${isStr2 ? `### 6. Pengadaan Sarpras Prioritas (Aktif via Strategi 2: Pemenuhan Sarpras Potensi Wilayah)
+Menyesuaikan dengan kondisi sarpras eksisting UPT:
 > *"${sarpras || 'Data inventaris sarpras belum terisi.'}"*
 
-**Rencana Aksi Pengadaan**:
-1. Modernisasi peralatan workshop utama agar setara dengan teknologi manufaktur/industri modern saat ini.
-2. Implementasi layout workshop bersertifikat K3 (Keselamatan dan Kesehatan Kerja).
-3. Pengadaan modul ajar digital interaktif serta platform LMS (Learning Management System).
+**Rencana Pemenuhan Sarpras Berbasis Industri Wilayah**:
+1. Modernisasi peralatan praktikum utama agar sesuai dengan standar teknologi industri modern berbasis **${bpsSektor}** di daerah **${locName}**.
+2. Pengadaan modul ajar digital interaktif serta platform simulator penunjang kelas teori.` : `### 6. Pengadaan Sarpras Prioritas
+*(Strategi 2: Pemenuhan Sarpras Wilayah tidak diaktifkan. Inventaris sarpras mengikuti alokasi anggaran operasional standar).*`}
 
 ---
 
 ### 7. Rencana Implementasi per Strategi
-Penerapan aksi strategis berbasis arah kebijakan nasional Ditjen Binalavotas:
+Penerapan aksi strategis berbasis arah kebijakan nasional Ditjen Binalavotas (Menampilkan ${selectedStrategies.length > 0 ? 'Strategi Terpilih' : 'Semua Strategi'}):
 
-${strategis.filter(s => !s.title.includes('Skenario')).map(str => `* **${str.title}** (${str.value || 'Umum'}):
+${activeStrategis.map(str => `* **${str.title}** (${str.value || 'Umum'}):
   - *Deskripsi*: ${str.description || 'Langkah taktis pemenuhan strategi vokasi.'}
-  - *Aksi*: Penerapan sinkronisasi secara berkelanjutan dengan menggandeng pemangku kepentingan lokal.`).join('\n')}
+  - *Langkah Aksi Spesifik*: ${
+    str.title.includes('Strategi 1') ? `Hitung rasio kebutuhan riil instruktur di ${selectedDepartment} berdasarkan jumlah anjab dan ABK, lakukan penugasan instruktur ASN/Non-ASN baru ke lokasi.` :
+    str.title.includes('Strategi 2') ? `Lakukan audit kelayakan workshop di wilayah ${locName}, lakukan pengadaan peralatan baru yang relevan dengan sektor ekonomi ${bpsSektor}.` :
+    str.title.includes('Strategi 3') ? `Susun 3 kurikulum PBK baru bersama komite vokasi daerah, gandeng industri lokal untuk pelaksanaan OJT (On-the-Job Training) siswa.` :
+    `Selenggarakan diklat ToT metodologi pengajaran dan sertifikasi asesor kompetensi BNSP bagi instruktur ${selectedDepartment} secara berkala.`
+  }`).join('\n')}
 
 ---
 
 ### 8. Analisis Risiko & Rencana Mitigasi (Manajemen Risiko UPT)
-Menghadapi tantangan tak terduga di lapangan, UPT dipersiapkan dengan skenario pemulihan taktis berikut:
+Menghadapi tantangan tak terduga di lapangan, UPT dipersiapkan dengan skenario pemulihan taktis sesuai strategi terpilih:
 
-${riskScenarios.map((risk, index) => `* **Skenario ${index + 1}: ${risk.title.replace(/^Skenario\s*\d+:\s*/, '')}**
-  - *Pendekatan*: **${risk.value}**
-  - *Mitigasi*: ${risk.description}`).join('\n') || `* **Mitigasi 1**: Melakukan kemitraan strategis dengan industri lokal untuk mencegah keusangan alat praktik.
-* **Mitigasi 2**: Penjadwalan silang beban mengajar instruktur.`}
+${activeStrategis.map((str, index) => {
+  const riskTitle = 
+    str.title.includes('Strategi 1') ? 'Keterbatasan kuota alokasi formasi pegawai baru di Satpel daerah.' :
+    str.title.includes('Strategi 2') ? 'Peralatan workshop baru cepat mengalami kerusakan atau keusangan akibat kurangnya pemeliharaan.' :
+    str.title.includes('Strategi 3') ? 'Minimnya keterlibatan industri lokal dalam penyerapan alumni pelatihan.' :
+    'Resistensi instruktur senior terhadap keharusan sertifikasi kompetensi baru.';
+  
+  const riskMitigasi = 
+    str.title.includes('Strategi 1') ? 'Gunakan sistem asisten pengajar (co-instructor) dari alumni balai terbaik untuk mengatasi gap jangka pendek.' :
+    str.title.includes('Strategi 2') ? 'Sertakan klausul garansi dan maintenance berkala dalam pengadaan alat, serta diklat perawatan alat bagi laboran.' :
+    str.title.includes('Strategi 3') ? 'Bentuk Bursa Kerja Khusus (BKK) mandiri di tingkat Satpel dan adakan job fair berkala dengan asosiasi pengusaha setempat.' :
+    'Sosialisasikan insentif karir dan pemenuhan syarat naik pangkat fungsional bagi yang bersertifikat.';
+
+  return `* **Skenario Risiko ${index + 1}: ${riskTitle}**
+  - *Strategi Kunci*: **${str.title}**
+  - *Mitigasi*: ${riskMitigasi}`;
+}).join('\n')}
 
 ---
 
@@ -545,11 +575,11 @@ Skema jadwal pelaksanaan pemenuhan kebutuhan SDM dan Sarpras UPT:
 
 | Tahap | Periode | Aksi Nyata | Penanggung Jawab (PIC) |
 | :--- | :---: | :--- | :--- |
-| **Tahap I: Inisiasi** | Bulan 1 - 2 | Finalisasi pemetaan anjab & ABK, sosialisasi program kerja balai. | Kepala Kantor UPT / Satpel |
-| **Tahap I: Inisiasi** | Bulan 1 - 2 | Finalisasi pemetaan anjab & ABK, sosialisasi program kerja balai. | Kepala Kantor UPT / Satpel |
-| **Tahap II: Pengadaan** | Bulan 3 - 5 | Pengajuan rekrutmen CASN/PPPK dan kerja sama workshop satelit. | Kasubag Tata Usaha & Logistik |
-| **Tahap III: Sertifikasi** | Bulan 6 - 8 | Sertifikasi ToT instruktur & akreditasi TUK workshop mandiri. | Koordinator Instruktur |
-| **Tahap IV: Evaluasi** | Triwulan IV | Pengukuran keterserapan alumni di industri via SIAPkerja. | Seksi Penempatan & Kemitraan |
+${isStr1 ? `| **Tahap SDM (Str 1)** | Bulan 1 - 2 | Penyusunan anjab, analisis beban kerja lokal, dan penempatan formasi pegawai baru. | Kepala Kantor UPT / Satpel |` : ''}
+${isStr2 ? `| **Tahap Sarpras (Str 2)** | Bulan 3 - 5 | Pengajuan proposal modernisasi workshop dan instalasi alat praktikum bersertifikat K3. | Kasubag Tata Usaha & Logistik |` : ''}
+${isStr3 ? `| **Tahap Program (Str 3)** | Bulan 6 - 8 | Registrasi program PBK baru ke Ditbina Lattas dan penyusunan MoU OJT bersama industri. | Koordinator Bidang Pelatihan |` : ''}
+${isStr4 ? `| **Tahap Kapasitas (Str 4)** | Bulan 9 - 10 | Pengiriman instruktur fungsional ke diklat metodologi mengajar (ToT) dan sertifikasi asesor. | Koordinator Instruktur |` : ''}
+| **Tahap Evaluasi** | Bulan 11 - 12 | Pengukuran keterserapan alumni di industri via SIAPkerja dan pencapaian target strategis. | Seksi Penempatan & Kemitraan |
 
 ---
 
