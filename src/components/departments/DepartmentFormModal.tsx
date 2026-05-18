@@ -62,18 +62,49 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
       if (department.sarpras) {
         try {
           const parsed = JSON.parse(department.sarpras);
+          
+          // Helper function to parse field that might be string or array
+          const parseField = (field: any): string[] => {
+            if (Array.isArray(field)) {
+              return field.filter(item => item && item.trim());
+            }
+            if (typeof field === 'string' && field.trim()) {
+              // Split by comma and clean up each item
+              return field
+                .split(',')
+                .map(item => item.trim())
+                .filter(item => item.length > 0);
+            }
+            return [];
+          };
+          
           setSarprasData({
-            prasarana: Array.isArray(parsed.prasarana) ? parsed.prasarana : (Array.isArray(parsed.bangunan) ? parsed.bangunan : []),
-            sarana: Array.isArray(parsed.sarana) ? parsed.sarana : (Array.isArray(parsed.alat) ? parsed.alat : []),
-            kejuruan: Array.isArray(parsed.kejuruan) ? parsed.kejuruan : (Array.isArray(parsed.fasilitas) ? parsed.fasilitas : [])
+            prasarana: parseField(parsed.prasarana || parsed.bangunan),
+            sarana: parseField(parsed.sarana || parsed.alat),
+            kejuruan: parseField(parsed.kejuruan || parsed.fasilitas)
           });
         } catch {
-          // If it's old legacy plain text, put it in kejuruan as fallback
-          setSarprasData({
-            prasarana: [],
-            sarana: [],
-            kejuruan: [department.sarpras]
-          });
+          // If it's old legacy plain text, try to parse as comma-separated
+          const text = department.sarpras.trim();
+          if (text.includes(',')) {
+            // Assume it's comma-separated list, put in prasarana
+            const items = text
+              .split(',')
+              .map(item => item.trim())
+              .filter(item => item.length > 0);
+            setSarprasData({
+              prasarana: items,
+              sarana: [],
+              kejuruan: []
+            });
+          } else {
+            // Single item, put in prasarana
+            setSarprasData({
+              prasarana: [text],
+              sarana: [],
+              kejuruan: []
+            });
+          }
         }
       } else {
         setSarprasData({ prasarana: [], sarana: [], kejuruan: [] });
@@ -152,19 +183,42 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
       })
     };
 
+    logger.log('Preparing to save department:', {
+      departmentId: department?.id,
+      departmentName: department?.name,
+      payloadName: payload.name,
+      sarprasData: {
+        prasarana: sarprasData.prasarana.length,
+        sarana: sarprasData.sarana.length,
+        kejuruan: sarprasData.kejuruan.length
+      },
+      isEmpty
+    });
+
     try {
       if (department) {
         // Update existing department
-        const { error } = await supabase
+        logger.log('Updating department:', { id: department.id, payload });
+        
+        const { data, error } = await supabase
           .from('departments')
           .update(payload)
-          .eq('id', department.id);
+          .eq('id', department.id)
+          .select();
+
+        logger.log('Update result:', { data, error });
 
         if (error) {
+          logger.error('Update error:', error);
           if (error.code === '23505') {
             throw new Error('Nama unit kerja sudah digunakan');
           }
           throw error;
+        }
+
+        if (!data || data.length === 0) {
+          logger.error('Update returned no data - possible RLS policy rejection');
+          throw new Error('Gagal menyimpan: Anda tidak memiliki izin untuk mengubah unit kerja ini');
         }
 
         toast({
