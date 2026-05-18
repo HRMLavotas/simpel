@@ -594,30 +594,10 @@ Tugas Anda:
 5. Rekomendasi 6 intervensi sarpras (Wajib mencakup: 3 Alat Pelatihan Utama, 2 Bangunan/Gedung, 1 Fasilitas Penunjang).
 6. Rekomendasi 4 program pelatihan (SKKNI).
 
-WAJIB OUTPUT DALAM FORMAT JSON BERIKUT (TANPA PENJELASAN LAIN DI LUAR JSON, PASTIKAN SELURUH STRING DIAPIT TANDA KUTIP GANDA DAN TIDAK ADA KARAKTER KONTROL UNESCAPED):
-{
-  "summary": "...",
-  "rekrutmen": ["..."],
-  "pelatihan": ["..."],
-  "sarpras": ["..."],
-  "formasi_ideal": {
-    "jabatan_eksisting_disarankan": [{ "nama": "...", "jumlah_ideal": 0, "alasan": "..." }],
-    "jabatan_baru_usulan": [{ "nama": "...", "jumlah_ideal": 0, "alasan": "..." }]
-  },
-  "analisis_risiko": ["..."],
-  "kesiapan_digital": 85,
-  "rekomendasi_digital": "Tingkatkan bandwidth dan sistem Cloud.",
-  "timeline": [
-    { "tahap": "Jangka Pendek", "aksi": "..." },
-    { "tahap": "Jangka Menengah", "aksi": "..." }
-  ],
-  "rincian_strategi": [
-    { "nama": "Nama Strategi", "langkah": ["Langkah 1", "Langkah 2"], "impact": "High" }
-  ],
-  "skor": 85
-}
+WAJIB OUTPUT HANYA JSON VALID BERIKUT. TIDAK BOLEH ADA TEKS SEBELUM { ATAU SETELAH }. SEMUA STRING HARUS DIAPIT TANDA KUTIP GANDA. JANGAN GUNAKAN TANDA KUTIP GANDA DI DALAM NILAI STRING (gunakan tanda kutip tunggal jika perlu). JANGAN GUNAKAN NEWLINE MENTAH DI DALAM NILAI STRING:
+{"summary":"...","rekrutmen":["item1","item2","item3"],"pelatihan":["item1","item2","item3","item4"],"sarpras":["item1","item2","item3","item4","item5","item6"],"formasi_ideal":{"jabatan_eksisting_disarankan":[{"nama":"...","jumlah_ideal":0,"alasan":"..."}],"jabatan_baru_usulan":[{"nama":"...","jumlah_ideal":0,"alasan":"..."}]},"analisis_risiko":["item1","item2"],"kesiapan_digital":85,"rekomendasi_digital":"...","timeline":[{"tahap":"Jangka Pendek","aksi":"..."},{"tahap":"Jangka Menengah","aksi":"..."}],"rincian_strategi":[{"nama":"Nama Strategi","langkah":["Langkah 1","Langkah 2"],"impact":"High"}],"skor":85}
 
-CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan tanda kutip tunggal jika perlu. JANGAN tambahkan teks apa pun setelah penutup JSON.`;
+ATURAN KETAT: Output harus berupa satu baris JSON kompak tanpa line break. Mulai langsung dengan { dan akhiri dengan }.`;
 
     try {
       if (!apiKey || apiKey === "YOUR_DEEPSEEK_API_KEY_HERE") {
@@ -688,132 +668,204 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
       // Final parsing of the JSON content
       try {
         const robustJsonParse = (str: string) => {
-          let cleaned = str.trim();
-          
-          // Helper to remove non-printable characters
-          const cleanChars = (s: string) => s.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+          // Step 1: Strip markdown fences and trim
+          let cleaned = str.trim()
+            .replace(/^```json\s*/i, '')
+            .replace(/^```\s*/i, '')
+            .replace(/```\s*$/i, '')
+            .trim();
 
-          // 1. First attempt: Standard parse
-          try {
-            return JSON.parse(cleanChars(cleaned));
-          } catch (e) {
-            console.warn("Standard JSON parse failed, attempting advanced repair...");
+          // Step 2: Extract the outermost JSON object
+          const firstBrace = cleaned.indexOf('{');
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
           }
 
-          // 2. Advanced Repair
+          // Step 3: Standard parse (fast path)
           try {
-            // Remove markdown artifacts
-            cleaned = cleaned.replace(/```json\n?|```/g, "").trim();
-            
-            // Find the start and end of the JSON object
-            const firstBrace = cleaned.indexOf('{');
-            const lastBrace = cleaned.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) {
-              cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-            }
+            return JSON.parse(cleaned);
+          } catch (_) { /* continue to repair */ }
 
-            // Fix common streaming errors
-            // 1. Fix missing commas between array elements and next property
-            cleaned = cleaned.replace(/"\s*\]\s*"([^"]+)":/g, '"], "$1":');
-            
-            // 2. Fix missing commas between array items (e.g., "item1""item2")
-            cleaned = cleaned.replace(/"\s*"([^"]+)"/g, '", "$1"');
-            
-            // 3. Fix broken words in array items (e.g., "Instktur -> "Instruktur")
-            // This is a heuristic fix for common typos
-            cleaned = cleaned.replace(/"Instktur/g, '"Instruktur');
-            cleaned = cleaned.replace(/"ruktur/g, '"Instruktur');
-            cleaned = cleaned.replace(/aikanan"/g, ' Perikanan"');
-            cleaned = cleaned.replace(/Agribis"/g, 'Agribisnis"');
-            
-            // 4. Fix missing closing quotes in array items
-            cleaned = cleaned.replace(/,\s*([A-Z][a-zA-Z\s]+)\s*\]/g, ', "$1"]');
-            
-            // 5. Fix missing commas between array closing and next key
-            cleaned = cleaned.replace(/\]\s*"([^"]+)":/g, '], "$1":');
-            
-            // 6. Fix missing quotes around standalone words in arrays
-            cleaned = cleaned.replace(/\[\s*([A-Z][a-zA-Z\s]+)\s*,/g, '["$1",');
-            cleaned = cleaned.replace(/,\s*([A-Z][a-zA-Z\s]+)\s*,/g, ', "$1",');
-            
-            // Fix unescaped quotes and special characters in string values
-            // This is more aggressive - find all string values and escape them properly
-            cleaned = cleaned.replace(/"([^"]*(?:""[^"]*)*)"/g, (match, content) => {
-              // Escape backslashes first
-              let escaped = content.replace(/\\/g, '\\\\');
-              // Escape newlines
-              escaped = escaped.replace(/\n/g, '\\n');
-              escaped = escaped.replace(/\r/g, '\\r');
-              escaped = escaped.replace(/\t/g, '\\t');
-              // Don't double-escape already escaped quotes
-              escaped = escaped.replace(/\\"/g, '"').replace(/"/g, '\\"');
-              return '"' + escaped + '"';
-            });
-            
-            // Fix missing closing braces if truncated
-            let openBraces = (cleaned.match(/\{/g) || []).length;
-            let closeBraces = (cleaned.match(/\}/g) || []).length;
-            let openBrackets = (cleaned.match(/\[/g) || []).length;
-            let closeBrackets = (cleaned.match(/\]/g) || []).length;
-            
-            while (openBrackets > closeBrackets) {
-              cleaned += "]";
-              closeBrackets++;
-            }
-            while (openBraces > closeBraces) {
-              cleaned += "}";
-              closeBraces++;
-            }
+          // Step 4: Deep repair using a line-by-line / token-aware approach
+          const repairJson = (raw: string): string => {
+            // DEBUG: log raw input around first problem area
+            console.debug("Raw input (first 200):", JSON.stringify(raw.substring(0, 200)));
+            // 4a. Normalize line endings
+            let s = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-            return JSON.parse(cleanChars(cleaned));
-          } catch (finalError) {
-            // Last resort: If still failing, try to fix common "Unexpected token" errors
-            try {
-              let fixed = cleanChars(cleaned);
-              
-              // More aggressive fixes for malformed arrays
-              // Fix pattern: "item1""key": -> "item1"], "key":
-              fixed = fixed.replace(/"([^"]+)""([^"]+)":/g, '"$1"], "$2":');
-              
-              // Fix pattern: "item1"Instruktur -> "item1", "Instruktur
-              fixed = fixed.replace(/"([^"]+)"([A-Z][a-z]+)/g, '"$1", "$2');
-              
-              // Fix pattern: item,Instruktur -> "item", "Instruktur
-              fixed = fixed.replace(/,([A-Z][a-zA-Z\s]+)([,\]])/g, ', "$1"$2');
-              
-              // Try to find the last valid complete JSON object
-              let depth = 0;
-              let lastValidIndex = -1;
-              
-              for (let i = 0; i < fixed.length; i++) {
-                if (fixed[i] === '{' || fixed[i] === '[') depth++;
-                if (fixed[i] === '}' || fixed[i] === ']') {
-                  depth--;
-                  if (depth === 0) {
-                    lastValidIndex = i;
+            // 4b. Character-level pass: the only reliable way to fix malformed JSON strings.
+            // Problems handled:
+            //   1. Raw newlines/tabs inside string values → escape them
+            //   2. Embedded double-quotes inside string values like "word" → escape them  
+            //   3. "Bleeding" strings where the value never closes and the next property
+            //      key appears unquoted inside it → auto-close the string
+            {
+              let result = '';
+              let inString = false;
+              let esc = false;
+
+              // Helper: look ahead from position j (skipping whitespace) and return the next non-ws char
+              const peekNonWs = (j: number): string => {
+                while (j < s.length && (s[j] === ' ' || s[j] === '\t')) j++;
+                return s[j] || '';
+              };
+
+              for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+
+                // Handle escape sequences
+                if (esc) { result += ch; esc = false; continue; }
+                if (ch === '\\' && inString) { result += ch; esc = true; continue; }
+
+                if (ch === '"') {
+                  if (!inString) {
+                    // Opening a string
+                    inString = true;
+                    result += ch;
+                    continue;
                   }
+
+                  // We're inside a string and hit a '"'. Is this closing the string or embedded?
+                  // A real closing quote is followed (after optional whitespace) by: , } ] : \n EOF
+                  // An embedded quote is followed by a word character or space+word
+                  const nextNonWs = peekNonWs(i + 1);
+                  const isClosingQuote = (
+                    nextNonWs === ',' ||
+                    nextNonWs === '}' ||
+                    nextNonWs === ']' ||
+                    nextNonWs === ':' ||
+                    nextNonWs === '\n' ||
+                    nextNonWs === '' // EOF
+                  );
+
+                  if (isClosingQuote) {
+                    // Real closing quote
+                    inString = false;
+                    result += ch;
+                  } else {
+                    // Embedded quote — escape it
+                    result += '\\"';
+                  }
+                  continue;
                 }
+
+                if (inString) {
+                  if (ch === '\n' || ch === '\r') {
+                    // Peek ahead past whitespace: if next token looks like an unquoted JSON key
+                    // (word followed by colon), the string was never properly closed — close it now
+                    let j = i + 1;
+                    while (j < s.length && (s[j] === ' ' || s[j] === '\t' || s[j] === '\n' || s[j] === '\r')) j++;
+                    const ahead = s.slice(j, j + 80);
+                    const isNextKey = /^[a-zA-Z_][a-zA-Z0-9_]*\s*:/.test(ahead);
+                    const isNextCloseBrace = s[j] === '}';
+                    if (isNextKey || isNextCloseBrace) {
+                      result += '",\n';
+                      inString = false;
+                      continue;
+                    }
+                    result += '\\n';
+                    continue;
+                  }
+                  if (ch === '\t') { result += '\\t'; continue; }
+                }
+
+                result += ch;
               }
-              
-              if (lastValidIndex > 0) {
-                fixed = fixed.substring(0, lastValidIndex + 1);
-              }
-              
-              // Additional fixes
-              fixed = fixed
-                // Fix missing colons
-                .replace(/"([^"]+)"\s+"([^"]+)"/g, '"$1": "$2"')
-                // Fix equals sign instead of colon
-                .replace(/"([^"]+)"\s*=\s*/g, '"$1": ')
-                // Fix missing commas between properties
-                .replace(/("(?:\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"|\d+|true|false|null)\s+"([^"]+)"\s*:/g, '$1, "$2":');
-                
-              return JSON.parse(fixed);
-            } catch (superFinalError) {
-              console.error("All JSON repair attempts failed:", superFinalError);
-              console.error("Problematic JSON string (first 500 chars):", cleaned.substring(0, 500));
-              throw superFinalError;
+              // If string was never closed, close it
+              if (inString) result += '"';
+              s = result;
             }
+
+            // 4c. Fix unquoted object keys: word: -> "word":
+            // Only match keys NOT already preceded by a quote
+            s = s.replace(/([{,]\s*)(?!")([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, (_m, prefix, key) => {
+              return `${prefix}"${key}":`;
+            });
+
+            // 4d. Fix unquoted string values after a colon
+            s = s.replace(/:\s*(?!")(?!\d)(?!true\b)(?!false\b)(?!null\b)(?!\[)(?!\{)([A-Za-z][^,\[\]{}\n"]*?)(\s*[,}\]])/g, (_m, val, suffix) => {
+              const trimmed = val.trim();
+              if (!trimmed) return _m;
+              return `: "${trimmed}"${suffix}`;
+            });
+
+            // 4e. Fix unquoted array items (after [ or ,)
+            s = s.replace(/(\[|,)\s*(?!")(?!\d)(?!true\b)(?!false\b)(?!null\b)(?!\[)(?!\{)([A-Za-z][^,\[\]{}\n"]*?)(\s*[,\]])/g, (_m, open, val, suffix) => {
+              const trimmed = val.trim();
+              if (!trimmed) return _m;
+              return `${open}"${trimmed}"${suffix}`;
+            });
+
+            // 4f. Fix missing commas between consecutive quoted strings: "a""b" -> "a","b"
+            // But NOT for key:value pairs "key":"value"
+            s = s.replace(/"(\s*)"(?!\s*:)/g, (_m, space) => `",${space}"`);
+
+            // 4g. Fix missing commas: }"key" -> },"key"  and  ]"key" -> ],"key"
+            s = s.replace(/([}\]])\s*(?!,)(")/g, '$1,$2');
+
+            // 4h. Fix trailing commas before closing brackets
+            s = s.replace(/,(\s*[}\]])/g, '$1');
+
+            // 4i. Balance unclosed brackets/braces
+            let opens = (s.match(/\[/g) || []).length;
+            let closes = (s.match(/\]/g) || []).length;
+            while (opens > closes) { s += ']'; closes++; }
+            let openB = (s.match(/\{/g) || []).length;
+            let closeB = (s.match(/\}/g) || []).length;
+            while (openB > closeB) { s += '}'; closeB++; }
+
+            return s;
+          };
+
+          try {
+            const repaired = repairJson(cleaned);
+            try {
+              return JSON.parse(repaired);
+            } catch (parseAfterRepair) {
+              console.warn("Parse after repair failed:", parseAfterRepair);
+              console.warn("Repaired string (first 300):", repaired.substring(0, 300));
+              // Show chars around position 108 to diagnose
+              const pos = 108;
+              console.warn(`Chars around pos ${pos}:`, JSON.stringify(repaired.substring(Math.max(0,pos-20), pos+20)));
+              throw parseAfterRepair;
+            }
+          } catch (repairError) {
+            // Step 5: Last resort — extract known fields manually via regex
+            console.warn("Repair failed, attempting field extraction fallback:", repairError);
+            const extract = (key: string, raw: string): string | null => {
+              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 's'));
+              return m ? m[1] : null;
+            };
+            const extractArr = (key: string, raw: string): string[] => {
+              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*?)\\]`, 's'));
+              if (!m) return [];
+              return m[1].split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+            };
+            const extractNum = (key: string, raw: string): number => {
+              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*(\\d+)`));
+              return m ? parseInt(m[1]) : 0;
+            };
+
+            const fallback = {
+              summary: extract('summary', cleaned) || 'Analisis selesai (parsing parsial).',
+              rekrutmen: extractArr('rekrutmen', cleaned),
+              pelatihan: extractArr('pelatihan', cleaned),
+              sarpras: extractArr('sarpras', cleaned),
+              analisis_risiko: extractArr('analisis_risiko', cleaned),
+              kesiapan_digital: extractNum('kesiapan_digital', cleaned),
+              rekomendasi_digital: extract('rekomendasi_digital', cleaned) || '',
+              skor: extractNum('skor', cleaned) || 70,
+              timeline: [],
+              rincian_strategi: [],
+              formasi_ideal: { jabatan_eksisting_disarankan: [], jabatan_baru_usulan: [] }
+            };
+
+            if (fallback.rekrutmen.length === 0 && fallback.pelatihan.length === 0) {
+              console.error("Field extraction also failed, raw content:", cleaned.substring(0, 500));
+              throw repairError;
+            }
+            return fallback;
           }
         };
 
@@ -937,14 +989,7 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
       const cleanTextForPDF = (text: string): string => {
         if (!text) return '';
         return text
-          // Remove all emoji (Unicode ranges)
-          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Emoticons
-          .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
-          .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
-          .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
-          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport & Map
-          .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
-          // Replace common emoji with text equivalents
+          // Replace common emoji with text equivalents FIRST (before unicode range removal)
           .replace(/🏭/g, '[Industri]')
           .replace(/🌾/g, '[Pertanian]')
           .replace(/🛒/g, '[Perdagangan]')
@@ -972,11 +1017,31 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
           .replace(/📱/g, '[HP]')
           .replace(/🛣️/g, '[Jalan]')
           .replace(/🚉/g, '[Transportasi]')
-          // Replace arrow symbols
+          .replace(/👷/g, '[Pekerja]')
+          // Remove remaining emoji (Unicode ranges)
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+          .replace(/[\u{2600}-\u{26FF}]/gu, '')
+          .replace(/[\u{2700}-\u{27BF}]/gu, '')
+          .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+          .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '')
+          // Replace special characters that jsPDF helvetica can't render
+          .replace(/±/g, '+/-')
           .replace(/→/g, '->')
-          .replace(/•/g, '- ')
-          // Clean up multiple spaces
-          .replace(/\s+/g, ' ')
+          .replace(/←/g, '<-')
+          .replace(/≥/g, '>=')
+          .replace(/≤/g, '<=')
+          .replace(/×/g, 'x')
+          .replace(/÷/g, '/')
+          .replace(/•/g, '-')
+          .replace(/–/g, '-')
+          .replace(/—/g, '-')
+          .replace(/"/g, '"')
+          .replace(/"/g, '"')
+          .replace(/'/g, "'")
+          .replace(/'/g, "'")
+          // Clean up multiple spaces (but preserve newlines)
+          .replace(/[^\S\n]+/g, ' ')
           .trim();
       };
 
@@ -1116,47 +1181,279 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
 
       yPos = (doc as any).lastAutoTable.finalY + 10;
 
+      // BPS Sintesis - Format as structured table
       if (bpsSintesis) {
-        if (yPos > 240) {
+        if (yPos > 220) {
           doc.addPage();
           yPos = 20;
         }
-        doc.setFontSize(10);
+        
+        doc.setFillColor(37, 99, 235); // Blue background
+        doc.rect(margin, yPos, contentWidth, 8, 'F');
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('Sintesis Data BPS:', margin, yPos);
-        yPos += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255); // White text
+        doc.text('SINTESIS DATA BPS', margin + 3, yPos + 6);
+        doc.setTextColor(0, 0, 0);
+        yPos += 12;
+        
+        // Parse sintesis into key-value pairs
         const cleanedSintesis = cleanTextForPDF(bpsSintesis);
-        const sintesisLines = doc.splitTextToSize(cleanedSintesis, contentWidth);
-        doc.text(sintesisLines.slice(0, 15), margin, yPos);
-        yPos += (Math.min(sintesisLines.length, 15) * 3) + 5;
-      }
-
-      const bpsDataSections = [
-        { title: 'Profil Industri per Sektor', data: cleanTextForPDF(bpsIndustri) },
-        { title: 'Profil Angkatan Kerja', data: cleanTextForPDF(bpsAngkatanKerja) },
-        { title: 'Data Lulusan Pendidikan', data: cleanTextForPDF(bpsLulusan) },
-        { title: 'Kemiskinan & IPM', data: cleanTextForPDF(bpsKemiskinan) },
-        { title: 'Infrastruktur & Konektivitas', data: cleanTextForPDF(bpsInfrastruktur) }
-      ];
-
-      for (const section of bpsDataSections) {
-        if (section.data) {
-          if (yPos > 240) {
+        const sintesisData: string[][] = [];
+        
+        // Extract location
+        const locMatch = cleanedSintesis.match(/DATA WILAYAH:\s*([^B]+)/);
+        if (locMatch) {
+          sintesisData.push(['Wilayah', locMatch[1].trim()]);
+        }
+        
+        // Extract key indicators
+        const tptMatch = cleanedSintesis.match(/TPT:\s*([0-9.]+%)/);
+        const neetMatch = cleanedSintesis.match(/NEET[^:]*:\s*([0-9.]+%)/);
+        const tikMatch = cleanedSintesis.match(/Literasi TIK:\s*([0-9.]+%)/);
+        const ipmMatch = cleanedSintesis.match(/IPM:\s*([0-9.]+)/);
+        const giniMatch = cleanedSintesis.match(/Gini Ratio:\s*([0-9.]+)/);
+        const kemiskinanMatch = cleanedSintesis.match(/Kemiskinan:\s*([0-9.]+%)/);
+        const sektorMatch = cleanedSintesis.match(/Sektor PDRB Dominan:\s*([^K]+)/);
+        
+        if (tptMatch) sintesisData.push(['TPT (Tingkat Pengangguran)', tptMatch[1]]);
+        if (neetMatch) sintesisData.push(['NEET Pemuda (15-24 thn)', neetMatch[1]]);
+        if (tikMatch) sintesisData.push(['Literasi TIK', tikMatch[1]]);
+        if (ipmMatch) sintesisData.push(['IPM (Indeks Pembangunan Manusia)', ipmMatch[1]]);
+        if (giniMatch) sintesisData.push(['Gini Ratio (Ketimpangan)', giniMatch[1]]);
+        if (kemiskinanMatch) sintesisData.push(['Tingkat Kemiskinan', kemiskinanMatch[1]]);
+        if (sektorMatch) sintesisData.push(['Sektor PDRB Dominan', sektorMatch[1].trim()]);
+        
+        // Render as table
+        if (sintesisData.length > 0) {
+          autoTable(doc, {
+            startY: yPos,
+            body: sintesisData,
+            theme: 'grid',
+            styles: { 
+              fontSize: 8,
+              cellPadding: 3,
+              lineColor: [200, 200, 200],
+              lineWidth: 0.5
+            },
+            columnStyles: {
+              0: { 
+                cellWidth: 70, 
+                fontStyle: 'bold',
+                fillColor: [240, 249, 255],
+                textColor: [37, 99, 235]
+              },
+              1: { 
+                cellWidth: 'auto',
+                textColor: [0, 0, 0]
+              }
+            },
+            margin: { left: margin, right: margin }
+          });
+          
+          yPos = (doc as any).lastAutoTable.finalY + 5;
+        }
+        
+        // Extract and display conclusion
+        const kesimpulanMatch = cleanedSintesis.match(/Kesimpulan:\s*(.+)/);
+        if (kesimpulanMatch) {
+          if (yPos > 250) {
             doc.addPage();
             yPos = 20;
           }
+          
+          doc.setFillColor(255, 251, 235); // Light yellow
+          const boxHeight = 20; // Fixed height for conclusion box
+          doc.rect(margin, yPos, contentWidth, boxHeight, 'F');
           doc.setFontSize(9);
           doc.setFont('helvetica', 'bold');
-          doc.text(section.title + ':', margin, yPos);
-          yPos += 5;
+          doc.text('Kesimpulan:', margin + 3, yPos + 5);
+          yPos += 8;
+          
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7);
-          const dataLines = doc.splitTextToSize(section.data, contentWidth);
-          doc.text(dataLines.slice(0, 12), margin, yPos);
-          yPos += (Math.min(dataLines.length, 12) * 2.5) + 5;
+          doc.setFontSize(8);
+          const kesimpulanLines = doc.splitTextToSize(kesimpulanMatch[1].trim(), contentWidth - 6);
+          doc.text(kesimpulanLines, margin + 3, yPos);
+          yPos += (kesimpulanLines.length * 3.5) + 8;
         }
+      }
+
+      // Helper function to parse BPS data into structured format
+      const parseBPSDataToStructured = (rawData: string): { header: string; items: string[][] } => {
+        if (!rawData) return { header: '', items: [] };
+        const cleaned = cleanTextForPDF(rawData);
+        const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
+        const items: string[][] = [];
+        let header = '';
+
+        for (const line of lines) {
+          // First non-empty line that ends with ':' or looks like a title → use as header
+          if (!header) {
+            header = line.replace(/:$/, '').trim();
+            continue;
+          }
+
+          // Lines with ' : ' separator (the BPS data uses ' : ' with spaces)
+          if (line.includes(' : ')) {
+            const sepIdx = line.indexOf(' : ');
+            let key = line.substring(0, sepIdx).trim()
+              .replace(/^\[.*?\]\s*/, '')   // strip [ICON] prefix
+              .replace(/^[-•]\s*/, '');      // strip bullet
+            const value = line.substring(sepIdx + 3).trim();
+            if (key && value) {
+              items.push([key, value]);
+            }
+            continue;
+          }
+
+          // Lines with regular ':' separator (key: value)
+          if (line.includes(':')) {
+            const colonIdx = line.indexOf(':');
+            let key = line.substring(0, colonIdx).trim()
+              .replace(/^\[.*?\]\s*/, '')
+              .replace(/^[-•]\s*/, '');
+            const value = line.substring(colonIdx + 1).trim();
+            // Skip lines where key is very long (likely a sentence, not a label)
+            // Skip source reference lines
+            if (key && value && key.length < 60 &&
+                !key.includes('SDDS') && !key.includes('Sakernas') &&
+                !key.includes('APM') && !key.includes('SDGs') &&
+                !key.includes('Var.') && !key.includes('Goal') &&
+                !value.includes('SDDS BPS') && !value.includes('Sakernas')) {
+              items.push([key, value]);
+            }
+            continue;
+          }
+
+          // Bullet/dash lines → notes column
+          if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
+            const content = line.replace(/^[-•*]\s*/, '').trim();
+            if (content && content.length < 200) {
+              items.push(['', content]);
+            }
+          }
+        }
+
+        return { header, items };
+      };
+
+      // BPS Data Sections with improved formatting
+      const bpsDataSections = [
+        { 
+          title: 'Profil Industri per Sektor (PDRB)', 
+          data: bpsIndustri,
+          color: [255, 237, 213], // Orange tint
+          icon: '[INDUSTRI]'
+        },
+        { 
+          title: 'Profil Angkatan Kerja & Pengangguran', 
+          data: bpsAngkatanKerja,
+          color: [219, 234, 254], // Blue tint
+          icon: '[TENAGA KERJA]'
+        },
+        { 
+          title: 'Data Lulusan & Angkatan Kerja Baru', 
+          data: bpsLulusan,
+          color: [220, 252, 231], // Green tint
+          icon: '[PENDIDIKAN]'
+        },
+        { 
+          title: 'Kemiskinan, IPM & Kesejahteraan', 
+          data: bpsKemiskinan,
+          color: [254, 226, 226], // Red tint
+          icon: '[KESEJAHTERAAN]'
+        },
+        { 
+          title: 'Infrastruktur & Konektivitas', 
+          data: bpsInfrastruktur,
+          color: [243, 232, 255], // Purple tint
+          icon: '[INFRASTRUKTUR]'
+        }
+      ];
+
+      for (const section of bpsDataSections) {
+        if (!section.data) continue;
+        
+        if (yPos > 220) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        // Section header with icon
+        doc.setFillColor(section.color[0], section.color[1], section.color[2]);
+        doc.rect(margin, yPos, contentWidth, 8, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${section.icon} ${section.title}`, margin + 3, yPos + 6);
+        yPos += 11;
+
+        // Parse and structure data
+        const structured = parseBPSDataToStructured(section.data);
+        
+        if (structured.items.length > 0) {
+          // Separate data items from analysis/notes
+          const dataItems = structured.items.filter(item => item[0] !== '');
+          const notes = structured.items.filter(item => item[0] === '');
+          
+          // Render data table
+          if (dataItems.length > 0) {
+            autoTable(doc, {
+              startY: yPos,
+              body: dataItems,
+              theme: 'striped',
+              styles: { 
+                fontSize: 7,
+                cellPadding: 2.5,
+                lineColor: [220, 220, 220],
+                lineWidth: 0.1
+              },
+              columnStyles: {
+                0: { 
+                  cellWidth: 75, 
+                  fontStyle: 'bold',
+                  textColor: [60, 60, 60]
+                },
+                1: { 
+                  cellWidth: 'auto',
+                  textColor: [0, 0, 0]
+                }
+              },
+              alternateRowStyles: {
+                fillColor: [252, 252, 252]
+              },
+              margin: { left: margin, right: margin }
+            });
+
+            yPos = (doc as any).lastAutoTable.finalY + 3;
+          }
+          
+          // Render notes/analysis as bullet points
+          if (notes.length > 0) {
+            if (yPos > 260) {
+              doc.addPage();
+              yPos = 20;
+            }
+            
+            doc.setFillColor(250, 250, 250);
+            doc.rect(margin, yPos, contentWidth, (notes.length * 4) + 4, 'F');
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(80, 80, 80);
+            
+            for (const note of notes) {
+              const noteText = `• ${note[1]}`;
+              const noteLines = doc.splitTextToSize(noteText, contentWidth - 8);
+              doc.text(noteLines, margin + 4, yPos + 3);
+              yPos += (noteLines.length * 3) + 1;
+            }
+            
+            yPos += 5;
+          }
+        }
+        
+        yPos += 3;
       }
 
       doc.addPage();
@@ -1178,7 +1475,7 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
       yPos += 5;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      const summaryLines = doc.splitTextToSize(aiResult.summary, contentWidth);
+      const summaryLines = doc.splitTextToSize(cleanTextForPDF(aiResult.summary || ''), contentWidth);
       doc.text(summaryLines, margin, yPos);
       yPos += (summaryLines.length * 4) + 8;
 
@@ -1199,9 +1496,9 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
           yPos += 5;
           
           const eksistingData = aiResult.formasiIdeal.eksisting.map((item: any) => [
-            item.nama,
-            item.jumlah.toString(),
-            item.alasan
+            item.nama || '-',
+            (item.jumlah ?? item.jumlah_ideal ?? '-').toString(),
+            item.alasan || '-'
           ]);
 
           autoTable(doc, {
@@ -1234,9 +1531,9 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
           yPos += 5;
           
           const baruData = aiResult.formasiIdeal.baru.map((item: any) => [
-            item.nama,
-            item.jumlah.toString(),
-            item.alasan
+            item.nama || '-',
+            (item.jumlah ?? item.jumlah_ideal ?? '-').toString(),
+            item.alasan || '-'
           ]);
 
           autoTable(doc, {
@@ -1271,7 +1568,7 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         aiResult.rekrutmenSpesifik.forEach((rec: string, idx: number) => {
-          const recLines = doc.splitTextToSize(`${idx + 1}. ${rec}`, contentWidth - 5);
+          const recLines = doc.splitTextToSize(`${idx + 1}. ${cleanTextForPDF(rec || '')}`, contentWidth - 5);
           doc.text(recLines, margin + 3, yPos);
           yPos += (recLines.length * 3.5) + 2;
           if (yPos > 270) {
@@ -1294,7 +1591,7 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         aiResult.pelatihan.forEach((p: string) => {
-          const pLines = doc.splitTextToSize(`• ${p}`, contentWidth - 5);
+          const pLines = doc.splitTextToSize(`- ${cleanTextForPDF(p || '')}`, contentWidth - 5);
           doc.text(pLines, margin + 3, yPos);
           yPos += (pLines.length * 3.5) + 2;
           if (yPos > 270) {
@@ -1317,7 +1614,7 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         aiResult.sarprasRekomendasi.forEach((s: string) => {
-          const sLines = doc.splitTextToSize(`• ${s}`, contentWidth - 5);
+          const sLines = doc.splitTextToSize(`- ${cleanTextForPDF(s || '')}`, contentWidth - 5);
           doc.text(sLines, margin + 3, yPos);
           yPos += (sLines.length * 3.5) + 2;
           if (yPos > 270) {
