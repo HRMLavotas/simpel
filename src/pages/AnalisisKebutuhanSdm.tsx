@@ -5,11 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   BrainCircuit, MapPin, Building, Activity, FileText,
   Loader2, Info, Database, AlertCircle,
-  Sparkles, Users, History, Trash2, Clock, Download
+  Sparkles, Users, History, Trash2, Clock, Download,
+  Pencil, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -78,6 +88,156 @@ export default function AnalisisKebutuhanSdm() {
       if (saved) setAnalysisHistory(JSON.parse(saved));
     } catch (_) {}
   }, []);
+
+  // Policy Parameters State
+  const [policyParams, setPolicyParams] = useState<any[]>([]);
+  const [isLoadingPolicyParams, setIsLoadingPolicyParams] = useState(false);
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
+  const [currentPolicy, setCurrentPolicy] = useState<any>(null); // null = add, object = edit
+  const [policyForm, setPolicyForm] = useState({
+    category: 'standar',
+    title: '',
+    value: '',
+    description: '',
+    parent_id: null as string | null
+  });
+
+  const fetchPolicyParams = async () => {
+    setIsLoadingPolicyParams(true);
+    try {
+      const { data, error } = await supabase
+        .from('policy_parameters')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      setPolicyParams(data || []);
+    } catch (err) {
+      console.error('Error fetching policy parameters:', err);
+    } finally {
+      setIsLoadingPolicyParams(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPolicyParams();
+  }, []);
+
+  const handleAddRegulation = (category: string) => {
+    setCurrentPolicy(null);
+    setPolicyForm({
+      category,
+      title: '',
+      value: '',
+      description: '',
+      parent_id: null
+    });
+    setIsPolicyModalOpen(true);
+  };
+
+  const handleAddPoint = (reg: any) => {
+    setCurrentPolicy(null);
+    setPolicyForm({
+      category: reg.category,
+      title: '',
+      value: '',
+      description: '',
+      parent_id: reg.id
+    });
+    setIsPolicyModalOpen(true);
+  };
+
+  const handleEditPolicy = (p: any) => {
+    setCurrentPolicy(p);
+    setPolicyForm({
+      category: p.category,
+      title: p.title || '',
+      value: p.value || '',
+      description: p.description || '',
+      parent_id: p.parent_id || null
+    });
+    setIsPolicyModalOpen(true);
+  };
+
+  const handleDeletePolicy = async (id: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus parameter kebijakan ini? Semua sub-parameter di bawahnya juga akan ikut terhapus.')) {
+      try {
+        const { error } = await supabase
+          .from('policy_parameters')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        toast({
+          title: 'Parameter Dihapus',
+          description: 'Parameter kebijakan berhasil dihapus.'
+        });
+        fetchPolicyParams();
+      } catch (err: any) {
+        toast({
+          title: 'Gagal Menghapus',
+          description: err.message,
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const handleSavePolicy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!policyForm.title.trim()) {
+      toast({
+        title: 'Formulir Tidak Lengkap',
+        description: 'Judul/Parameter wajib diisi.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const isPoint = !!policyForm.parent_id;
+      const payload = {
+        category: policyForm.category,
+        title: policyForm.title.trim(),
+        parent_id: policyForm.parent_id || null,
+        value: isPoint && (policyForm.category === 'standar' || policyForm.category === 'jabfung') ? policyForm.value.trim() || null : null,
+        description: isPoint && (policyForm.category === 'jabfung' || policyForm.category === 'strategi') ? policyForm.description.trim() || null : null
+      };
+
+      if (currentPolicy) {
+        // Edit
+        const { error } = await supabase
+          .from('policy_parameters')
+          .update(payload)
+          .eq('id', currentPolicy.id);
+        if (error) throw error;
+        toast({
+          title: 'Parameter Diperbarui',
+          description: 'Parameter kebijakan berhasil diperbarui.'
+        });
+      } else {
+        // Add
+        const { error } = await supabase
+          .from('policy_parameters')
+          .insert(payload);
+        if (error) throw error;
+        toast({
+          title: 'Parameter Ditambahkan',
+          description: 'Parameter kebijakan baru berhasil ditambahkan.'
+        });
+      }
+
+      setIsPolicyModalOpen(false);
+      fetchPolicyParams();
+    } catch (err: any) {
+      toast({
+        title: 'Penyimpanan Gagal',
+        description: err.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const filteredRegulations = (cat: string) => policyParams.filter(p => p.category === cat && !p.parent_id);
+  const filteredPoints = (parentId: string) => policyParams.filter(p => p.parent_id === parentId);
 
   const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
   const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
@@ -205,6 +365,28 @@ export default function AnalisisKebutuhanSdm() {
 - **Strategi Dipilih:** ${selectedStrategies.length>0?selectedStrategies.join(', '):'(tidak ada)'}
 - **Sarpras:** ${sarpras||'(tidak ada data)'}
 
+## Parameter Regulasi & Kebijakan Ditjen Binalavotas Saat Ini (Disesuaikan oleh Pengguna):
+- **Standar Operasional:**
+${policyParams.filter(p => p.category === 'standar' && !p.parent_id).map(reg => {
+  const points = policyParams.filter(p => p.parent_id === reg.id);
+  return `  * Regulasi Utama: ${reg.title}\n` + points.map(pt => `    - ${pt.title}: ${pt.value || ''}`).join('\n');
+}).join('\n')}
+- **Kualifikasi Jabatan Fungsional (Golongan & Tugas):**
+${policyParams.filter(p => p.category === 'jabfung' && !p.parent_id).map(reg => {
+  const points = policyParams.filter(p => p.parent_id === reg.id);
+  return `  * Regulasi Utama: ${reg.title}\n` + points.map(pt => `    - ${pt.title} (Golongan: ${pt.value || ''}): ${pt.description || ''}`).join('\n');
+}).join('\n')}
+- **Kejuruan Prioritas:**
+${policyParams.filter(p => p.category === 'program' && !p.parent_id).map(reg => {
+  const points = policyParams.filter(p => p.parent_id === reg.id);
+  return `  * Regulasi Utama: ${reg.title}\n` + points.map(pt => `    - ${pt.title}`).join('\n');
+}).join('\n')}
+- **Arah Kebijakan & Strategi Renstra:**
+${policyParams.filter(p => p.category === 'strategi' && !p.parent_id).map(reg => {
+  const points = policyParams.filter(p => p.parent_id === reg.id);
+  return `  * Regulasi Utama: ${reg.title}\n` + points.map(pt => `    - ${pt.title}: ${pt.description || ''}`).join('\n');
+}).join('\n')}
+
 Buat laporan analisis kebutuhan SDM lengkap dalam **Markdown**. Gunakan heading ##, tabel, dan bullet list. Struktur:
 
 ## Laporan Analisis Kebutuhan SDM
@@ -223,7 +405,7 @@ Buat laporan analisis kebutuhan SDM lengkap dalam **Markdown**. Gunakan heading 
 ### 9. Timeline Implementasi (tabel: Tahap | Periode | Aksi | PIC)
 ### 10. Skor Kesiapan Operasional: X/100
 
-Tulis dalam Bahasa Indonesia yang profesional.`;
+Tulis dalam Bahasa Indonesia yang profesional. Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mematuhi Parameter Regulasi & Kebijakan di atas.`;
     try {
       if (!apiKey || apiKey === 'YOUR_DEEPSEEK_API_KEY_HERE') throw new Error('API Key DeepSeek belum dikonfigurasi.');
       setAiProgress('Menganalisis dengan DeepSeek Reasoner...');
@@ -256,9 +438,139 @@ Tulis dalam Bahasa Indonesia yang profesional.`;
       toast({title:'✅ Analisis Selesai',description:'Laporan berhasil di-generate.'});
     } catch(err) {
       console.error(err);
-      const tptN=parseFloat(bpsTpt||'0'), urg=tptN>7?'KRITIS':tptN>4?'WASPADA':'OPTIMAL';
-      setAiMarkdown(`## Laporan Analisis Kebutuhan SDM (Lokal)\n### ${selectedDepartment} | ${locName}\n\n> ⚠️ DeepSeek API tidak tersedia. Analisis berbasis aturan lokal.\n\n### 1. Ringkasan Eksekutif\nUnit **${selectedDepartment}** memiliki defisit **${internalTotals.gap} posisi**. Status: **${urg}** (TPT: ${bpsTpt}).\n\nSektor dominan **${bpsSektor}** memerlukan instruktur yang selaras.\n\n### 2. Data Internal\n| Indikator | Nilai |\n|---|---|\n| ASN | ${internalTotals.asn} |\n| Non-ASN | ${internalTotals.nonAsn} |\n| ABK | ${internalTotals.abk} |\n| Defisit | ${internalTotals.gap} |\n\n### 3. Rekomendasi Awal\n- Pengisian formasi instruktur sektor **${bpsSektor}**\n- Up-skilling instruktur eksisting\n- Audit sarpras dan K3\n\n*Konfigurasi API Key untuk laporan lengkap.*`);
-      toast({title:'Menggunakan analisis lokal',description:err instanceof Error?err.message:'API tidak tersedia.',variant:'destructive'});
+      const tptN = parseFloat(bpsTpt || '0');
+      const urg = tptN > 7 ? 'KRITIS' : tptN > 4 ? 'WASPADA' : 'OPTIMAL';
+      
+      // Extract parameters from database states for dynamic fallback report:
+      const standars = policyParams.filter(p => p.category === 'standar' && p.parent_id);
+      const jabfungs = policyParams.filter(p => p.category === 'jabfung' && p.parent_id);
+      const programs = policyParams.filter(p => p.category === 'program' && p.parent_id);
+      const strategis = policyParams.filter(p => p.category === 'strategi' && p.parent_id);
+
+      // Extract specific scenarios
+      const riskScenarios = strategis.filter(s => s.title.includes('Skenario'));
+
+      // Calculate operational readiness score
+      let score = 50;
+      if (internalTotals.asn > 0) score += 15;
+      if (tptN < 6) score += 15;
+      if (sarpras && sarpras.length > 20) score += 10;
+      if (score > 100) score = 100;
+
+      const fallbackMarkdown = `## Laporan Analisis Kebutuhan SDM
+### ${selectedDepartment} | ${locName}
+
+> ⚠️ **Catatan Sistem:** Laporan ini di-generate menggunakan **Mesin Analisis Aturan Vokasi SIMPEL (Lokal)** karena integrasi DeepSeek API belum terhubung atau dibatasi.
+
+### 1. Ringkasan Eksekutif
+Berdasarkan analisis silang data internal **Peta Jabatan** dengan indikator eksternal **Big Data BPS**, Unit Kerja **${selectedDepartment}** yang berlokasi di **${locName}** saat ini memiliki **defisit total sebanyak ${internalTotals.gap} personel**. 
+
+Tingkat Pengangguran Terbuka (TPT) daerah tercatat sebesar **${bpsTpt || '0%'}** dengan status kerawanan **${urg}**. Mengingat sektor ekonomi dominan di wilayah ini adalah **${bpsSektor || 'Belum Ditentukan'}**, diperlukan percepatan pemenuhan dan penyelarasan kompetensi instruktur agar output pelatihan berdaya serap tinggi dan relevan.
+
+---
+
+### 2. Analisis Gap & Mismatch Kejuruan
+Peta Jabatan saat ini menunjukkan ketidakseimbangan alokasi pegawai. Di bawah ini adalah rincian formasi kritis yang mengalami defisit berdasarkan batas Anggaran Beban Kerja (ABK):
+
+| Jabatan Formasi | Kategori | Eksisting | ABK Ideal | Gap / Kekurangan |
+| :--- | :--- | :---: | :---: | :---: |
+${positionDetails.map(p => `| ${p.name} | ${p.category} | ${p.totalExisting} | ${p.abkCount} | ${p.gap > 0 ? `Kurang ${p.gap}` : p.gap < 0 ? `Lebih ${Math.abs(p.gap)}` : 'Sesuai'} |`).join('\n')}
+
+---
+
+### 3. Formasi Jabatan Ideal
+Guna mendukung akselerasi ketenagakerjaan daerah, Balai harus mengadopsi penataan posisi yang ideal:
+
+#### Optimasi Jabatan Eksisting
+* **Alih Kompetensi (Reskilling)**: Instruktur pada kejuruan tradisional/jenuh dialihkan untuk menguasai kejuruan prioritas baru yang selaras dengan sektor **${bpsSektor}**.
+* **Penerapan Kelas Paralel**: Optimalisasi instruktur eksisting dengan pembagian beban mengajar terjadwal untuk memperluas daya tampung peserta didik.
+
+#### Usulan Jabatan Baru
+| Jabatan Baru | Target Jumlah | Alasan Strategis Pemenuhan |
+| :--- | :---: | :--- |
+${positionDetails.filter(p => p.gap > 0).map(p => `| ${p.name} | ${p.gap} | Pemenuhan standar pelayanan minimum UPT & rasio peserta praktik. |`).join('\n') || '| Instruktur Kejuruan Baru | 2 | Penguatan formasi kejuruan prioritas daerah. |'}
+
+---
+
+### 4. Rekomendasi Rekrutmen & Kualifikasi
+Sesuai dengan regulasi formal yang berlaku di lingkungan **Kementerian Ketenagakerjaan RI**, rekrutmen wajib mengacu pada parameter kualifikasi standar:
+
+* **Standar Kelayakan Pengajar (Permenpan RB No. 82/2020 & No. 47/2021)**:
+${jabfungs.map(jf => `  - **${jf.title}** (Golongan ${jf.value}): ${jf.description}`).join('\n')}
+* **Rasio Kelas Praktik (Permenaker No. 6/2025)**:
+  - Kelas praktik dibatasi dengan rasio **1 Instruktur : 16 Peserta** guna menjamin keselamatan kerja (K3) dan efektivitas transfer kompetensi.
+  - Instruktur wajib dibekali sertifikasi kompetensi teknis serta sertifikasi metodologi pelatihan (ToT).
+
+---
+
+### 5. Program Pelatihan Prioritas (PBK)
+Kejuruan yang dibuka wajib memiliki keterkaitan erat dengan kebutuhan industri regional. Kejuruan prioritas utama balai diselaraskan sebagai berikut:
+
+${programs.map(pr => `* **${pr.title}** (${pr.value}): ${pr.description || 'Pilar utama pelatihan berbasis kompetensi.'}`).join('\n')}
+
+---
+
+### 6. Pengadaan Sarpras Prioritas
+Kondisi sarpras UPT saat ini:
+> *"${sarpras || 'Data inventaris sarpras belum terisi.'}"*
+
+**Rencana Aksi Pengadaan**:
+1. Modernisasi peralatan workshop utama agar setara dengan teknologi manufaktur/industri modern saat ini.
+2. Implementasi layout workshop bersertifikat K3 (Keselamatan dan Kesehatan Kerja).
+3. Pengadaan modul ajar digital interaktif serta platform LMS (Learning Management System).
+
+---
+
+### 7. Rencana Implementasi per Strategi
+Penerapan aksi strategis berbasis arah kebijakan nasional Ditjen Binalavotas:
+
+${strategis.filter(s => !s.title.includes('Skenario')).map(str => `* **${str.title}** (${str.value || 'Umum'}):
+  - *Deskripsi*: ${str.description || 'Langkah taktis pemenuhan strategi vokasi.'}
+  - *Aksi*: Penerapan sinkronisasi secara berkelanjutan dengan menggandeng pemangku kepentingan lokal.`).join('\n')}
+
+---
+
+### 8. Analisis Risiko & Rencana Mitigasi (Manajemen Risiko UPT)
+Menghadapi tantangan tak terduga di lapangan, UPT dipersiapkan dengan skenario pemulihan taktis berikut:
+
+${riskScenarios.map((risk, index) => `* **Skenario ${index + 1}: ${risk.title.replace(/^Skenario\s*\d+:\s*/, '')}**
+  - *Pendekatan*: **${risk.value}**
+  - *Mitigasi*: ${risk.description}`).join('\n') || `* **Mitigasi 1**: Melakukan kemitraan strategis dengan industri lokal untuk mencegah keusangan alat praktik.
+* **Mitigasi 2**: Penjadwalan silang beban mengajar instruktur.`}
+
+---
+
+### 9. Timeline Implementasi
+Skema jadwal pelaksanaan pemenuhan kebutuhan SDM dan Sarpras UPT:
+
+| Tahap | Periode | Aksi Nyata | Penanggung Jawab (PIC) |
+| :--- | :---: | :--- | :--- |
+| **Tahap I: Inisiasi** | Bulan 1 - 2 | Finalisasi pemetaan anjab & ABK, sosialisasi program kerja balai. | Kepala Kantor UPT / Satpel |
+| **Tahap I: Inisiasi** | Bulan 1 - 2 | Finalisasi pemetaan anjab & ABK, sosialisasi program kerja balai. | Kepala Kantor UPT / Satpel |
+| **Tahap II: Pengadaan** | Bulan 3 - 5 | Pengajuan rekrutmen CASN/PPPK dan kerja sama workshop satelit. | Kasubag Tata Usaha & Logistik |
+| **Tahap III: Sertifikasi** | Bulan 6 - 8 | Sertifikasi ToT instruktur & akreditasi TUK workshop mandiri. | Koordinator Instruktur |
+| **Tahap IV: Evaluasi** | Triwulan IV | Pengukuran keterserapan alumni di industri via SIAPkerja. | Seksi Penempatan & Kemitraan |
+
+---
+
+### 10. Skor Kesiapan Operasional: ${score}/100
+* **Analisis Kesiapan**: UPT berada pada level kesiapan **${score >= 80 ? 'PRISTINE (Sangat Siap)' : score >= 60 ? 'FLEXIBLE (Cukup Siap)' : 'CRITICAL (Perlu Perhatian)'}**. Pemenuhan sarpras prioritas tinggi dan pemenuhan deficit instruktur akan mendongkrak skor kesiapan operasional menuju 100%.`;
+
+      setAiMarkdown(fallbackMarkdown);
+      toast({title:'Analisis Lokal Diaktifkan', description:'Menggunakan mesin aturan vokasi terintegrasi.', variant:'default'});
+      
+      // Save local fallback to history as well to match REST flow
+      const entry = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        unit_kerja: selectedDepartment,
+        wilayah: locName,
+        markdown: fallbackMarkdown,
+        preview: fallbackMarkdown.substring(0, 200)
+      };
+      const hist = [entry, ...analysisHistory].slice(0, 20);
+      setAnalysisHistory(hist);
+      localStorage.setItem('simpel_sdm_analysis_history', JSON.stringify(hist));
     } finally { setIsProcessingAI(false); setAiProgress(''); }
   };
 
@@ -718,40 +1030,411 @@ Tulis dalam Bahasa Indonesia yang profesional.`;
                   <TabsTrigger value="program" className="text-xs py-2">🏭 Program</TabsTrigger>
                   <TabsTrigger value="strategi" className="text-xs py-2">🎯 Strategi</TabsTrigger>
                 </TabsList>
-                <TabsContent value="standar" className="space-y-2 rounded-md border p-4 bg-purple-50/30 dark:bg-purple-950/20">
-                  <p className="text-[11px] font-bold text-purple-700 uppercase">Permenaker No. 6/2025 & No. 12/2024</p>
-                  {[['Rasio Instruktur:Peserta (Praktik)','1 : 16'],['Rasio Instruktur:Peserta (Teori)','1 : 50'],['Kapasitas per Kelas','16 orang'],['Dasar Penghitungan','Anjab + ABK'],['Syarat Pengalaman','Min. 2 tahun'],['Sertifikasi Wajib','BNSP/LSP + ToT']].map(([k,v])=>(
-                    <div key={k} className="flex justify-between text-sm py-1 border-b border-purple-100 last:border-0">
-                      <span className="text-muted-foreground">{k}</span><span className="font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded text-xs">{v}</span>
-                    </div>
-                  ))}
-                </TabsContent>
-                <TabsContent value="jabfung" className="space-y-2 rounded-md border p-4 bg-blue-50/30 dark:bg-blue-950/20">
-                  <p className="text-[11px] font-bold text-blue-700 uppercase">PermenPAN-RB No. 47/2021 & Permenaker No. 4/2024</p>
-                  {[['Instruktur Ahli Pertama','VIII/IX','Pelaksana pelatihan dasar'],['Instruktur Ahli Muda','IX/X','Pengembang modul & kurikulum'],['Instruktur Ahli Madya','XI/XII','Pembina & quality control'],['Instruktur Ahli Utama','XIII/XIV','Penetapan kebijakan teknis']].map(([j,g,f])=>(
-                    <div key={j} className="flex justify-between text-sm py-1 border-b border-blue-100 last:border-0">
-                      <div><div className="font-medium">{j}</div><div className="text-[11px] text-muted-foreground">{f}</div></div>
-                      <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded shrink-0 ml-2">Gol. {g}</span>
-                    </div>
-                  ))}
-                </TabsContent>
-                <TabsContent value="program" className="space-y-2 rounded-md border p-4 bg-orange-50/30 dark:bg-orange-950/20">
-                  <p className="text-[11px] font-bold text-orange-700 uppercase">Kejuruan Prioritas Binalavotas 2024-2025</p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {['💻 TIK & Digital','🔧 Manufaktur & Mekatronika','🔥 Las & Fabrikasi','❄️ Refrigerasi & AC','🏗️ Konstruksi','🍳 Pariwisata & Boga','🌱 Agribisnis','🏭 Garmen & Tekstil'].map(x=>(
-                      <div key={x} className="text-xs bg-orange-100/50 border border-orange-200 rounded px-2 py-1.5">{x}</div>
-                    ))}
+                
+                {/* Tab: Standar */}
+                <TabsContent value="standar" className="space-y-4 rounded-md border p-4 bg-purple-50/30 dark:bg-purple-950/20">
+                  <div className="flex justify-between items-center pb-2 border-b border-purple-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">Daftar Regulasi Standar</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100/50 flex items-center px-2 py-0.5 rounded font-semibold"
+                      onClick={() => handleAddRegulation('standar')}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Regulasi Utama
+                    </Button>
                   </div>
+                  
+                  {isLoadingPolicyParams ? (
+                    <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-purple-600" /></div>
+                  ) : filteredRegulations('standar').length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-6">Belum ada regulasi standar.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredRegulations('standar').map((reg) => (
+                        <div key={reg.id} className="border border-purple-200/60 dark:border-purple-950/40 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm space-y-2 group/reg">
+                          <div className="flex justify-between items-center pb-1.5 border-b border-dashed border-purple-100 dark:border-purple-950/50">
+                            <span className="font-semibold text-purple-800 dark:text-purple-300 text-xs sm:text-sm">{reg.title}</span>
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950 flex items-center px-1.5 rounded font-semibold"
+                                onClick={() => handleAddPoint(reg)}
+                              >
+                                <Plus className="mr-0.5 h-3 w-3" /> Tambah Point
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-primary opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleEditPolicy(reg)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleDeletePolicy(reg.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            {filteredPoints(reg.id).length === 0 ? (
+                              <p className="text-[11px] text-muted-foreground italic text-center py-2">Belum ada point dalam regulasi ini.</p>
+                            ) : (
+                              filteredPoints(reg.id).map((point) => (
+                                <div key={point.id} className="flex justify-between items-center text-xs sm:text-sm py-1.5 border-b border-purple-50 dark:border-purple-950/30 last:border-0 group/point">
+                                  <span className="text-muted-foreground">{point.title}</span>
+                                  <div className="flex items-center space-x-2 shrink-0">
+                                    <span className="font-bold text-purple-700 bg-purple-100 dark:bg-purple-950 px-2 py-0.5 rounded text-[11px]">{point.value}</span>
+                                    <div className="flex items-center space-x-1 opacity-0 group-hover/point:opacity-100 transition-opacity">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-primary"
+                                        onClick={() => handleEditPolicy(point)}
+                                      >
+                                        <Pencil className="h-2.5 w-2.5" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                                        onClick={() => handleDeletePolicy(point.id)}
+                                      >
+                                        <Trash2 className="h-2.5 w-2.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
-                <TabsContent value="strategi" className="space-y-2 rounded-md border p-4 bg-green-50/30 dark:bg-green-950/20">
-                  <p className="text-[11px] font-bold text-green-700 uppercase">Arah Kebijakan Renstra Binalavotas 2025</p>
-                  {[['Rekrutmen Jabfung Instruktur Baru','Formasi CASN/PPPK berbasis ABK'],['Up-skilling Instruktur Eksisting','ToT, sertifikasi BNSP, metodologi PBK'],['Rekrutmen Non-ASN (PPPK Industry)','Tenaga teknis ahli dari industri'],['Pemetaan Formasi Unit Baru (Greenfield)','Analisis kebutuhan SDM dari nol'],['Mobilisasi Seed Team SDM','Tim instruktur inti dari BBPVP Pembina'],['Analisis Beban Kerja (ABK) Inisiasi','Standar minimum SDM operasional awal'],['Pengadaan Sarpras Prioritas Tinggi','Alat praktik utama daya serap tinggi'],['Standarisasi Workshop & K3','Modernisasi sesuai standar industri'],['Kemitraan Sarpras Industri','Kolaborasi sarana industri sekitar'],['Hibah & Re-utilisasi Sarpras','Optimalisasi alat dari UPT lain']].map(([l,d])=>(
-                    <label key={l} className="flex items-start space-x-2 text-sm cursor-pointer group">
-                      <input type="checkbox" className="accent-primary mt-0.5 shrink-0" checked={selectedStrategies.includes(l)}
-                        onChange={e=>setSelectedStrategies(e.target.checked?[...selectedStrategies,l]:selectedStrategies.filter(s=>s!==l))}/>
-                      <div><div className="font-medium group-hover:text-primary">{l}</div><div className="text-[11px] text-muted-foreground">{d}</div></div>
-                    </label>
-                  ))}
+
+                {/* Tab: Jabfung */}
+                <TabsContent value="jabfung" className="space-y-4 rounded-md border p-4 bg-blue-50/30 dark:bg-blue-950/20">
+                  <div className="flex justify-between items-center pb-2 border-b border-blue-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">Daftar Regulasi Jabatan Fungsional</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 flex items-center px-2 py-0.5 rounded font-semibold"
+                      onClick={() => handleAddRegulation('jabfung')}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Regulasi Utama
+                    </Button>
+                  </div>
+                  
+                  {isLoadingPolicyParams ? (
+                    <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-blue-600" /></div>
+                  ) : filteredRegulations('jabfung').length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-6">Belum ada regulasi jabatan fungsional.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredRegulations('jabfung').map((reg) => (
+                        <div key={reg.id} className="border border-blue-200/60 dark:border-blue-950/40 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm space-y-2 group/reg">
+                          <div className="flex justify-between items-center pb-1.5 border-b border-dashed border-blue-100 dark:border-blue-950/50">
+                            <span className="font-semibold text-blue-800 dark:text-blue-300 text-xs sm:text-sm">{reg.title}</span>
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-950 flex items-center px-1.5 rounded font-semibold"
+                                onClick={() => handleAddPoint(reg)}
+                              >
+                                <Plus className="mr-0.5 h-3 w-3" /> Tambah Point
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-primary opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleEditPolicy(reg)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleDeletePolicy(reg.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            {filteredPoints(reg.id).length === 0 ? (
+                              <p className="text-[11px] text-muted-foreground italic text-center py-2">Belum ada point dalam regulasi ini.</p>
+                            ) : (
+                              filteredPoints(reg.id).map((point) => (
+                                <div key={point.id} className="flex justify-between items-center text-xs sm:text-sm py-2 border-b border-blue-50 dark:border-blue-950/30 last:border-0 group/point">
+                                  <div className="min-w-0 flex-1 pr-2">
+                                    <div className="font-medium text-slate-800 dark:text-slate-200">{point.title}</div>
+                                    {point.description && <div className="text-[10px] text-muted-foreground mt-0.5">{point.description}</div>}
+                                  </div>
+                                  <div className="flex items-center space-x-2 shrink-0 ml-2">
+                                    {point.value && <span className="text-[10px] font-bold text-blue-700 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded">Gol. {point.value}</span>}
+                                    <div className="flex items-center space-x-1 opacity-0 group-hover/point:opacity-100 transition-opacity">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-primary"
+                                        onClick={() => handleEditPolicy(point)}
+                                      >
+                                        <Pencil className="h-2.5 w-2.5" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                                        onClick={() => handleDeletePolicy(point.id)}
+                                      >
+                                        <Trash2 className="h-2.5 w-2.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Tab: Program */}
+                <TabsContent value="program" className="space-y-4 rounded-md border p-4 bg-orange-50/30 dark:bg-orange-950/20">
+                  <div className="flex justify-between items-center pb-2 border-b border-orange-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">Daftar Kejuruan Prioritas</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs border-orange-300 dark:border-orange-800 text-orange-700 dark:text-orange-300 hover:bg-orange-100/50 flex items-center px-2 py-0.5 rounded font-semibold"
+                      onClick={() => handleAddRegulation('program')}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Regulasi Utama
+                    </Button>
+                  </div>
+                  
+                  {isLoadingPolicyParams ? (
+                    <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-orange-600" /></div>
+                  ) : filteredRegulations('program').length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-6">Belum ada regulasi kejuruan.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredRegulations('program').map((reg) => (
+                        <div key={reg.id} className="border border-orange-200/60 dark:border-orange-950/40 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm space-y-2 group/reg">
+                          <div className="flex justify-between items-center pb-1.5 border-b border-dashed border-orange-100 dark:border-orange-950/50">
+                            <span className="font-semibold text-orange-800 dark:text-orange-300 text-xs sm:text-sm">{reg.title}</span>
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950 flex items-center px-1.5 rounded font-semibold"
+                                onClick={() => handleAddPoint(reg)}
+                              >
+                                <Plus className="mr-0.5 h-3 w-3" /> Tambah Point
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-primary opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleEditPolicy(reg)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleDeletePolicy(reg.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            {filteredPoints(reg.id).length === 0 ? (
+                              <p className="text-[11px] text-muted-foreground italic text-center py-2">Belum ada point dalam regulasi ini.</p>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                {filteredPoints(reg.id).map((point) => (
+                                  <div key={point.id} className="flex items-center justify-between text-xs bg-orange-100/50 dark:bg-orange-950/20 border border-orange-200/60 dark:border-orange-950/40 rounded px-2.5 py-1.5 group/point">
+                                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate pr-1">{point.title}</span>
+                                    <div className="flex items-center space-x-0.5 opacity-0 group-hover/point:opacity-100 transition-opacity shrink-0">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-primary"
+                                        onClick={() => handleEditPolicy(point)}
+                                      >
+                                        <Pencil className="h-2.5 w-2.5" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                                        onClick={() => handleDeletePolicy(point.id)}
+                                      >
+                                        <Trash2 className="h-2.5 w-2.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Tab: Strategi */}
+                <TabsContent value="strategi" className="space-y-4 rounded-md border p-4 bg-green-50/30 dark:bg-green-950/20">
+                  <div className="flex justify-between items-center pb-2 border-b border-green-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-300">Daftar Kebijakan & Strategi Renstra</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs border-green-300 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100/50 flex items-center px-2 py-0.5 rounded font-semibold"
+                      onClick={() => handleAddRegulation('strategi')}
+                    >
+                      <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Regulasi Utama
+                    </Button>
+                  </div>
+                  
+                  {isLoadingPolicyParams ? (
+                    <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-green-600" /></div>
+                  ) : filteredRegulations('strategi').length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic text-center py-6">Belum ada regulasi strategi.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredRegulations('strategi').map((reg) => (
+                        <div key={reg.id} className="border border-green-200/60 dark:border-green-950/40 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm space-y-2 group/reg">
+                          <div className="flex justify-between items-center pb-1.5 border-b border-dashed border-green-100 dark:border-green-950/50">
+                            <span className="font-semibold text-green-800 dark:text-green-300 text-xs sm:text-sm">{reg.title}</span>
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-950 flex items-center px-1.5 rounded font-semibold"
+                                onClick={() => handleAddPoint(reg)}
+                              >
+                                <Plus className="mr-0.5 h-3 w-3" /> Tambah Point
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-primary opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleEditPolicy(reg)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover/reg:opacity-100 transition-opacity"
+                                onClick={() => handleDeletePolicy(reg.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {filteredPoints(reg.id).length === 0 ? (
+                              <p className="text-[11px] text-muted-foreground italic text-center py-2">Belum ada point dalam regulasi ini.</p>
+                            ) : (
+                              filteredPoints(reg.id).map((point) => (
+                                <div key={point.id} className="flex items-start justify-between text-sm group/point pb-2 border-b border-green-50 dark:border-green-950/30 last:border-0">
+                                  <label className="flex items-start space-x-2.5 cursor-pointer flex-1 mr-2 min-w-0">
+                                    <input
+                                      type="checkbox"
+                                      className="accent-primary mt-0.5 shrink-0 h-4 w-4 rounded"
+                                      checked={selectedStrategies.includes(point.title)}
+                                      onChange={(e) =>
+                                        setSelectedStrategies(
+                                          e.target.checked
+                                            ? [...selectedStrategies, point.title]
+                                            : selectedStrategies.filter((s) => s !== point.title)
+                                        )
+                                      }
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="font-medium text-slate-800 dark:text-slate-200 group-hover/point:text-primary transition-colors text-xs sm:text-sm">
+                                        {point.title}
+                                      </div>
+                                      {point.description && (
+                                        <div className="text-[11px] text-muted-foreground leading-normal">
+                                          {point.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </label>
+                                  <div className="flex items-center space-x-0.5 opacity-0 group-hover/point:opacity-100 transition-opacity shrink-0">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 text-muted-foreground hover:text-primary"
+                                      onClick={() => handleEditPolicy(point)}
+                                    >
+                                      <Pencil className="h-2.5 w-2.5" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                                      onClick={() => handleDeletePolicy(point.id)}
+                                    >
+                                      <Trash2 className="h-2.5 w-2.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -870,6 +1553,140 @@ Tulis dalam Bahasa Indonesia yang profesional.`;
         </Card>
 
       </div>
+
+      {/* Dynamic Policy Parameter CRUD Dialog */}
+      <Dialog open={isPolicyModalOpen} onOpenChange={setIsPolicyModalOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-[500px] p-0 overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="p-6 pb-2 flex-shrink-0 border-b">
+            <DialogTitle>
+              {currentPolicy 
+                ? (policyForm.parent_id ? 'Edit Point Regulasi' : 'Edit Regulasi Utama') 
+                : (policyForm.parent_id ? 'Tambah Point Regulasi' : 'Tambah Regulasi Utama')}
+            </DialogTitle>
+            <DialogDescription>
+              {policyForm.parent_id ? (
+                <>
+                  Menambahkan point baru di bawah regulasi{' '}
+                  <span className="font-semibold text-purple-700 dark:text-purple-300">
+                    {policyParams.find(p => p.id === policyForm.parent_id)?.title || 'Regulasi'}
+                  </span>.
+                </>
+              ) : (
+                <>
+                  Membuat regulasi utama baru untuk kategori{' '}
+                  <span className="font-semibold text-primary capitalize">{policyForm.category}</span>.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSavePolicy} className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Category Select (disabled to protect integrity) */}
+              <div className="space-y-1.5">
+                <Label htmlFor="policy-category" className="text-xs font-semibold">Kategori</Label>
+                <select
+                  id="policy-category"
+                  value={policyForm.category}
+                  onChange={(e) => setPolicyForm({ ...policyForm, category: e.target.value })}
+                  disabled={true}
+                  className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background cursor-not-allowed opacity-80"
+                >
+                  <option value="standar">📋 Standar</option>
+                  <option value="jabfung">🎓 Jabfung</option>
+                  <option value="program">🏭 Program</option>
+                  <option value="strategi">🎯 Strategi</option>
+                </select>
+              </div>
+
+              {/* Regulation parent indicator (if adding/editing a point) */}
+              {policyForm.parent_id && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">Regulasi Induk</Label>
+                  <Input
+                    value={policyParams.find(p => p.id === policyForm.parent_id)?.title || ''}
+                    disabled
+                    className="bg-muted text-xs cursor-not-allowed font-medium"
+                  />
+                </div>
+              )}
+
+              {/* Title Input */}
+              <div className="space-y-1.5">
+                <Label htmlFor="policy-title" className="text-xs font-semibold">
+                  {!policyForm.parent_id 
+                    ? 'Nama Regulasi Utama / Dasar Hukum' 
+                    : (policyForm.category === 'program' ? 'Nama Kejuruan' : 
+                       policyForm.category === 'jabfung' ? 'Nama Jabatan Fungsional' : 'Parameter / Judul Point')}
+                </Label>
+                <Input
+                  id="policy-title"
+                  placeholder={
+                    !policyForm.parent_id 
+                      ? 'Contoh: Permenaker No. 6/2025 & No. 12/2024' 
+                      : (policyForm.category === 'program' ? 'Contoh: 💻 TIK & Digital' :
+                         policyForm.category === 'jabfung' ? 'Contoh: Instruktur Ahli Madya' : 'Contoh: Rasio Instruktur')
+                  }
+                  value={policyForm.title}
+                  onChange={(e) => setPolicyForm({ ...policyForm, title: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Value Input (Only for Point and Category Standar/Jabfung) */}
+              {policyForm.parent_id && (policyForm.category === 'standar' || policyForm.category === 'jabfung') && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="policy-value" className="text-xs font-semibold">
+                    {policyForm.category === 'jabfung' ? 'Golongan (value)' : 'Nilai (value)'}
+                  </Label>
+                  <Input
+                    id="policy-value"
+                    placeholder={
+                      policyForm.category === 'jabfung' ? 'Contoh: XI/XII' : 'Contoh: 1 : 16'
+                    }
+                    value={policyForm.value}
+                    onChange={(e) => setPolicyForm({ ...policyForm, value: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Description Input (Only for Point and Category Jabfung/Strategi) */}
+              {policyForm.parent_id && (policyForm.category === 'jabfung' || policyForm.category === 'strategi') && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="policy-desc" className="text-xs font-semibold">
+                    Keterangan (description)
+                  </Label>
+                  <Textarea
+                    id="policy-desc"
+                    placeholder={
+                      policyForm.category === 'jabfung' ? 'Contoh: Pembina & quality control' : 'Contoh: Formasi CASN/PPPK berbasis ABK'
+                    }
+                    value={policyForm.description}
+                    onChange={(e) => setPolicyForm({ ...policyForm, description: e.target.value })}
+                    className="h-20 text-xs"
+                    required={policyForm.category === 'strategi'}
+                  />
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="p-4 border-t bg-muted/20 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 flex-shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsPolicyModalOpen(false)}
+                className="w-full sm:w-auto text-xs"
+              >
+                Batal
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto text-xs">
+                Simpan Parameter
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
