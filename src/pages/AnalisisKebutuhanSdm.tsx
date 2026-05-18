@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { 
-  BrainCircuit, MapPin, Building, Briefcase, Activity, FileText, 
-  CheckCircle2, Loader2, BarChart3, Info, Database, AlertCircle, 
-  Sparkles, Users, History, Trash2, Clock, Cpu, UserPlus, TrendingUp, Download 
+import {
+  BrainCircuit, MapPin, Building, Activity, FileText,
+  Loader2, Info, Database, AlertCircle,
+  Sparkles, Users, History, Trash2, Clock, Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -17,2554 +17,854 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { BPS_PROVINCES, BPS_REGENCIES } from '@/data/bps-provinces';
+import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// API Keys from environment
 const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
 
-interface DomainItem {
-  domain_id: string;
-  domain_name: string;
-  domain_url: string;
-}
-
+interface DomainItem { domain_id: string; domain_name: string; domain_url: string; }
 interface PositionDetail {
-  id: string;
-  name: string;
-  category: string;
-  existingAsn: number;
-  existingNonAsn: number;
-  totalExisting: number;
-  abkCount: number;
-  gap: number;
-  kejuruanDetails?: Record<string, number>;
+  id: string; name: string; category: string;
+  existingAsn: number; existingNonAsn: number; totalExisting: number;
+  abkCount: number; gap: number; kejuruanDetails?: Record<string, number>;
 }
 
 export default function AnalisisKebutuhanSdm() {
   const { toast } = useToast();
-  
-  // Internal Data (Supabase)
   const { departments } = useDepartments();
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+
+  // Internal state
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [isFetchingInternal, setIsFetchingInternal] = useState(false);
   const [positionDetails, setPositionDetails] = useState<PositionDetail[]>([]);
   const [internalTotals, setInternalTotals] = useState({ asn: 0, nonAsn: 0, abk: 0, gap: 0 });
 
-  // External Data (BPS)
+  // BPS / location state
   const [provinces, setProvinces] = useState<DomainItem[]>([]);
   const [regencies, setRegencies] = useState<DomainItem[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState<string>('');
-  const [selectedRegency, setSelectedRegency] = useState<string>("");
-  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
-  const [aiProgress, setAiProgress] = useState<string>("");
-  const [aiThinking, setAiThinking] = useState<string>("");
-  const [aiStreamingResult, setAiStreamingResult] = useState<string>("");
-  const [analysisHistory, setAnalysisHistory] = useState<any[]>([]);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedRegency, setSelectedRegency] = useState('');
+  const [isFetchingProvinces, setIsFetchingProvinces] = useState(false);
+  const [isFetchingRegencies, setIsFetchingRegencies] = useState(false);
+  const [isGeneratingBps, setIsGeneratingBps] = useState(false);
 
-  // Load history from localStorage on mount
+  // Form / BPS data
+  const [sarpras, setSarpras] = useState('');
+  const [bpsTpt, setBpsTpt] = useState('');
+  const [bpsNeet, setBpsNeet] = useState('');
+  const [bpsTik, setBpsTik] = useState('');
+  const [bpsSektor, setBpsSektor] = useState('');
+  const [bpsSintesis, setBpsSintesis] = useState('');
+  const [bpsIndustri, setBpsIndustri] = useState('');
+  const [bpsAngkatanKerja, setBpsAngkatanKerja] = useState('');
+  const [bpsLulusan, setBpsLulusan] = useState('');
+  const [bpsKemiskinan, setBpsKemiskinan] = useState('');
+  const [bpsInfrastruktur, setBpsInfrastruktur] = useState('');
+  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
+
+  // AI state — simple markdown string
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiMarkdown, setAiMarkdown] = useState('');
+  const [aiThinking, setAiThinking] = useState('');
+  const [aiProgress, setAiProgress] = useState('');
+
+  // History
+  const [analysisHistory, setAnalysisHistory] = useState<any[]>([]);
   useEffect(() => {
-    const savedHistory = localStorage.getItem('simpel_sdm_analysis_history');
-    if (savedHistory) {
-      try {
-        setAnalysisHistory(JSON.parse(savedHistory));
-      } catch (e) {
-        console.error("Failed to parse analysis history", e);
-      }
-    }
+    try {
+      const saved = localStorage.getItem('simpel_sdm_analysis_history');
+      if (saved) setAnalysisHistory(JSON.parse(saved));
+    } catch (_) {}
   }, []);
 
   const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
   const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
   const locName = kabName ? `${kabName}, ${provName}` : provName;
 
-  const [isFetchingProvinces, setIsFetchingProvinces] = useState(false);
-  const [isFetchingRegencies, setIsFetchingRegencies] = useState(false);
-
-  // Form State
-  const [sarpras, setSarpras] = useState('');
-  const [bpsTpt, setBpsTpt] = useState<string>('');
-  const [bpsNeet, setBpsNeet] = useState<string>('');
-  const [bpsTik, setBpsTik] = useState<string>('');
-  const [bpsSektor, setBpsSektor] = useState<string>('');
-  const [bpsSintesis, setBpsSintesis] = useState<string>('');
-  // Extended BPS fields
-  const [bpsIndustri, setBpsIndustri] = useState<string>(''); // Per-sector industry profile
-  const [bpsAngkatanKerja, setBpsAngkatanKerja] = useState<string>(''); // New workforce entrants
-  const [bpsLulusan, setBpsLulusan] = useState<string>(''); // School graduates data
-  const [bpsKemiskinan, setBpsKemiskinan] = useState<string>(''); // Poverty & welfare
-  const [bpsInfrastruktur, setBpsInfrastruktur] = useState<string>(''); // Infrastructure & connectivity
-  const [isGeneratingBps, setIsGeneratingBps] = useState(false);
-
-  // AI State
-  const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [aiResult, setAiResult] = useState<{
-    id?: string;
-    timestamp?: string;
-    unit_kerja?: string;
-    wilayah?: string;
-    kebutuhan: number;
-    rekrutmenSpesifik: string[];
-    pelatihan: string[];
-    sarprasRekomendasi: string[];
-    analisisRisiko?: string[];
-    kesiapanDigital?: { skor: number; rekomendasi: string };
-    timeline?: { tahap: string; aksi: string }[];
-    formasiIdeal?: {
-      eksisting: { nama: string; jumlah: number; alasan: string }[];
-      baru: { nama: string; jumlah: number; alasan: string }[];
-    };
-    rincianStrategi?: any[];
-    skorKesiapan: number;
-    summary: string;
-  } | null>(null);
-
-  // Fetch Internal Data when Department changes
+  // ── Fetch internal data ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedDepartment) {
-      setPositionDetails([]);
-      setInternalTotals({ asn: 0, nonAsn: 0, abk: 0, gap: 0 });
-      return;
+      setPositionDetails([]); setInternalTotals({ asn: 0, nonAsn: 0, abk: 0, gap: 0 }); return;
     }
-    
-    const fetchInternalData = async () => {
+    const run = async () => {
       setIsFetchingInternal(true);
       try {
-        const { getEffectiveDepartment, isSatpelOrWorkshop } = await import('@/lib/constants');
-        const effectiveDepartment = getEffectiveDepartment(selectedDepartment);
-        
-        if (!effectiveDepartment) {
-          setPositionDetails([]);
-          return;
-        }
-
+        const { getEffectiveDepartment, isSatpelOrWorkshop, isInstrukturPosition } = await import('@/lib/constants');
+        if (!getEffectiveDepartment(selectedDepartment)) { setPositionDetails([]); return; }
         const [empRes, posRes, deptRes] = await Promise.all([
-          // Fetch employees that belong to this unit OR are assigned to this Satpel
-          supabase.from('employees')
-            .select('asn_status, satuan_kerja_penugasan, position_name, department, kejuruan')
-            .eq('is_active', true)
-            .or(`department.eq."${selectedDepartment}",satuan_kerja_penugasan.eq."${selectedDepartment}"`),
-          
-          // Fetch position references specific to this department (including Satpels)
-          supabase.from('position_references')
-            .select('id, abk_count, position_name, position_category')
-            .eq('department', selectedDepartment),
-            
+          supabase.from('employees').select('asn_status,satuan_kerja_penugasan,position_name,department,kejuruan')
+            .eq('is_active', true).or(`department.eq."${selectedDepartment}",satuan_kerja_penugasan.eq."${selectedDepartment}"`),
+          supabase.from('position_references').select('id,abk_count,position_name,position_category').eq('department', selectedDepartment),
           supabase.from('departments').select('sarpras').eq('name', selectedDepartment).maybeSingle()
         ]);
-        
-        const rawEmps = empRes.data || [];
-        const rawPositions = posRes.data || [];
-        if (deptRes.data && deptRes.data.sarpras) {
+        const rawEmps = empRes.data || [], rawPos = posRes.data || [];
+        if (deptRes.data?.sarpras) {
           try {
-            const parsed = JSON.parse(deptRes.data.sarpras);
-            let formattedStr = '';
-            if (parsed.bangunan && parsed.bangunan.length > 0) {
-              formattedStr += `[Bangunan & Gedung]\n${parsed.bangunan.map((i: string) => `• ${i}`).join('\n')}\n\n`;
-            }
-            if (parsed.alat && parsed.alat.length > 0) {
-              formattedStr += `[Alat Pelatihan Utama]\n${parsed.alat.map((i: string) => `• ${i}`).join('\n')}\n\n`;
-            }
-            if (parsed.fasilitas && parsed.fasilitas.length > 0) {
-              formattedStr += `[Fasilitas Penunjang]\n${parsed.fasilitas.map((i: string) => `• ${i}`).join('\n')}\n\n`;
-            }
-            
-            setSarpras(formattedStr.trim() || '');
-          } catch {
-            // Fallback for legacy plain text
-            setSarpras(deptRes.data.sarpras);
-          }
-        } else {
-          setSarpras('');
-        }
-
-        const isSatpel = isSatpelOrWorkshop(selectedDepartment);
-        const normalizeForComparison = (name: string) => {
-          if (!name) return '';
-          let n = name.trim();
-          n = n.replace(/^Satpel\s+/, 'Satuan Pelayanan ');
-          // Harmonize Pekanbaru naming
-          n = n.replace(/^Satuan Pelayanan Pekan Baru$/, 'Satuan Pelayanan Pekanbaru');
-          return n;
-        };
-
-        const emps = isSatpel 
-          ? rawEmps.filter(e => e.satuan_kerja_penugasan && normalizeForComparison(e.satuan_kerja_penugasan) === normalizeForComparison(selectedDepartment))
+            const p = JSON.parse(deptRes.data.sarpras);
+            let s = '';
+            if (p.bangunan?.length) s += `[Bangunan & Gedung]\n${p.bangunan.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            if (p.alat?.length) s += `[Alat Pelatihan Utama]\n${p.alat.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            if (p.fasilitas?.length) s += `[Fasilitas Penunjang]\n${p.fasilitas.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            setSarpras(s.trim());
+          } catch { setSarpras(deptRes.data.sarpras); }
+        } else setSarpras('');
+        const norm = (n:string) => n?.trim().replace(/^Satpel\s+/,'Satuan Pelayanan ').replace(/^Satuan Pelayanan Pekan Baru$/,'Satuan Pelayanan Pekanbaru') || '';
+        const emps = isSatpelOrWorkshop(selectedDepartment)
+          ? rawEmps.filter(e => norm(e.satuan_kerja_penugasan||'') === norm(selectedDepartment))
           : rawEmps;
-
-        // Grouping positions
-        let tAsn = 0;
-        let tNonAsn = 0;
-        let tAbk = 0;
-        let tGap = 0;
-
-        const { isInstrukturPosition } = await import('@/lib/constants');
-
-        const details: PositionDetail[] = rawPositions.map(pos => {
-          const empMatch = emps.filter(e => e.position_name === pos.position_name);
-          const asn = empMatch.filter(e => e.asn_status !== 'Non ASN').length;
-          const nonAsn = empMatch.filter(e => e.asn_status === 'Non ASN').length;
-          const total = asn + nonAsn;
-          const abk = pos.abk_count || 0;
-          const gap = abk - total; 
-          
-          tAsn += asn;
-          tNonAsn += nonAsn;
-          tAbk += abk;
-          if (gap > 0) tGap += gap;
-
-          // Process Kejuruan for Instructors
-          let kejMap: Record<string, number> | undefined = undefined;
-          if (isInstrukturPosition(pos.position_name)) {
-            kejMap = {};
-            empMatch.forEach(e => {
-              const k = e.kejuruan || 'Umum/Lainnya';
-              kejMap![k] = (kejMap![k] || 0) + 1;
-            });
-          }
-
-          return {
-            id: pos.id,
-            name: pos.position_name || 'Tanpa Nama',
-            category: pos.position_category || 'Lainnya',
-            existingAsn: asn,
-            existingNonAsn: nonAsn,
-            totalExisting: total,
-            abkCount: abk,
-            gap: gap,
-            kejuruanDetails: kejMap
-          };
-        }).sort((a, b) => b.gap - a.gap); 
-
-        const unmappedEmps = emps.filter(e => !rawPositions.some(p => p.position_name === e.position_name));
-        const unmappedGroups = new Map<string, {asn: number, nonAsn: number, kejuruan?: Record<string, number>}>();
-        unmappedEmps.forEach(e => {
-          const pName = e.position_name || 'Tidak Diketahui';
-          const current = unmappedGroups.get(pName) || { asn: 0, nonAsn: 0, kejuruan: isInstrukturPosition(pName) ? {} : undefined };
-          if (e.asn_status !== 'Non ASN') current.asn++; else current.nonAsn++;
-          
-          if (current.kejuruan) {
-            const k = e.kejuruan || 'Umum/Lainnya';
-            current.kejuruan[k] = (current.kejuruan[k] || 0) + 1;
-          }
-          
-          unmappedGroups.set(pName, current);
-        });
-
-        unmappedGroups.forEach((counts, pName) => {
-          tAsn += counts.asn;
-          tNonAsn += counts.nonAsn;
-          const total = counts.asn + counts.nonAsn;
-          const gap = 0 - total; 
-          details.push({
-            id: `unmapped-${pName}`,
-            name: pName,
-            category: 'Tidak Terdefinisi',
-            existingAsn: counts.asn,
-            existingNonAsn: counts.nonAsn,
-            totalExisting: total,
-            abkCount: 0,
-            gap: gap,
-            kejuruanDetails: counts.kejuruan
-          });
-        });
-
-        setPositionDetails(details);
-        setInternalTotals({ asn: tAsn, nonAsn: tNonAsn, abk: tAbk, gap: tGap });
-      } catch (err) {
-        console.error('Failed to fetch internal data:', err);
-      } finally {
-        setIsFetchingInternal(false);
-      }
+        let tAsn=0,tNonAsn=0,tAbk=0,tGap=0;
+        const details: PositionDetail[] = rawPos.map(pos => {
+          const m = emps.filter(e=>e.position_name===pos.position_name);
+          const asn=m.filter(e=>e.asn_status!=='Non ASN').length, nonAsn=m.filter(e=>e.asn_status==='Non ASN').length;
+          const total=asn+nonAsn, abk=pos.abk_count||0, gap=abk-total;
+          tAsn+=asn; tNonAsn+=nonAsn; tAbk+=abk; if(gap>0) tGap+=gap;
+          let kej: Record<string,number>|undefined;
+          if(isInstrukturPosition(pos.position_name)){kej={};m.forEach(e=>{const k=e.kejuruan||'Umum/Lainnya';kej![k]=(kej![k]||0)+1;});}
+          return {id:pos.id,name:pos.position_name||'Tanpa Nama',category:pos.position_category||'Lainnya',existingAsn:asn,existingNonAsn:nonAsn,totalExisting:total,abkCount:abk,gap,kejuruanDetails:kej};
+        }).sort((a,b)=>b.gap-a.gap);
+        const unmapped = emps.filter(e=>!rawPos.some(p=>p.position_name===e.position_name));
+        const ug = new Map<string,{asn:number,nonAsn:number,kej?:Record<string,number>}>();
+        unmapped.forEach(e=>{const n=e.position_name||'Tidak Diketahui';const c=ug.get(n)||{asn:0,nonAsn:0,kej:isInstrukturPosition(n)?{}:undefined};if(e.asn_status!=='Non ASN')c.asn++;else c.nonAsn++;if(c.kej){const k=e.kejuruan||'Umum/Lainnya';c.kej[k]=(c.kej[k]||0)+1;}ug.set(n,c);});
+        ug.forEach((c,n)=>{tAsn+=c.asn;tNonAsn+=c.nonAsn;const total=c.asn+c.nonAsn;details.push({id:`u-${n}`,name:n,category:'Tidak Terdefinisi',existingAsn:c.asn,existingNonAsn:c.nonAsn,totalExisting:total,abkCount:0,gap:-total,kejuruanDetails:c.kej});});
+        setPositionDetails(details); setInternalTotals({asn:tAsn,nonAsn:tNonAsn,abk:tAbk,gap:tGap});
+      } catch(e){console.error(e);}
+      finally{setIsFetchingInternal(false);}
     };
-    
-    fetchInternalData();
+    run();
   }, [selectedDepartment]);
 
-  // Fetch BPS Provinces on mount
+  // ── Fetch provinces ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const fetchProvinces = async () => {
-      setIsFetchingProvinces(true);
-      
-      try {
-        // Try idn-area API (free, no API key needed, more reliable than BPS)
-        const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-        
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Transform to match BPS format
-        const transformedData = data.map((prov: any) => ({
-          domain_id: prov.id,
-          domain_name: prov.name.toUpperCase(),
-          domain_url: `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${prov.id}.json`
-        }));
-        
-        setProvinces(transformedData);
-        console.log('✅ Provinces loaded from idn-area API (34 provinces)');
-      } catch (error) {
-        console.error('Failed to fetch provinces from idn-area API:', error);
-        console.log('📦 Using static province data');
-        setProvinces(BPS_PROVINCES);
-      } finally {
-        setIsFetchingProvinces(false);
-      }
-    };
-    fetchProvinces();
+    setIsFetchingProvinces(true);
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+      .then(r=>r.json()).then(d=>setProvinces(d.map((p:any)=>({domain_id:p.id,domain_name:p.name.toUpperCase(),domain_url:''}))))
+      .catch(()=>setProvinces(BPS_PROVINCES))
+      .finally(()=>setIsFetchingProvinces(false));
   }, []);
 
-  // Fetch BPS Regencies when province changes
   useEffect(() => {
-    if (!selectedProvince) {
-      setRegencies([]);
-      return;
-    }
-    
-    const fetchRegencies = async () => {
-      setIsFetchingRegencies(true);
-      
-      try {
-        // Try idn-area API (free, no API key needed)
-        const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProvince}.json`);
-        
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Transform to match BPS format
-        const transformedData = data.map((reg: any) => ({
-          domain_id: reg.id,
-          domain_name: reg.name.toUpperCase(),
-          domain_url: `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${reg.id}.json`
-        }));
-        
-        setRegencies(transformedData);
-        console.log(`✅ Regencies loaded for province ${selectedProvince} (${transformedData.length} items)`);
-      } catch (error) {
-        console.error(`Failed to fetch regencies for province ${selectedProvince}:`, error);
-        
-        // Fallback to static data if available
-        if (BPS_REGENCIES[selectedProvince]) {
-          console.log(`📦 Using static regency data for province ${selectedProvince}`);
-          setRegencies(BPS_REGENCIES[selectedProvince]);
-        } else {
-          console.log(`⚠️ No data available for province ${selectedProvince}`);
-          setRegencies([]);
-        }
-      } finally {
-        setIsFetchingRegencies(false);
-      }
-    };
-    
-    fetchRegencies();
+    if (!selectedProvince) { setRegencies([]); return; }
+    setIsFetchingRegencies(true);
+    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProvince}.json`)
+      .then(r=>r.json()).then(d=>setRegencies(d.map((r:any)=>({domain_id:r.id,domain_name:r.name.toUpperCase(),domain_url:''}))))
+      .catch(()=>setRegencies(BPS_REGENCIES[selectedProvince]||[]))
+      .finally(()=>setIsFetchingRegencies(false));
   }, [selectedProvince]);
 
-  const handleGenerateBpsData = async () => {
-    if (!selectedProvince) {
-      toast({ variant: 'destructive', title: 'Pilih Provinsi', description: 'Harap pilih provinsi BPS terlebih dahulu.' });
-      return;
-    }
-    
-    // Validate and log selected location
-    const provName = provinces.find(p => p.domain_id === selectedProvince)?.domain_name || 'Wilayah';
-    const kabName = selectedRegency ? (regencies.find(r => r.domain_id === selectedRegency)?.domain_name || '') : '';
-    const locName = kabName ? `${kabName}, ${provName}` : provName;
-    
-    console.log('🔍 Generating BPS data for:');
-    console.log(`   Province ID: ${selectedProvince}`);
-    console.log(`   Province Name: ${provName}`);
-    if (selectedRegency) {
-      console.log(`   Regency ID: ${selectedRegency}`);
-      console.log(`   Regency Name: ${kabName}`);
-    }
-    console.log(`   Full Location: ${locName}`);
-    
+  // ── Generate BPS data ────────────────────────────────────────────────────────
+  const handleGenerateBpsData = () => {
+    if (!selectedProvince) { toast({variant:'destructive',title:'Pilih Provinsi'}); return; }
     setIsGeneratingBps(true);
-    
-    setIsGeneratingBps(true);
-    
-    try {
-      // Attempt to hit BPS SDDS API (Var 543: TPT)
-      // Realistically, BPS API requires 'th' parameter which fluctuates, and WAF might block.
-      const res = await fetch(`/bps-api/v1/api/list/model/data/domain/0000/var/543/key/${BPS_API_KEY}/`);
-      if (!res.ok) throw new Error('BPS WAF Block or 500 Error');
-      const json = await res.json();
-      if (json.status !== 'OK') throw new Error('BPS Data Unavailable');
-      
-      // If success, we would parse json.data here
-      // But because 'th' parameter is highly dynamic per province, we enforce fallback to guarantee UX
-      throw new Error('Fallback to AI Generation for consistent UX');
-    } catch (error) {
-      console.log('BPS Live API fallback triggered:', error);
-      
-      // Smart Fallback Simulation matching SDDS/SDGs format
-      setTimeout(() => {
-        const hash = locName.split('').reduce((a: number, b: string) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
-        const abs = Math.abs(hash);
-        const tpt = (4 + (abs % 5) + Math.random()).toFixed(1);
-        const neet = (10 + (abs % 15)).toFixed(1);
-        const tik = (60 + (abs % 30)).toFixed(1);
-        const ipm = (65 + (abs % 20)).toFixed(1);
-        const gini = (0.30 + (abs % 15) / 100).toFixed(2);
-        const kemiskinan = (4 + (abs % 10)).toFixed(1);
-        const elektrifikasi = (90 + (abs % 9)).toFixed(1);
-        const internet = (55 + (abs % 35)).toFixed(1);
-
-        const allSectors = ['Industri Pengolahan (Manufaktur)', 'Pertanian, Kehutanan, dan Perikanan', 'Perdagangan Besar dan Eceran', 'Penyediaan Akomodasi dan Makan Minum (Pariwisata)'];
-        const domSektor = allSectors[abs % allSectors.length];
-
-        const mfShare = (20 + (abs % 25)).toFixed(1);
-        const agShare = (10 + (abs % 20)).toFixed(1);
-        const trShare = (15 + (abs % 18)).toFixed(1);
-        const jaShare = (12 + (abs % 15)).toFixed(1);
-        const knShare = (8 + (abs % 10)).toFixed(1);
-        const lnShare = Math.max(0, (100 - parseFloat(mfShare) - parseFloat(agShare) - parseFloat(trShare) - parseFloat(jaShare) - parseFloat(knShare))).toFixed(1);
-
-        // Population scaled realistically: large cities have millions, small regencies have hundreds of thousands
-        // popRibu is in thousands. A province like Jabar: 40+ juta, kab/kota: 500rb - 3jt
-        const isKab = !!selectedRegency;
-        const basePopRibu = isKab ? (500 + (abs % 2500)) : (3000 + (abs % 37000)); // kabupaten: 500rb-3jt, provinsi: 3jt-40jt
-        const popRibu = basePopRibu;
-        const akJuta = (popRibu * 0.62 / 1000).toFixed(2); // ~62% usia kerja
-        
-        // Graduate numbers scale with population
-        // For a kab/kota: ~2-5% of youth population graduates per year from high school
-        const youthRatio = 0.018; // ~1.8% of total pop graduates SMK/SMA each year
-        const smkOrang = Math.round(popRibu * 1000 * youthRatio * 0.55); // 55% from SMK
-        const smaOrang = Math.round(popRibu * 1000 * youthRatio * 0.45); // 45% from SMA/MA
-        const ptOrang = Math.round(popRibu * 1000 * 0.005);  // ~0.5% lulusan PT per tahun
-        const pesertaUpt = Math.round(smkOrang * 0.35 + smaOrang * 0.20); // 35% SMK + 20% SMA minat pelatihan
-
-        setBpsTpt(`${tpt}%`);
-        setBpsNeet(`${neet}%`);
-        setBpsTik(`${tik}%`);
-        setBpsSektor(domSektor);
-
-        setBpsSintesis(
-          `✅ DATA WILAYAH: ${locName}\n\n` +
-          `Berdasarkan integrasi data SDDS & SDGs BPS untuk ${locName}:\n` +
-          `- TPT: ${tpt}% | NEET Pemuda: ${neet}% | Literasi TIK: ${tik}%\n` +
-          `- IPM: ${ipm} | Gini Ratio: ${gini} | Kemiskinan: ${kemiskinan}%\n` +
-          `- Sektor PDRB Dominan: ${domSektor}\n\n` +
-          `Kesimpulan: TPT ${parseFloat(tpt) > 6 ? 'yang cukup tinggi' : 'yang terkendali'} dan NEET ${neet}% menunjukkan ` +
-          `urgensi ${parseFloat(tpt) > 6 ? 'TINGGI' : 'SEDANG'} untuk intervensi pelatihan vokasi. Instruktur UPT harus ` +
-          `difokuskan ke sektor ${domSektor} untuk memaksimalkan serapan lulusan ke pasar kerja lokal.`
-        );
-
-        setBpsIndustri(
-          `Struktur Ekonomi ${locName} per Lapangan Usaha (SDDS BPS - Var. 106):\n\n` +
-          `🏭 Industri Pengolahan (Manufaktur) : ${mfShare}% dari PDRB\n` +
-          `🌾 Pertanian, Kehutanan & Perikanan  : ${agShare}%\n` +
-          `🛒 Perdagangan Besar & Eceran        : ${trShare}%\n` +
-          `🏨 Jasa (Akomodasi, Keuangan, dll)   : ${jaShare}%\n` +
-          `🔧 Konstruksi                         : ${knShare}%\n` +
-          `📦 Sektor Lainnya                    : ${lnShare}%\n\n` +
-          `Tren: Sektor ${domSektor} paling banyak menyerap tenaga kerja lokal.\n` +
-          `Rekomendasi: Kejuruan UPT harus selaras dengan kebutuhan industri sektor ini.`
-        );
-
-        setBpsAngkatanKerja(
-          `Profil Angkatan Kerja ${locName} (SDDS BPS / Sakernas - Var. 1953):\n\n` +
-          `👥 Penduduk Usia Kerja (15+ thn) : ±${(popRibu * 620).toLocaleString('id-ID')} jiwa\n` +
-          `⚙️  Total Angkatan Kerja         : ±${akJuta} juta orang\n` +
-          `📉 Tingkat Pengangguran (TPT)    : ${tpt}%\n` +
-          `🔄 Pekerja Informal              : ±${(45 + abs % 25)}% dari angkatan kerja\n` +
-          `⏱️  Setengah Pengangguran        : ±${(8 + abs % 12).toFixed(1)}%\n` +
-          `💵 Rata-rata Upah/Jam            : Rp ${(15 + abs % 20)}.000,-\n\n` +
-          `Kelompok Rentan (Prioritas UPT):\n` +
-          `• Pemuda NEET (15-24 thn): ${neet}% → Calon peserta utama pelatihan\n` +
-          `• Pekerja < SMA: ±${(30 + abs % 20)}% → Butuh up-skilling dasar\n` +
-          `• Perempuan tidak bekerja: ±${(25 + abs % 20)}% → Potensi peserta wirausaha`
-        );
-
-        setBpsLulusan(
-          `Data Lulusan & Angkatan Kerja Baru ${locName} (BPS / APM/APK):\n\n` +
-          `🎓 Lulusan SMK per tahun          : ±${smkOrang.toLocaleString('id-ID')} orang\n` +
-          `🏫 Lulusan SMA/MA per tahun       : ±${smaOrang.toLocaleString('id-ID')} orang\n` +
-          `🏛️  Lulusan D3/S1 per tahun       : ±${ptOrang.toLocaleString('id-ID')} orang\n` +
-          `📊 APK Perguruan Tinggi           : ${(30 + abs % 25).toFixed(1)}%\n` +
-          `📚 Angka Melek Huruf (15+ thn)    : ${(90 + abs % 9).toFixed(1)}%\n\n` +
-          `Analisis Relevansi:\n` +
-          `• Kesesuaian jurusan SMK vs industri: ±${(55 + abs % 30)}%\n` +
-          `• Gap kompetensi digital            : Tinggi di sektor ${domSektor}\n` +
-          `• Estimasi calon peserta UPT/tahun  : ±${pesertaUpt.toLocaleString('id-ID')} orang`
-        );
-
-        setBpsKemiskinan(
-          `Profil Kesejahteraan ${locName} (SDGs BPS - Goal 1, 10):\n\n` +
-          `💰 Penduduk Miskin                : ${kemiskinan}%\n` +
-          `📈 Indeks Pembangunan Manusia (IPM): ${ipm}\n` +
-          `⚖️  Gini Ratio (Ketimpangan)      : ${gini}\n` +
-          `🏘️  Akses Sanitasi Layak          : ±${(75 + abs % 20)}%\n` +
-          `🏠 Akses Air Bersih               : ±${(80 + abs % 15)}%\n\n` +
-          `Implikasi Perencanaan SDM:\n` +
-          `• IPM ${parseFloat(ipm) < 70 ? 'di bawah rata-rata nasional → prioritaskan pelatihan dasar' : 'baik → fokus up-skilling dan sertifikasi'}\n` +
-          `• Gini ${parseFloat(gini) > 0.40 ? 'tinggi → ketimpangan perlu intervensi akses pelatihan gratis' : 'terkendali → dorong pelatihan berbasis permintaan industri'}`
-        );
-
-        setBpsInfrastruktur(
-          `Infrastruktur & Konektivitas ${locName} (SDDS BPS):\n\n` +
-          `⚡ Rasio Elektrifikasi           : ${elektrifikasi}%\n` +
-          `🌐 Penetrasi Internet (RT)       : ${internet}%\n` +
-          `📱 Kepemilikan HP/Smartphone    : ±${(70 + abs % 25)}%\n` +
-          `🛣️  Status Jalan Nasional        : ${abs % 2 === 0 ? 'Baik (terhubung ke pusat industri)' : 'Cukup (perlu peningkatan beberapa ruas)'}\n` +
-          `🚉 Akses Transportasi Umum      : ${abs % 3 === 0 ? 'Tersedia (bus/kereta)' : abs % 3 === 1 ? 'Terbatas (angkutan desa)' : 'Tidak Memadai (dominan kendaraan pribadi)'}\n\n` +
-          `Dampak ke Operasional UPT:\n` +
-          `• Internet ${parseFloat(internet) > 70 ? 'memadai → pelatihan blended learning dapat dilaksanakan' : 'belum merata → utamakan pelatihan tatap muka'}\n` +
-          `• Elektrifikasi ${parseFloat(elektrifikasi) > 95 ? 'sangat baik → peralatan teknis dapat dioperasikan penuh' : 'perlu perhatian → sarpras berbasis listrik perlu dicek cadangan daya'}`
-        );
-
-        setIsGeneratingBps(false);
-        toast({ title: "Sintesis BPS Selesai", description: "7 dimensi data wilayah berhasil dimuat dari SDDS & SDGs BPS." });
-      }, 1800);
-    }
+    setTimeout(() => {
+      const hash = locName.split('').reduce((a:number,b:string)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a;},0);
+      const abs = Math.abs(hash);
+      const tpt=(4+(abs%5)+Math.random()).toFixed(1), neet=(10+(abs%15)).toFixed(1), tik=(60+(abs%30)).toFixed(1);
+      const ipm=(65+(abs%20)).toFixed(1), gini=(0.30+(abs%15)/100).toFixed(2), kem=(4+(abs%10)).toFixed(1);
+      const elek=(90+(abs%9)).toFixed(1), inet=(55+(abs%35)).toFixed(1);
+      const sektors=['Industri Pengolahan (Manufaktur)','Pertanian, Kehutanan, dan Perikanan','Perdagangan Besar dan Eceran','Pariwisata & Akomodasi'];
+      const dom=sektors[abs%sektors.length];
+      const mf=(20+(abs%25)).toFixed(1),ag=(10+(abs%20)).toFixed(1),tr=(15+(abs%18)).toFixed(1),ja=(12+(abs%15)).toFixed(1),kn=(8+(abs%10)).toFixed(1);
+      const ln=Math.max(0,100-parseFloat(mf)-parseFloat(ag)-parseFloat(tr)-parseFloat(ja)-parseFloat(kn)).toFixed(1);
+      const pop=selectedRegency?(500+(abs%2500)):(3000+(abs%37000));
+      const smk=Math.round(pop*1000*0.018*0.55), sma=Math.round(pop*1000*0.018*0.45), pt=Math.round(pop*1000*0.005);
+      setBpsTpt(`${tpt}%`); setBpsNeet(`${neet}%`); setBpsTik(`${tik}%`); setBpsSektor(dom);
+      setBpsSintesis(`✅ DATA WILAYAH: ${locName}\n\nTPT: ${tpt}% | NEET: ${neet}% | TIK: ${tik}%\nIPM: ${ipm} | Gini: ${gini} | Kemiskinan: ${kem}%\nSektor Dominan: ${dom}\n\nKesimpulan: Urgensi ${parseFloat(tpt)>6?'TINGGI':'SEDANG'} untuk intervensi pelatihan vokasi.`);
+      setBpsIndustri(`Struktur Ekonomi ${locName}:\n🏭 Manufaktur: ${mf}%\n🌾 Pertanian: ${ag}%\n🛒 Perdagangan: ${tr}%\n🏨 Jasa: ${ja}%\n🔧 Konstruksi: ${kn}%\n📦 Lainnya: ${ln}%\nSektor dominan: ${dom}`);
+      setBpsAngkatanKerja(`Angkatan Kerja ${locName}:\nTPT: ${tpt}% | Informal: ${45+(abs%25)}%\nNEET 15-24 thn: ${neet}%\nUpah rata-rata: Rp ${15+(abs%20)}.000/jam`);
+      setBpsLulusan(`Lulusan ${locName}/tahun:\nSMK: ${smk.toLocaleString('id-ID')} | SMA: ${sma.toLocaleString('id-ID')} | PT: ${pt.toLocaleString('id-ID')}\nAPK PT: ${(30+(abs%25)).toFixed(1)}%`);
+      setBpsKemiskinan(`Kesejahteraan ${locName}:\nKemiskinan: ${kem}% | IPM: ${ipm} | Gini: ${gini}\nSanitasi: ${75+(abs%20)}% | Air bersih: ${80+(abs%15)}%`);
+      setBpsInfrastruktur(`Infrastruktur ${locName}:\nElektrifikasi: ${elek}% | Internet: ${inet}%\nJalan: ${abs%2===0?'Baik':'Cukup'} | Transportasi: ${abs%3===0?'Tersedia':'Terbatas'}`);
+      setIsGeneratingBps(false);
+      toast({title:'Sintesis BPS Selesai',description:'7 dimensi data wilayah berhasil dimuat.'});
+    }, 1500);
   };
 
+  // ── AI Analysis — output markdown directly ───────────────────────────────────
   const handleProcessAI = async () => {
     if (!selectedDepartment || !selectedProvince || !bpsSektor) {
-      toast({
-        title: "Konteks Tidak Lengkap",
-        description: "Pastikan Anda telah memilih Unit Kerja dan men-generate data BPS.",
-        variant: "destructive"
-      });
-      return;
+      toast({title:'Konteks Tidak Lengkap',description:'Pilih Unit Kerja dan generate data BPS terlebih dahulu.',variant:'destructive'}); return;
     }
-
-    setIsProcessingAI(true);
-    setAiResult(null);
-    setAiThinking("");
-    setAiStreamingResult("");
-    setAiProgress("Menghubungkan ke DeepSeek Reasoning Engine...");
-
+    setIsProcessingAI(true); setAiMarkdown(''); setAiThinking(''); setAiProgress('Menghubungkan ke DeepSeek...');
     const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    
-    const contextData = {
-      unit_kerja: selectedDepartment,
-      wilayah: locName,
-      internal: {
-        total_pegawai: internalTotals.asn + internalTotals.nonAsn,
-        asn: internalTotals.asn,
-        non_asn: internalTotals.nonAsn,
-        abk_kebutuhan: internalTotals.abk,
-        defisit_gap: internalTotals.gap,
-        posisi_kritis: positionDetails.filter(p => p.gap > 0).map(p => `${p.name} (Gap: ${p.gap})`)
-      },
-      external_bps: {
-        tpt: bpsTpt,
-        neet: bpsNeet,
-        tik: bpsTik,
-        sektor_dominan: bpsSektor,
-        industri_pdrb: bpsIndustri,
-        angkatan_kerja: bpsAngkatanKerja,
-        lulusan_pendidikan: bpsLulusan,
-        kemiskinan_ipm: bpsKemiskinan,
-        infrastruktur: bpsInfrastruktur
-      },
-      strategi_pilihan: selectedStrategies,
-      sarpras_eksisting: sarpras,
-      distribusi_kejuruan: positionDetails
-        .filter(p => p.kejuruanDetails && Object.keys(p.kejuruanDetails).length > 0)
-        .map(p => ({
-          jabatan: p.name,
-          breakdown: p.kejuruanDetails
-        }))
-    };
+    const kejuruan = positionDetails.filter(p=>p.kejuruanDetails&&Object.keys(p.kejuruanDetails).length>0).map(p=>({jabatan:p.name,breakdown:p.kejuruanDetails}));
+    const prompt = `Kamu adalah Analis Ketenagakerjaan Strategis Ditjen Binalavotas, Kemnaker RI.
 
-    const prompt = `Analisis Ketenagakerjaan Strategis - Ditjen Binalavotas Kemnaker RI.
-Unit: ${contextData.unit_kerja} | Wilayah: ${contextData.wilayah}.
-Defisit SDM Internal: ${contextData.internal.defisit_gap} orang.
-Sektor Dominan (BPS): ${contextData.external_bps.sektor_dominan}.
+## Konteks
+- **Unit Kerja:** ${selectedDepartment} | **Wilayah:** ${locName}
+- **Pegawai:** ASN ${internalTotals.asn}, Non-ASN ${internalTotals.nonAsn}, ABK ${internalTotals.abk}, Defisit ${internalTotals.gap}
+- **Posisi Kritis:** ${positionDetails.filter(p=>p.gap>0).map(p=>`${p.name} (Gap:${p.gap})`).join(', ')||'Tidak ada'}
+- **Sektor Dominan BPS:** ${bpsSektor}
+- **TPT:** ${bpsTpt} | **NEET:** ${bpsNeet} | **TIK:** ${bpsTik}
+- **Distribusi Kejuruan:** ${JSON.stringify(kejuruan)}
+- **Strategi Dipilih:** ${selectedStrategies.length>0?selectedStrategies.join(', '):'(tidak ada)'}
+- **Sarpras:** ${sarpras||'(tidak ada data)'}
 
-DATA KEJURUAN INSTRUKTUR EKSISTING:
-${JSON.stringify(contextData.distribusi_kejuruan, null, 2)}
+Buat laporan analisis kebutuhan SDM lengkap dalam **Markdown**. Gunakan heading ##, tabel, dan bullet list. Struktur:
 
-STRATEGI YANG HARUS DIANALISIS:
-${contextData.strategi_pilihan.join(', ')}
+## Laporan Analisis Kebutuhan SDM
+### ${selectedDepartment} | ${locName}
 
-Tugas Anda:
-1. Validasi Gap SDM & Distribusi Kejuruan: Apakah kejuruan instruktur saat ini sudah selaras dengan sektor ${contextData.external_bps.sektor_dominan}? Jika ada kejuruan yang dominan tapi tidak relevan, berikan catatan kritis.
-2. Analisis Mismatch: Identifikasi kejuruan apa yang paling mendesak untuk ditambah (rekrutmen/pelatihan instruktur).
-3. Analisis Formasi Ideal: Berikan rekomendasi jumlah formasi jabatan yang ideal dibanding kondisi saat ini. Sebutkan jabatan apa yang perlu ditambah kuotanya dan JABATAN BARU apa yang harus diusulkan (misal: Ahli AI, Spesialis PLTS, dll) sesuai kebutuhan wilayah.
-4. Rencana Aksi: Berikan langkah strategis untuk SETIAP pilihan strategi yang dicentang.
-5. Rekomendasi 6 intervensi sarpras (Wajib mencakup: 3 Alat Pelatihan Utama, 2 Bangunan/Gedung, 1 Fasilitas Penunjang).
-6. Rekomendasi 4 program pelatihan (SKKNI).
+### 1. Ringkasan Eksekutif
+### 2. Analisis Gap & Mismatch Kejuruan
+### 3. Formasi Jabatan Ideal
+#### Optimasi Jabatan Eksisting (tabel: Jabatan | Target | Alasan)
+#### Usulan Jabatan Baru (tabel: Jabatan | Jumlah | Alasan)
+### 4. Rekomendasi Rekrutmen
+### 5. Program Pelatihan Prioritas (SKKNI)
+### 6. Pengadaan Sarpras Prioritas
+### 7. Rencana Implementasi per Strategi
+### 8. Analisis Risiko
+### 9. Timeline Implementasi (tabel: Tahap | Periode | Aksi | PIC)
+### 10. Skor Kesiapan Operasional: X/100
 
-WAJIB OUTPUT HANYA JSON VALID BERIKUT. TIDAK BOLEH ADA TEKS SEBELUM { ATAU SETELAH }. SEMUA STRING HARUS DIAPIT TANDA KUTIP GANDA. JANGAN GUNAKAN TANDA KUTIP GANDA DI DALAM NILAI STRING (gunakan tanda kutip tunggal jika perlu). JANGAN GUNAKAN NEWLINE MENTAH DI DALAM NILAI STRING:
-{"summary":"...","rekrutmen":["item1","item2","item3"],"pelatihan":["item1","item2","item3","item4"],"sarpras":["item1","item2","item3","item4","item5","item6"],"formasi_ideal":{"jabatan_eksisting_disarankan":[{"nama":"...","jumlah_ideal":0,"alasan":"..."}],"jabatan_baru_usulan":[{"nama":"...","jumlah_ideal":0,"alasan":"..."}]},"analisis_risiko":["item1","item2"],"kesiapan_digital":85,"rekomendasi_digital":"...","timeline":[{"tahap":"Jangka Pendek","aksi":"..."},{"tahap":"Jangka Menengah","aksi":"..."}],"rincian_strategi":[{"nama":"Nama Strategi","langkah":["Langkah 1","Langkah 2"],"impact":"High"}],"skor":85}
-
-ATURAN KETAT: Output harus berupa satu baris JSON kompak tanpa line break. Mulai langsung dengan { dan akhiri dengan }.`;
-
+Tulis dalam Bahasa Indonesia yang profesional.`;
     try {
-      if (!apiKey || apiKey === "YOUR_DEEPSEEK_API_KEY_HERE") {
-        throw new Error("API Key DeepSeek belum dikonfigurasi.");
-      }
-
-      setAiProgress("Menganalisis dengan DeepSeek V4 Reasoner Engine...");
-
-      const response = await fetch("/deepseek-api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "deepseek-reasoner", // Mapped to DeepSeek V4 Reasoner in proxy/WAF configuration
-          messages: [
-            { role: "system", content: "You are a professional Labor Market Analyst expert for Kemnaker RI. You must provide a highly detailed thought process and then output strictly in JSON format as requested." },
-            { role: "user", content: prompt }
-          ],
-          stream: true
-        })
+      if (!apiKey || apiKey === 'YOUR_DEEPSEEK_API_KEY_HERE') throw new Error('API Key DeepSeek belum dikonfigurasi.');
+      setAiProgress('Menganalisis dengan DeepSeek Reasoner...');
+      const res = await fetch('/deepseek-api/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+        body: JSON.stringify({model:'deepseek-reasoner',messages:[
+          {role:'system',content:'Kamu analis SDM profesional Kemnaker RI. Tulis laporan dalam Markdown terstruktur.'},
+          {role:'user',content:prompt}
+        ],stream:true})
       });
-
-      if (!response.ok) throw new Error("Gagal menghubungi DeepSeek API");
-      
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = "";
-      let fullReasoning = "";
-
-      if (!reader) throw new Error("Gagal membaca stream data AI");
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter(line => line.trim() !== "");
-        
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const dataStr = line.replace("data: ", "").trim();
-            if (dataStr === "[DONE]") continue;
-
-            try {
-              const data = JSON.parse(dataStr);
-              const delta = data.choices[0].delta;
-              
-              if (delta.reasoning_content) {
-                fullReasoning += delta.reasoning_content;
-                setAiThinking(fullReasoning);
-              }
-              
-              if (delta.content) {
-                // Sanitize content to remove control characters that could break JSON
-                const sanitized = delta.content.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
-                fullContent += sanitized;
-                setAiStreamingResult(fullContent);
-              }
-            } catch (e) {
-              // Ignore parse errors for partial chunks
-            }
-          }
+      if (!res.ok) throw new Error('Gagal menghubungi DeepSeek API');
+      const reader = res.body?.getReader(); const dec = new TextDecoder();
+      if (!reader) throw new Error('Gagal membaca stream');
+      let full='', thinking='';
+      while(true){
+        const {done,value}=await reader.read(); if(done) break;
+        const lines=dec.decode(value,{stream:true}).split('\n').filter(l=>l.trim());
+        for(const line of lines){
+          if(!line.startsWith('data: ')) continue;
+          const d=line.slice(6).trim(); if(d==='[DONE]') continue;
+          try{const j=JSON.parse(d);const delta=j.choices[0].delta;
+            if(delta.reasoning_content){thinking+=delta.reasoning_content;setAiThinking(thinking);}
+            if(delta.content){full+=delta.content;setAiMarkdown(full);}
+          }catch(_){}
         }
       }
-
-      // Final parsing of the JSON content
-      try {
-        const robustJsonParse = (str: string) => {
-          // Step 1: Strip markdown fences and trim
-          let cleaned = str.trim()
-            .replace(/^```json\s*/i, '')
-            .replace(/^```\s*/i, '')
-            .replace(/```\s*$/i, '')
-            .trim();
-
-          // Step 2: Extract the outermost JSON object
-          const firstBrace = cleaned.indexOf('{');
-          const lastBrace = cleaned.lastIndexOf('}');
-          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-          }
-
-          // Step 3: Standard parse (fast path)
-          try {
-            return JSON.parse(cleaned);
-          } catch (_) { /* continue to repair */ }
-
-          // Step 4: Deep repair using a line-by-line / token-aware approach
-          const repairJson = (raw: string): string => {
-            // DEBUG: log raw input around first problem area
-            console.debug("Raw input (first 200):", JSON.stringify(raw.substring(0, 200)));
-            // 4a. Normalize line endings
-            let s = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-            // 4b. Character-level pass: the only reliable way to fix malformed JSON strings.
-            // Problems handled:
-            //   1. Raw newlines/tabs inside string values → escape them
-            //   2. Embedded double-quotes inside string values like "word" → escape them  
-            //   3. "Bleeding" strings where the value never closes and the next property
-            //      key appears unquoted inside it → auto-close the string
-            {
-              let result = '';
-              let inString = false;
-              let esc = false;
-
-              // Helper: look ahead from position j (skipping whitespace) and return the next non-ws char
-              const peekNonWs = (j: number): string => {
-                while (j < s.length && (s[j] === ' ' || s[j] === '\t')) j++;
-                return s[j] || '';
-              };
-
-              for (let i = 0; i < s.length; i++) {
-                const ch = s[i];
-
-                // Handle escape sequences
-                if (esc) { result += ch; esc = false; continue; }
-                if (ch === '\\' && inString) { result += ch; esc = true; continue; }
-
-                if (ch === '"') {
-                  if (!inString) {
-                    // Opening a string
-                    inString = true;
-                    result += ch;
-                    continue;
-                  }
-
-                  // We're inside a string and hit a '"'. Is this closing the string or embedded?
-                  // A real closing quote is followed (after optional whitespace) by: , } ] : \n EOF
-                  // An embedded quote is followed by a word character or space+word
-                  const nextNonWs = peekNonWs(i + 1);
-                  const isClosingQuote = (
-                    nextNonWs === ',' ||
-                    nextNonWs === '}' ||
-                    nextNonWs === ']' ||
-                    nextNonWs === ':' ||
-                    nextNonWs === '\n' ||
-                    nextNonWs === '' // EOF
-                  );
-
-                  if (isClosingQuote) {
-                    // Real closing quote
-                    inString = false;
-                    result += ch;
-                  } else {
-                    // Embedded quote — escape it
-                    result += '\\"';
-                  }
-                  continue;
-                }
-
-                if (inString) {
-                  if (ch === '\n' || ch === '\r') {
-                    // Peek ahead past whitespace: if next token looks like an unquoted JSON key
-                    // (word followed by colon), the string was never properly closed — close it now
-                    let j = i + 1;
-                    while (j < s.length && (s[j] === ' ' || s[j] === '\t' || s[j] === '\n' || s[j] === '\r')) j++;
-                    const ahead = s.slice(j, j + 80);
-                    const isNextKey = /^[a-zA-Z_][a-zA-Z0-9_]*\s*:/.test(ahead);
-                    const isNextCloseBrace = s[j] === '}';
-                    if (isNextKey || isNextCloseBrace) {
-                      result += '",\n';
-                      inString = false;
-                      continue;
-                    }
-                    result += '\\n';
-                    continue;
-                  }
-                  if (ch === '\t') { result += '\\t'; continue; }
-                }
-
-                result += ch;
-              }
-              // If string was never closed, close it
-              if (inString) result += '"';
-              s = result;
-            }
-
-            // 4c. Fix unquoted object keys: word: -> "word":
-            // Only match keys NOT already preceded by a quote
-            s = s.replace(/([{,]\s*)(?!")([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, (_m, prefix, key) => {
-              return `${prefix}"${key}":`;
-            });
-
-            // 4d. Fix unquoted string values after a colon
-            s = s.replace(/:\s*(?!")(?!\d)(?!true\b)(?!false\b)(?!null\b)(?!\[)(?!\{)([A-Za-z][^,\[\]{}\n"]*?)(\s*[,}\]])/g, (_m, val, suffix) => {
-              const trimmed = val.trim();
-              if (!trimmed) return _m;
-              return `: "${trimmed}"${suffix}`;
-            });
-
-            // 4e. Fix unquoted array items (after [ or ,)
-            s = s.replace(/(\[|,)\s*(?!")(?!\d)(?!true\b)(?!false\b)(?!null\b)(?!\[)(?!\{)([A-Za-z][^,\[\]{}\n"]*?)(\s*[,\]])/g, (_m, open, val, suffix) => {
-              const trimmed = val.trim();
-              if (!trimmed) return _m;
-              return `${open}"${trimmed}"${suffix}`;
-            });
-
-            // 4f. Fix missing commas between consecutive quoted strings: "a""b" -> "a","b"
-            // But NOT for key:value pairs "key":"value"
-            s = s.replace(/"(\s*)"(?!\s*:)/g, (_m, space) => `",${space}"`);
-
-            // 4g. Fix missing commas: }"key" -> },"key"  and  ]"key" -> ],"key"
-            s = s.replace(/([}\]])\s*(?!,)(")/g, '$1,$2');
-
-            // 4h. Fix trailing commas before closing brackets
-            s = s.replace(/,(\s*[}\]])/g, '$1');
-
-            // 4i. Balance unclosed brackets/braces
-            let opens = (s.match(/\[/g) || []).length;
-            let closes = (s.match(/\]/g) || []).length;
-            while (opens > closes) { s += ']'; closes++; }
-            let openB = (s.match(/\{/g) || []).length;
-            let closeB = (s.match(/\}/g) || []).length;
-            while (openB > closeB) { s += '}'; closeB++; }
-
-            return s;
-          };
-
-          try {
-            const repaired = repairJson(cleaned);
-            try {
-              return JSON.parse(repaired);
-            } catch (parseAfterRepair) {
-              console.warn("Parse after repair failed:", parseAfterRepair);
-              console.warn("Repaired string (first 300):", repaired.substring(0, 300));
-              // Show chars around position 108 to diagnose
-              const pos = 108;
-              console.warn(`Chars around pos ${pos}:`, JSON.stringify(repaired.substring(Math.max(0,pos-20), pos+20)));
-              throw parseAfterRepair;
-            }
-          } catch (repairError) {
-            // Step 5: Last resort — extract known fields manually via regex
-            console.warn("Repair failed, attempting field extraction fallback:", repairError);
-            const extract = (key: string, raw: string): string | null => {
-              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 's'));
-              return m ? m[1] : null;
-            };
-            const extractArr = (key: string, raw: string): string[] => {
-              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*?)\\]`, 's'));
-              if (!m) return [];
-              return m[1].split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
-            };
-            const extractNum = (key: string, raw: string): number => {
-              const m = raw.match(new RegExp(`"${key}"\\s*:\\s*(\\d+)`));
-              return m ? parseInt(m[1]) : 0;
-            };
-
-            const fallback = {
-              summary: extract('summary', cleaned) || 'Analisis selesai (parsing parsial).',
-              rekrutmen: extractArr('rekrutmen', cleaned),
-              pelatihan: extractArr('pelatihan', cleaned),
-              sarpras: extractArr('sarpras', cleaned),
-              analisis_risiko: extractArr('analisis_risiko', cleaned),
-              kesiapan_digital: extractNum('kesiapan_digital', cleaned),
-              rekomendasi_digital: extract('rekomendasi_digital', cleaned) || '',
-              skor: extractNum('skor', cleaned) || 70,
-              timeline: [],
-              rincian_strategi: [],
-              formasi_ideal: { jabatan_eksisting_disarankan: [], jabatan_baru_usulan: [] }
-            };
-
-            if (fallback.rekrutmen.length === 0 && fallback.pelatihan.length === 0) {
-              console.error("Field extraction also failed, raw content:", cleaned.substring(0, 500));
-              throw repairError;
-            }
-            return fallback;
-          }
-        };
-
-        const startIndex = fullContent.indexOf('{');
-        const endIndex = fullContent.lastIndexOf('}');
-        
-        if (startIndex === -1 || endIndex === -1) {
-          console.error("❌ JSON not found in AI response");
-          console.error("Response preview:", fullContent.substring(0, 500));
-          throw new Error("JSON not found in AI response. Response may be incomplete or malformed.");
-        }
-        
-        const jsonStr = fullContent.substring(startIndex, endIndex + 1);
-        console.log("📝 Attempting to parse JSON (length:", jsonStr.length, "chars)");
-        
-        const aiData = robustJsonParse(jsonStr);
-        console.log("✅ JSON parsed successfully");
-
-        const finalResult = {
-          id: crypto.randomUUID(),
-          timestamp: new Date().toISOString(),
-          unit_kerja: selectedDepartment,
-          wilayah: locName,
-          kebutuhan: contextData.internal.defisit_gap,
-          rekrutmenSpesifik: aiData.rekrutmen || aiData.recommendaions || contextData.internal.posisi_kritis,
-          pelatihan: aiData.pelatihan || aiData.training || [],
-          sarprasRekomendasi: aiData.sarpras || aiData.sarana_prasarana || aiData.infrastructure || [],
-          analisisRisiko: aiData.analisis_risiko || [],
-          kesiapanDigital: { 
-            skor: aiData.kesiapan_digital || 0, 
-            rekomendasi: aiData.rekomendasi_digital || "Perlu peningkatan infrastruktur IT." 
-          },
-          timeline: aiData.timeline || [],
-          formasiIdeal: aiData.formasi_ideal ? {
-            eksisting: (aiData.formasi_ideal.jabatan_eksisting_disarankan || []).map((i: any) => ({
-              nama: i.nama,
-              jumlah: i.jumlah_ideal,
-              alasan: i.alasan
-            })),
-            baru: (aiData.formasi_ideal.jabatan_baru_usulan || []).map((i: any) => ({
-              nama: i.nama,
-              jumlah: i.jumlah_ideal,
-              alasan: i.alasan
-            }))
-          } : undefined,
-          rincianStrategi: aiData.rincian_strategi || aiData.strategies || [],
-          skorKesiapan: aiData.skor || aiData.score || 70,
-          summary: aiData.summary || aiData.executive_summary
-        };
-
-        setAiResult(finalResult);
-
-        // Save to history
-        const updatedHistory = [finalResult, ...analysisHistory].slice(0, 20); // Keep last 20
-        setAnalysisHistory(updatedHistory);
-        localStorage.setItem('simpel_sdm_analysis_history', JSON.stringify(updatedHistory));
-
-    } catch (parseError) {
-        console.error("Parse Error after stream:", parseError);
-        console.error("Raw content received:", fullContent.substring(0, 1000));
-        
-        toast({
-          title: "⚠️ JSON Parse Error",
-          description: "Response AI tidak valid. Menggunakan analisis lokal sebagai fallback...",
-          variant: "destructive"
-        });
-        
-        // Fallback to local if JSON is malformed
-        handleProcessLocalAI(contextData, locName);
-      }
-
-    } catch (error) {
-      console.error("DeepSeek Stream Error:", error);
-      toast({
-        title: "DeepSeek API Error",
-        description: error instanceof Error ? error.message : "Gagal memproses analisis streaming.",
-        variant: "destructive"
-      });
-      handleProcessLocalAI(contextData, locName);
-    } finally {
-      setIsProcessingAI(false);
-      setAiProgress("");
-    }
+      const entry={id:crypto.randomUUID(),timestamp:new Date().toISOString(),unit_kerja:selectedDepartment,wilayah:locName,markdown:full,preview:full.substring(0,200)};
+      const hist=[entry,...analysisHistory].slice(0,20);
+      setAnalysisHistory(hist); localStorage.setItem('simpel_sdm_analysis_history',JSON.stringify(hist));
+      toast({title:'✅ Analisis Selesai',description:'Laporan berhasil di-generate.'});
+    } catch(err) {
+      console.error(err);
+      const tptN=parseFloat(bpsTpt||'0'), urg=tptN>7?'KRITIS':tptN>4?'WASPADA':'OPTIMAL';
+      setAiMarkdown(`## Laporan Analisis Kebutuhan SDM (Lokal)\n### ${selectedDepartment} | ${locName}\n\n> ⚠️ DeepSeek API tidak tersedia. Analisis berbasis aturan lokal.\n\n### 1. Ringkasan Eksekutif\nUnit **${selectedDepartment}** memiliki defisit **${internalTotals.gap} posisi**. Status: **${urg}** (TPT: ${bpsTpt}).\n\nSektor dominan **${bpsSektor}** memerlukan instruktur yang selaras.\n\n### 2. Data Internal\n| Indikator | Nilai |\n|---|---|\n| ASN | ${internalTotals.asn} |\n| Non-ASN | ${internalTotals.nonAsn} |\n| ABK | ${internalTotals.abk} |\n| Defisit | ${internalTotals.gap} |\n\n### 3. Rekomendasi Awal\n- Pengisian formasi instruktur sektor **${bpsSektor}**\n- Up-skilling instruktur eksisting\n- Audit sarpras dan K3\n\n*Konfigurasi API Key untuk laporan lengkap.*`);
+      toast({title:'Menggunakan analisis lokal',description:err instanceof Error?err.message:'API tidak tersedia.',variant:'destructive'});
+    } finally { setIsProcessingAI(false); setAiProgress(''); }
   };
 
-  const handleProcessLocalAI = (contextData: any, locName: string | undefined) => {
-    // Re-use previous local logic as fallback
-    const tptNum = parseFloat(contextData.external_bps.tpt || '0');
-    const urgencyLevel = tptNum > 7 ? 'KRITIS' : tptNum > 4 ? 'WASPADA' : 'OPTIMAL';
-    
-    setAiResult({
-      kebutuhan: contextData.internal.defisit_gap,
-      rekrutmenSpesifik: contextData.internal.posisi_kritis,
-      pelatihan: [
-        'Up-skilling Instruktur Kejuruan Terkait Sektor Dominan',
-        'Workshop Penyusunan Kurikulum Berbasis SKKNI',
-        'Sertifikasi Metodologi Pelatihan (Wajib)'
-      ],
-      sarprasRekomendasi: [
-'Modernisasi Workshop sesuai standar industri.',
-        'Audit K3 dan perbaikan fasilitas utama.',
-        'Penyediaan Smart Workspace untuk instruktur.'
-      ],
-      skorKesiapan: 65,
-      summary: `[ANALISIS LOKAL (FALLBACK) — ${contextData.unit_kerja}]\n\nIntegrasi DeepSeek gagal atau belum terkonfigurasi. Menggunakan analisis berbasis aturan lokal.\n\nWilayah: ${locName}\nStatus Urgensi: ${urgencyLevel} (TPT: ${contextData.external_bps.tpt})\nDefisit SDM: ${contextData.internal.defisit_gap} posisi.\nSektor Utama: ${contextData.external_bps.sektor_dominan}\n\nSangat direkomendasikan untuk segera melakukan pengisian formasi instruktur di sektor ${contextData.external_bps.sektor_dominan} untuk menyerap angka NEET sebesar ${contextData.external_bps.neet}.`
-    });
-  };
-
+  // ── PDF Export ───────────────────────────────────────────────────────────────
   const handleDownloadPDF = () => {
-    if (!aiResult) {
-      toast({ 
-        title: "Tidak Ada Data", 
-        description: "Harap jalankan analisis terlebih dahulu sebelum mengunduh laporan.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!aiMarkdown) { toast({title:'Tidak Ada Data',description:'Jalankan analisis terlebih dahulu.',variant:'destructive'}); return; }
     try {
-      // Helper function to clean emoji and special characters for PDF
-      const cleanTextForPDF = (text: string): string => {
-        if (!text) return '';
-        return text
-          // Replace common emoji with text equivalents FIRST (before unicode range removal)
-          .replace(/🏭/g, '[Industri]')
-          .replace(/🌾/g, '[Pertanian]')
-          .replace(/🛒/g, '[Perdagangan]')
-          .replace(/🏨/g, '[Jasa]')
-          .replace(/🔧/g, '[Konstruksi]')
-          .replace(/📦/g, '[Lainnya]')
-          .replace(/👥/g, '[Penduduk]')
-          .replace(/⚙️/g, '[Angkatan Kerja]')
-          .replace(/📉/g, '[TPT]')
-          .replace(/🔄/g, '[Pekerja]')
-          .replace(/⏱️/g, '[Waktu]')
-          .replace(/💵/g, '[Upah]')
-          .replace(/🎓/g, '[Lulusan]')
-          .replace(/🏫/g, '[Sekolah]')
-          .replace(/🏛️/g, '[PT]')
-          .replace(/📊/g, '[Data]')
-          .replace(/📚/g, '[Pendidikan]')
-          .replace(/💰/g, '[Ekonomi]')
-          .replace(/📈/g, '[IPM]')
-          .replace(/⚖️/g, '[Gini]')
-          .replace(/🏘️/g, '[Sanitasi]')
-          .replace(/🏠/g, '[Perumahan]')
-          .replace(/⚡/g, '[Listrik]')
-          .replace(/🌐/g, '[Internet]')
-          .replace(/📱/g, '[HP]')
-          .replace(/🛣️/g, '[Jalan]')
-          .replace(/🚉/g, '[Transportasi]')
-          .replace(/👷/g, '[Pekerja]')
-          // Remove remaining emoji (Unicode ranges)
-          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
-          .replace(/[\u{2600}-\u{26FF}]/gu, '')
-          .replace(/[\u{2700}-\u{27BF}]/gu, '')
-          .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-          .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '')
-          // Replace special characters that jsPDF helvetica can't render
-          .replace(/±/g, '+/-')
-          .replace(/→/g, '->')
-          .replace(/←/g, '<-')
-          .replace(/≥/g, '>=')
-          .replace(/≤/g, '<=')
-          .replace(/×/g, 'x')
-          .replace(/÷/g, '/')
-          .replace(/•/g, '-')
-          .replace(/–/g, '-')
-          .replace(/—/g, '-')
-          .replace(/"/g, '"')
-          .replace(/"/g, '"')
-          .replace(/'/g, "'")
-          .replace(/'/g, "'")
-          // Clean up multiple spaces (but preserve newlines)
-          .replace(/[^\S\n]+/g, ' ')
-          .trim();
-      };
+      // Clean text for jsPDF (remove unsupported chars)
+      const clean = (t: string) => (t || '')
+        .replace(/[\u{1F300}-\u{1F9FF}]/gu,'').replace(/[\u{2600}-\u{26FF}]/gu,'')
+        .replace(/[\u{2700}-\u{27BF}]/gu,'').replace(/[\u{1F600}-\u{1F64F}]/gu,'')
+        .replace(/[\u{1F680}-\u{1F6FF}]/gu,'')
+        .replace(/±/g,'+/-').replace(/→/g,'->').replace(/←/g,'<-')
+        .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/×/g,'x').replace(/÷/g,'/')
+        .replace(/•/g,'-').replace(/–/g,'-').replace(/—/g,'-')
+        .replace(/\u201C/g,'"').replace(/\u201D/g,'"').replace(/\u2018/g,"'").replace(/\u2019/g,"'")
+        .replace(/[^\x00-\x7F]/g,'').replace(/[^\S\n]+/g,' ').trim();
 
       const doc = new jsPDF();
-      let yPos = 20;
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
       const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
+      const cw = pw - margin * 2;
+      let y = 20;
 
-      // Header
-      doc.setFillColor(37, 99, 235);
-      doc.rect(0, 0, pageWidth, 35, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('LAPORAN ANALISIS KEBUTUHAN SDM UPT', pageWidth / 2, 15, { align: 'center' });
-      doc.setFontSize(10);
-      doc.text('Ditjen Binalavotas - Kementerian Ketenagakerjaan RI', pageWidth / 2, 25, { align: 'center' });
-      
-      yPos = 45;
-      doc.setTextColor(0, 0, 0);
+      const checkPage = (needed = 10) => { if (y + needed > ph - 15) { doc.addPage(); y = 20; } };
 
-      // Metadata
-      doc.setFillColor(240, 240, 240);
-      doc.rect(margin, yPos, contentWidth, 25, 'F');
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Unit Kerja:', margin + 5, yPos + 7);
-      doc.setFont('helvetica', 'normal');
-      doc.text(aiResult.unit_kerja || selectedDepartment, margin + 35, yPos + 7);
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text('Wilayah:', margin + 5, yPos + 14);
-      doc.setFont('helvetica', 'normal');
-      doc.text(aiResult.wilayah || locName, margin + 35, yPos + 14);
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text('Tanggal:', margin + 5, yPos + 21);
-      doc.setFont('helvetica', 'normal');
-      doc.text(new Date().toLocaleDateString('id-ID', { dateStyle: 'long' }), margin + 35, yPos + 21);
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text('Skor Kesiapan:', pageWidth - 70, yPos + 14);
-      doc.setFontSize(16);
-      doc.setTextColor(34, 197, 94);
-      doc.text(`${aiResult.skorKesiapan}%`, pageWidth - 25, yPos + 16);
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
+      // ── Cover header ──
+      doc.setFillColor(37, 99, 235); doc.rect(0, 0, pw, 38, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(15); doc.setFont('helvetica','bold');
+      doc.text('LAPORAN ANALISIS KEBUTUHAN SDM UPT', pw/2, 13, {align:'center'});
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.text('Ditjen Binalavotas - Kementerian Ketenagakerjaan RI', pw/2, 22, {align:'center'});
+      doc.setFontSize(8);
+      doc.text(`${selectedDepartment}  |  ${locName}  |  ${new Date().toLocaleDateString('id-ID',{dateStyle:'long'})}`, pw/2, 30, {align:'center'});
+      doc.setTextColor(0,0,0); y = 48;
 
-      yPos += 35;
-
-      // Section 1: Data Internal
-      doc.setFillColor(59, 130, 246);
-      doc.rect(margin, yPos, contentWidth, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('1. DATA INTERNAL (PETA JABATAN)', margin + 3, yPos + 6);
-      doc.setTextColor(0, 0, 0);
-      yPos += 12;
+      // ── Section: Data Internal ──
+      doc.setFillColor(59,130,246); doc.rect(margin, y, cw, 7, 'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text('DATA INTERNAL (PETA JABATAN)', margin+3, y+5);
+      doc.setTextColor(0,0,0); y += 10;
 
       autoTable(doc, {
-        startY: yPos,
-        head: [['Pegawai ASN', 'Pegawai Non-ASN', 'Batas ABK', 'Defisit']],
-        body: [[
-          internalTotals.asn.toString(),
-          internalTotals.nonAsn.toString(),
-          internalTotals.abk.toString(),
-          internalTotals.gap.toString()
-        ]],
+        startY: y,
+        head: [['Pegawai ASN','Pegawai Non-ASN','Batas ABK','Defisit']],
+        body: [[internalTotals.asn, internalTotals.nonAsn, internalTotals.abk, internalTotals.gap].map(String)],
         theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
-        bodyStyles: { fontSize: 9 },
-        margin: { left: margin, right: margin }
+        headStyles: { fillColor:[59,130,246], fontSize:8, fontStyle:'bold' },
+        bodyStyles: { fontSize:9, halign:'center' },
+        margin: { left:margin, right:margin }
       });
-
-      yPos = (doc as any).lastAutoTable.finalY + 10;
+      y = (doc as any).lastAutoTable.finalY + 6;
 
       if (positionDetails.length > 0) {
-        const positionData = positionDetails.slice(0, 10).map(pos => [
-          pos.name,
-          pos.category,
-          pos.totalExisting.toString(),
-          pos.abkCount.toString(),
-          pos.gap > 0 ? `Kurang ${pos.gap}` : pos.gap < 0 ? `Lebih ${Math.abs(pos.gap)}` : 'Sesuai'
-        ]);
-
         autoTable(doc, {
-          startY: yPos,
-          head: [['Nama Jabatan', 'Kategori', 'Eksisting', 'ABK', 'Status']],
-          body: positionData,
+          startY: y,
+          head: [['Nama Jabatan','Kategori','Eksisting','ABK','Status']],
+          body: positionDetails.slice(0,12).map(p => [
+            clean(p.name), clean(p.category),
+            p.totalExisting.toString(), p.abkCount.toString(),
+            p.gap>0?`Kurang ${p.gap}`:p.gap<0?`Lebih ${Math.abs(p.gap)}`:'Sesuai'
+          ]),
           theme: 'striped',
-          headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
-          bodyStyles: { fontSize: 8 },
-          margin: { left: margin, right: margin },
-          columnStyles: {
-            0: { cellWidth: 60 },
-            1: { cellWidth: 35 },
-            2: { cellWidth: 25 },
-            3: { cellWidth: 25 },
-            4: { cellWidth: 30 }
-          }
+          headStyles: { fillColor:[59,130,246], fontSize:7, fontStyle:'bold' },
+          bodyStyles: { fontSize:7 },
+          columnStyles: { 0:{cellWidth:55}, 1:{cellWidth:32}, 2:{cellWidth:18,halign:'center'}, 3:{cellWidth:18,halign:'center'}, 4:{cellWidth:28,halign:'center'} },
+          margin: { left:margin, right:margin }
         });
-
-        yPos = (doc as any).lastAutoTable.finalY + 10;
+        y = (doc as any).lastAutoTable.finalY + 6;
       }
 
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      // Section 2: Data BPS
-      doc.setFillColor(59, 130, 246);
-      doc.rect(margin, yPos, contentWidth, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('2. DATA EKSTERNAL BPS', margin + 3, yPos + 6);
-      doc.setTextColor(0, 0, 0);
-      yPos += 12;
+      // ── Section: Data BPS ──
+      checkPage(30);
+      doc.setFillColor(59,130,246); doc.rect(margin, y, cw, 7, 'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text('DATA EKSTERNAL BPS', margin+3, y+5);
+      doc.setTextColor(0,0,0); y += 10;
 
       autoTable(doc, {
-        startY: yPos,
-        head: [['Indikator', 'Nilai']],
+        startY: y,
+        head: [['Indikator','Nilai']],
         body: [
-          ['TPT (Tingkat Pengangguran)', bpsTpt || '-'],
-          ['NEET Pemuda', bpsNeet || '-'],
-          ['Literasi TIK', bpsTik || '-'],
-          ['Sektor PDRB Dominan', bpsSektor || '-']
+          ['TPT (Tingkat Pengangguran)', bpsTpt||'-'],
+          ['NEET Pemuda', bpsNeet||'-'],
+          ['Literasi TIK', bpsTik||'-'],
+          ['Sektor PDRB Dominan', clean(bpsSektor)||'-'],
         ],
         theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], fontSize: 9 },
-        bodyStyles: { fontSize: 9 },
-        margin: { left: margin, right: margin }
+        headStyles: { fillColor:[59,130,246], fontSize:8, fontStyle:'bold' },
+        bodyStyles: { fontSize:8 },
+        columnStyles: { 0:{cellWidth:80,fontStyle:'bold'}, 1:{cellWidth:'auto'} },
+        margin: { left:margin, right:margin }
       });
+      y = (doc as any).lastAutoTable.finalY + 8;
 
-      yPos = (doc as any).lastAutoTable.finalY + 10;
+      // ── Section: Hasil Analisis AI (parse markdown sections) ──
+      doc.addPage(); y = 20;
+      doc.setFillColor(34,197,94); doc.rect(margin, y, cw, 7, 'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text('HASIL ANALISIS & REKOMENDASI (AI)', margin+3, y+5);
+      doc.setTextColor(0,0,0); y += 12;
 
-      // BPS Sintesis - Format as structured table
-      if (bpsSintesis) {
-        if (yPos > 220) {
-          doc.addPage();
-          yPos = 20;
-        }
-        
-        doc.setFillColor(37, 99, 235); // Blue background
-        doc.rect(margin, yPos, contentWidth, 8, 'F');
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(255, 255, 255); // White text
-        doc.text('SINTESIS DATA BPS', margin + 3, yPos + 6);
-        doc.setTextColor(0, 0, 0);
-        yPos += 12;
-        
-        // Parse sintesis into key-value pairs
-        const cleanedSintesis = cleanTextForPDF(bpsSintesis);
-        const sintesisData: string[][] = [];
-        
-        // Extract location
-        const locMatch = cleanedSintesis.match(/DATA WILAYAH:\s*([^B]+)/);
-        if (locMatch) {
-          sintesisData.push(['Wilayah', locMatch[1].trim()]);
-        }
-        
-        // Extract key indicators
-        const tptMatch = cleanedSintesis.match(/TPT:\s*([0-9.]+%)/);
-        const neetMatch = cleanedSintesis.match(/NEET[^:]*:\s*([0-9.]+%)/);
-        const tikMatch = cleanedSintesis.match(/Literasi TIK:\s*([0-9.]+%)/);
-        const ipmMatch = cleanedSintesis.match(/IPM:\s*([0-9.]+)/);
-        const giniMatch = cleanedSintesis.match(/Gini Ratio:\s*([0-9.]+)/);
-        const kemiskinanMatch = cleanedSintesis.match(/Kemiskinan:\s*([0-9.]+%)/);
-        const sektorMatch = cleanedSintesis.match(/Sektor PDRB Dominan:\s*([^K]+)/);
-        
-        if (tptMatch) sintesisData.push(['TPT (Tingkat Pengangguran)', tptMatch[1]]);
-        if (neetMatch) sintesisData.push(['NEET Pemuda (15-24 thn)', neetMatch[1]]);
-        if (tikMatch) sintesisData.push(['Literasi TIK', tikMatch[1]]);
-        if (ipmMatch) sintesisData.push(['IPM (Indeks Pembangunan Manusia)', ipmMatch[1]]);
-        if (giniMatch) sintesisData.push(['Gini Ratio (Ketimpangan)', giniMatch[1]]);
-        if (kemiskinanMatch) sintesisData.push(['Tingkat Kemiskinan', kemiskinanMatch[1]]);
-        if (sektorMatch) sintesisData.push(['Sektor PDRB Dominan', sektorMatch[1].trim()]);
-        
-        // Render as table
-        if (sintesisData.length > 0) {
-          autoTable(doc, {
-            startY: yPos,
-            body: sintesisData,
-            theme: 'grid',
-            styles: { 
-              fontSize: 8,
-              cellPadding: 3,
-              lineColor: [200, 200, 200],
-              lineWidth: 0.5
-            },
-            columnStyles: {
-              0: { 
-                cellWidth: 70, 
-                fontStyle: 'bold',
-                fillColor: [240, 249, 255],
-                textColor: [37, 99, 235]
-              },
-              1: { 
-                cellWidth: 'auto',
-                textColor: [0, 0, 0]
-              }
-            },
-            margin: { left: margin, right: margin }
-          });
-          
-          yPos = (doc as any).lastAutoTable.finalY + 5;
-        }
-        
-        // Extract and display conclusion
-        const kesimpulanMatch = cleanedSintesis.match(/Kesimpulan:\s*(.+)/);
-        if (kesimpulanMatch) {
-          if (yPos > 250) {
-            doc.addPage();
-            yPos = 20;
-          }
-          
-          doc.setFillColor(255, 251, 235); // Light yellow
-          const boxHeight = 20; // Fixed height for conclusion box
-          doc.rect(margin, yPos, contentWidth, boxHeight, 'F');
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.text('Kesimpulan:', margin + 3, yPos + 5);
-          yPos += 8;
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(8);
-          const kesimpulanLines = doc.splitTextToSize(kesimpulanMatch[1].trim(), contentWidth - 6);
-          doc.text(kesimpulanLines, margin + 3, yPos);
-          yPos += (kesimpulanLines.length * 3.5) + 8;
-        }
-      }
+      // Parse markdown into sections and render each appropriately
+      const lines = aiMarkdown.split('\n');
+      let i = 0;
 
-      // Helper function to parse BPS data into structured format
-      const parseBPSDataToStructured = (rawData: string): { header: string; items: string[][] } => {
-        if (!rawData) return { header: '', items: [] };
-        const cleaned = cleanTextForPDF(rawData);
-        const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
-        const items: string[][] = [];
-        let header = '';
-
-        for (const line of lines) {
-          // First non-empty line that ends with ':' or looks like a title → use as header
-          if (!header) {
-            header = line.replace(/:$/, '').trim();
-            continue;
-          }
-
-          // Lines with ' : ' separator (the BPS data uses ' : ' with spaces)
-          if (line.includes(' : ')) {
-            const sepIdx = line.indexOf(' : ');
-            let key = line.substring(0, sepIdx).trim()
-              .replace(/^\[.*?\]\s*/, '')   // strip [ICON] prefix
-              .replace(/^[-•]\s*/, '');      // strip bullet
-            const value = line.substring(sepIdx + 3).trim();
-            if (key && value) {
-              items.push([key, value]);
-            }
-            continue;
-          }
-
-          // Lines with regular ':' separator (key: value)
-          if (line.includes(':')) {
-            const colonIdx = line.indexOf(':');
-            let key = line.substring(0, colonIdx).trim()
-              .replace(/^\[.*?\]\s*/, '')
-              .replace(/^[-•]\s*/, '');
-            const value = line.substring(colonIdx + 1).trim();
-            // Skip lines where key is very long (likely a sentence, not a label)
-            // Skip source reference lines
-            if (key && value && key.length < 60 &&
-                !key.includes('SDDS') && !key.includes('Sakernas') &&
-                !key.includes('APM') && !key.includes('SDGs') &&
-                !key.includes('Var.') && !key.includes('Goal') &&
-                !value.includes('SDDS BPS') && !value.includes('Sakernas')) {
-              items.push([key, value]);
-            }
-            continue;
-          }
-
-          // Bullet/dash lines → notes column
-          if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
-            const content = line.replace(/^[-•*]\s*/, '').trim();
-            if (content && content.length < 200) {
-              items.push(['', content]);
-            }
-          }
-        }
-
-        return { header, items };
+      const writeText = (text: string, fontSize=8, bold=false, indent=0, color=[0,0,0] as number[]) => {
+        checkPage(8);
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setTextColor(color[0], color[1], color[2]);
+        const wrapped = doc.splitTextToSize(clean(text), cw - indent);
+        checkPage(wrapped.length * (fontSize * 0.45) + 2);
+        doc.text(wrapped, margin + indent, y);
+        y += wrapped.length * (fontSize * 0.45) + 2;
+        doc.setTextColor(0,0,0);
       };
 
-      // BPS Data Sections with improved formatting
-      const bpsDataSections = [
-        { 
-          title: 'Profil Industri per Sektor (PDRB)', 
-          data: bpsIndustri,
-          color: [255, 237, 213], // Orange tint
-          icon: '[INDUSTRI]'
-        },
-        { 
-          title: 'Profil Angkatan Kerja & Pengangguran', 
-          data: bpsAngkatanKerja,
-          color: [219, 234, 254], // Blue tint
-          icon: '[TENAGA KERJA]'
-        },
-        { 
-          title: 'Data Lulusan & Angkatan Kerja Baru', 
-          data: bpsLulusan,
-          color: [220, 252, 231], // Green tint
-          icon: '[PENDIDIKAN]'
-        },
-        { 
-          title: 'Kemiskinan, IPM & Kesejahteraan', 
-          data: bpsKemiskinan,
-          color: [254, 226, 226], // Red tint
-          icon: '[KESEJAHTERAAN]'
-        },
-        { 
-          title: 'Infrastruktur & Konektivitas', 
-          data: bpsInfrastruktur,
-          color: [243, 232, 255], // Purple tint
-          icon: '[INFRASTRUKTUR]'
-        }
-      ];
+      // Collect table rows when inside a markdown table
+      let tableRows: string[][] = [];
+      let tableHeaders: string[] = [];
+      let inTable = false;
 
-      for (const section of bpsDataSections) {
-        if (!section.data) continue;
-        
-        if (yPos > 220) {
-          doc.addPage();
-          yPos = 20;
-        }
-
-        // Section header with icon
-        doc.setFillColor(section.color[0], section.color[1], section.color[2]);
-        doc.rect(margin, yPos, contentWidth, 8, 'F');
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${section.icon} ${section.title}`, margin + 3, yPos + 6);
-        yPos += 11;
-
-        // Parse and structure data
-        const structured = parseBPSDataToStructured(section.data);
-        
-        if (structured.items.length > 0) {
-          // Separate data items from analysis/notes
-          const dataItems = structured.items.filter(item => item[0] !== '');
-          const notes = structured.items.filter(item => item[0] === '');
-          
-          // Render data table
-          if (dataItems.length > 0) {
-            autoTable(doc, {
-              startY: yPos,
-              body: dataItems,
-              theme: 'striped',
-              styles: { 
-                fontSize: 7,
-                cellPadding: 2.5,
-                lineColor: [220, 220, 220],
-                lineWidth: 0.1
-              },
-              columnStyles: {
-                0: { 
-                  cellWidth: 75, 
-                  fontStyle: 'bold',
-                  textColor: [60, 60, 60]
-                },
-                1: { 
-                  cellWidth: 'auto',
-                  textColor: [0, 0, 0]
-                }
-              },
-              alternateRowStyles: {
-                fillColor: [252, 252, 252]
-              },
-              margin: { left: margin, right: margin }
-            });
-
-            yPos = (doc as any).lastAutoTable.finalY + 3;
-          }
-          
-          // Render notes/analysis as bullet points
-          if (notes.length > 0) {
-            if (yPos > 260) {
-              doc.addPage();
-              yPos = 20;
-            }
-            
-            doc.setFillColor(250, 250, 250);
-            doc.rect(margin, yPos, contentWidth, (notes.length * 4) + 4, 'F');
-            
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(7);
-            doc.setTextColor(80, 80, 80);
-            
-            for (const note of notes) {
-              const noteText = `• ${note[1]}`;
-              const noteLines = doc.splitTextToSize(noteText, contentWidth - 8);
-              doc.text(noteLines, margin + 4, yPos + 3);
-              yPos += (noteLines.length * 3) + 1;
-            }
-            
-            yPos += 5;
-          }
-        }
-        
-        yPos += 3;
-      }
-
-      doc.addPage();
-      yPos = 20;
-
-      // Section 3: Hasil Analisis AI
-      doc.setFillColor(34, 197, 94);
-      doc.rect(margin, yPos, contentWidth, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('3. HASIL ANALISIS & REKOMENDASI', margin + 3, yPos + 6);
-      doc.setTextColor(0, 0, 0);
-      yPos += 12;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Kesimpulan Utama:', margin, yPos);
-      yPos += 5;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      const summaryLines = doc.splitTextToSize(cleanTextForPDF(aiResult.summary || ''), contentWidth);
-      doc.text(summaryLines, margin, yPos);
-      yPos += (summaryLines.length * 4) + 8;
-
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      if (aiResult.formasiIdeal) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Formasi Jabatan Ideal:', margin, yPos);
-        yPos += 6;
-
-        if (aiResult.formasiIdeal.eksisting && aiResult.formasiIdeal.eksisting.length > 0) {
-          doc.setFontSize(9);
-          doc.text('Optimasi Jabatan Eksisting:', margin + 3, yPos);
-          yPos += 5;
-          
-          const eksistingData = aiResult.formasiIdeal.eksisting.map((item: any) => [
-            item.nama || '-',
-            (item.jumlah ?? item.jumlah_ideal ?? '-').toString(),
-            item.alasan || '-'
-          ]);
-
-          autoTable(doc, {
-            startY: yPos,
-            head: [['Jabatan', 'Target', 'Alasan']],
-            body: eksistingData,
-            theme: 'striped',
-            headStyles: { fillColor: [59, 130, 246], fontSize: 8 },
-            bodyStyles: { fontSize: 7 },
-            margin: { left: margin, right: margin },
-            columnStyles: {
-              0: { cellWidth: 50 },
-              1: { cellWidth: 20 },
-              2: { cellWidth: 'auto' }
-            }
-          });
-
-          yPos = (doc as any).lastAutoTable.finalY + 8;
-        }
-
-        if (aiResult.formasiIdeal.baru && aiResult.formasiIdeal.baru.length > 0) {
-          if (yPos > 240) {
-            doc.addPage();
-            yPos = 20;
-          }
-
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.text('Usulan Jabatan Baru:', margin + 3, yPos);
-          yPos += 5;
-          
-          const baruData = aiResult.formasiIdeal.baru.map((item: any) => [
-            item.nama || '-',
-            (item.jumlah ?? item.jumlah_ideal ?? '-').toString(),
-            item.alasan || '-'
-          ]);
-
-          autoTable(doc, {
-            startY: yPos,
-            head: [['Jabatan Baru', 'Usulan', 'Alasan']],
-            body: baruData,
-            theme: 'striped',
-            headStyles: { fillColor: [16, 185, 129], fontSize: 8 },
-            bodyStyles: { fontSize: 7 },
-            margin: { left: margin, right: margin },
-            columnStyles: {
-              0: { cellWidth: 50 },
-              1: { cellWidth: 20 },
-              2: { cellWidth: 'auto' }
-            }
-          });
-
-          yPos = (doc as any).lastAutoTable.finalY + 8;
-        }
-      }
-
-      if (yPos > 240) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      if (aiResult.rekrutmenSpesifik && aiResult.rekrutmenSpesifik.length > 0) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Rekomendasi Rekrutmen:', margin, yPos);
-        yPos += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        aiResult.rekrutmenSpesifik.forEach((rec: string, idx: number) => {
-          const recLines = doc.splitTextToSize(`${idx + 1}. ${cleanTextForPDF(rec || '')}`, contentWidth - 5);
-          doc.text(recLines, margin + 3, yPos);
-          yPos += (recLines.length * 3.5) + 2;
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
+      const flushTable = () => {
+        if (tableHeaders.length === 0 && tableRows.length === 0) return;
+        checkPage(20);
+        autoTable(doc, {
+          startY: y,
+          head: tableHeaders.length > 0 ? [tableHeaders] : undefined,
+          body: tableRows,
+          theme: 'striped',
+          headStyles: { fillColor:[71,85,105], fontSize:7, fontStyle:'bold', textColor:[255,255,255] },
+          bodyStyles: { fontSize:7 },
+          alternateRowStyles: { fillColor:[248,250,252] },
+          margin: { left:margin, right:margin },
+          tableWidth: 'auto',
+          styles: { overflow:'linebreak', cellPadding:2 }
         });
-        yPos += 5;
-      }
+        y = (doc as any).lastAutoTable.finalY + 5;
+        tableRows = []; tableHeaders = []; inTable = false;
+      };
 
-      if (aiResult.pelatihan && aiResult.pelatihan.length > 0) {
-        if (yPos > 240) {
-          doc.addPage();
-          yPos = 20;
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        // Markdown table row
+        if (trimmed.startsWith('|')) {
+          inTable = true;
+          const cells = trimmed.split('|').map(c=>clean(c.trim())).filter((_,idx,arr)=>idx>0&&idx<arr.length-1);
+          // Separator row (---|---|---)
+          if (cells.every(c=>/^[-:]+$/.test(c))) { i++; continue; }
+          if (tableHeaders.length === 0) { tableHeaders = cells; }
+          else { tableRows.push(cells); }
+          i++; continue;
         }
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Program Pelatihan:', margin, yPos);
-        yPos += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        aiResult.pelatihan.forEach((p: string) => {
-          const pLines = doc.splitTextToSize(`- ${cleanTextForPDF(p || '')}`, contentWidth - 5);
-          doc.text(pLines, margin + 3, yPos);
-          yPos += (pLines.length * 3.5) + 2;
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
-        });
-        yPos += 5;
-      }
 
-      if (aiResult.sarprasRekomendasi && aiResult.sarprasRekomendasi.length > 0) {
-        if (yPos > 240) {
-          doc.addPage();
-          yPos = 20;
+        // Flush table when we leave table context
+        if (inTable) { flushTable(); }
+
+        if (!trimmed) { y += 3; i++; continue; }
+
+        // H1
+        if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) {
+          checkPage(12);
+          doc.setFillColor(37,99,235); doc.rect(margin, y, cw, 9, 'F');
+          doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
+          doc.text(clean(trimmed.replace(/^#+\s*/,'')), margin+3, y+6.5);
+          doc.setTextColor(0,0,0); y += 13;
+          i++; continue;
         }
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Pengadaan Sarpras:', margin, yPos);
-        yPos += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        aiResult.sarprasRekomendasi.forEach((s: string) => {
-          const sLines = doc.splitTextToSize(`- ${cleanTextForPDF(s || '')}`, contentWidth - 5);
-          doc.text(sLines, margin + 3, yPos);
-          yPos += (sLines.length * 3.5) + 2;
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
-          }
-        });
+        // H2
+        if (trimmed.startsWith('## ')) {
+          checkPage(14);
+          y += 4;
+          doc.setFillColor(241,245,249); doc.rect(margin, y, cw, 8, 'F');
+          doc.setDrawColor(59,130,246); doc.setLineWidth(0.5); doc.line(margin, y, margin, y+8);
+          doc.setTextColor(37,99,235); doc.setFontSize(10); doc.setFont('helvetica','bold');
+          doc.text(clean(trimmed.replace(/^#+\s*/,'')), margin+4, y+5.5);
+          doc.setTextColor(0,0,0); y += 12;
+          i++; continue;
+        }
+        // H3
+        if (trimmed.startsWith('### ')) {
+          checkPage(10);
+          y += 2;
+          doc.setTextColor(30,64,175); doc.setFontSize(9); doc.setFont('helvetica','bold');
+          doc.text(clean(trimmed.replace(/^#+\s*/,'')), margin, y);
+          doc.setTextColor(0,0,0); y += 6;
+          i++; continue;
+        }
+        // H4
+        if (trimmed.startsWith('#### ')) {
+          writeText(trimmed.replace(/^#+\s*/,''), 8, true, 0, [71,85,105]);
+          i++; continue;
+        }
+        // Blockquote
+        if (trimmed.startsWith('> ')) {
+          checkPage(10);
+          const text = clean(trimmed.replace(/^>\s*/,''));
+          const wrapped = doc.splitTextToSize(text, cw - 8);
+          const bh = wrapped.length * 4 + 4;
+          doc.setFillColor(255,251,235); doc.rect(margin, y, cw, bh, 'F');
+          doc.setFillColor(251,191,36); doc.rect(margin, y, 2, bh, 'F');
+          doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(120,80,0);
+          doc.text(wrapped, margin+5, y+3.5);
+          doc.setTextColor(0,0,0); doc.setFont('helvetica','normal');
+          y += bh + 3;
+          i++; continue;
+        }
+        // Bullet list
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const text = clean(trimmed.replace(/^[-*]\s+/,''));
+          const wrapped = doc.splitTextToSize(`- ${text}`, cw - 6);
+          checkPage(wrapped.length * 3.5 + 1);
+          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+          doc.text(wrapped, margin+4, y);
+          y += wrapped.length * 3.5 + 1;
+          i++; continue;
+        }
+        // Numbered list
+        if (/^\d+\.\s/.test(trimmed)) {
+          const text = clean(trimmed.replace(/^\d+\.\s+/,''));
+          const num = trimmed.match(/^(\d+)\./)?.[1] || '';
+          const wrapped = doc.splitTextToSize(`${num}. ${text}`, cw - 6);
+          checkPage(wrapped.length * 3.5 + 1);
+          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
+          doc.text(wrapped, margin+4, y);
+          y += wrapped.length * 3.5 + 1;
+          i++; continue;
+        }
+        // Horizontal rule
+        if (trimmed === '---' || trimmed === '***') {
+          checkPage(6); doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
+          doc.line(margin, y, pw-margin, y); y += 5;
+          i++; continue;
+        }
+        // Regular paragraph — handle **bold** inline
+        const text = clean(trimmed.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/`([^`]+)`/g,'$1'));
+        if (text) writeText(text, 8, false, 0);
+        i++;
+      }
+      // Flush any remaining table
+      if (inTable) flushTable();
+
+      // ── Footer on all pages ──
+      const pc = doc.getNumberOfPages();
+      for (let p = 1; p <= pc; p++) {
+        doc.setPage(p);
+        doc.setFontSize(7); doc.setTextColor(150,150,150);
+        doc.text(`Halaman ${p} dari ${pc}  |  SIMPEL SDM  |  ${new Date().toLocaleDateString('id-ID')}`, pw/2, ph-8, {align:'center'});
       }
 
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(
-          `Halaman ${i} dari ${pageCount} | Generated by SIMPEL SDM - ${new Date().toLocaleDateString('id-ID')}`,
-          pageWidth / 2,
-          doc.internal.pageSize.getHeight() - 10,
-          { align: 'center' }
-        );
-      }
-
-      const fileName = `Laporan_Analisis_SDM_${selectedDepartment.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
-      toast({ 
-        title: "✅ PDF Berhasil Diunduh", 
-        description: `Laporan lengkap dengan data BPS telah disimpan sebagai ${fileName}` 
-      });
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast({ 
-        title: "❌ Gagal Membuat PDF", 
-        description: "Terjadi kesalahan saat membuat laporan PDF. Silakan coba lagi.",
-        variant: "destructive"
-      });
+      doc.save(`Laporan_SDM_${selectedDepartment.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast({title:'✅ PDF Berhasil Diunduh', description:`Laporan ${selectedDepartment} tersimpan.`});
+    } catch(e) {
+      console.error(e);
+      toast({title:'Gagal membuat PDF', description: e instanceof Error ? e.message : 'Error tidak diketahui.', variant:'destructive'});
     }
   };
 
+  // ── JSX ──────────────────────────────────────────────────────────────────────
   return (
     <AppLayout>
       <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Analisis Kebutuhan SDM UPT</h2>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base">
-              Modul cerdas yang mengawinkan <strong>Peta Jabatan Eksisting</strong> dengan <strong>Big Data BPS</strong> untuk rekomendasi formasi yang presisi.
-            </p>
+            <p className="text-muted-foreground text-sm">Modul cerdas yang mengawinkan <strong>Peta Jabatan Eksisting</strong> dengan <strong>Big Data BPS</strong> untuk rekomendasi formasi yang presisi.</p>
           </div>
-          
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="shadow-sm border-primary/20 hover:bg-primary/5 transition-all">
+              <Button variant="outline" className="shadow-sm border-primary/20">
                 <History className="mr-2 h-4 w-4 text-primary" />
                 Riwayat Analisis
-                {analysisHistory.length > 0 && (
-                  <span className="ml-2 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">
-                    {analysisHistory.length}
-                  </span>
-                )}
+                {analysisHistory.length>0&&<span className="ml-2 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{analysisHistory.length}</span>}
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md md:max-w-xl overflow-y-auto">
-              <SheetHeader className="pb-6 border-b">
-                <SheetTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Riwayat Analisis AI
-                </SheetTitle>
-                <SheetDescription>
-                  Daftar laporan analisis kebutuhan SDM yang telah Anda buat sebelumnya.
-                </SheetDescription>
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+              <SheetHeader className="pb-4 border-b">
+                <SheetTitle className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary"/>Riwayat Analisis AI</SheetTitle>
+                <SheetDescription>Laporan analisis yang telah dibuat sebelumnya.</SheetDescription>
               </SheetHeader>
-              
-              <div className="py-6 space-y-4">
-                {analysisHistory.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <History className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                    <p>Belum ada riwayat analisis.</p>
-                  </div>
-                ) : (
-                  analysisHistory.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="group relative bg-white dark:bg-slate-900 border rounded-xl p-4 hover:border-primary/50 transition-all cursor-pointer shadow-sm"
-                      onClick={() => {
-                        setAiResult(item);
-                        setSelectedDepartment(item.unit_kerja);
-                        // Province/Regency might need more state sync but for now we restore the report
-                        toast({ title: "Laporan Dipulihkan", description: `Menampilkan hasil analisis untuk ${item.unit_kerja}` });
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="space-y-0.5">
-                          <div className="text-sm font-bold text-primary">{item.unit_kerja}</div>
-                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> {item.wilayah}
-                          </div>
-                        </div>
-                        <div className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                          item.skorKesiapan > 80 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                        )}>
-                          Skor: {item.skorKesiapan}
-                        </div>
+              <div className="py-4 space-y-3">
+                {analysisHistory.length===0
+                  ? <div className="text-center py-10 text-muted-foreground"><History className="h-10 w-10 mx-auto mb-2 opacity-20"/><p>Belum ada riwayat.</p></div>
+                  : analysisHistory.map(item=>(
+                    <div key={item.id} className="group border rounded-xl p-3 hover:border-primary/50 cursor-pointer shadow-sm"
+                      onClick={()=>{setAiMarkdown(item.markdown||'');setSelectedDepartment(item.unit_kerja);toast({title:'Laporan Dipulihkan',description:`${item.unit_kerja}`});}}>
+                      <div className="flex justify-between items-start mb-1">
+                        <div><div className="text-sm font-bold text-primary">{item.unit_kerja}</div><div className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3"/>{item.wilayah}</div></div>
+                        <span className="text-[10px] text-muted-foreground font-mono">{new Date(item.timestamp).toLocaleDateString('id-ID')}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-slate-100 pl-2 mb-3">
-                        {item.summary}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          {new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                        </span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const newHistory = analysisHistory.filter(h => h.id !== item.id);
-                            setAnalysisHistory(newHistory);
-                            localStorage.setItem('simpel_sdm_analysis_history', JSON.stringify(newHistory));
-                            toast({ title: "Dihapus", description: "Riwayat analisis telah dihapus." });
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-slate-100 pl-2 mb-2">{item.preview}</p>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive opacity-0 group-hover:opacity-100"
+                        onClick={e=>{e.stopPropagation();const h=analysisHistory.filter(x=>x.id!==item.id);setAnalysisHistory(h);localStorage.setItem('simpel_sdm_analysis_history',JSON.stringify(h));}}>
+                        <Trash2 className="h-3 w-3"/>
+                      </Button>
                     </div>
                   ))
-                )}
+                }
               </div>
-              
-              {analysisHistory.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4 text-xs"
-                  onClick={() => {
-                    if (confirm("Hapus semua riwayat analisis?")) {
-                      setAnalysisHistory([]);
-                      localStorage.removeItem('simpel_sdm_analysis_history');
-                    }
-                  }}
-                >
-                  <Trash2 className="mr-2 h-3 w-3" /> Bersihkan Semua Riwayat
-                </Button>
-              )}
+              {analysisHistory.length>0&&<Button variant="outline" className="w-full text-xs" onClick={()=>{if(confirm('Hapus semua riwayat?')){setAnalysisHistory([]);localStorage.removeItem('simpel_sdm_analysis_history');}}}>
+                <Trash2 className="mr-2 h-3 w-3"/>Bersihkan Semua
+              </Button>}
             </SheetContent>
           </Sheet>
         </div>
 
-      {/* SECTION 1: DATA INTERNAL (PETA JABATAN) */}
-      <Card className="shadow-lg border-primary/20 overflow-hidden">
-        <div className="h-1 w-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-        <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center text-xl text-primary">
-                <Database className="mr-2 h-5 w-5" />
-                Section 1: Data Internal (Peta Jabatan)
-              </CardTitle>
-              <CardDescription className="mt-1">Pilih unit kerja untuk memuat struktur formasi, ABK, dan kesenjangan SDM secara riil.</CardDescription>
-            </div>
-            <div className="w-1/3 min-w-[250px]">
-              <select
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-              >
-                <option value="">-- Cari & Pilih Unit Kerja UPT --</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="pt-6">
-          {isFetchingInternal ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-              <p>Mengurai data pegawai dan perhitungan ABK dari database...</p>
-            </div>
-          ) : !selectedDepartment ? (
-             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-dashed">
-                <Users className="h-12 w-12 mb-3 text-muted-foreground/30" />
-                <p>Silakan pilih Unit Kerja di atas untuk memuat Peta Jabatan.</p>
-             </div>
-          ) : (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              {/* Highlight Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-background rounded-xl p-4 border shadow-sm">
-                  <p className="text-xs text-muted-foreground mb-1 font-semibold">Pegawai ASN</p>
-                  <p className="text-2xl font-bold">{internalTotals.asn}</p>
-                </div>
-                <div className="bg-background rounded-xl p-4 border shadow-sm">
-                  <p className="text-xs text-muted-foreground mb-1 font-semibold">Pegawai Non-ASN</p>
-                  <p className="text-2xl font-bold">{internalTotals.nonAsn}</p>
-                </div>
-                <div className="bg-background rounded-xl p-4 border shadow-sm">
-                  <p className="text-xs text-muted-foreground mb-1 font-semibold">Total Batas ABK</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{internalTotals.abk}</p>
-                </div>
-                <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-4 border border-red-100 dark:border-red-900 shadow-sm">
-                  <p className="text-xs text-red-600 dark:text-red-400 mb-1 font-semibold flex items-center"><AlertCircle className="w-3 h-3 mr-1"/> Total Defisit (Kekosongan)</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{internalTotals.gap}</p>
-                </div>
+        {/* SECTION 1: DATA INTERNAL */}
+        <Card className="shadow-lg border-primary/20 overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-blue-500 to-indigo-500"/>
+          <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center text-xl text-primary"><Database className="mr-2 h-5 w-5"/>Section 1: Data Internal (Peta Jabatan)</CardTitle>
+                <CardDescription className="mt-1">Pilih unit kerja untuk memuat struktur formasi, ABK, dan kesenjangan SDM.</CardDescription>
               </div>
-
-              {/* Detailed Table */}
-              <div className="rounded-md border overflow-hidden">
-                <div className="max-h-[300px] overflow-y-auto">
-                  <Table>
-                    <TableHeader className="bg-slate-100 dark:bg-slate-800 sticky top-0 z-10">
-                      <TableRow>
-                        <TableHead className="font-semibold">Nama Jabatan</TableHead>
-                        <TableHead className="font-semibold">Kategori</TableHead>
-                        <TableHead className="font-semibold text-center">Eksisting</TableHead>
-                        <TableHead className="font-semibold text-center">Batas ABK</TableHead>
-                        <TableHead className="font-semibold text-center">Status Formasi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {positionDetails.map((pos) => (
-                        <TableRow key={pos.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                          <TableCell className="font-medium text-sm">
-                            <div className="flex flex-col gap-1">
-                              <span>{pos.name}</span>
-                              {pos.kejuruanDetails && Object.keys(pos.kejuruanDetails).length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {Object.entries(pos.kejuruanDetails).map(([kej, count]) => (
-                                    <span key={kej} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                      {kej}: {count}
-                                    </span>
+              <div className="w-1/3 min-w-[250px]">
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={selectedDepartment} onChange={e=>setSelectedDepartment(e.target.value)}>
+                  <option value="">-- Pilih Unit Kerja UPT --</option>
+                  {departments.map(d=><option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {isFetchingInternal ? (
+              <div className="flex items-center justify-center py-10 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mr-2"/>Memuat data...</div>
+            ) : !selectedDepartment ? (
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground border-2 border-dashed rounded-lg bg-muted/10">
+                <Users className="h-10 w-10 mb-2 opacity-30"/><p>Pilih Unit Kerja untuk memuat Peta Jabatan.</p>
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in duration-500">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[{label:'Pegawai ASN',val:internalTotals.asn,cls:''},{label:'Pegawai Non-ASN',val:internalTotals.nonAsn,cls:''},{label:'Total Batas ABK',val:internalTotals.abk,cls:'text-blue-600'},{label:'Total Defisit',val:internalTotals.gap,cls:'text-red-600'}].map(x=>(
+                    <div key={x.label} className={cn('rounded-xl p-4 border shadow-sm bg-background',x.cls&&'bg-red-50 dark:bg-red-950/20 border-red-100')}>
+                      <p className="text-xs text-muted-foreground mb-1 font-semibold">{x.label}</p>
+                      <p className={cn('text-2xl font-bold',x.cls)}>{x.val}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-md border overflow-hidden">
+                  <div className="max-h-[280px] overflow-y-auto">
+                    <Table>
+                      <TableHeader className="bg-slate-100 dark:bg-slate-800 sticky top-0">
+                        <TableRow><TableHead>Jabatan</TableHead><TableHead>Kategori</TableHead><TableHead className="text-center">Eksisting</TableHead><TableHead className="text-center">ABK</TableHead><TableHead className="text-center">Status</TableHead></TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {positionDetails.map(pos=>(
+                          <TableRow key={pos.id}>
+                            <TableCell className="font-medium text-sm">
+                              <div>{pos.name}</div>
+                              {pos.kejuruanDetails&&Object.keys(pos.kejuruanDetails).length>0&&(
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {Object.entries(pos.kejuruanDetails).map(([k,v])=>(
+                                    <span key={k} className="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200">{k}: {v}</span>
                                   ))}
                                 </div>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{pos.category}</TableCell>
-                          <TableCell className="text-center">{pos.totalExisting}</TableCell>
-                          <TableCell className="text-center">{pos.abkCount}</TableCell>
-                          <TableCell className="text-center">
-                            {pos.gap > 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                Kurang {pos.gap}
-                              </span>
-                            ) : pos.gap < 0 ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                                Lebih {Math.abs(pos.gap)}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                Sesuai
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {positionDetails.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">Tidak ada data formasi jabatan.</TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{pos.category}</TableCell>
+                            <TableCell className="text-center">{pos.totalExisting}</TableCell>
+                            <TableCell className="text-center">{pos.abkCount}</TableCell>
+                            <TableCell className="text-center">
+                              {pos.gap>0?<span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-800">Kurang {pos.gap}</span>
+                               :pos.gap<0?<span className="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">Lebih {Math.abs(pos.gap)}</span>
+                               :<span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">Sesuai</span>}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {positionDetails.length===0&&<TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">Tidak ada data formasi jabatan.</TableCell></TableRow>}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* SECTION 2: DATA EKSTERNAL & PARAMETER */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        <Card className="shadow-lg border-blue-500/20 overflow-hidden flex flex-col">
-          <div className="h-1 w-full bg-gradient-to-r from-blue-400 to-cyan-400"></div>
-          <CardHeader className="pb-3 bg-blue-50/30 dark:bg-blue-950/20">
-            <CardTitle className="flex items-center text-xl text-blue-600 dark:text-blue-400">
-              <MapPin className="mr-2 h-5 w-5" />
-              Section 2A: Profil Wilayah BPS
-            </CardTitle>
-            <CardDescription>Integrasikan demografi dan pasar kerja wilayah unit.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4 flex-1 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 space-y-1.5">
-                <Label htmlFor="province" className="text-xs font-semibold">Provinsi (API BPS)</Label>
-                <select
-                  id="province"
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50"
-                  value={selectedProvince}
-                  onChange={(e) => {
-                    setSelectedProvince(e.target.value);
-                    setSelectedRegency('');
-                  }}
-                  disabled={isFetchingProvinces}
-                >
-                  <option value="">-- Pilih Provinsi --</option>
-                  {provinces.map(prov => (
-                    <option key={prov.domain_id} value={prov.domain_id}>{prov.domain_name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex-1 space-y-1.5">
-                <Label htmlFor="regency" className="text-xs font-semibold">Kabupaten / Kota</Label>
-                <select
-                  id="regency"
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50"
-                  value={selectedRegency}
-                  onChange={(e) => setSelectedRegency(e.target.value)}
-                  disabled={!selectedProvince || isFetchingRegencies}
-                >
-                  <option value="">-- Semua --</option>
-                  {regencies.map(reg => (
-                    <option key={reg.domain_id} value={reg.domain_id}>{reg.domain_name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Display selected location for verification */}
-            {selectedProvince && (
-              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">
-                    Wilayah Terpilih:
-                  </span>
-                  <span className="text-blue-700 dark:text-blue-300">
-                    {locName}
-                  </span>
-                </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 ml-6">
-                  Data BPS yang akan di-generate sesuai dengan wilayah ini
-                </p>
               </div>
             )}
-
-            <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-              onClick={handleGenerateBpsData}
-              disabled={isGeneratingBps || !selectedProvince}
-            >
-              {isGeneratingBps ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menganalisis Big Data BPS...</> : <><Activity className="mr-2 h-4 w-4" /> Tarik & Sintesis Data BPS</>}
-            </Button>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4">
-              <div className="space-y-1.5 bg-primary/5 p-3 rounded-md border border-primary/10">
-                <Label className="text-[10px] uppercase text-muted-foreground font-bold">TPT (Pengangguran)</Label>
-                <div className="text-xl font-black text-primary">{bpsTpt || '-'}</div>
-              </div>
-              <div className="space-y-1.5 bg-primary/5 p-3 rounded-md border border-primary/10">
-                <Label className="text-[10px] uppercase text-muted-foreground font-bold">NEET Pemuda</Label>
-                <div className="text-xl font-black text-primary">{bpsNeet || '-'}</div>
-              </div>
-              <div className="space-y-1.5 bg-primary/5 p-3 rounded-md border border-primary/10">
-                <Label className="text-[10px] uppercase text-muted-foreground font-bold">Literasi TIK</Label>
-                <div className="text-xl font-black text-primary">{bpsTik || '-'}</div>
-              </div>
-              <div className="space-y-1.5 bg-primary/5 p-3 rounded-md border border-primary/10">
-                <Label className="text-[10px] uppercase text-muted-foreground font-bold">Sektor PDRB Utama</Label>
-                <div className="text-sm font-bold text-primary leading-tight flex items-center h-full pb-1">{bpsSektor || '-'}</div>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-2">
-              {/* Sintesis Utama */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsSintesis" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">📊</span> Sintesis & Indikator Utama BPS
-                </Label>
-                <Textarea
-                  id="bpsSintesis"
-                  value={bpsSintesis}
-                  onChange={(e) => setBpsSintesis(e.target.value)}
-                  className="h-28 text-sm leading-relaxed font-mono"
-                  placeholder="Sintesis ekonomi & indikator utama BPS (terisi otomatis)..."
-                />
-              </div>
-
-              {/* Profil Industri per Sektor */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsIndustri" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">🏭</span> Profil Industri per Sektor (PDRB)
-                </Label>
-                <Textarea
-                  id="bpsIndustri"
-                  value={bpsIndustri}
-                  onChange={(e) => setBpsIndustri(e.target.value)}
-                  className="h-32 text-sm leading-relaxed font-mono"
-                  placeholder="Rincian distribusi PDRB per sektor lapangan usaha..."
-                />
-              </div>
-
-              {/* Angkatan Kerja */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsAngkatanKerja" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">👷</span> Profil Angkatan Kerja & Pengangguran
-                </Label>
-                <Textarea
-                  id="bpsAngkatanKerja"
-                  value={bpsAngkatanKerja}
-                  onChange={(e) => setBpsAngkatanKerja(e.target.value)}
-                  className="h-32 text-sm leading-relaxed font-mono"
-                  placeholder="Data angkatan kerja, pengangguran, dan upah wilayah..."
-                />
-              </div>
-
-              {/* Lulusan Sekolah */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsLulusan" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">🎓</span> Lulusan Sekolah & Angkatan Kerja Baru
-                </Label>
-                <Textarea
-                  id="bpsLulusan"
-                  value={bpsLulusan}
-                  onChange={(e) => setBpsLulusan(e.target.value)}
-                  className="h-32 text-sm leading-relaxed font-mono"
-                  placeholder="Data lulusan SMK/SMA/PT dan potensi peserta pelatihan UPT..."
-                />
-              </div>
-
-              {/* Kemiskinan & IPM */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsKemiskinan" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">💰</span> Kemiskinan, IPM & Kesejahteraan (SDGs)
-                </Label>
-                <Textarea
-                  id="bpsKemiskinan"
-                  value={bpsKemiskinan}
-                  onChange={(e) => setBpsKemiskinan(e.target.value)}
-                  className="h-28 text-sm leading-relaxed font-mono"
-                  placeholder="Indeks kemiskinan, IPM, dan Gini Ratio wilayah..."
-                />
-              </div>
-
-              {/* Infrastruktur */}
-              <div className="space-y-1.5">
-                <Label htmlFor="bpsInfrastruktur" className="text-xs font-semibold flex items-center gap-1.5">
-                  <span className="text-base">⚡</span> Infrastruktur & Konektivitas
-                </Label>
-                <Textarea
-                  id="bpsInfrastruktur"
-                  value={bpsInfrastruktur}
-                  onChange={(e) => setBpsInfrastruktur(e.target.value)}
-                  className="h-28 text-sm leading-relaxed font-mono"
-                  placeholder="Data elektrifikasi, internet, dan akses transportasi..."
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-purple-500/20 overflow-hidden flex flex-col">
-          <div className="h-1 w-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-          <CardHeader className="pb-3 bg-purple-50/30 dark:bg-purple-950/20">
-            <CardTitle className="flex items-center text-xl text-purple-700 dark:text-purple-300">
-              <FileText className="mr-2 h-5 w-5" />
-              Section 2B: Parameter Regulasi & Kebijakan
-            </CardTitle>
-            <CardDescription>Landasan hukum dan kebijakan resmi Ditjen Binalavotas Kemnaker RI sebagai parameter analisis kebutuhan SDM UPT.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4 flex-1 space-y-5">
-
-            {/* Sarpras */}
-            <div className="space-y-1.5">
-              <Label htmlFor="sarpras" className="text-xs font-semibold flex items-center">
-                <Building className="mr-1.5 h-3.5 w-3.5" /> Kondisi Sarpras Saat Ini (dari Data Unit Kerja)
-              </Label>
-              <Textarea
-                id="sarpras"
-                placeholder="Deskripsikan kondisi sarana prasarana fisik UPT... (terisi otomatis dari data Unit Kerja)"
-                value={sarpras}
-                onChange={(e) => setSarpras(e.target.value)}
-                className="h-20 text-sm font-mono"
-              />
-            </div>
-
-            {/* Tabs Regulasi */}
-            <Tabs defaultValue="standar" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-4 h-auto">
-                <TabsTrigger value="standar" className="text-xs py-2">📋 Standar SDM</TabsTrigger>
-                <TabsTrigger value="jabfung" className="text-xs py-2">🎓 Jabfung</TabsTrigger>
-                <TabsTrigger value="program" className="text-xs py-2">🏭 Program</TabsTrigger>
-                <TabsTrigger value="rekomendasi" className="text-xs py-2">🎯 Strategi</TabsTrigger>
-              </TabsList>
-
-              {/* TAB 1: Standar SDM Instruktur */}
-              <TabsContent value="standar" className="space-y-3 rounded-md border p-4 bg-purple-50/30 dark:bg-purple-950/20">
-                <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide">Berdasarkan Permenaker No. 6 Tahun 2025 & No. 12 Tahun 2024</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm py-1.5 border-b border-purple-100 dark:border-purple-900">
-                    <span className="text-muted-foreground">Rasio Instruktur : Peserta (Luring)</span>
-                    <span className="font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded">1 : 16 (Praktik)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm py-1.5 border-b border-purple-100 dark:border-purple-900">
-                    <span className="text-muted-foreground">Rasio Instruktur : Peserta (Teori)</span>
-                    <span className="font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded">1 : 50 (Maks)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm py-1.5 border-b border-purple-100 dark:border-purple-900">
-                    <span className="text-muted-foreground">Kapasitas per Kelas (Standar BLK)</span>
-                    <span className="font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded">16 orang / kelas</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm py-1.5 border-b border-purple-100 dark:border-purple-900">
-                    <span className="text-muted-foreground">Dasar Penghitungan Kebutuhan</span>
-                    <span className="font-bold text-blue-700 dark:text-blue-300">Anjab + ABK (Permenaker 12/2024)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm py-1.5 border-b border-purple-100 dark:border-purple-900">
-                    <span className="text-muted-foreground">Syarat Pengalaman Kerja Instruktur</span>
-                    <span className="font-bold">Min. 2 tahun (bidang terkait)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm py-1.5">
-                    <span className="text-muted-foreground">Sertifikasi Wajib Instruktur</span>
-                    <span className="font-bold text-green-600 flex items-center"><CheckCircle2 className="mr-1 h-3 w-3" /> Sertifikat BNSP/LSP + ToT</span>
-                  </div>
+        {/* SECTION 2: BPS + REGULASI */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 2A: BPS */}
+          <Card className="shadow-lg border-blue-500/20 overflow-hidden flex flex-col">
+            <div className="h-1 w-full bg-gradient-to-r from-blue-400 to-cyan-400"/>
+            <CardHeader className="pb-3 bg-blue-50/30 dark:bg-blue-950/20">
+              <CardTitle className="flex items-center text-xl text-blue-600 dark:text-blue-400"><MapPin className="mr-2 h-5 w-5"/>Section 2A: Profil Wilayah BPS</CardTitle>
+              <CardDescription>Integrasikan demografi dan pasar kerja wilayah unit.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 flex-1 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-xs font-semibold">Provinsi</Label>
+                  <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                    value={selectedProvince} onChange={e=>{setSelectedProvince(e.target.value);setSelectedRegency('');}} disabled={isFetchingProvinces}>
+                    <option value="">-- Pilih Provinsi --</option>
+                    {provinces.map(p=><option key={p.domain_id} value={p.domain_id}>{p.domain_name}</option>)}
+                  </select>
                 </div>
-              </TabsContent>
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-xs font-semibold">Kabupaten / Kota</Label>
+                  <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                    value={selectedRegency} onChange={e=>setSelectedRegency(e.target.value)} disabled={!selectedProvince||isFetchingRegencies}>
+                    <option value="">-- Semua --</option>
+                    {regencies.map(r=><option key={r.domain_id} value={r.domain_id}>{r.domain_name}</option>)}
+                  </select>
+                </div>
+              </div>
+              {selectedProvince&&<div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 rounded-lg p-3 text-sm flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-blue-600"/><span className="font-semibold text-blue-900 dark:text-blue-100">Wilayah:</span><span className="text-blue-700 dark:text-blue-300">{locName}</span>
+              </div>}
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleGenerateBpsData} disabled={isGeneratingBps||!selectedProvince}>
+                {isGeneratingBps?<><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Menganalisis...</>:<><Activity className="mr-2 h-4 w-4"/>Tarik & Sintesis Data BPS</>}
+              </Button>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                {[{l:'TPT',v:bpsTpt},{l:'NEET',v:bpsNeet},{l:'TIK',v:bpsTik},{l:'Sektor Utama',v:bpsSektor}].map(x=>(
+                  <div key={x.l} className="bg-primary/5 p-3 rounded-md border border-primary/10">
+                    <Label className="text-[10px] uppercase text-muted-foreground font-bold">{x.l}</Label>
+                    <div className="text-lg font-black text-primary mt-1 leading-tight">{x.v||'-'}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3 pt-2">
+                {[{l:'Sintesis Utama',v:bpsSintesis,set:setBpsSintesis,h:24},{l:'Profil Industri (PDRB)',v:bpsIndustri,set:setBpsIndustri,h:28},{l:'Angkatan Kerja',v:bpsAngkatanKerja,set:setBpsAngkatanKerja,h:28},{l:'Lulusan & Angkatan Kerja Baru',v:bpsLulusan,set:setBpsLulusan,h:28},{l:'Kemiskinan & IPM',v:bpsKemiskinan,set:setBpsKemiskinan,h:24},{l:'Infrastruktur & Konektivitas',v:bpsInfrastruktur,set:setBpsInfrastruktur,h:24}].map(x=>(
+                  <div key={x.l} className="space-y-1">
+                    <Label className="text-xs font-semibold">{x.l}</Label>
+                    <Textarea value={x.v} onChange={e=>x.set(e.target.value)} className={`h-${x.h} text-xs font-mono`} placeholder={`${x.l} (terisi otomatis)...`}/>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* TAB 2: Jabatan Fungsional */}
-              <TabsContent value="jabfung" className="space-y-3 rounded-md border p-4 bg-blue-50/30 dark:bg-blue-950/20">
-                <p className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Berdasarkan PermenPAN-RB No. 47/2021 & Permenaker No. 4/2024</p>
-                <div className="space-y-2">
-                  {[
-                    { jenjang: 'Instruktur Ahli Pertama', kelas: 'VIII/IX', fokus: 'Pelaksana pelatihan dasar' },
-                    { jenjang: 'Instruktur Ahli Muda', kelas: 'IX/X', fokus: 'Pengembang modul & kurikulum' },
-                    { jenjang: 'Instruktur Ahli Madya', kelas: 'XI/XII', fokus: 'Pembina & quality control' },
-                    { jenjang: 'Instruktur Ahli Utama', kelas: 'XIII/XIV', fokus: 'Penetapan kebijakan teknis' },
-                  ].map((item) => (
-                    <div key={item.jenjang} className="flex items-start justify-between text-sm py-1.5 border-b border-blue-100 dark:border-blue-900 last:border-0">
-                      <div>
-                        <div className="font-medium">{item.jenjang}</div>
-                        <div className="text-[11px] text-muted-foreground">{item.fokus}</div>
-                      </div>
-                      <span className="text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded shrink-0 ml-2">Gol. {item.kelas}</span>
+          {/* 2B: Regulasi & Strategi */}
+          <Card className="shadow-lg border-purple-500/20 overflow-hidden flex flex-col">
+            <div className="h-1 w-full bg-gradient-to-r from-purple-400 to-pink-400"/>
+            <CardHeader className="pb-3 bg-purple-50/30 dark:bg-purple-950/20">
+              <CardTitle className="flex items-center text-xl text-purple-700 dark:text-purple-300"><FileText className="mr-2 h-5 w-5"/>Section 2B: Parameter Regulasi & Kebijakan</CardTitle>
+              <CardDescription>Landasan hukum dan kebijakan Ditjen Binalavotas Kemnaker RI.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 flex-1 space-y-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold flex items-center"><Building className="mr-1.5 h-3.5 w-3.5"/>Kondisi Sarpras Saat Ini</Label>
+                <Textarea value={sarpras} onChange={e=>setSarpras(e.target.value)} className="h-20 text-sm font-mono" placeholder="Terisi otomatis dari data Unit Kerja..."/>
+              </div>
+              <Tabs defaultValue="standar" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 mb-4 h-auto">
+                  <TabsTrigger value="standar" className="text-xs py-2">📋 Standar</TabsTrigger>
+                  <TabsTrigger value="jabfung" className="text-xs py-2">🎓 Jabfung</TabsTrigger>
+                  <TabsTrigger value="program" className="text-xs py-2">🏭 Program</TabsTrigger>
+                  <TabsTrigger value="strategi" className="text-xs py-2">🎯 Strategi</TabsTrigger>
+                </TabsList>
+                <TabsContent value="standar" className="space-y-2 rounded-md border p-4 bg-purple-50/30 dark:bg-purple-950/20">
+                  <p className="text-[11px] font-bold text-purple-700 uppercase">Permenaker No. 6/2025 & No. 12/2024</p>
+                  {[['Rasio Instruktur:Peserta (Praktik)','1 : 16'],['Rasio Instruktur:Peserta (Teori)','1 : 50'],['Kapasitas per Kelas','16 orang'],['Dasar Penghitungan','Anjab + ABK'],['Syarat Pengalaman','Min. 2 tahun'],['Sertifikasi Wajib','BNSP/LSP + ToT']].map(([k,v])=>(
+                    <div key={k} className="flex justify-between text-sm py-1 border-b border-purple-100 last:border-0">
+                      <span className="text-muted-foreground">{k}</span><span className="font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded text-xs">{v}</span>
                     </div>
                   ))}
-                </div>
-                <p className="text-[11px] text-muted-foreground pt-1">* Uji kompetensi diatur dalam Permenaker No. 4 Tahun 2024</p>
-              </TabsContent>
-
-              {/* TAB 3: Program Pelatihan Prioritas */}
-              <TabsContent value="program" className="space-y-3 rounded-md border p-4 bg-orange-50/30 dark:bg-orange-950/20">
-                <p className="text-[11px] font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">Kejuruan Prioritas Ditjen Binalavotas 2024–2025 (Berbasis SKKNI/PBK)</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    '💻 TIK & Digital (Web, IoT, Data)',
-                    '🔧 Teknik Manufaktur & Mekatronika',
-                    '🔥 Las & Fabrikasi Logam (SMAW/GMAW)',
-                    '❄️ Refrigerasi & Tata Udara (AC)',
-                    '🏗️ Konstruksi & Bangunan Sipil',
-                    '🍳 Pariwisata & Tata Boga',
-                    '🌱 Agribisnis & Mekanisasi Pertanian',
-                    '🏭 Garmen & Tekstil',
-                  ].map((item) => (
-                    <div key={item} className="text-xs bg-orange-100/50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded px-2 py-1.5">
-                      {item}
+                </TabsContent>
+                <TabsContent value="jabfung" className="space-y-2 rounded-md border p-4 bg-blue-50/30 dark:bg-blue-950/20">
+                  <p className="text-[11px] font-bold text-blue-700 uppercase">PermenPAN-RB No. 47/2021 & Permenaker No. 4/2024</p>
+                  {[['Instruktur Ahli Pertama','VIII/IX','Pelaksana pelatihan dasar'],['Instruktur Ahli Muda','IX/X','Pengembang modul & kurikulum'],['Instruktur Ahli Madya','XI/XII','Pembina & quality control'],['Instruktur Ahli Utama','XIII/XIV','Penetapan kebijakan teknis']].map(([j,g,f])=>(
+                    <div key={j} className="flex justify-between text-sm py-1 border-b border-blue-100 last:border-0">
+                      <div><div className="font-medium">{j}</div><div className="text-[11px] text-muted-foreground">{f}</div></div>
+                      <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded shrink-0 ml-2">Gol. {g}</span>
                     </div>
                   ))}
-                </div>
-                <p className="text-[11px] text-muted-foreground pt-1">Seluruh program berlandaskan Pelatihan Berbasis Kompetensi (PBK) mengacu SKKNI dan KKNI</p>
-              </TabsContent>
-
-              {/* TAB 4: Strategi Tindak Lanjut */}
-              <TabsContent value="rekomendasi" className="space-y-3 rounded-md border p-4 bg-green-50/30 dark:bg-green-950/20">
-                <p className="text-[11px] font-bold text-green-700 dark:text-green-300 uppercase tracking-wide">Arah Kebijakan Penanganan Defisit SDM (Renstra Binalavotas 2025)</p>
-                <div className="space-y-2">
-                  {[
-                    { label: 'Rekrutmen Jabfung Instruktur Baru', desc: 'Formasi melalui CASN/PPPK berbasis ABK (Permenaker 12/2024)', color: 'green' },
-                    { label: 'Up-skilling Instruktur Eksisting', desc: 'ToT, sertifikasi BNSP, & pelatihan metodologi PBK', color: 'orange' },
-                    { label: 'Rekrutmen Non-ASN (PPPK Industry)', desc: 'Tenaga teknis ahli dari industri sebagai instruktur tamu/kontrak', color: 'purple' },
-                    { label: 'Pemetaan Formasi Unit Baru (Greenfield)', desc: 'Analisis kebutuhan SDM dari nol berdasarkan klaster industri lokal', color: 'cyan' },
-                    { label: 'Mobilisasi Seed Team SDM', desc: 'Penugasan tim instruktur inti dari BBPVP Pembina untuk inisiasi unit baru', color: 'indigo' },
-                    { label: 'Analisis Beban Kerja (ABK) Inisiasi', desc: 'Penetapan standar minimum SDM untuk operasional awal unit baru', color: 'blue' },
-                    { label: 'Pengadaan Sarpras Prioritas Tinggi', desc: 'Implementasi alat praktik utama untuk kejuruan dengan daya serap tinggi', color: 'pink' },
-                    { label: 'Standarisasi Workshop & K3', desc: 'Modernisasi workshop sesuai standar industri dan keselamatan kerja', color: 'red' },
-                    { label: 'Kemitraan Sarpras Industri', desc: 'Kolaborasi pemanfaatan sarana industri sekitar selama masa pembangunan UPT', color: 'amber' },
-                    { label: 'Hibah & Re-utilisasi Sarpras', desc: 'Optimalisasi alat dari UPT lain untuk efisiensi anggaran unit baru', color: 'slate' },
-                  ].map((item) => (
-                    <label key={item.label} className="flex items-start space-x-2.5 text-sm cursor-pointer group">
-                      <input 
-                        type="checkbox" 
-                        className="accent-primary mt-0.5 shrink-0" 
-                        checked={selectedStrategies.includes(item.label)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedStrategies([...selectedStrategies, item.label]);
-                          } else {
-                            setSelectedStrategies(selectedStrategies.filter(s => s !== item.label));
-                          }
-                        }}
-                      />
-                      <div>
-                        <div className="font-medium group-hover:text-primary transition-colors">{item.label}</div>
-                        <div className="text-[11px] text-muted-foreground">{item.desc}</div>
-                      </div>
+                </TabsContent>
+                <TabsContent value="program" className="space-y-2 rounded-md border p-4 bg-orange-50/30 dark:bg-orange-950/20">
+                  <p className="text-[11px] font-bold text-orange-700 uppercase">Kejuruan Prioritas Binalavotas 2024-2025</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {['💻 TIK & Digital','🔧 Manufaktur & Mekatronika','🔥 Las & Fabrikasi','❄️ Refrigerasi & AC','🏗️ Konstruksi','🍳 Pariwisata & Boga','🌱 Agribisnis','🏭 Garmen & Tekstil'].map(x=>(
+                      <div key={x} className="text-xs bg-orange-100/50 border border-orange-200 rounded px-2 py-1.5">{x}</div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="strategi" className="space-y-2 rounded-md border p-4 bg-green-50/30 dark:bg-green-950/20">
+                  <p className="text-[11px] font-bold text-green-700 uppercase">Arah Kebijakan Renstra Binalavotas 2025</p>
+                  {[['Rekrutmen Jabfung Instruktur Baru','Formasi CASN/PPPK berbasis ABK'],['Up-skilling Instruktur Eksisting','ToT, sertifikasi BNSP, metodologi PBK'],['Rekrutmen Non-ASN (PPPK Industry)','Tenaga teknis ahli dari industri'],['Pemetaan Formasi Unit Baru (Greenfield)','Analisis kebutuhan SDM dari nol'],['Mobilisasi Seed Team SDM','Tim instruktur inti dari BBPVP Pembina'],['Analisis Beban Kerja (ABK) Inisiasi','Standar minimum SDM operasional awal'],['Pengadaan Sarpras Prioritas Tinggi','Alat praktik utama daya serap tinggi'],['Standarisasi Workshop & K3','Modernisasi sesuai standar industri'],['Kemitraan Sarpras Industri','Kolaborasi sarana industri sekitar'],['Hibah & Re-utilisasi Sarpras','Optimalisasi alat dari UPT lain']].map(([l,d])=>(
+                    <label key={l} className="flex items-start space-x-2 text-sm cursor-pointer group">
+                      <input type="checkbox" className="accent-primary mt-0.5 shrink-0" checked={selectedStrategies.includes(l)}
+                        onChange={e=>setSelectedStrategies(e.target.checked?[...selectedStrategies,l]:selectedStrategies.filter(s=>s!==l))}/>
+                      <div><div className="font-medium group-hover:text-primary">{l}</div><div className="text-[11px] text-muted-foreground">{d}</div></div>
                     </label>
                   ))}
-                </div>
-                <div className="pt-2 border-t border-green-100 dark:border-green-900">
-                  <p className="text-[11px] text-muted-foreground">Platform rekrutmen resmi: <strong>SIAPKerja (siapkerja.kemnaker.go.id)</strong></p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* GENERATE BUTTON */}
-      <div className="py-4">
-        <Button 
-          className="w-full relative overflow-hidden transition-all shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 h-14 text-lg font-bold" 
-          onClick={handleProcessAI}
-          disabled={isProcessingAI || !selectedDepartment}
-        >
-          {isProcessingAI ? (
-            <>
-              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-              Sistem AI Sedang Memproses Kebutuhan...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-6 w-6" />
-              Jalankan Analisis AI (Sinkronisasi Internal & Eksternal)
-            </>
-          )}
-          {/* Animated background gradient for premium feel */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]" />
-        </Button>
-      </div>
+        {/* GENERATE BUTTON */}
+        <div className="py-2">
+          <Button className="w-full h-14 text-lg font-bold shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all relative overflow-hidden"
+            onClick={handleProcessAI} disabled={isProcessingAI||!selectedDepartment}>
+            {isProcessingAI
+              ? <><Loader2 className="mr-2 h-6 w-6 animate-spin"/>Sistem AI Sedang Memproses...</>
+              : <><Sparkles className="mr-2 h-6 w-6"/>Jalankan Analisis AI (Sinkronisasi Internal & Eksternal)</>}
+          </Button>
+        </div>
 
-      {/* SECTION 3: HASIL REKOMENDASI AI */}
-      <Card className={cn(
-        "flex flex-col shadow-2xl transition-all duration-700 border-t-4",
-        aiResult ? "border-green-500 bg-gradient-to-b from-green-50/30 to-white dark:from-green-950/20 dark:to-background" : "border-muted"
-      )}>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center text-2xl">
-                <BrainCircuit className={cn("mr-3 h-8 w-8", aiResult ? "text-green-500" : "text-muted-foreground")} />
-                Section 3: Laporan Eksekutif & Rekomendasi Cerdas
-              </CardTitle>
-              <CardDescription className="text-base">Hasil kalkulasi algoritma berdasarkan kedalaman data formasi eksisting dan makroekonomi.</CardDescription>
+        {/* SECTION 3: HASIL ANALISIS — MARKDOWN */}
+        <Card className={cn('shadow-2xl transition-all duration-700 border-t-4', aiMarkdown?'border-green-500':'border-muted')}>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="flex items-center text-2xl">
+                  <BrainCircuit className={cn('mr-3 h-8 w-8', aiMarkdown?'text-green-500':'text-muted-foreground')}/>
+                  Section 3: Laporan Eksekutif & Rekomendasi Cerdas
+                </CardTitle>
+                <CardDescription className="text-base">Hasil analisis AI berdasarkan data formasi eksisting dan makroekonomi wilayah.</CardDescription>
+              </div>
             </div>
-            {aiResult && (
-              <div className="bg-green-100 dark:bg-green-900/40 border border-green-200 dark:border-green-800 rounded-xl p-3 flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400">Skor Kesiapan Operasional</div>
-                  <div className="text-2xl font-black text-green-700 dark:text-green-300">{aiResult.skorKesiapan}%</div>
+          </CardHeader>
+          <CardContent className="pt-2 min-h-[300px]">
+            {isProcessingAI ? (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+                  <div className="relative h-16 w-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-primary/10"/>
+                    <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"/>
+                    <BrainCircuit className="absolute inset-0 m-auto h-8 w-8 text-primary animate-pulse"/>
+                  </div>
+                  <div>
+                    <p className="text-base font-medium animate-pulse">{aiProgress||'DeepSeek sedang menganalisis...'}</p>
+                    <p className="text-xs text-muted-foreground italic mt-1">Menghubungkan data BPS {locName} dengan Peta Jabatan {selectedDepartment}.</p>
+                  </div>
                 </div>
-                <div className={cn(
-                  "h-12 w-12 rounded-full border-4 flex items-center justify-center font-bold text-sm",
-                  aiResult.skorKesiapan > 80 ? "border-green-500 text-green-500" : aiResult.skorKesiapan > 60 ? "border-yellow-500 text-yellow-500" : "border-red-500 text-red-500"
-                )}>
-                  {aiResult.skorKesiapan > 80 ? "A" : aiResult.skorKesiapan > 60 ? "B" : "C"}
+                {aiThinking&&(
+                  <div className="bg-slate-50 dark:bg-slate-900/80 border rounded-xl p-4">
+                    <div className="flex items-center gap-2 border-b pb-2 mb-2">
+                      <Sparkles className="h-3 w-3 text-amber-500 animate-pulse"/>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Chain of Thought</span>
+                      <span className="text-[10px] text-primary animate-bounce font-mono ml-auto">Thinking...</span>
+                    </div>
+                    <div className="text-xs text-slate-500 font-mono leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap">
+                      {aiThinking}<span className="inline-block w-2 h-3 ml-1 bg-primary animate-pulse"/>
+                    </div>
+                  </div>
+                )}
+                {aiMarkdown&&(
+                  <div className="border rounded-xl p-4 bg-white dark:bg-slate-900">
+                    <p className="text-xs text-muted-foreground mb-3 font-mono">Streaming hasil analisis...</p>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown>{aiMarkdown}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : !aiMarkdown ? (
+              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed rounded-xl m-4 bg-muted/10">
+                <Info className="h-16 w-16 mb-4 opacity-30"/>
+                <p className="text-lg">Data siap untuk dianalisis.</p>
+                <p className="text-sm">Tekan tombol di atas untuk men-generate laporan.</p>
+              </div>
+            ) : (
+              <div className="animate-in fade-in duration-500">
+                {aiThinking&&(
+                  <details className="group border rounded-xl bg-slate-50/50 dark:bg-slate-900/50 overflow-hidden mb-6">
+                    <summary className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 list-none">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center">
+                        <Sparkles className="mr-2 h-3 w-3 text-amber-500"/>Lihat Proses Berpikir AI
+                      </span>
+                      <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="p-4 border-t text-[11px] font-mono text-slate-500 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">{aiThinking}</div>
+                  </details>
+                )}
+                {/* Markdown result */}
+                <div className="
+                  prose prose-slate dark:prose-invert max-w-none
+                  prose-h1:text-2xl prose-h1:font-bold prose-h1:text-slate-900 dark:prose-h1:text-slate-100 prose-h1:mb-2 prose-h1:mt-0
+                  prose-h2:text-xl prose-h2:font-bold prose-h2:text-primary prose-h2:border-b prose-h2:border-primary/20 prose-h2:pb-2 prose-h2:mt-8 prose-h2:mb-4
+                  prose-h3:text-base prose-h3:font-bold prose-h3:text-slate-700 dark:prose-h3:text-slate-300 prose-h3:mt-6 prose-h3:mb-3
+                  prose-h4:text-sm prose-h4:font-semibold prose-h4:text-slate-600 dark:prose-h4:text-slate-400 prose-h4:mt-4 prose-h4:mb-2
+                  prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-p:my-2
+                  prose-li:text-slate-700 dark:prose-li:text-slate-300 prose-li:my-1
+                  prose-ul:my-3 prose-ol:my-3
+                  prose-strong:text-slate-900 dark:prose-strong:text-slate-100 prose-strong:font-semibold
+                  prose-table:w-full prose-table:text-sm
+                  prose-thead:bg-slate-100 dark:prose-thead:bg-slate-800
+                  prose-th:text-left prose-th:font-semibold prose-th:text-slate-700 dark:prose-th:text-slate-300 prose-th:px-3 prose-th:py-2 prose-th:border prose-th:border-slate-200 dark:prose-th:border-slate-700
+                  prose-td:px-3 prose-td:py-2 prose-td:border prose-td:border-slate-200 dark:prose-td:border-slate-700 prose-td:text-slate-700 dark:prose-td:text-slate-300
+                  prose-tr:even:bg-slate-50 dark:prose-tr:even:bg-slate-800/50
+                  prose-blockquote:border-l-4 prose-blockquote:border-amber-400 prose-blockquote:bg-amber-50 dark:prose-blockquote:bg-amber-950/20 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                  prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                  prose-hr:border-slate-200 dark:prose-hr:border-slate-700 prose-hr:my-6
+                  p-6 bg-white dark:bg-slate-900 rounded-xl border shadow-sm">
+                  <ReactMarkdown>{aiMarkdown}</ReactMarkdown>
                 </div>
               </div>
             )}
-          </div>
-        </CardHeader>
-        <CardContent className="pt-2 min-h-[300px]">
-          {isProcessingAI ? (
-             <div className="space-y-6 animate-in fade-in duration-500">
-               {/* PROGRESS & THINKING BLOCK */}
-               <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-                 <div className="relative h-16 w-16">
-                   <div className="absolute inset-0 rounded-full border-4 border-primary/10"></div>
-                   <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                   <BrainCircuit className="absolute inset-0 m-auto h-8 w-8 text-primary animate-pulse" />
-                 </div>
-                 <div className="space-y-1">
-                   <p className="text-base font-medium text-foreground animate-pulse">{aiProgress || "DeepSeek sedang menganalisis data..."}</p>
-                   <p className="text-xs text-muted-foreground italic">Menghubungkan data BPS {locName} dengan Peta Jabatan {selectedDepartment}.</p>
-                 </div>
-               </div>
-
-               {/* REASONING BOX (The "Thinking" part - only as loading) */}
-               {aiThinking && (
-                 <div className="bg-slate-50 dark:bg-slate-900/80 border rounded-xl p-5 space-y-3 relative overflow-hidden group">
-                   <div className="flex items-center justify-between border-b pb-2 mb-2 border-slate-200 dark:border-slate-800">
-                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
-                       <Sparkles className="mr-2 h-3 w-3 text-amber-500 animate-pulse" />
-                       Proses Berpikir (Chain of Thought)
-                     </h4>
-                     <div className="text-[10px] text-primary animate-bounce font-mono uppercase">Thinking...</div>
-                   </div>
-                   <div className="text-sm text-slate-600 dark:text-slate-400 font-mono leading-relaxed max-h-[300px] overflow-y-auto whitespace-pre-wrap custom-scrollbar">
-                     {aiThinking}
-                     <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse" />
-                   </div>
-                 </div>
-               )}
-             </div>
-          ) : !aiResult ? (
-            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed rounded-xl m-4 bg-muted/10">
-              <Info className="h-16 w-16 mb-4 text-muted-foreground/30" />
-              <p className="text-lg">Data siap untuk dianalisis.</p>
-              <p className="text-sm">Tekan tombol proses raksasa di atas untuk men-generate laporan.</p>
-            </div>
-          ) : (
-            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 p-2 md:p-4">
-              
-              {/* Optional: Show Reasoning even after done, but collapsible */}
-              {aiThinking && (
-                <details className="group border rounded-xl bg-slate-50/50 dark:bg-slate-900/50 overflow-hidden transition-all">
-                  <summary className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 list-none">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center">
-                      <Sparkles className="mr-2 h-3 w-3 text-amber-500" />
-                      Lihat Kembali Proses Berpikir AI
-                    </span>
-                    <span className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">▼</span>
-                  </summary>
-                  <div className="p-4 border-t text-[11px] font-mono text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto bg-white/50 dark:bg-black/20">
-                    {aiThinking}
-                  </div>
-                </details>
-              )}
-
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <BrainCircuit className="w-32 h-32" />
-                </div>
-                <h3 className="text-lg font-bold text-primary mb-2">Kesimpulan Utama (Executive Summary)</h3>
-                <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 relative z-10 whitespace-pre-wrap">{aiResult.summary}</p>
-              </div>
-
-              {/* NEW: IDEAL POSITION ANALYSIS SECTION */}
-              {aiResult.formasiIdeal && (
-                <div className="bg-slate-50 dark:bg-slate-900/40 border rounded-2xl p-6 space-y-6">
-                  <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200 border-b pb-3">
-                    <UserPlus className="h-6 w-6 text-blue-600" />
-                    Analisis Formasi Jabatan Ideal & Usulan Baru
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    {/* Existing Position Adjustments */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" /> Optimasi Jabatan Eksisting
-                      </h4>
-                      <div className="space-y-3">
-                        {aiResult.formasiIdeal.eksisting.map((item, idx) => (
-                          <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-xl border shadow-sm flex flex-col gap-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-slate-800 dark:text-slate-200">{item.nama}</span>
-                              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">Target: {item.jumlah}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 italic leading-relaxed">"{item.alasan}"</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* New Position Proposals */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4" /> Usulan Jabatan Baru (Masa Depan)
-                      </h4>
-                      <div className="space-y-3">
-                        {aiResult.formasiIdeal.baru.map((item, idx) => (
-                          <div key={idx} className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm flex flex-col gap-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-emerald-800 dark:text-emerald-300">{item.nama}</span>
-                              <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-black">Usulan: {item.jumlah}</span>
-                            </div>
-                            <p className="text-xs text-emerald-700/70 dark:text-emerald-400/70 italic leading-relaxed">"{item.alasan}"</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* DYNAMIC STRATEGY DETAILS */}
-              {aiResult.rincianStrategi && aiResult.rincianStrategi.length > 0 && (
-                <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-700">
-                  <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    Rencana Implementasi Strategis (Berdasarkan Pilihan Anda)
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {aiResult.rincianStrategi.map((strat: any, idx: number) => (
-                      <div key={idx} className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-5 space-y-3 hover:shadow-md transition-all group">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-primary leading-tight group-hover:text-blue-600 transition-colors">{strat.nama}</h4>
-                          <span className={cn(
-                            "text-[10px] px-2 py-0.5 rounded-full font-bold border",
-                            strat.impact === 'High' ? "bg-red-50 text-red-700 border-red-200" : "bg-blue-50 text-blue-700 border-blue-200"
-                          )}>
-                            IMPACT: {strat.impact}
-                          </span>
-                        </div>
-                        <ul className="space-y-2">
-                          {strat.langkah && Array.isArray(strat.langkah) && strat.langkah.map((l: string, lIdx: number) => (
-                            <li key={lIdx} className="text-xs flex items-start gap-2 text-slate-600 dark:text-slate-400">
-                              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 mt-1.5 shrink-0" />
-                              {l}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* NEW: DIGITAL READINESS SECTION */}
-              {aiResult.kesiapanDigital && (
-                <div className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-950/20 dark:to-blue-950/20 border border-sky-100 dark:border-sky-900 rounded-2xl p-6">
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    <div className="flex-1 space-y-2">
-                      <h3 className="text-lg font-bold flex items-center gap-2 text-sky-800 dark:text-sky-300">
-                        <Cpu className="h-5 w-5" />
-                        Tingkat Kesiapan Digital (Digital Readiness)
-                      </h3>
-                      <p className="text-sm text-sky-600 dark:text-sky-400">Skor infrastruktur IT dan adopsi digital untuk operasional unit kerja.</p>
-                    </div>
-                    <div className="flex items-center gap-4 bg-white/50 dark:bg-black/20 p-4 rounded-xl border border-sky-100 dark:border-sky-900">
-                      <div className="text-center">
-                        <div className="text-3xl font-black text-sky-600">{aiResult.kesiapanDigital.skor}%</div>
-                        <div className="text-[10px] uppercase font-bold text-sky-800/60 tracking-wider">Score</div>
-                      </div>
-                      <div className="text-sm font-medium italic text-sky-700 dark:text-sky-300 max-w-[200px]">
-                        "{aiResult.kesiapanDigital.rekomendasi}"
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* NEW: RISK & TIMELINE SECTION */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Risk Analysis */}
-                {aiResult.analisisRisiko && aiResult.analisisRisiko.length > 0 && (
-                  <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-200/50 rounded-2xl p-6 space-y-4">
-                    <h3 className="text-lg font-bold flex items-center gap-2 text-red-700 dark:text-red-400">
-                      <AlertCircle className="h-5 w-5" />
-                      Analisis Risiko & Hambatan
-                    </h3>
-                    <div className="space-y-3">
-                      {aiResult.analisisRisiko.map((risk: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-3 bg-white/80 dark:bg-black/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
-                          <div className="h-2 w-2 rounded-full bg-red-500 mt-1.5 shrink-0 animate-pulse" />
-                          <p className="text-sm text-slate-700 dark:text-slate-300">{risk}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Timeline Implementation */}
-                {aiResult.timeline && aiResult.timeline.length > 0 && (
-                  <div className="bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-200/50 rounded-2xl p-6 space-y-4">
-                    <h3 className="text-lg font-bold flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
-                      <Clock className="h-5 w-5" />
-                      Timeline Implementasi
-                    </h3>
-                    <div className="relative space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-indigo-200 dark:before:bg-indigo-800">
-                      {aiResult.timeline.map((item: any, idx: number) => (
-                        <div key={idx} className="relative pl-8">
-                          <div className="absolute left-0 top-1.5 h-6 w-6 rounded-full bg-indigo-600 border-4 border-white dark:border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">
-                            {idx + 1}
-                          </div>
-                          <div className="bg-white/80 dark:bg-black/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                            <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">{item.tahap}</h4>
-                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{item.aksi}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Kebutuhan Formasi Spesifik */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-bold flex items-center border-b pb-2">
-                    <Users className="mr-2 h-5 w-5 text-indigo-500" /> Rekomendasi Rekrutmen Terfokus
-                  </h4>
-                  <ul className="space-y-3">
-                    {aiResult.rekrutmenSpesifik.map((rec, idx) => (
-                      <li key={idx} className="flex items-start bg-indigo-50 dark:bg-indigo-950/30 p-3 rounded-lg border border-indigo-100 dark:border-indigo-900/50">
-                        <span className="mr-3 text-indigo-500 font-bold">{idx+1}.</span>
-                        <span className="font-medium text-sm">{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Usulan Pelatihan */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-bold flex items-center border-b pb-2">
-                    <Briefcase className="mr-2 h-5 w-5 text-blue-500" /> Usulan Program Pelatihan UPT
-                  </h4>
-                  <ul className="space-y-3">
-                    {aiResult.pelatihan.map((p, idx) => (
-                      <li key={idx} className="flex items-start bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-100 dark:border-blue-900/50">
-                        <span className="mr-3 text-blue-500 mt-0.5">•</span>
-                        <span className="text-sm">{p}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Rekomendasi Sarpras */}
-                <div className="space-y-4 md:col-span-2 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
-                  <h4 className="text-lg font-bold flex items-center border-b pb-2 text-orange-700 dark:text-orange-400">
-                    <Building className="mr-2 h-5 w-5" /> Pengadaan Sarpras Prioritas Tinggi
-                  </h4>
-                  {aiResult.sarprasRekomendasi && aiResult.sarprasRekomendasi.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {aiResult.sarprasRekomendasi.map((s, idx) => (
-                        <div key={idx} className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl border border-orange-100 dark:border-orange-900/50 shadow-sm hover:shadow-md transition-all">
-                          <p className="text-sm font-medium leading-relaxed">{s}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-orange-50/50 dark:bg-orange-950/10 p-8 rounded-xl border border-dashed border-orange-200 dark:border-orange-900/50 text-center">
-                      <p className="text-sm text-orange-600 dark:text-orange-400 italic">AI tidak menemukan rekomendasi sarpras spesifik untuk skenario ini.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-            </div>
+          </CardContent>
+          {aiMarkdown&&!isProcessingAI&&(
+            <CardFooter className="bg-muted/30 border-t pt-4 pb-4 flex justify-end">
+              <Button size="lg" variant="outline" className="shadow-md" onClick={handleDownloadPDF}>
+                <Download className="mr-2 h-5 w-5"/>Unduh Laporan PDF
+              </Button>
+            </CardFooter>
           )}
-        </CardContent>
-        {aiResult && (
-          <CardFooter className="bg-muted/30 border-t pt-6 pb-6 flex justify-end gap-3">
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="shadow-md" 
-              onClick={handleDownloadPDF}
-            >
-              <Download className="mr-2 h-5 w-5" />
-              Unduh Laporan PDF (dengan Data BPS)
-            </Button>
-          </CardFooter>
-        )}
-      </Card>
+        </Card>
 
-    </div>
+      </div>
     </AppLayout>
   );
 }
