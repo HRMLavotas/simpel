@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { BPS_PROVINCES, BPS_REGENCIES } from '@/data/bps-provinces';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -103,9 +104,13 @@ export default function AnalisisKebutuhanSdm() {
           try {
             const p = JSON.parse(deptRes.data.sarpras);
             let s = '';
-            if (p.bangunan?.length) s += `[Bangunan & Gedung]\n${p.bangunan.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
-            if (p.alat?.length) s += `[Alat Pelatihan Utama]\n${p.alat.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
-            if (p.fasilitas?.length) s += `[Fasilitas Penunjang]\n${p.fasilitas.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            const prasarana = p.prasarana || p.bangunan || [];
+            const sarana = p.sarana || p.alat || [];
+            const kejuruan = p.kejuruan || p.fasilitas || [];
+            
+            if (prasarana.length) s += `[Prasarana (Bangunan & Gedung)]\n${prasarana.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            if (sarana.length) s += `[Sarana (Alat Pelatihan Utama)]\n${sarana.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
+            if (kejuruan.length) s += `[Kejuruan Pelatihan]\n${kejuruan.map((i:string)=>`• ${i}`).join('\n')}\n\n`;
             setSarpras(s.trim());
           } catch { setSarpras(deptRes.data.sarpras); }
         } else setSarpras('');
@@ -806,7 +811,7 @@ Tulis dalam Bahasa Indonesia yang profesional.`;
                   <div className="border rounded-xl p-4 bg-white dark:bg-slate-900">
                     <p className="text-xs text-muted-foreground mb-3 font-mono">Streaming hasil analisis...</p>
                     <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{aiMarkdown}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiMarkdown}</ReactMarkdown>
                     </div>
                   </div>
                 )}
@@ -850,7 +855,7 @@ Tulis dalam Bahasa Indonesia yang profesional.`;
                   prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
                   prose-hr:border-slate-200 dark:prose-hr:border-slate-700 prose-hr:my-6
                   p-6 bg-white dark:bg-slate-900 rounded-xl border shadow-sm">
-                  <ReactMarkdown>{aiMarkdown}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiMarkdown}</ReactMarkdown>
                 </div>
               </div>
             )}

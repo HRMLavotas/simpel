@@ -32,9 +32,9 @@ interface DepartmentFormModalProps {
 }
 
 interface SarprasData {
-  bangunan: string[];
-  alat: string[];
-  fasilitas: string[];
+  prasarana: string[];
+  sarana: string[];
+  kejuruan: string[];
 }
 
 const departmentSchema = z.object({
@@ -49,8 +49,8 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
   const [name, setName] = useState('');
   
   // Structured Sarpras State
-  const [sarprasData, setSarprasData] = useState<SarprasData>({ bangunan: [], alat: [], fasilitas: [] });
-  const [sarprasInput, setSarprasInput] = useState({ bangunan: '', alat: '', fasilitas: '' });
+  const [sarprasData, setSarprasData] = useState<SarprasData>({ prasarana: [], sarana: [], kejuruan: [] });
+  const [sarprasInput, setSarprasInput] = useState({ prasarana: '', sarana: '', kejuruan: '' });
 
   useEffect(() => {
     if (department) {
@@ -61,33 +61,33 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
         try {
           const parsed = JSON.parse(department.sarpras);
           setSarprasData({
-            bangunan: Array.isArray(parsed.bangunan) ? parsed.bangunan : [],
-            alat: Array.isArray(parsed.alat) ? parsed.alat : [],
-            fasilitas: Array.isArray(parsed.fasilitas) ? parsed.fasilitas : []
+            prasarana: Array.isArray(parsed.prasarana) ? parsed.prasarana : (Array.isArray(parsed.bangunan) ? parsed.bangunan : []),
+            sarana: Array.isArray(parsed.sarana) ? parsed.sarana : (Array.isArray(parsed.alat) ? parsed.alat : []),
+            kejuruan: Array.isArray(parsed.kejuruan) ? parsed.kejuruan : (Array.isArray(parsed.fasilitas) ? parsed.fasilitas : [])
           });
         } catch {
-          // If it's old legacy plain text, put it in fasilitas or bangunan as fallback
+          // If it's old legacy plain text, put it in kejuruan as fallback
           setSarprasData({
-            bangunan: [],
-            alat: [],
-            fasilitas: [department.sarpras]
+            prasarana: [],
+            sarana: [],
+            kejuruan: [department.sarpras]
           });
         }
       } else {
-        setSarprasData({ bangunan: [], alat: [], fasilitas: [] });
+        setSarprasData({ prasarana: [], sarana: [], kejuruan: [] });
       }
     } else {
       setName('');
-      setSarprasData({ bangunan: [], alat: [], fasilitas: [] });
+      setSarprasData({ prasarana: [], sarana: [], kejuruan: [] });
     }
     
-    setSarprasInput({ bangunan: '', alat: '', fasilitas: '' });
+    setSarprasInput({ prasarana: '', sarana: '', kejuruan: '' });
     setErrors({});
   }, [department, open]);
 
   const handleClose = () => {
     setName('');
-    setSarprasData({ bangunan: [], alat: [], fasilitas: [] });
+    setSarprasData({ prasarana: [], sarana: [], kejuruan: [] });
     setErrors({});
     onOpenChange(false);
   };
@@ -133,13 +133,21 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
 
     // Convert SarprasData to string, or null if totally empty
     const isEmpty = 
-      sarprasData.bangunan.length === 0 && 
-      sarprasData.alat.length === 0 && 
-      sarprasData.fasilitas.length === 0;
+      sarprasData.prasarana.length === 0 && 
+      sarprasData.sarana.length === 0 && 
+      sarprasData.kejuruan.length === 0;
       
     const payload = { 
       name: name.trim(),
-      sarpras: isEmpty ? null : JSON.stringify(sarprasData)
+      sarpras: isEmpty ? null : JSON.stringify({
+        prasarana: sarprasData.prasarana,
+        sarana: sarprasData.sarana,
+        kejuruan: sarprasData.kejuruan,
+        // Double write old keys to guarantee total backward compatibility
+        bangunan: sarprasData.prasarana,
+        alat: sarprasData.sarana,
+        fasilitas: sarprasData.kejuruan
+      })
     };
 
     try {
@@ -227,7 +235,7 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
         </Button>
       </div>
 
-      <div className="bg-slate-50 dark:bg-slate-900 rounded-md border min-h-[100px] p-2 space-y-2 max-h-[180px] overflow-y-auto">
+      <div className="bg-slate-50 dark:bg-slate-900 rounded-md border min-h-[100px] p-2 space-y-2 max-h-[130px] sm:max-h-[180px] overflow-y-auto">
         {sarprasData[category].length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-8 italic">
             Belum ada item ditambahkan.
@@ -255,17 +263,17 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] sm:max-w-[550px] p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-2">
+      <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[92vh] sm:max-h-[85vh] p-0 flex flex-col overflow-hidden">
+        <DialogHeader className="p-5 sm:p-6 pb-2 sm:pb-3 flex-shrink-0 border-b">
           <DialogTitle>{department ? 'Edit Unit & Sarpras' : 'Tambah Unit Baru'}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             Kelola profil unit kerja dan spesifikasi sarana prasarana penunjang.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col max-h-[80vh]">
-          <div className="flex-1 overflow-y-auto px-6 py-2">
-            <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 py-3 sm:py-4 space-y-5 sm:space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               
               {/* Unit Name */}
               <div className="space-y-2 bg-primary/5 p-4 rounded-lg border border-primary/10">
@@ -289,36 +297,36 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
                   <Label className="text-base font-semibold">Inventaris Sarpras Unit</Label>
                 </div>
                 
-                <Tabs defaultValue="bangunan" className="w-full">
+                <Tabs defaultValue="prasarana" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="bangunan">Bangunan</TabsTrigger>
-                    <TabsTrigger value="alat">Peralatan</TabsTrigger>
-                    <TabsTrigger value="fasilitas">Lainnya</TabsTrigger>
+                    <TabsTrigger value="prasarana" className="text-xs sm:text-sm py-1.5 sm:py-2">Prasarana</TabsTrigger>
+                    <TabsTrigger value="sarana" className="text-xs sm:text-sm py-1.5 sm:py-2">Sarana</TabsTrigger>
+                    <TabsTrigger value="kejuruan" className="text-xs sm:text-sm py-1.5 sm:py-2">Kejuruan</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="bangunan">
+                  <TabsContent value="prasarana">
                     {renderCategoryTab(
-                      'Bangunan & Gedung',
-                      'bangunan',
+                      'Prasarana (Bangunan & Gedung)',
+                      'prasarana',
                       'Contoh: Bengkel Otomotif Lt. 2',
                       <Building className="w-4 h-4" />
                     )}
                   </TabsContent>
                   
-                  <TabsContent value="alat">
+                  <TabsContent value="sarana">
                     {renderCategoryTab(
-                      'Alat Pelatihan Utama',
-                      'alat',
+                      'Sarana (Alat Pelatihan Utama)',
+                      'sarana',
                       'Contoh: Mesin CNC Bubut 5 Axis',
                       <Wrench className="w-4 h-4" />
                     )}
                   </TabsContent>
                   
-                  <TabsContent value="fasilitas">
+                  <TabsContent value="kejuruan">
                     {renderCategoryTab(
-                      'Fasilitas Penunjang',
-                      'fasilitas',
-                      'Contoh: Ruang Asrama Kapasitas 50',
+                      'Kejuruan Pelatihan',
+                      'kejuruan',
+                      'Contoh: Teknik Otomotif Sepeda Motor',
                       <Warehouse className="w-4 h-4" />
                     )}
                   </TabsContent>
@@ -328,11 +336,11 @@ export function DepartmentFormModal({ open, onOpenChange, department, onSuccess 
             </div>
           </div>
 
-          <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          <DialogFooter className="p-4 sm:p-5 border-t bg-muted/20 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 flex-shrink-0">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting} className="w-full sm:w-auto">
               Batal
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
