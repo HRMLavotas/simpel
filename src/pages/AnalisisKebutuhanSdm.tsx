@@ -671,7 +671,9 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
               }
               
               if (delta.content) {
-                fullContent += delta.content;
+                // Sanitize content to remove control characters that could break JSON
+                const sanitized = delta.content.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+                fullContent += sanitized;
                 setAiStreamingResult(fullContent);
               }
             } catch (e) {
@@ -708,15 +710,30 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
               cleaned = cleaned.substring(firstBrace, lastBrace + 1);
             }
 
-            // Fix unescaped newlines inside string values ONLY
-            // This regex finds content between double quotes and fixes newlines
-            cleaned = cleaned.replace(/"([^"]*)"/g, (match, content) => {
-              return '"' + content.replace(/\n/g, "\\n") + '"';
+            // Fix unescaped quotes and special characters in string values
+            // This is more aggressive - find all string values and escape them properly
+            cleaned = cleaned.replace(/"([^"]*(?:""[^"]*)*)"/g, (match, content) => {
+              // Escape backslashes first
+              let escaped = content.replace(/\\/g, '\\\\');
+              // Escape newlines
+              escaped = escaped.replace(/\n/g, '\\n');
+              escaped = escaped.replace(/\r/g, '\\r');
+              escaped = escaped.replace(/\t/g, '\\t');
+              // Don't double-escape already escaped quotes
+              escaped = escaped.replace(/\\"/g, '"').replace(/"/g, '\\"');
+              return '"' + escaped + '"';
             });
             
             // Fix missing closing braces if truncated
             let openBraces = (cleaned.match(/\{/g) || []).length;
             let closeBraces = (cleaned.match(/\}/g) || []).length;
+            let openBrackets = (cleaned.match(/\[/g) || []).length;
+            let closeBrackets = (cleaned.match(/\]/g) || []).length;
+            
+            while (openBrackets > closeBrackets) {
+              cleaned += "]";
+              closeBrackets++;
+            }
             while (openBraces > closeBraces) {
               cleaned += "}";
               closeBraces++;
@@ -726,39 +743,39 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
           } catch (finalError) {
             // Last resort: If still failing, try to fix common "Unexpected token" errors
             try {
-              let fixed = cleanChars(cleaned)
-                // 1. Fix missing colons: "key" "value" -> "key": "value"
+              let fixed = cleanChars(cleaned);
+              
+              // Try to find the last valid complete JSON object
+              let depth = 0;
+              let lastValidIndex = -1;
+              
+              for (let i = 0; i < fixed.length; i++) {
+                if (fixed[i] === '{' || fixed[i] === '[') depth++;
+                if (fixed[i] === '}' || fixed[i] === ']') {
+                  depth--;
+                  if (depth === 0) {
+                    lastValidIndex = i;
+                  }
+                }
+              }
+              
+              if (lastValidIndex > 0) {
+                fixed = fixed.substring(0, lastValidIndex + 1);
+              }
+              
+              // Additional fixes
+              fixed = fixed
+                // Fix missing colons
                 .replace(/"([^"]+)"\s+"([^"]+)"/g, '"$1": "$2"')
-                // 2. Fix equals sign instead of colon: "key" = "value"
+                // Fix equals sign instead of colon
                 .replace(/"([^"]+)"\s*=\s*/g, '"$1": ')
-                // 3. Fix missing commas between properties
-                // Match "value" "nextKey": or number "nextKey":
-                .replace(/("(?:\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"|\d+|true|false|null)\s+"([^"]+)"\s*:/g, '$1, "$2":')
-                // 4. Fix unquoted values starting with letters
-                .replace(/:\s*([A-Za-z][^,}\]]+)/g, (match, p1) => {
-                  const trimmed = p1.trim();
-                  if (trimmed === "true" || trimmed === "false" || trimmed === "null" || !isNaN(Number(trimmed))) {
-                    return match;
-                  }
-                  if (trimmed.startsWith('"') || trimmed.startsWith('{') || trimmed.startsWith('[')) {
-                    return match;
-                  }
-                  return ': "' + trimmed + '"';
-                });
+                // Fix missing commas between properties
+                .replace(/("(?:\\["bfnrt/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"|\d+|true|false|null)\s+"([^"]+)"\s*:/g, '$1, "$2":');
                 
               return JSON.parse(fixed);
             } catch (superFinalError) {
-              // Last attempt: Try to close the JSON if it seems truncated or has garbage at the end
-              try {
-                let truncated = cleanChars(cleaned);
-                const lastValidBrace = truncated.lastIndexOf('}');
-                if (lastValidBrace !== -1) {
-                  truncated = truncated.substring(0, lastValidBrace + 1);
-                  return JSON.parse(truncated);
-                }
-              } catch (e) {}
-              
               console.error("All JSON repair attempts failed:", superFinalError);
+              console.error("Problematic JSON string (first 500 chars):", cleaned.substring(0, 500));
               throw superFinalError;
             }
           }
@@ -768,11 +785,16 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
         const endIndex = fullContent.lastIndexOf('}');
         
         if (startIndex === -1 || endIndex === -1) {
-          throw new Error("JSON not found in AI response");
+          console.error("❌ JSON not found in AI response");
+          console.error("Response preview:", fullContent.substring(0, 500));
+          throw new Error("JSON not found in AI response. Response may be incomplete or malformed.");
         }
         
         const jsonStr = fullContent.substring(startIndex, endIndex + 1);
+        console.log("📝 Attempting to parse JSON (length:", jsonStr.length, "chars)");
+        
         const aiData = robustJsonParse(jsonStr);
+        console.log("✅ JSON parsed successfully");
 
         const finalResult = {
           id: crypto.randomUUID(),
@@ -815,6 +837,14 @@ CATATAN KRITIS: JANGAN gunakan tanda kutip ganda di dalam nilai string. Gunakan 
 
     } catch (parseError) {
         console.error("Parse Error after stream:", parseError);
+        console.error("Raw content received:", fullContent.substring(0, 1000));
+        
+        toast({
+          title: "⚠️ JSON Parse Error",
+          description: "Response AI tidak valid. Menggunakan analisis lokal sebagai fallback...",
+          variant: "destructive"
+        });
+        
         // Fallback to local if JSON is malformed
         handleProcessLocalAI(contextData, locName);
       }
