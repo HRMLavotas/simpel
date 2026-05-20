@@ -54,7 +54,7 @@ import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ASN_STATUS_OPTIONS, DEPARTMENTS, getSatpelsByPembina } from '@/lib/constants';
+import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn, normalizeString } from '@/lib/utils';
@@ -67,6 +67,7 @@ import { getActiveDisciplinaryActions } from '@/lib/disciplinaryActionStorage';
 import * as XLSX from 'xlsx-js-style';
 import {
   applyWorksheetStyling,
+  applyCategoryHeaders,
   setColumnWidths,
 } from '@/lib/excelStyles';
 import { PageHeader } from '@/components/ui/page-header';
@@ -476,14 +477,22 @@ export default function Employees() {
       }
       
       // Sort pegawai persis seperti urutan Peta Jabatan:
-      // 1. department (A-Z)
+      // 1. department (mengikuti urutan DEPARTMENTS constant, bukan alfabetis)
       // 2. position_category order (Struktural → Fungsional → Pelaksana → lainnya)
       // 3. position_order dari position_references (urutan jabatan dalam kategori, per unit)
       // 4. nama sebagai tiebreaker
+      
+      // Create department order map from DEPARTMENTS constant
+      const deptOrderMap = new Map<string, number>();
+      dynamicDepartments.forEach((dept, index) => {
+        deptOrderMap.set(dept, index);
+      });
+      
       const sortedData = (allData || []).sort((a, b) => {
-        // Sort by department first
-        const deptCompare = (a.department || '').localeCompare(b.department || '');
-        if (deptCompare !== 0) return deptCompare;
+        // Sort by department using DEPARTMENTS order (not alphabetical)
+        const deptOrderA = deptOrderMap.get(a.department || '') ?? 9999;
+        const deptOrderB = deptOrderMap.get(b.department || '') ?? 9999;
+        if (deptOrderA !== deptOrderB) return deptOrderA - deptOrderB;
 
         // Lookup menggunakan key department + nama jabatan
         // PENTING: Gunakan normalizeString() untuk konsistensi dengan PetaJabatan
@@ -1525,35 +1534,59 @@ export default function Employees() {
       'Ket. Perubahan',
     ];
 
-    // Create department order map for sorting
-    const departmentOrderMap = new Map<string, number>();
-    DEPARTMENTS.forEach((dept, index) => {
-      departmentOrderMap.set(dept, index);
-    });
+    // ── Gunakan urutan yang PERSIS SAMA dengan halaman data pegawai ──
+    // filteredEmployees sudah diurutkan berdasarkan:
+    // 1. department
+    // 2. position_category order (Struktural → Fungsional → Pelaksana)
+    // 3. position_order dari position_references (urutan jabatan per unit)
+    // 4. nama sebagai tiebreaker
+    // Sehingga tidak perlu sort ulang, cukup pakai langsung.
 
-    // Sort employees by department order, then by name
-    const sortedEmployees = [...filteredEmployees].sort((a, b) => {
-      const deptOrderA = departmentOrderMap.get(a.department || '') ?? 999;
-      const deptOrderB = departmentOrderMap.get(b.department || '') ?? 999;
-      
-      if (deptOrderA !== deptOrderB) {
-        return deptOrderA - deptOrderB;
+    const EXPORT_CATEGORY_NAME: Record<number, string> = { 1: 'Struktural', 2: 'Fungsional', 3: 'Pelaksana' };
+
+    const getExportCategory = (emp: Employee): string => {
+      if (activeTab === 'non-asn') return 'Non ASN';
+      const deptKey = `${(emp.department || '').trim()}|||${normalizeString(emp.position_name || '')}`;
+      const posRef = positionOrderMap.get(deptKey);
+      if (posRef) return EXPORT_CATEGORY_NAME[posRef.categoryOrder] ?? 'Lainnya';
+      const cat = emp.position_type;
+      if (cat && ['Struktural', 'Fungsional', 'Pelaksana'].includes(cat)) return cat;
+      return 'Lainnya';
+    };
+
+    // Build rows dengan separator kategori per unit kerja,
+    // agar hasil export persis seperti tampilan halaman
+    const dataRows: unknown[][] = [];
+    const categoryRowIndices: number[] = [];
+    let lastDept = '';
+    let lastCat = '';
+    let empNum = 0;
+
+    for (const emp of filteredEmployees) {
+      const dept = emp.department || 'Unit Tidak Diketahui';
+      const cat = getExportCategory(emp);
+
+      // Sisipkan baris separator ketika department atau kategori berubah
+      if (dept !== lastDept || cat !== lastCat) {
+        const label = dept !== lastDept
+          ? `${dept} — ${cat.toUpperCase()}`
+          : cat.toUpperCase();
+        // +1 karena baris 0 = header
+        categoryRowIndices.push(dataRows.length + 1);
+        dataRows.push([label, ...Array(headers.length - 1).fill('')]);
+        lastDept = dept;
+        lastCat = cat;
       }
-      
-      // Same department, sort by name
-      return (a.name || '').localeCompare(b.name || '');
-    });
 
-    const rows = sortedEmployees.map((emp, idx) => {
-      // Gabungkan gelar depan, nama, dan gelar belakang
+      empNum++;
       const fullName = [
         emp.front_title,
         emp.name,
         emp.back_title
       ].filter(Boolean).join(' ');
 
-      return [
-        idx + 1,
+      dataRows.push([
+        empNum,
         emp.nip || '',
         fullName,
         emp.birth_place || '',
@@ -1577,10 +1610,10 @@ export default function Employees() {
         emp.keterangan_penempatan || '',
         emp.keterangan_penugasan || '',
         emp.keterangan_perubahan || '',
-      ];
-    });
+      ]);
+    }
 
-    const aoaData = [headers, ...rows];
+    const aoaData = [headers, ...dataRows];
     const ws = XLSX.utils.aoa_to_sheet(aoaData);
 
     // Set column widths
@@ -1611,8 +1644,11 @@ export default function Employees() {
       25, // Ket. Perubahan
     ]);
 
-    // Apply styling
-    applyWorksheetStyling(ws, { headerRow: 0 });
+    // Apply styling with category separator rows
+    applyWorksheetStyling(ws, { headerRow: 0, categoryRows: categoryRowIndices });
+
+    // Merge category separator rows across all columns
+    applyCategoryHeaders(ws, categoryRowIndices, headers.length);
 
     // Freeze baris header
     ws['!freeze'] = { xSplit: 0, ySplit: 1 };

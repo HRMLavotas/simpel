@@ -19,14 +19,16 @@ export function useDepartments() {
     try {
       const { data, error } = await supabase
         .from('departments')
-        .select('name')
-        .order('name', { ascending: true });
+        .select('name');
 
       if (error) throw error;
 
       let allDepts: string[];
       if (data && data.length > 0) {
-        allDepts = data.map((d) => d.name);
+        // Get departments from DB but maintain order from DEPARTMENTS constant
+        const dbDepts = new Set(data.map((d) => d.name));
+        // Filter DEPARTMENTS to only include those that exist in DB, maintaining order
+        allDepts = DEPARTMENTS.filter(dept => dbDepts.has(dept));
       } else {
         // Fall back to static list if DB is empty
         allDepts = [...DEPARTMENTS];
@@ -36,6 +38,7 @@ export function useDepartments() {
       // Admin pusat and admin pimpinan can see all departments (no filter)
       if (profile && profile.app_role === 'admin_unit') {
         const accessible = getAccessibleDepartments(profile.department, profile.app_role);
+        // Maintain order from DEPARTMENTS constant
         const filtered = allDepts.filter(dept => accessible.includes(dept));
         setDepartments(filtered);
       } else {

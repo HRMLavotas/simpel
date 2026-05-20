@@ -22,7 +22,7 @@ export const DEPARTMENTS = [
   'BBPVP Semarang',
   'BBPVP Makassar',
   
-  // 20 BPVP
+  // 20 BPVP (urutan sesuai permintaan user)
   'BPVP Surakarta',
   'BPVP Ambon',
   'BPVP Ternate',
