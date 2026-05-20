@@ -1488,30 +1488,69 @@ export default function Employees() {
 
     // ── Sheet 1: Data Pegawai ──────────────────────────────────────────────
     const headers = [
-      'No', activeTab === 'non-asn' ? 'NIK' : 'NIP', 'Gelar Depan', 'Nama', 'Gelar Belakang',
-      'Jenis Jabatan', 'Nama Jabatan', 'Jabatan Tambahan / PLT',
-      'Status ASN', 'Golongan', 'Unit Kerja', 'Tanggal Masuk',
-      'Ket. Formasi', 'Ket. Penempatan', 'Ket. Penugasan', 'Ket. Perubahan',
+      'No',
+      activeTab === 'non-asn' ? 'NIK' : 'NIP',
+      'Nama Lengkap',
+      'Tempat Lahir',
+      'Tanggal Lahir',
+      'Jenis Kelamin',
+      'Agama',
+      'Status ASN',
+      'Golongan/Pangkat',
+      'Jenis Jabatan',
+      'Nama Jabatan',
+      'Jabatan Tambahan / PLT',
+      'Kejuruan',
+      'Unit Kerja',
+      'Satuan Kerja Penugasan',
+      'TMT CPNS',
+      'TMT PNS',
+      'TMT Pensiun',
+      'Nomor HP',
+      'Nomor Telepon',
+      'Alamat',
+      'Ket. Formasi',
+      'Ket. Penempatan',
+      'Ket. Penugasan',
+      'Ket. Perubahan',
     ];
 
-    const rows = filteredEmployees.map((emp, idx) => [
-      idx + 1,
-      emp.nip || '',
-      emp.front_title || '',
-      emp.name || '',
-      emp.back_title || '',
-      emp.position_type || '',
-      emp.position_name || '',
-      emp.additional_position || '',
-      emp.asn_status || '',
-      emp.rank_group || '',
-      emp.department || '',
-      emp.join_date || '',
-      emp.keterangan_formasi || '',
-      emp.keterangan_penempatan || '',
-      emp.keterangan_penugasan || '',
-      emp.keterangan_perubahan || '',
-    ]);
+    const rows = filteredEmployees.map((emp, idx) => {
+      // Gabungkan gelar depan, nama, dan gelar belakang
+      const fullName = [
+        emp.front_title,
+        emp.name,
+        emp.back_title
+      ].filter(Boolean).join(' ');
+
+      return [
+        idx + 1,
+        emp.nip || '',
+        fullName,
+        emp.birth_place || '',
+        emp.birth_date || '',
+        emp.gender || '',
+        emp.religion || '',
+        emp.asn_status || '',
+        emp.rank_group || '',
+        emp.position_type || '',
+        emp.position_name || '',
+        emp.additional_position || '',
+        emp.kejuruan || '',
+        emp.department || '',
+        emp.satuan_kerja_penugasan || '',
+        emp.tmt_cpns || '',
+        emp.tmt_pns || '',
+        emp.tmt_pensiun || '',
+        emp.mobile_phone || '',
+        emp.phone || '',
+        emp.address || '',
+        emp.keterangan_formasi || '',
+        emp.keterangan_penempatan || '',
+        emp.keterangan_penugasan || '',
+        emp.keterangan_perubahan || '',
+      ];
+    });
 
     const aoaData = [headers, ...rows];
     const ws = XLSX.utils.aoa_to_sheet(aoaData);
@@ -1519,17 +1558,26 @@ export default function Employees() {
     // Set column widths
     setColumnWidths(ws, [
       5,  // No
-      20, // NIP
-      10, // Gelar Depan
-      30, // Nama
-      15, // Gelar Belakang
+      20, // NIP/NIK
+      35, // Nama Lengkap (dengan gelar)
+      20, // Tempat Lahir
+      14, // Tanggal Lahir
+      12, // Jenis Kelamin
+      12, // Agama
+      10, // Status ASN
+      25, // Golongan/Pangkat
       15, // Jenis Jabatan
       35, // Nama Jabatan
       25, // Jabatan Tambahan
-      10, // Status ASN
-      25, // Golongan
+      25, // Kejuruan
       30, // Unit Kerja
-      14, // Tanggal Masuk
+      25, // Satuan Kerja Penugasan
+      14, // TMT CPNS
+      14, // TMT PNS
+      14, // TMT Pensiun
+      16, // Nomor HP
+      16, // Nomor Telepon
+      40, // Alamat
       25, // Ket. Formasi
       25, // Ket. Penempatan
       25, // Ket. Penugasan
