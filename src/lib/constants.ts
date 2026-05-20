@@ -1,18 +1,28 @@
 // Master data unit kerja
+// Urutan: Setditjen → 5 Direktorat → BNSP → 6 BBPVP → 20 BPVP → 12 Satpel → 3 Workshop → Pusat
 export const DEPARTMENTS = [
+  // Setditjen
   'Setditjen Binalavotas',
+  
+  // 5 Direktorat
   'Direktorat Bina Stankomproglat',
   'Direktorat Bina Lemlatvok',
   'Direktorat Bina Penyelenggaraan Latvogan',
   'Direktorat Bina Intala',
   'Direktorat Bina Peningkatan Produktivitas',
-  'Set. BNSP',
+  
+  // BNSP
+  'Sekretariat BNSP',
+  
+  // 6 BBPVP
   'BBPVP Bekasi',
   'BBPVP Bandung',
   'BBPVP Serang',
   'BBPVP Medan',
   'BBPVP Semarang',
   'BBPVP Makassar',
+  
+  // 20 BPVP
   'BPVP Surakarta',
   'BPVP Ambon',
   'BPVP Ternate',
@@ -28,6 +38,8 @@ export const DEPARTMENTS = [
   'BPVP Sidoarjo',
   'BPVP Pangkep',
   'BPVP Belitung',
+  
+  // 12 Satuan Pelayanan (Satpel)
   'Satuan Pelayanan Sawahlunto',
   'Satuan Pelayanan Sofifi',
   'Satuan Pelayanan Pekanbaru',
@@ -49,9 +61,13 @@ export const DEPARTMENTS = [
   'Satuan Pelayanan Halmahera Selatan',
   'Satuan Pelayanan Tanah Bumbu',
   'Satpel Bulungan',
+  
+  // 3 Workshop
   'Workshop Prabumulih',
   'Workshop Batam',
   'Workshop Gorontalo',
+  
+  // Pusat
   'Pusat',
 ] as const;
 
@@ -91,7 +107,7 @@ export const DEPARTMENT_ALIASES: Record<string, Department> = {
   'Direktorat Bina Penyelenggaraan Latvogan': 'Direktorat Bina Penyelenggaraan Latvogan',
   'Direktorat Bina Lavogan': 'Direktorat Bina Penyelenggaraan Latvogan',
   'Sekretariat Ditjen Binalavotas': 'Setditjen Binalavotas',
-  'Sekretariat BNSP': 'Set. BNSP',
+  'Set. BNSP': 'Sekretariat BNSP',
   // Satuan Pelayanan (Satpel) mappings - map short name to full name
   'Satpel Sawahlunto': 'Satuan Pelayanan Sawahlunto',
   'Satpel Sofifi': 'Satuan Pelayanan Sofifi',

@@ -54,7 +54,7 @@ import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
+import { ASN_STATUS_OPTIONS, DEPARTMENTS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn, normalizeString } from '@/lib/utils';
@@ -1520,13 +1520,31 @@ export default function Employees() {
       'Nomor HP',
       'Nomor Telepon',
       'Alamat',
-      'Ket. Formasi',
       'Ket. Penempatan',
       'Ket. Penugasan',
       'Ket. Perubahan',
     ];
 
-    const rows = filteredEmployees.map((emp, idx) => {
+    // Create department order map for sorting
+    const departmentOrderMap = new Map<string, number>();
+    DEPARTMENTS.forEach((dept, index) => {
+      departmentOrderMap.set(dept, index);
+    });
+
+    // Sort employees by department order, then by name
+    const sortedEmployees = [...filteredEmployees].sort((a, b) => {
+      const deptOrderA = departmentOrderMap.get(a.department || '') ?? 999;
+      const deptOrderB = departmentOrderMap.get(b.department || '') ?? 999;
+      
+      if (deptOrderA !== deptOrderB) {
+        return deptOrderA - deptOrderB;
+      }
+      
+      // Same department, sort by name
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    const rows = sortedEmployees.map((emp, idx) => {
       // Gabungkan gelar depan, nama, dan gelar belakang
       const fullName = [
         emp.front_title,
@@ -1556,7 +1574,6 @@ export default function Employees() {
         emp.mobile_phone || '',
         emp.phone || '',
         emp.address || '',
-        emp.keterangan_formasi || '',
         emp.keterangan_penempatan || '',
         emp.keterangan_penugasan || '',
         emp.keterangan_perubahan || '',
@@ -1589,7 +1606,6 @@ export default function Employees() {
       16, // Nomor HP
       16, // Nomor Telepon
       40, // Alamat
-      25, // Ket. Formasi
       25, // Ket. Penempatan
       25, // Ket. Penugasan
       25, // Ket. Perubahan
