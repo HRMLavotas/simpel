@@ -138,7 +138,21 @@ export const RELIGION_OPTIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha
 export type Religion = typeof RELIGION_OPTIONS[number];
 
 // Education levels
-export const EDUCATION_LEVELS = ['SD', 'SMP', 'SMA/SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'] as const;
+// Include both standard format and legacy format from database
+export const EDUCATION_LEVELS = [
+  'SD/Sederajat',
+  'SLTP/SMP Sederajat', 
+  'SLTA/SMA Sederajat',
+  'D1',
+  'D2', 
+  'D3',
+  'DIII',
+  'D4',
+  'DIV',
+  'S1',
+  'S2',
+  'S3'
+] as const;
 export type EducationLevel = typeof EDUCATION_LEVELS[number];
 
 // Position types

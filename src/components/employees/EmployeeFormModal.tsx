@@ -1447,10 +1447,6 @@ export function EmployeeFormModal({
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tanggal Penting</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="join_date">Tanggal Masuk</Label>
-                <Input id="join_date" type="date" {...form.register('join_date')} />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="tmt_cpns">TMT CPNS</Label>
                 <Input id="tmt_cpns" type="date" {...form.register('tmt_cpns')} />
               </div>

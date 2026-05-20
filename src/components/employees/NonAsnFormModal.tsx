@@ -11,7 +11,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department, getSatpelsByPembina } from '@/lib/constants';
+import { DEPARTMENTS, GENDER_OPTIONS, RELIGION_OPTIONS, type Department, getSatpelsByPembina, EDUCATION_LEVELS } from '@/lib/constants';
 import { useEmployeeValidation } from '@/hooks/useEmployeeValidation';
 import { useNonAsnPositionOptions } from '@/hooks/useNonAsnPositionOptions';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
@@ -33,6 +33,8 @@ interface NonAsnFormData {
   satuan_kerja_penugasan: string;  // NEW: Satpel/Workshop assignment
   keterangan_penugasan: string;  // Using keterangan_penugasan for job_description
   keterangan_perubahan: string;  // Using keterangan_perubahan for notes
+  education_level: string; // NEW: Education Level
+  education_major: string; // NEW: Education Major
 }
 
 interface NonAsnEmployee {
@@ -49,6 +51,8 @@ interface NonAsnEmployee {
   satuan_kerja_penugasan?: string;
   keterangan_penugasan?: string;
   keterangan_perubahan?: string;
+  education_level?: string;
+  education_major?: string;
 }
 
 interface NonAsnFormModalProps {
@@ -75,6 +79,7 @@ export function NonAsnFormModal({
 }: NonAsnFormModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<'main' | 'education' | 'history'>('main');
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([]);
   const [positionHistoryEntries, setPositionHistoryEntries] = useState<HistoryEntry[]>([]);
@@ -91,6 +96,8 @@ export function NonAsnFormModal({
     satuan_kerja_penugasan: '',
     keterangan_penugasan: '',
     keterangan_perubahan: '',
+    education_level: '',
+    education_major: '',
   });
 
   const isEditing = !!editData;
@@ -108,9 +115,191 @@ export function NonAsnFormModal({
   const { positions: positionOptions } = usePositionOptions(formData.department || undefined);
   const positionNames = positionOptions.map((p) => p.position_name);
 
+  // Dynamic state change and bi-directional sync handlers
+  const handleEducationLevelChange = (level: string) => {
+    setFormData(prev => ({ ...prev, education_level: level }));
+    setEducationEntries(prev => {
+      if (prev.length === 0) {
+        return [{
+          level: level,
+          major: formData.education_major || '',
+          institution_name: '',
+          graduation_year: '',
+          front_title: '',
+          back_title: '',
+        }];
+      } else {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          level: level,
+        };
+        return updated;
+      }
+    });
+  };
+
+  const handleEducationMajorChange = (major: string) => {
+    setFormData(prev => ({ ...prev, education_major: major }));
+    setEducationEntries(prev => {
+      if (prev.length === 0) {
+        return [{
+          level: formData.education_level || '',
+          major: major,
+          institution_name: '',
+          graduation_year: '',
+          front_title: '',
+          back_title: '',
+        }];
+      } else {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          major: major,
+        };
+        return updated;
+      }
+    });
+  };
+
+  const handlePositionNameChange = (position: string) => {
+    setFormData(prev => ({ ...prev, position_name: position }));
+    
+    const origPosition = editData?.position_name || '';
+    if (position === origPosition) {
+      // Reset/remove history entry if it goes back to original
+      setPositionHistoryEntries(prev => prev.filter(e => e.jabatan_lama !== origPosition));
+    } else {
+      setPositionHistoryEntries(prev => {
+        const today = new Date().toISOString().split('T')[0];
+        const existingIdx = prev.findIndex(e => e.jabatan_lama === origPosition);
+        const newEntry: HistoryEntry = {
+          tanggal: today,
+          jabatan_lama: origPosition,
+          jabatan_baru: position,
+          unit_kerja: formData.department,
+          nomor_sk: '',
+          keterangan: 'Perubahan Jabatan - Data Utama',
+        };
+        if (existingIdx !== -1) {
+          const updated = [...prev];
+          updated[existingIdx] = newEntry;
+          return updated;
+        }
+        return [...prev, newEntry];
+      });
+    }
+  };
+
+  const handleEducationHistoryChange = (entries: EducationEntry[]) => {
+    setEducationEntries(entries);
+    if (entries.length > 0) {
+      const latest = entries[entries.length - 1];
+      setFormData(prev => ({
+        ...prev,
+        education_level: latest.level || '',
+        education_major: latest.major || '',
+      }));
+    }
+  };
+
+  const handlePositionHistoryChange = (entries: HistoryEntry[]) => {
+    setPositionHistoryEntries(entries);
+    if (entries.length > 0) {
+      const latest = entries[entries.length - 1];
+      if (latest.jabatan_baru) {
+        setFormData(prev => ({
+          ...prev,
+          position_name: latest.jabatan_baru || '',
+        }));
+      }
+    }
+  };
+
   useEffect(() => {
+    const fetchHistory = async (empId: string) => {
+      setIsFetchingHistory(true);
+      try {
+        const [eduRes, posRes] = await Promise.all([
+          supabase.from('education_history').select('id, level, institution_name, major, graduation_year, front_title, back_title').eq('employee_id', empId).order('graduation_year', { ascending: true }),
+          supabase.from('position_history').select('id, tanggal, jabatan_lama, jabatan_baru, unit_kerja, nomor_sk, keterangan').eq('employee_id', empId).order('tanggal', { ascending: true })
+        ]);
+
+        let loadedEdu: EducationEntry[] = [];
+        if (eduRes.data) {
+          loadedEdu = eduRes.data.map(d => ({
+            id: d.id,
+            level: d.level || '',
+            institution_name: d.institution_name || '',
+            major: d.major || '',
+            graduation_year: d.graduation_year?.toString() || '',
+            front_title: d.front_title || '',
+            back_title: d.back_title || '',
+          }));
+          setEducationEntries(loadedEdu);
+          
+          // Update formData with latest education from history
+          // Use callback to ensure we're updating the latest state
+          if (loadedEdu.length > 0) {
+            const latestEdu = loadedEdu[loadedEdu.length - 1];
+            logger.debug('[NonAsnFormModal] Updating education from history:', {
+              level: latestEdu.level,
+              major: latestEdu.major,
+            });
+            setFormData(prev => ({
+              ...prev,
+              education_level: latestEdu.level || prev.education_level || '',
+              education_major: latestEdu.major || prev.education_major || '',
+            }));
+          }
+        }
+
+        let loadedPos: HistoryEntry[] = [];
+        if (posRes.data) {
+          loadedPos = posRes.data.map(d => ({
+            id: d.id,
+            tanggal: d.tanggal || '',
+            jabatan_lama: d.jabatan_lama || '',
+            jabatan_baru: d.jabatan_baru || '',
+            unit_kerja: d.unit_kerja || '',
+            nomor_sk: d.nomor_sk || '',
+            keterangan: d.keterangan || '',
+          }));
+          setPositionHistoryEntries(loadedPos);
+        }
+
+        // If history is empty but main fields have data, auto-populate history entry
+        if (loadedEdu.length === 0 && editData?.education_level) {
+          setEducationEntries([{
+            level: editData.education_level,
+            major: editData.education_major || '',
+            institution_name: '',
+            graduation_year: '',
+            front_title: '',
+            back_title: '',
+          }]);
+        }
+
+        if (loadedPos.length === 0 && editData?.position_name) {
+          setPositionHistoryEntries([{
+            tanggal: new Date().toISOString().split('T')[0],
+            jabatan_lama: '',
+            jabatan_baru: editData.position_name,
+            unit_kerja: editData.department || '',
+            nomor_sk: '',
+            keterangan: 'Data saat ini',
+          }]);
+        }
+      } catch (err) {
+        logger.error('Error fetching Non-ASN history:', err);
+      } finally {
+        setIsFetchingHistory(false);
+      }
+    };
+
     if (editData) {
-      setFormData({
+      // Set initial form data from editData
+      const initialFormData = {
         nip: editData.nip || '',
         name: editData.name || '',
         position_name: editData.position_name || '',
@@ -123,10 +312,19 @@ export function NonAsnFormModal({
         satuan_kerja_penugasan: editData.satuan_kerja_penugasan || '',
         keterangan_penugasan: editData.keterangan_penugasan || '',
         keterangan_perubahan: editData.keterangan_perubahan || '',
+        education_level: editData.education_level || '',
+        education_major: editData.education_major || '',
+      };
+      
+      logger.debug('[NonAsnFormModal] Initial form data from editData:', {
+        education_level: initialFormData.education_level,
+        education_major: initialFormData.education_major,
       });
-      // TODO: Load education and position history from database if needed
-      setEducationEntries([]);
-      setPositionHistoryEntries([]);
+      
+      setFormData(initialFormData);
+      
+      // Fetch history and update education fields if available from history
+      fetchHistory(editData.id);
     } else {
       setFormData({
         nip: '',
@@ -141,6 +339,8 @@ export function NonAsnFormModal({
         satuan_kerja_penugasan: '',
         keterangan_penugasan: '',
         keterangan_perubahan: '',
+        education_level: '',
+        education_major: '',
       });
       setEducationEntries([]);
       setPositionHistoryEntries([]);
@@ -204,6 +404,8 @@ export function NonAsnFormModal({
         satuan_kerja_penugasan: formData.satuan_kerja_penugasan || null,
         keterangan_penugasan: formData.keterangan_penugasan || null,
         keterangan_perubahan: formData.keterangan_perubahan || null,
+        education_level: formData.education_level || null,
+        education_major: formData.education_major || null,
       };
 
       if (isEditing) {
@@ -212,7 +414,10 @@ export function NonAsnFormModal({
           .update(dataToSave)
           .eq('id', editData.id);
 
-        if (error) throw error;
+        if (error) {
+          logger.error('Error updating Non-ASN employee:', error);
+          throw new Error(error.message || 'Gagal memperbarui data pegawai');
+        }
 
         // Update education history - always delete then re-insert
         await supabase
@@ -338,10 +543,16 @@ export function NonAsnFormModal({
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Error saving Non-ASN:', error);
+      
+      // Extract Supabase error details if available
+      const supabaseError = err as any;
+      const errorMessage = supabaseError?.message || error.message || 'Terjadi kesalahan saat menyimpan data';
+      const errorDetails = supabaseError?.details || supabaseError?.hint || '';
+      
       toast({
         variant: 'destructive',
         title: 'Gagal menyimpan',
-        description: error.message || 'Terjadi kesalahan saat menyimpan data',
+        description: errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage,
       });
     } finally {
       setLoading(false);
@@ -471,6 +682,32 @@ export function NonAsnFormModal({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Pendidikan Terakhir */}
+          <div className="space-y-2">
+            <Label htmlFor="education_level">Pendidikan Terakhir</Label>
+            <Select value={formData.education_level} onValueChange={handleEducationLevelChange}>
+              <SelectTrigger id="education_level">
+                <SelectValue placeholder="Pilih pendidikan terakhir" />
+              </SelectTrigger>
+              <SelectContent>
+                {EDUCATION_LEVELS.map((lvl) => (
+                  <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Jurusan */}
+          <div className="space-y-2">
+            <Label htmlFor="education_major">Jurusan</Label>
+            <Input
+              id="education_major"
+              value={formData.education_major}
+              onChange={(e) => handleEducationMajorChange(e.target.value)}
+              placeholder="Masukkan jurusan/program studi"
+            />
+          </div>
                 </div>
               </div>
 
@@ -508,7 +745,7 @@ export function NonAsnFormModal({
             <PositionAutocomplete
               id="position_name"
               value={formData.position_name}
-              onChange={(v) => setFormData({ ...formData, position_name: v })}
+              onChange={handlePositionNameChange}
               options={nonAsnPositions}
               placeholder={formData.department ? 'Pilih atau ketik jabatan Non-ASN' : 'Pilih unit kerja terlebih dahulu'}
               disabled={!formData.department}
@@ -590,7 +827,7 @@ export function NonAsnFormModal({
 
             <TabsContent value="education" className="space-y-6">
               {/* Education Section */}
-              <EducationHistoryForm entries={educationEntries} onChange={setEducationEntries} />
+              <EducationHistoryForm entries={educationEntries} onChange={handleEducationHistoryChange} />
               <p className="text-xs text-muted-foreground italic">
                 💡 Data pendidikan akan ditampilkan di dashboard dan laporan
               </p>
@@ -602,7 +839,7 @@ export function NonAsnFormModal({
                 title="Riwayat Jabatan"
                 fields={POSITION_HISTORY_FIELDS}
                 entries={positionHistoryEntries}
-                onChange={setPositionHistoryEntries}
+                onChange={handlePositionHistoryChange}
                 positionOptions={positionNames}
               />
               <p className="text-xs text-muted-foreground italic">
