@@ -154,9 +154,7 @@ export function EmployeeFormModal({
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
   const [additionalPositionHistoryEntries, setAdditionalPositionHistoryEntries] = useState<AdditionalPositionHistoryEntry[]>([]);
   
-  // State for additional position edit mode
-  const [isEditingAdditionalPosition, setIsEditingAdditionalPosition] = useState(false);
-  const [tempAdditionalPosition, setTempAdditionalPosition] = useState('');
+  // State for additional position edit mode - REMOVED (now using direct input)
 
   // Track if critical fields have changed
   const [hasRankChanged, setHasRankChanged] = useState(false);
@@ -221,8 +219,6 @@ export function EmployeeFormModal({
       setHasPositionChanged(false);
       setHasDepartmentChanged(false);
       setHasAdditionalPositionChanged(false);
-      setIsEditingAdditionalPosition(false);
-      setTempAdditionalPosition('');
       setIsFormReady(false);
       resetNIPValidation();
     } else {
@@ -322,6 +318,41 @@ export function EmployeeFormModal({
                 keterangan: 'Mutasi - Auto-generated',
               };
               toast({ title: '✅ Riwayat Mutasi otomatis ditambahkan', duration: 3000 });
+              return [...prev, newEntry];
+            }
+            return prev;
+          });
+        }
+      }
+
+      // Detect Additional Position/Jabatan Tambahan change
+      if (fieldName === 'additional_position' && value.additional_position !== originalValues.additional_position) {
+        const oldAdditionalPosition = originalValues.additional_position;
+        const newAdditionalPosition = value.additional_position;
+        
+        // Only track if there's an actual change (not just empty to empty)
+        if ((oldAdditionalPosition || newAdditionalPosition) && oldAdditionalPosition !== newAdditionalPosition) {
+          setAdditionalPositionHistoryEntries(prev => {
+            const alreadyExists = prev.some(
+              entry => entry.jabatan_tambahan_lama === oldAdditionalPosition && entry.jabatan_tambahan_baru === newAdditionalPosition
+            );
+
+            if (!alreadyExists) {
+              const newEntry: AdditionalPositionHistoryEntry = {
+                tanggal: today,
+                jabatan_tambahan_lama: oldAdditionalPosition || '',
+                jabatan_tambahan_baru: newAdditionalPosition || '',
+                nomor_sk: '',
+                tmt: today,
+                keterangan: 'Perubahan data - Auto-generated',
+              };
+              
+              if (newAdditionalPosition) {
+                toast({ title: '✅ Riwayat Jabatan Tambahan otomatis ditambahkan', duration: 3000 });
+              } else {
+                toast({ title: '✅ Riwayat penghapusan Jabatan Tambahan otomatis ditambahkan', duration: 3000 });
+              }
+              
               return [...prev, newEntry];
             }
             return prev;
@@ -671,7 +702,37 @@ export function EmployeeFormModal({
         setPlacementNotes((placementRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
         setAssignmentNotes((assignmentRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
         setChangeNotes((changeRes.data || []).map((d: NoteData) => ({ id: d.id, note: d.note || '' })));
-        setAdditionalPositionHistoryEntries(mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']));
+        
+        // Additional Position History with auto-inject current value
+        logger.debug('[EmployeeFormModal] Additional Position History - Raw response:', { 
+          data: addPosRes.data, 
+          error: addPosRes.error,
+          count: addPosRes.data?.length 
+        });
+        
+        if (addPosRes.error) {
+          logger.error('[EmployeeFormModal] Error fetching additional_position_history:', addPosRes.error);
+        }
+        
+        const additionalPositionRows = mapRows(addPosRes.data || [], ['tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan']);
+        logger.debug('[EmployeeFormModal] Additional Position History - After mapRows:', additionalPositionRows);
+        
+        // Isi jabatan_tambahan_lama dari jabatan_tambahan_baru entry sebelumnya
+        const additionalPositionWithOld = inferOldValues(additionalPositionRows, 'jabatan_tambahan_baru', 'jabatan_tambahan_lama');
+        logger.debug('[EmployeeFormModal] Additional Position History - After inferOldValues:', additionalPositionWithOld);
+        
+        // Jika belum ada riwayat jabatan tambahan DAN pegawai memiliki jabatan tambahan saat ini, inject sebagai entry awal
+        if (additionalPositionWithOld.length === 0 && employee.additional_position) {
+          logger.debug('[EmployeeFormModal] Additional Position History - Injecting current value:', employee.additional_position);
+          additionalPositionWithOld.push({ 
+            id: '__current__', 
+            jabatan_tambahan_baru: employee.additional_position, 
+            keterangan: 'Data saat ini' 
+          });
+        }
+        
+        logger.debug('[EmployeeFormModal] Additional Position History - Final entries to set:', additionalPositionWithOld);
+        setAdditionalPositionHistoryEntries(additionalPositionWithOld);
       } catch (err) {
         logger.error('[EmployeeFormModal] Error fetching history data:', err);
         toast({
@@ -688,67 +749,7 @@ export function EmployeeFormModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, employee?.id]);
 
-  // Handle edit additional position
-  const handleEditAdditionalPosition = () => {
-    setTempAdditionalPosition(form.getValues('additional_position') || '');
-    setIsEditingAdditionalPosition(true);
-  };
-
-  // Handle save additional position
-  const handleSaveAdditionalPosition = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const oldAdditionalPosition = originalValues.additional_position;
-    const newAdditionalPosition = tempAdditionalPosition;
-    
-    // Update form value
-    form.setValue('additional_position', newAdditionalPosition, { shouldValidate: true, shouldDirty: true });
-    
-    // Only track if there's an actual change (not just empty to empty)
-    if (oldAdditionalPosition !== newAdditionalPosition && (oldAdditionalPosition || newAdditionalPosition)) {
-      const alreadyExists = additionalPositionHistoryEntries.some(
-        entry => entry.jabatan_tambahan_lama === oldAdditionalPosition && entry.jabatan_tambahan_baru === newAdditionalPosition
-      );
-
-      if (!alreadyExists) {
-        const newEntry: AdditionalPositionHistoryEntry = {
-          tanggal: today,
-          jabatan_tambahan_lama: oldAdditionalPosition || '',
-          jabatan_tambahan_baru: newAdditionalPosition || '',
-          nomor_sk: '',
-          tmt: today,
-          keterangan: 'Perubahan data - Auto-generated',
-        };
-        setAdditionalPositionHistoryEntries(prev => [...prev, newEntry]);
-        
-        // Show toast notification
-        if (newAdditionalPosition) {
-          toast({
-            title: '✅ Riwayat Jabatan Tambahan otomatis ditambahkan',
-            duration: 3000,
-          });
-        } else {
-          toast({
-            title: '✅ Riwayat penghapusan Jabatan Tambahan otomatis ditambahkan',
-            duration: 3000,
-          });
-        }
-      }
-      
-      // Update original value so it doesn't trigger again
-      setOriginalValues(prev => ({
-        ...prev,
-        additional_position: newAdditionalPosition
-      }));
-    }
-    
-    setIsEditingAdditionalPosition(false);
-  };
-
-  // Handle cancel edit additional position
-  const handleCancelEditAdditionalPosition = () => {
-    setTempAdditionalPosition('');
-    setIsEditingAdditionalPosition(false);
-  };
+  // Handle edit additional position - REMOVED (now using direct input with auto-tracking)
 
   const handleSubmit = async (data: z.infer<typeof employeeSchema>) => {
     // Check NIP validation before submit
@@ -1258,84 +1259,23 @@ export function EmployeeFormModal({
                 )}
               </div>
 
-              {/* NEW: Jabatan Tambahan / PLT (Opsional) */}
-              <div className="space-y-2">
+              {/* Jabatan Tambahan / PLT (Opsional) - Direct Input - Full Width */}
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="additional_position">
                   Jabatan Tambahan / PLT
                   <span className="text-xs text-muted-foreground ml-2">(Opsional)</span>
                 </Label>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Isi jika pegawai menjabat sebagai Pelaksana Tugas (PLT) atau memiliki jabatan tambahan lain. Contoh: <span className="font-medium">PLT Direktur</span>, <span className="font-medium">PLT Kepala Bagian Umum</span>. Tidak mempengaruhi data di Peta Jabatan.
-                </p>
-                <div className="flex gap-2">
-                  {isEditingAdditionalPosition ? (
-                    <>
-                      <Input 
-                        id="additional_position_temp"
-                        placeholder="Contoh: PLT Direktur, PLT Kepala Bagian Umum" 
-                        value={tempAdditionalPosition}
-                        onChange={(e) => setTempAdditionalPosition(e.target.value)}
-                        className="flex-1"
-                        autoFocus
-                      />
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        onClick={handleSaveAdditionalPosition}
-                        className="shrink-0"
-                      >
-                        Simpan
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCancelEditAdditionalPosition}
-                        className="shrink-0"
-                      >
-                        Batal
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm flex-1 items-center">
-                        {form.watch('additional_position') || '-'}
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleEditAdditionalPosition}
-                        className="shrink-0"
-                      >
-                        Edit
-                      </Button>
-                      {form.watch('additional_position') && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setTempAdditionalPosition('');
-                            setIsEditingAdditionalPosition(true);
-                          }}
-                          className="shrink-0"
-                        >
-                          Kosongkan
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
+                <Input
+                  id="additional_position"
+                  placeholder="Contoh: PLT Direktur, PLT Kepala Bagian Umum"
+                  {...form.register('additional_position')}
+                  className="w-full"
+                />
                 <p className="text-xs text-muted-foreground">
-                  {isEditingAdditionalPosition 
-                    ? 'Klik "Simpan" untuk menyimpan perubahan atau "Batal" untuk membatalkan'
-                    : 'Klik "Edit" untuk mengubah jabatan tambahan. Perubahan akan otomatis menambahkan riwayat.'
-                  }
+                  Isi jika pegawai menjabat sebagai Pelaksana Tugas (PLT) atau memiliki jabatan tambahan lain. Tidak mempengaruhi data di Peta Jabatan.
                 </p>
-                {hasAdditionalPositionChanged && !isEditingAdditionalPosition && (
-                  <p className="text-xs text-muted-foreground">⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan</p>
+                {hasAdditionalPositionChanged && (
+                  <p className="text-xs text-amber-600">⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan</p>
                 )}
               </div>
 
