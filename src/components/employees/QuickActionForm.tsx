@@ -116,27 +116,27 @@ export function QuickActionForm({
 
   // Auto-apply rank change when newRank is selected
   useEffect(() => {
-    if (newRank && newRank !== currentRank && rankDate && rankTMT) {
+    if (newRank && rankDate && rankTMT) {
       // Use setTimeout to avoid calling setState during render
       setTimeout(() => applyRankChange(), 0);
     }
-  }, [newRank, rankDate, rankTMT]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [newRank, rankDate, rankTMT, rankSK, rankNotes]);
 
   // Auto-apply mutation when department is selected
   useEffect(() => {
-    if (newDepartment && newDepartment !== currentDepartment && mutationDate) {
+    if (newDepartment && mutationDate) {
       // Use setTimeout to avoid calling setState during render
       setTimeout(() => applyMutation(), 0);
     }
-  }, [newDepartment, mutationDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [newDepartment, mutationPosition, mutationDate, mutationSK, mutationNotes]);
 
   // Auto-apply position change when newPosition is filled
   useEffect(() => {
-    if (newPosition && newPosition.trim() !== currentPosition.trim() && positionDate) {
+    if (newPosition && newPosition.trim() && positionDate) {
       // Use setTimeout to avoid calling setState during render
       setTimeout(() => applyPositionChange(), 0);
     }
-  }, [newPosition, positionDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [newPosition, positionDate, positionSK, positionNotes]);
 
   // Auto-apply inactive status when reason is selected
   useEffect(() => {
@@ -144,11 +144,11 @@ export function QuickActionForm({
       // Use setTimeout to avoid calling setState during render
       setTimeout(() => applyInactiveStatus(), 0);
     }
-  }, [inactiveReason, inactiveDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inactiveReason, inactiveDate, inactiveSK, inactiveNotes]);
 
   // Auto-apply rank change when all required fields are filled
   const applyRankChange = () => {
-    if (!newRank || newRank === currentRank) return;
+    if (!newRank) return;
     
     const entry: HistoryEntry = {
       tanggal: rankDate,
@@ -166,7 +166,7 @@ export function QuickActionForm({
 
   // Auto-apply mutation when department is selected
   const applyMutation = () => {
-    if (!newDepartment || newDepartment === currentDepartment) return;
+    if (!newDepartment) return;
     
     const entry: HistoryEntry = {
       tanggal: mutationDate,
@@ -193,7 +193,7 @@ export function QuickActionForm({
 
   // Auto-apply position change when position is filled
   const applyPositionChange = () => {
-    if (!newPosition || newPosition.trim() === currentPosition.trim()) return;
+    if (!newPosition || !newPosition.trim()) return;
     
     const entry: HistoryEntry = {
       tanggal: positionDate,

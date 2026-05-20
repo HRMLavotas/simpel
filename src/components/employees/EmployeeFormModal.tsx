@@ -966,30 +966,19 @@ export function EmployeeFormModal({
     // Update main form
     form.setValue('rank_group', newRank, { shouldValidate: true, shouldDirty: true });
     
-    // Check for duplicate with more strict criteria (including date and SK number)
-    const isDuplicate = rankHistoryEntries.some(
-      e => e.pangkat_lama === entry.pangkat_lama && 
-           e.pangkat_baru === entry.pangkat_baru &&
-           e.tanggal === entry.tanggal &&
-           e.nomor_sk === entry.nomor_sk
-    );
+    const origRank = employee?.rank_group || '';
     
-    if (!isDuplicate) {
-      // Add to rank history
-      setRankHistoryEntries(prev => [...prev, entry]);
-      
-      // Show toast
-      toast({
-        title: '✅ Kenaikan Pangkat Berhasil',
-        description: `Pangkat diupdate menjadi ${newRank}`,
-        duration: 3000,
-      });
+    if (newRank === origRank) {
+      setRankHistoryEntries(prev => prev.filter(e => e.pangkat_lama !== origRank));
     } else {
-      logger.warn('Duplicate rank history entry detected, skipping');
-      toast({
-        title: 'Info',
-        description: 'Riwayat pangkat sudah ada',
-        duration: 2000,
+      setRankHistoryEntries(prev => {
+        const existingIdx = prev.findIndex(e => e.pangkat_lama === origRank);
+        if (existingIdx !== -1) {
+          const updated = [...prev];
+          updated[existingIdx] = entry;
+          return updated;
+        }
+        return [...prev, entry];
       });
     }
     
@@ -1005,30 +994,19 @@ export function EmployeeFormModal({
     // Update main form
     form.setValue('position_name', newPosition, { shouldValidate: true, shouldDirty: true });
     
-    // Check for duplicate with more strict criteria
-    const isDuplicate = positionHistoryEntries.some(
-      e => e.jabatan_lama === entry.jabatan_lama && 
-           e.jabatan_baru === entry.jabatan_baru &&
-           e.tanggal === entry.tanggal &&
-           e.nomor_sk === entry.nomor_sk
-    );
+    const origPosition = employee?.position_name || '';
     
-    if (!isDuplicate) {
-      // Add to position history
-      setPositionHistoryEntries(prev => [...prev, entry]);
-      
-      // Show toast
-      toast({
-        title: '✅ Pergantian Jabatan Berhasil',
-        description: `Jabatan diupdate menjadi ${newPosition}`,
-        duration: 3000,
-      });
+    if (newPosition === origPosition) {
+      setPositionHistoryEntries(prev => prev.filter(e => e.jabatan_lama !== origPosition));
     } else {
-      logger.warn('Duplicate position history entry detected, skipping');
-      toast({
-        title: 'Info',
-        description: 'Riwayat jabatan sudah ada',
-        duration: 2000,
+      setPositionHistoryEntries(prev => {
+        const existingIdx = prev.findIndex(e => e.jabatan_lama === origPosition);
+        if (existingIdx !== -1) {
+          const updated = [...prev];
+          updated[existingIdx] = entry;
+          return updated;
+        }
+        return [...prev, entry];
       });
     }
     
@@ -1051,43 +1029,42 @@ export function EmployeeFormModal({
       setOriginalValues(prev => ({ ...prev, department: newDepartment }));
     }
     
-    // Check for duplicate with more strict criteria
-    const isDuplicate = mutationEntries.some(
-      e => e.dari_unit === entry.dari_unit && 
-           e.ke_unit === entry.ke_unit &&
-           e.tanggal === entry.tanggal &&
-           e.nomor_sk === entry.nomor_sk
-    );
+    const origDept = employee?.department || '';
     
-    if (!isDuplicate) {
-      setMutationEntries(prev => [...prev, entry]);
-      
-      // Jika jabatan juga berubah, tambah riwayat jabatan
-      if (newPosition && newPosition !== form.getValues('position_name')) {
-        const today = new Date().toISOString().split('T')[0];
-        const posEntry: HistoryEntry = {
-          tanggal: entry.tanggal || today,
-          jabatan_lama: form.getValues('position_name') || '',
-          jabatan_baru: newPosition,
-          nomor_sk: entry.nomor_sk || '',
-          keterangan: 'Perubahan jabatan saat mutasi - Quick Action',
-        };
-        setPositionHistoryEntries(prev => [...prev, posEntry]);
-      }
-      
-      toast({
-        title: '✅ Mutasi Berhasil',
-        description: newPosition
-          ? `Unit kerja → ${newDepartment} | Jabatan → ${newPosition}`
-          : `Unit kerja diupdate menjadi ${newDepartment}`,
-        duration: 3000,
-      });
+    if (newDepartment === origDept) {
+      setMutationEntries(prev => prev.filter(e => e.dari_unit !== origDept));
     } else {
-      logger.warn('Duplicate mutation entry detected, skipping');
-      toast({
-        title: 'Info',
-        description: 'Riwayat mutasi sudah ada',
-        duration: 2000,
+      setMutationEntries(prev => {
+        const existingIdx = prev.findIndex(e => e.dari_unit === origDept);
+        if (existingIdx !== -1) {
+          const updated = [...prev];
+          updated[existingIdx] = entry;
+          return updated;
+        }
+        return [...prev, entry];
+      });
+    }
+
+    // Jika jabatan juga berubah, tambah/update riwayat jabatan
+    const origPosition = employee?.position_name || '';
+    if (newPosition && newPosition !== origPosition) {
+      const today = new Date().toISOString().split('T')[0];
+      const posEntry: HistoryEntry = {
+        tanggal: entry.tanggal || today,
+        jabatan_lama: origPosition,
+        jabatan_baru: newPosition,
+        nomor_sk: entry.nomor_sk || '',
+        keterangan: entry.keterangan || 'Perubahan jabatan saat mutasi - Quick Action',
+      };
+      
+      setPositionHistoryEntries(prev => {
+        const existingIdx = prev.findIndex(e => e.jabatan_lama === origPosition);
+        if (existingIdx !== -1) {
+          const updated = [...prev];
+          updated[existingIdx] = posEntry;
+          return updated;
+        }
+        return [...prev, posEntry];
       });
     }
   };
@@ -1096,14 +1073,13 @@ export function EmployeeFormModal({
     quickActionUsedRef.current = true;
     formModifiedRef.current = true;
     
-    // Note: is_active, inactive_date, inactive_reason tidak ada di form schema
-    // Kita akan menambahkannya ke formData saat submit
-    // Untuk sekarang, simpan di state terpisah atau tambahkan ke change_notes
-    
-    // Tambahkan ke change_notes sebagai catatan perubahan status
     const noteText = `Status Non-Aktif: ${inactiveReason} (${new Date(inactiveDate).toLocaleDateString('id-ID')})${entry.nomor_sk ? ` - SK: ${entry.nomor_sk}` : ''}${entry.keterangan ? ` - ${entry.keterangan}` : ''}`;
     
-    setChangeNotes(prev => [...prev, { note: noteText }]);
+    setChangeNotes(prev => {
+      // Filter out any previous Non-Aktif note to prevent multiple note cards
+      const filtered = prev.filter(n => !n.note.startsWith('Status Non-Aktif:'));
+      return [...filtered, { note: noteText }];
+    });
     
     toast({
       title: '⚠️ Pegawai Di-non-aktifkan',
@@ -1111,8 +1087,6 @@ export function EmployeeFormModal({
       duration: 5000,
     });
     
-    // Store inactive data in a ref or state to be included in form submission
-    // We'll add this to the form data during submit
     (form as any)._inactiveData = {
       is_active: isActive,
       inactive_date: inactiveDate,
@@ -1200,9 +1174,9 @@ export function EmployeeFormModal({
                     </div>
                   ) : (
                     <QuickActionForm
-                      currentRank={form.watch('rank_group') || ''}
-                      currentPosition={form.watch('position_name') || ''}
-                      currentDepartment={form.watch('department') || ''}
+                      currentRank={employee?.rank_group || ''}
+                      currentPosition={employee?.position_name || ''}
+                      currentDepartment={employee?.department || ''}
                       asnStatus={form.watch('asn_status') || ''}
                       departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
                       allDepartments={dynamicDepartments.filter(Boolean)}
