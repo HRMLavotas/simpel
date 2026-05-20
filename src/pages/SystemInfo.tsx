@@ -23,9 +23,19 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.24.0',
+    date: '20 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'improvement', text: 'Dropdown Unit Kerja: urutan unit kerja di menu Data Pegawai diperbarui mengikuti struktur organisasi resmi — dimulai dari Setditjen Binalavotas, 5 Direktorat, Sekretariat BNSP, 6 BBPVP, hingga 20 BPVP (sebelumnya urutan alfabetis dimulai dari BBPVP Bandung).' },
+      { type: 'improvement', text: 'Export Excel Data Pegawai: urutan unit kerja dalam file export kini konsisten dengan dropdown — data terurut sesuai hierarki organisasi untuk kemudahan analisis dan pelaporan.' },
+      { type: 'improvement', text: 'Tampilan Data Pegawai: urutan pegawai di tabel kini mengikuti struktur organisasi (bukan alfabetis) — memudahkan navigasi dan pencarian pegawai berdasarkan unit kerja.' },
+      { type: 'fix', text: 'Hook useDepartments: menghapus sorting alfabetis dari query database — urutan unit kerja kini diambil dari konstanta DEPARTMENTS yang sudah terstruktur sesuai hierarki organisasi.' },
+    ],
+  },
+  {
     version: '2.23.0',
     date: '18 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'feature', text: 'Audit Kelengkapan Data Unit Kerja (Sarpras & Kejuruan): Menambahkan sistem dual-tab ("Pegawai" & "Unit Kerja") untuk mendeteksi unit kerja yang belum mengisi data Sarana, Prasarana, atau Kejuruan.' },
       { type: 'feature', text: 'Ekspansi Akses Audit Unit Pembina & Binaan: Admin Unit Pembina (BBPVP/BPVP) secara otomatis dapat memantau kelengkapan data pegawai serta profil sarpras unit binaan (Satpel/Workshop) di bawah naungannya.' },
