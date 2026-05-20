@@ -1439,33 +1439,11 @@ export default function Employees() {
   };
 
   const handleFormSubmit = async (data: EmployeeFormData) => {
-    // Jika sedang edit, deteksi semua perubahan dan tampilkan ChangeLogDialog
-    // (kecuali jika perubahan berasal dari Quick Action yang sudah punya handler sendiri)
-    if (selectedEmployee && !data._skipChangeDetection) {
-      const changes = detectChanges(selectedEmployee, data);
-      if (changes.length > 0) {
-        setDetectedChanges(changes);
-        setPendingFormData(data);
-        setFormModalOpen(false);
-        setChangeLogOpen(true);
-        return;
-      }
-      // Jika tidak ada perubahan yang terdeteksi di field utama,
-      // tetap simpan (perubahan mungkin ada di field non-tracked seperti phone, address, dll)
-    }
-
-    // Quick Action digunakan, tambah pegawai baru, atau tidak ada perubahan utama — simpan langsung
-    await executeSave(data, [], '', '', new Date().toISOString().split('T')[0]);
-  };
-
-  const handleChangeLogConfirm = async (notes: string, link: string, date: string) => {
-    if (!pendingFormData) return;
-    await executeSave(pendingFormData, detectedChanges, notes, link, date);
-  };
-
-  const handleChangeLogSkip = async () => {
-    if (!pendingFormData) return;
-    await executeSave(pendingFormData, detectedChanges, '', '', new Date().toISOString().split('T')[0]);
+    // Detect critical field changes for automatic history recording
+    const changes = selectedEmployee ? detectChanges(selectedEmployee, data) : [];
+    
+    // Save directly and record history entries automatically
+    await executeSave(data, changes, '', '', new Date().toISOString().split('T')[0]);
   };
 
   const handleConfirmDelete = async () => {
@@ -2140,21 +2118,7 @@ export default function Employees() {
         isAdminPusat={isAdminPusat}
       />
 
-      <ChangeLogDialog
-        open={changeLogOpen}
-        onOpenChange={(open) => {
-          setChangeLogOpen(open);
-          if (!open) {
-            // If user closes dialog, reopen form so they don't lose data
-            setFormModalOpen(true);
-          }
-        }}
-        changes={detectedChanges}
-        employeeName={selectedEmployee ? formatDisplayName(selectedEmployee) : ''}
-        onConfirm={handleChangeLogConfirm}
-        onSkip={handleChangeLogSkip}
-        isLoading={isSubmitting}
-      />
+
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}

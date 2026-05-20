@@ -9,6 +9,33 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/testUtils';
 import { EmployeeFormModal } from '../EmployeeFormModal';
 
+// Mock hook dependencies
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user-id', email: 'test@example.com' },
+    profile: { id: 'test-user-id', email: 'test@example.com', full_name: 'Test User', department: 'Test Department' },
+    role: 'admin_pusat',
+    isAdminPusat: true,
+    isLoading: false,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('@/hooks/useDepartments', () => ({
+  useDepartments: () => ({
+    departments: ['IT', 'HR', 'Finance', 'Test Department'],
+    isLoading: false,
+  }),
+}));
+
+vi.mock('@/hooks/usePositionOptions', () => ({
+  usePositionOptions: () => ({
+    positionNames: ['Developer', 'Manager', 'Analyst'],
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -33,8 +60,8 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 describe('EmployeeFormModal', () => {
-  const mockOnClose = vi.fn();
-  const mockOnSuccess = vi.fn();
+  const mockOnOpenChange = vi.fn();
+  const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,24 +71,24 @@ describe('EmployeeFormModal', () => {
     renderWithProviders(
       <EmployeeFormModal
         open={true}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
       />
     );
 
-    expect(screen.getByText(/Tambah Pegawai/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tambah Pegawai Baru/i)).toBeInTheDocument();
   });
 
   it('should not render modal when closed', () => {
     renderWithProviders(
       <EmployeeFormModal
         open={false}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
       />
     );
 
-    expect(screen.queryByText(/Tambah Pegawai/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tambah Pegawai Baru/i)).not.toBeInTheDocument();
   });
 
   it('should display edit mode title when employee is provided', () => {
@@ -69,39 +96,56 @@ describe('EmployeeFormModal', () => {
       id: 'emp-1',
       nip: '199001012020121001',
       name: 'John Doe',
+      front_title: null,
+      back_title: null,
+      birth_place: null,
+      birth_date: null,
+      gender: null,
+      religion: null,
+      position_type: null,
+      position_name: 'Developer',
+      additional_position: null,
+      kejuruan: null,
+      asn_status: 'PNS',
+      rank_group: null,
       department: 'IT',
-      position: 'Developer',
-      asn_status: 'ASN',
-      employment_status: 'Aktif',
+      join_date: null,
+      tmt_cpns: null,
+      tmt_pns: null,
+      tmt_pensiun: null,
+      phone: null,
+      mobile_phone: null,
+      address: null,
+      satuan_kerja_penugasan: null,
     };
 
     renderWithProviders(
       <EmployeeFormModal
         open={true}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
         employee={mockEmployee}
       />
     );
 
-    expect(screen.getByText(/Edit Pegawai/i)).toBeInTheDocument();
+    expect(screen.getByText(/Edit Data Pegawai/i)).toBeInTheDocument();
   });
 
-  it('should call onClose when cancel button is clicked', async () => {
+  it('should call onOpenChange(false) when cancel button is clicked', async () => {
     const user = userEvent.setup();
 
     renderWithProviders(
       <EmployeeFormModal
         open={true}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
       />
     );
 
     const cancelButton = screen.getByRole('button', { name: /batal/i });
     await user.click(cancelButton);
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('should validate required fields', async () => {
@@ -110,17 +154,21 @@ describe('EmployeeFormModal', () => {
     renderWithProviders(
       <EmployeeFormModal
         open={true}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
       />
     );
 
-    const submitButton = screen.getByRole('button', { name: /simpan/i });
+    // Make sure we are on Data Utama tab
+    const mainTabTrigger = screen.getByRole('tab', { name: /Data Utama/i });
+    await user.click(mainTabTrigger);
+
+    const submitButton = screen.getByRole('button', { name: /tambah pegawai/i });
     await user.click(submitButton);
 
+    // Wait for validation errors
     await waitFor(() => {
-      // Form should show validation errors
-      expect(screen.getByText(/required|wajib/i)).toBeInTheDocument();
+      expect(screen.getByText(/wajib/i)).toBeInTheDocument();
     });
   });
 
@@ -130,19 +178,24 @@ describe('EmployeeFormModal', () => {
     renderWithProviders(
       <EmployeeFormModal
         open={true}
-        onClose={mockOnClose}
-        onSuccess={mockOnSuccess}
+        onOpenChange={mockOnOpenChange}
+        onSubmit={mockOnSubmit}
       />
     );
 
-    const nipInput = screen.getByLabelText(/NIP/i);
-    await user.type(nipInput, '123'); // Invalid NIP (too short)
+    // Click Data Utama tab
+    const mainTabTrigger = screen.getByRole('tab', { name: /Data Utama/i });
+    await user.click(mainTabTrigger);
 
-    const submitButton = screen.getByRole('button', { name: /simpan/i });
+    const nipInput = screen.getByLabelText(/NIP/i);
+    // Type 19 digits to trigger max(18) length check
+    await user.type(nipInput, '12345678901234567890');
+
+    const submitButton = screen.getByRole('button', { name: /tambah pegawai/i });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/18 digit/i)).toBeInTheDocument();
+      expect(screen.getByText(/maksimal 18 digit/i)).toBeInTheDocument();
     });
   });
 });

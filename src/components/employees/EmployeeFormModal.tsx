@@ -43,6 +43,7 @@ import {
 } from './EmployeeHistoryForm';
 import { NotesForm, type NoteEntry } from './NotesForm';
 import { AdditionalPositionHistoryForm, type AdditionalPositionHistoryEntry } from './AdditionalPositionHistoryForm';
+import { AdditionalPositionsManager, type AdditionalPositionItem, additionalPositionsToString, stringToAdditionalPositions } from './AdditionalPositionsManager';
 import { QuickActionForm } from './QuickActionForm';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
@@ -153,6 +154,9 @@ export function EmployeeFormModal({
   const [assignmentNotes, setAssignmentNotes] = useState<NoteEntry[]>([]);
   const [changeNotes, setChangeNotes] = useState<NoteEntry[]>([]);
   const [additionalPositionHistoryEntries, setAdditionalPositionHistoryEntries] = useState<AdditionalPositionHistoryEntry[]>([]);
+  
+  // State for additional positions (multi-item)
+  const [additionalPositions, setAdditionalPositions] = useState<AdditionalPositionItem[]>([]);
   
   // State for additional position edit mode - REMOVED (now using direct input)
 
@@ -327,36 +331,110 @@ export function EmployeeFormModal({
 
       // Detect Additional Position/Jabatan Tambahan change
       if (fieldName === 'additional_position' && value.additional_position !== originalValues.additional_position) {
-        const oldAdditionalPosition = originalValues.additional_position;
-        const newAdditionalPosition = value.additional_position;
+        const oldStr = originalValues.additional_position || '';
+        const newStr = value.additional_position || '';
         
-        // Only track if there's an actual change (not just empty to empty)
-        if ((oldAdditionalPosition || newAdditionalPosition) && oldAdditionalPosition !== newAdditionalPosition) {
-          setAdditionalPositionHistoryEntries(prev => {
-            const alreadyExists = prev.some(
-              entry => entry.jabatan_tambahan_lama === oldAdditionalPosition && entry.jabatan_tambahan_baru === newAdditionalPosition
+        if (oldStr !== newStr) {
+          const oldItems = stringToAdditionalPositions(oldStr);
+          const newItems = stringToAdditionalPositions(newStr);
+          
+          const addedItems: AdditionalPositionItem[] = [];
+          const removedItems: AdditionalPositionItem[] = [];
+          
+          const formatItem = (item: AdditionalPositionItem) => `${item.category}: ${item.position_name}`;
+          
+          newItems.forEach(newItem => {
+            const exists = oldItems.some(
+              oldItem => oldItem.category === newItem.category && oldItem.position_name === newItem.position_name
             );
-
-            if (!alreadyExists) {
-              const newEntry: AdditionalPositionHistoryEntry = {
+            if (!exists) {
+              addedItems.push(newItem);
+            }
+          });
+          
+          oldItems.forEach(oldItem => {
+            const exists = newItems.some(
+              newItem => newItem.category === oldItem.category && newItem.position_name === oldItem.position_name
+            );
+            if (!exists) {
+              removedItems.push(oldItem);
+            }
+          });
+          
+          const newHistoryEntries: AdditionalPositionHistoryEntry[] = [];
+          const matchedAddedIndices = new Set<number>();
+          const matchedRemovedIndices = new Set<number>();
+          
+          // Pair up modifications by category (e.g. old PLT -> new PLT)
+          addedItems.forEach((addedItem, addedIdx) => {
+            const removedIdx = removedItems.findIndex(
+              (removedItem, rIdx) => removedItem.category === addedItem.category && !matchedRemovedIndices.has(rIdx)
+            );
+            
+            if (removedIdx !== -1) {
+              matchedAddedIndices.add(addedIdx);
+              matchedRemovedIndices.add(removedIdx);
+              
+              newHistoryEntries.push({
                 tanggal: today,
-                jabatan_tambahan_lama: oldAdditionalPosition || '',
-                jabatan_tambahan_baru: newAdditionalPosition || '',
+                jabatan_tambahan_lama: formatItem(removedItems[removedIdx]),
+                jabatan_tambahan_baru: formatItem(addedItem),
                 nomor_sk: '',
                 tmt: today,
-                keterangan: 'Perubahan data - Auto-generated',
-              };
-              
-              if (newAdditionalPosition) {
-                toast({ title: '✅ Riwayat Jabatan Tambahan otomatis ditambahkan', duration: 3000 });
-              } else {
-                toast({ title: '✅ Riwayat penghapusan Jabatan Tambahan otomatis ditambahkan', duration: 3000 });
-              }
-              
-              return [...prev, newEntry];
+                keterangan: 'Perubahan Jabatan Tambahan - Auto-generated',
+              });
             }
-            return prev;
           });
+          
+          // Add remaining additions (new positions)
+          addedItems.forEach((addedItem, addedIdx) => {
+            if (!matchedAddedIndices.has(addedIdx)) {
+              newHistoryEntries.push({
+                tanggal: today,
+                jabatan_tambahan_lama: '',
+                jabatan_tambahan_baru: formatItem(addedItem),
+                nomor_sk: '',
+                tmt: today,
+                keterangan: 'Penambahan Jabatan Tambahan - Auto-generated',
+              });
+            }
+          });
+          
+          // Add remaining removals (deleted positions)
+          removedItems.forEach((removedItem, removedIdx) => {
+            if (!matchedRemovedIndices.has(removedIdx)) {
+              newHistoryEntries.push({
+                tanggal: today,
+                jabatan_tambahan_lama: formatItem(removedItem),
+                jabatan_tambahan_baru: '',
+                nomor_sk: '',
+                tmt: today,
+                keterangan: 'Penghapusan Jabatan Tambahan - Auto-generated',
+              });
+            }
+          });
+          
+          if (newHistoryEntries.length > 0) {
+            setAdditionalPositionHistoryEntries(prev => {
+              const filteredNew = newHistoryEntries.filter(newEntry => {
+                return !prev.some(
+                  existing =>
+                    existing.jabatan_tambahan_lama === newEntry.jabatan_tambahan_lama &&
+                    existing.jabatan_tambahan_baru === newEntry.jabatan_tambahan_baru &&
+                    existing.tanggal === newEntry.tanggal
+                );
+              });
+              
+              if (filteredNew.length > 0) {
+                toast({
+                  title: `✅ ${filteredNew.length} Riwayat Jabatan Tambahan otomatis ditambahkan`,
+                  duration: 3000,
+                });
+                return [...prev, ...filteredNew];
+              }
+              return prev;
+            });
+          }
         }
       }
     });
@@ -528,6 +606,10 @@ export function EmployeeFormModal({
         additional_position: employee.additional_position || '',
       });
       
+      // Parse additional_position string to array
+      const parsedPositions = stringToAdditionalPositions(employee.additional_position);
+      setAdditionalPositions(parsedPositions);
+      
       // Reset form
       form.reset({
         nip: employee.nip || '',
@@ -572,6 +654,7 @@ export function EmployeeFormModal({
     } else {
       // New employee
       setOriginalValues({ rank_group: '', position_name: '', department: '', additional_position: '' });
+      setAdditionalPositions([]); // Reset additional positions for new employee
       form.reset({
         nip: '', name: '', front_title: '', back_title: '',
         birth_place: '', birth_date: '', gender: '', religion: '',
@@ -749,7 +832,11 @@ export function EmployeeFormModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, employee?.id]);
 
-  // Handle edit additional position - REMOVED (now using direct input with auto-tracking)
+  const handleAdditionalPositionsChange = (newPositions: AdditionalPositionItem[]) => {
+    setAdditionalPositions(newPositions);
+    const serialized = additionalPositionsToString(newPositions);
+    form.setValue('additional_position', serialized, { shouldValidate: true, shouldDirty: true });
+  };
 
   const handleSubmit = async (data: z.infer<typeof employeeSchema>) => {
     // Check NIP validation before submit
@@ -1259,23 +1346,17 @@ export function EmployeeFormModal({
                 )}
               </div>
 
-              {/* Jabatan Tambahan / PLT (Opsional) - Direct Input - Full Width */}
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="additional_position">
-                  Jabatan Tambahan / PLT
-                  <span className="text-xs text-muted-foreground ml-2">(Opsional)</span>
-                </Label>
-                <Input
-                  id="additional_position"
-                  placeholder="Contoh: PLT Direktur, PLT Kepala Bagian Umum"
-                  {...form.register('additional_position')}
-                  className="w-full"
+              {/* Jabatan Tambahan / PLT (Opsional) - Multi-item Manager - Full Width */}
+              <div className="sm:col-span-2">
+                <AdditionalPositionsManager
+                  positions={additionalPositions}
+                  onChange={handleAdditionalPositionsChange}
+                  disabled={isLoading}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Isi jika pegawai menjabat sebagai Pelaksana Tugas (PLT) atau memiliki jabatan tambahan lain. Tidak mempengaruhi data di Peta Jabatan.
-                </p>
                 {hasAdditionalPositionChanged && (
-                  <p className="text-xs text-amber-600">⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan</p>
+                  <p className="text-xs text-amber-600 mt-2">
+                    ⚠️ Perubahan jabatan tambahan akan otomatis menambahkan riwayat jabatan tambahan
+                  </p>
                 )}
               </div>
 
