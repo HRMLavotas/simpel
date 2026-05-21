@@ -31,6 +31,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { generateFallbackMarkdown } from '@/utils/generateFallbackMarkdown';
 
 const BPS_API_KEY = import.meta.env.VITE_BPS_API_KEY;
 
@@ -474,169 +475,78 @@ Pastikan seluruh rekomendasi dan analisis kamu secara eksplisit mengacu dan mema
         if (!res.ok) throw new Error('Gagal menghubungi DeepSeek API secara langsung');
       }
 
-      const reader = res.body?.getReader(); const dec = new TextDecoder();
+      const reader = res.body?.getReader(); 
+      const dec = new TextDecoder('utf-8'); // Explicit UTF-8 encoding
       if (!reader) throw new Error('Gagal membaca stream');
-      let full='', thinking='';
+      let full='', thinking='', buffer='';
+      
       while(true){
-        const {done,value}=await reader.read(); if(done) break;
-        const lines=dec.decode(value,{stream:true}).split('\n').filter(l=>l.trim());
+        const {done,value}=await reader.read(); 
+        if(done) break;
+        
+        // Handle multi-byte UTF-8 characters properly
+        buffer += dec.decode(value, {stream: true});
+        const lines = buffer.split('\n');
+        
+        // Keep last incomplete line in buffer
+        buffer = lines.pop() || '';
+        
         for(const line of lines){
-          if(!line.startsWith('data: ')) continue;
-          const d=line.slice(6).trim(); if(d==='[DONE]') continue;
-          try{const j=JSON.parse(d);const delta=j.choices[0].delta;
-            if(delta.reasoning_content){thinking+=delta.reasoning_content;setAiThinking(thinking);}
-            if(delta.content){full+=delta.content;setAiMarkdown(full);}
+          if(!line.trim() || !line.startsWith('data: ')) continue;
+          const d=line.slice(6).trim(); 
+          if(d==='[DONE]') continue;
+          
+          try{
+            const j=JSON.parse(d);
+            const delta=j.choices[0].delta;
+            if(delta.reasoning_content){
+              thinking+=delta.reasoning_content;
+              setAiThinking(thinking);
+            }
+            if(delta.content){
+              full+=delta.content;
+              setAiMarkdown(full);
+            }
           }catch(_){}
         }
       }
+      
+      // Process remaining buffer
+      if (buffer.trim()) {
+        try {
+          const d = buffer.slice(6).trim();
+          if (d && d !== '[DONE]') {
+            const j = JSON.parse(d);
+            const delta = j.choices[0].delta;
+            if (delta.content) {
+              full += delta.content;
+              setAiMarkdown(full);
+            }
+          }
+        } catch(_) {}
+      }
+      
       const entry={id:crypto.randomUUID(),timestamp:new Date().toISOString(),unit_kerja:selectedDepartment,wilayah:locName,markdown:full,preview:full.substring(0,200)};
       const hist=[entry,...analysisHistory].slice(0,20);
       setAnalysisHistory(hist); localStorage.setItem('simpel_sdm_analysis_history',JSON.stringify(hist));
       toast({title:'✅ Analisis Selesai',description:`Laporan berhasil di-generate menggunakan DeepSeek ${usingEdgeFunction ? '(Secure)' : '(Lokal API Key)'}.`});
     } catch(err) {
       console.error(err);
-      const tptN = parseFloat(bpsTpt || '0');
-      const urg = tptN > 7 ? 'KRITIS' : tptN > 4 ? 'WASPADA' : 'OPTIMAL';
       
-      // Extract parameters from database states for dynamic fallback report:
-      const standars = policyParams.filter(p => p.category === 'standar' && p.parent_id);
-      const jabfungs = policyParams.filter(p => p.category === 'jabfung' && p.parent_id);
-      const programs = policyParams.filter(p => p.category === 'program' && p.parent_id);
-      const strategis = policyParams.filter(p => p.category === 'strategi' && p.parent_id);
-
-      // Filter strategies to only include selected ones (or all if none are checked)
-      const activeStrategis = selectedStrategies.length > 0
-        ? strategis.filter(s => selectedStrategies.some(sel => s.title.includes(sel)))
-        : strategis;
-
-      const isStrSelected = selectedStrategies.length > 0;
-      const isStr1 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 1'));
-      const isStr2 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 2'));
-      const isStr3 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 3'));
-      const isStr4 = !isStrSelected || selectedStrategies.some(s => s.includes('Strategi 4'));
-
-      // Calculate operational readiness score
-      let score = 50;
-      if (internalTotals.asn > 0) score += 15;
-      if (tptN < 6) score += 15;
-      if (sarpras && sarpras.length > 20) score += 10;
-      if (score > 100) score = 100;
-
-      const fallbackMarkdown = `## Laporan Analisis Kebutuhan SDM
-### ${selectedDepartment} | ${locName}
-
-> ⚠️ **Catatan Sistem:** Laporan ini di-generate menggunakan **Mesin Analisis Aturan Vokasi SIMPEL (Lokal)** karena integrasi DeepSeek API belum terhubung atau dibatasi.
-
-### 1. Ringkasan Eksekutif
-Berdasarkan analisis silang data internal **Peta Jabatan** dengan indikator eksternal **Big Data BPS**, Unit Kerja **${selectedDepartment}** yang berlokasi di **${locName}** saat ini memiliki **defisit total sebanyak ${internalTotals.gap} personel**. 
-
-Tingkat Pengangguran Terbuka (TPT) daerah tercatat sebesar **${bpsTpt || '0%'}** dengan status kerawanan **${urg}**. Mengingat sektor ekonomi dominan di wilayah ini adalah **${bpsSektor || 'Belum Ditentukan'}**, diperlukan percepatan pemenuhan dan penyelarasan kompetensi instruktur agar output pelatihan berdaya serap tinggi dan relevan.
-
----
-
-### 2. Analisis Gap & Mismatch Kejuruan
-Peta Jabatan saat ini menunjukkan ketidakseimbangan alokasi pegawai. Di bawah ini adalah rincian formasi kritis yang mengalami defisit berdasarkan batas Anggaran Beban Kerja (ABK):
-
-| Jabatan Formasi | Kategori | Eksisting | ABK Ideal | Gap / Kekurangan |
-| :--- | :--- | :---: | :---: | :---: |
-${positionDetails.map(p => `| ${p.name} | ${p.category} | ${p.totalExisting} | ${p.abkCount} | ${p.gap > 0 ? `Kurang ${p.gap}` : p.gap < 0 ? `Lebih ${Math.abs(p.gap)}` : 'Sesuai'} |`).join('\n')}
-
----
-
-${isStr1 ? `### 3. Formasi Jabatan Ideal (Aktif via Strategi 1: Penyiapan SDM Satpel)
-Guna mendukung akselerasi ketenagakerjaan di **${locName}**, UPT/Satpel baru harus mengadopsi alokasi penataan posisi berdasarkan hasil analisis gap riil beban kerja:
-
-| Jabatan Baru | Target Jumlah | Alasan Strategis Pemenuhan |
-| :--- | :---: | :--- |
-${positionDetails.filter(p => p.gap > 0).map(p => `| ${p.name} | ${p.gap} | Pemenuhan standar pelayanan minimum UPT & rasio peserta praktik. |`).join('\n') || '| Instruktur Kejuruan Baru | 2 | Penguatan formasi kejuruan prioritas daerah. |'}
-
-*Rekomendasi Penempatan*: Berdasarkan TPT sebesar **${bpsTpt}**, prioritaskan penugasan formasi pengajar pada kelas kejuruan berbasis **${bpsSektor}** guna memotong kesenjangan penyerapan tenaga kerja daerah.` : `### 3. Formasi Jabatan Ideal
-*(Strategi 1: Penyiapan & Alokasi SDM Satpel Baru tidak diaktifkan. Menggunakan konfigurasi alokasi personel administratif standar).*`}
-
----
-
-${isStr4 ? `### 4. Rekomendasi Rekrutmen & Kualifikasi (Aktif via Strategi 4: Peningkatan Kapasitas SDM)
-Sesuai dengan regulasi formal Kemnaker RI, peningkatan kompetensi instruktur eksisting difokuskan pada:
-
-* **Peningkatan Kapasitas Terarah**:
-${jabfungs.map(jf => `  - **Upgrading ke ${jf.title}** (Golongan ${jf.value}): Akselerasi program pelatihan asesor lisensi dan metodologi mengajar.`).join('\n')}
-* **Rasio Kelas Praktik (Permenaker No. 6/2025)**:
-  - Kelas praktik wajib menggunakan rasio **1 Instruktur : 16 Peserta** dengan pendampingan penuh instruktur tersertifikasi.` : `### 4. Rekomendasi Rekrutmen & Kualifikasi
-*(Strategi 4: Peningkatan Kapasitas & Upgrading Instruktur tidak diaktifkan. Kualifikasi rekrutmen mengikuti panduan dasar).*`}
-
----
-
-${isStr3 ? `### 5. Program Pelatihan Prioritas (PBK) (Aktif via Strategi 3: Penyelarasan Program Pelatihan)
-Program pelatihan diselaraskan secara langsung dengan kebutuhan pasar kerja lokal di **${locName}** dan sektor **${bpsSektor}**:
-
-${programs.map(pr => `* **PBK ${pr.title}**: Penyiapan kurikulum khusus bersertifikat BNSP untuk meningkatkan daya saing kelulusan lokal di bidang ${pr.value}.`).join('\n')}` : `### 5. Program Pelatihan Prioritas (PBK)
-*(Strategi 3: Penyelarasan Program Pelatihan tidak diaktifkan. Program diklat diselenggarakan menggunakan standar kurikulum nasional umum).*`}
-
----
-
-${isStr2 ? `### 6. Pengadaan Sarpras Prioritas (Aktif via Strategi 2: Pemenuhan Sarpras Potensi Wilayah)
-Menyesuaikan dengan kondisi sarpras eksisting UPT:
-> *"${sarpras || 'Data inventaris sarpras belum terisi.'}"*
-
-**Rencana Pemenuhan Sarpras Berbasis Industri Wilayah**:
-1. Modernisasi peralatan praktikum utama agar sesuai dengan standar teknologi industri modern berbasis **${bpsSektor}** di daerah **${locName}**.
-2. Pengadaan modul ajar digital interaktif serta platform simulator penunjang kelas teori.` : `### 6. Pengadaan Sarpras Prioritas
-*(Strategi 2: Pemenuhan Sarpras Wilayah tidak diaktifkan. Inventaris sarpras mengikuti alokasi anggaran operasional standar).*`}
-
----
-
-### 7. Rencana Implementasi per Strategi
-Penerapan aksi strategis berbasis arah kebijakan nasional Ditjen Binalavotas (Menampilkan ${selectedStrategies.length > 0 ? 'Strategi Terpilih' : 'Semua Strategi'}):
-
-${activeStrategis.map(str => `* **${str.title}** (${str.value || 'Umum'}):
-  - *Deskripsi*: ${str.description || 'Langkah taktis pemenuhan strategi vokasi.'}
-  - *Langkah Aksi Spesifik*: ${
-    str.title.includes('Strategi 1') ? `Hitung rasio kebutuhan riil instruktur di ${selectedDepartment} berdasarkan jumlah anjab dan ABK, lakukan penugasan instruktur ASN/Non-ASN baru ke lokasi.` :
-    str.title.includes('Strategi 2') ? `Lakukan audit kelayakan workshop di wilayah ${locName}, lakukan pengadaan peralatan baru yang relevan dengan sektor ekonomi ${bpsSektor}.` :
-    str.title.includes('Strategi 3') ? `Susun 3 kurikulum PBK baru bersama komite vokasi daerah, gandeng industri lokal untuk pelaksanaan OJT (On-the-Job Training) siswa.` :
-    `Selenggarakan diklat ToT metodologi pengajaran dan sertifikasi asesor kompetensi BNSP bagi instruktur ${selectedDepartment} secara berkala.`
-  }`).join('\n')}
-
----
-
-### 8. Analisis Risiko & Rencana Mitigasi (Manajemen Risiko UPT)
-Menghadapi tantangan tak terduga di lapangan, UPT dipersiapkan dengan skenario pemulihan taktis sesuai strategi terpilih:
-
-${activeStrategis.map((str, index) => {
-  const riskTitle = 
-    str.title.includes('Strategi 1') ? 'Keterbatasan kuota alokasi formasi pegawai baru di Satpel daerah.' :
-    str.title.includes('Strategi 2') ? 'Peralatan workshop baru cepat mengalami kerusakan atau keusangan akibat kurangnya pemeliharaan.' :
-    str.title.includes('Strategi 3') ? 'Minimnya keterlibatan industri lokal dalam penyerapan alumni pelatihan.' :
-    'Resistensi instruktur senior terhadap keharusan sertifikasi kompetensi baru.';
-  
-  const riskMitigasi = 
-    str.title.includes('Strategi 1') ? 'Gunakan sistem asisten pengajar (co-instructor) dari alumni balai terbaik untuk mengatasi gap jangka pendek.' :
-    str.title.includes('Strategi 2') ? 'Sertakan klausul garansi dan maintenance berkala dalam pengadaan alat, serta diklat perawatan alat bagi laboran.' :
-    str.title.includes('Strategi 3') ? 'Bentuk Bursa Kerja Khusus (BKK) mandiri di tingkat Satpel dan adakan job fair berkala dengan asosiasi pengusaha setempat.' :
-    'Sosialisasikan insentif karir dan pemenuhan syarat naik pangkat fungsional bagi yang bersertifikat.';
-
-  return `* **Skenario Risiko ${index + 1}: ${riskTitle}**
-  - *Strategi Kunci*: **${str.title}**
-  - *Mitigasi*: ${riskMitigasi}`;
-}).join('\n')}
-
----
-
-### 9. Timeline Implementasi
-Skema jadwal pelaksanaan pemenuhan kebutuhan SDM dan Sarpras UPT:
-
-| Tahap | Periode | Aksi Nyata | Penanggung Jawab (PIC) |
-| :--- | :---: | :--- | :--- |
-${isStr1 ? `| **Tahap SDM (Str 1)** | Bulan 1 - 2 | Penyusunan anjab, analisis beban kerja lokal, dan penempatan formasi pegawai baru. | Kepala Kantor UPT / Satpel |` : ''}
-${isStr2 ? `| **Tahap Sarpras (Str 2)** | Bulan 3 - 5 | Pengajuan proposal modernisasi workshop dan instalasi alat praktikum bersertifikat K3. | Kasubag Tata Usaha & Logistik |` : ''}
-${isStr3 ? `| **Tahap Program (Str 3)** | Bulan 6 - 8 | Registrasi program PBK baru ke Ditbina Lattas dan penyusunan MoU OJT bersama industri. | Koordinator Bidang Pelatihan |` : ''}
-${isStr4 ? `| **Tahap Kapasitas (Str 4)** | Bulan 9 - 10 | Pengiriman instruktur fungsional ke diklat metodologi mengajar (ToT) dan sertifikasi asesor. | Koordinator Instruktur |` : ''}
-| **Tahap Evaluasi** | Bulan 11 - 12 | Pengukuran keterserapan alumni di industri via SIAPkerja dan pencapaian target strategis. | Seksi Penempatan & Kemitraan |
-
----
-
-### 10. Skor Kesiapan Operasional: ${score}/100
-* **Analisis Kesiapan**: UPT berada pada level kesiapan **${score >= 80 ? 'PRISTINE (Sangat Siap)' : score >= 60 ? 'FLEXIBLE (Cukup Siap)' : 'CRITICAL (Perlu Perhatian)'}**. Pemenuhan sarpras prioritas tinggi dan pemenuhan deficit instruktur akan mendongkrak skor kesiapan operasional menuju 100%.`;
+      // Use clean fallback markdown generator
+      const fallbackMarkdown = generateFallbackMarkdown({
+        selectedDepartment,
+        locName,
+        internalTotals,
+        bpsTpt,
+        bpsNeet,
+        bpsTik,
+        bpsSektor,
+        sarpras,
+        positionDetails,
+        policyParams,
+        selectedStrategies
+      });
 
       setAiMarkdown(fallbackMarkdown);
       toast({title:'Analisis Lokal Diaktifkan', description:'Menggunakan mesin aturan vokasi terintegrasi.', variant:'default'});
@@ -660,16 +570,40 @@ ${isStr4 ? `| **Tahap Kapasitas (Str 4)** | Bulan 9 - 10 | Pengiriman instruktur
   const handleDownloadPDF = () => {
     if (!aiMarkdown) { toast({title:'Tidak Ada Data',description:'Jalankan analisis terlebih dahulu.',variant:'destructive'}); return; }
     try {
-      // Clean text for jsPDF (remove unsupported chars)
-      const clean = (t: string) => (t || '')
-        .replace(/[\u{1F300}-\u{1F9FF}]/gu,'').replace(/[\u{2600}-\u{26FF}]/gu,'')
-        .replace(/[\u{2700}-\u{27BF}]/gu,'').replace(/[\u{1F600}-\u{1F64F}]/gu,'')
-        .replace(/[\u{1F680}-\u{1F6FF}]/gu,'')
-        .replace(/±/g,'+/-').replace(/→/g,'->').replace(/←/g,'<-')
-        .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/×/g,'x').replace(/÷/g,'/')
-        .replace(/•/g,'-').replace(/–/g,'-').replace(/—/g,'-')
-        .replace(/\u201C/g,'"').replace(/\u201D/g,'"').replace(/\u2018/g,"'").replace(/\u2019/g,"'")
-        .replace(/[^\x00-\x7F]/g,'').replace(/[^\S\n]+/g,' ').trim();
+      // Improved clean function - preserve Indonesian text, only remove emojis and markdown syntax
+      const clean = (t: string) => {
+        if (!t) return '';
+        return t
+          // Remove emojis
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+          .replace(/[\u{2600}-\u{26FF}]/gu, '')
+          .replace(/[\u{2700}-\u{27BF}]/gu, '')
+          .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+          // Remove markdown syntax
+          .replace(/\*\*([^*]+)\*\*/g, '$1') // Bold
+          .replace(/\*([^*]+)\*/g, '$1') // Italic
+          .replace(/`([^`]+)`/g, '$1') // Code
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links
+          .replace(/#{1,6}\s+/g, '') // Headers
+          // Normalize special chars
+          .replace(/±/g, '+/-')
+          .replace(/→/g, '->')
+          .replace(/←/g, '<-')
+          .replace(/≥/g, '>=')
+          .replace(/≤/g, '<=')
+          .replace(/×/g, 'x')
+          .replace(/÷/g, '/')
+          .replace(/•/g, '-')
+          .replace(/–/g, '-')
+          .replace(/—/g, '-')
+          // Normalize quotes
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/[\u2018\u2019]/g, "'")
+          // Clean up whitespace
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
 
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();
