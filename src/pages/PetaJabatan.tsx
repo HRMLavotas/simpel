@@ -2913,6 +2913,9 @@ export default function PetaJabatan() {
       // ═══════════════════════════════════════════════════════════════════════
       if (sortedDepts.length > 0) {
         const asnRows: Record<string, string | number>[] = [];
+        let totalPns = 0;
+        let totalCpns = 0;
+        let totalPppk = 0;
         let totalAsn = 0;
         let totalNonAsn = 0;
         let totalAll = 0;
@@ -2920,11 +2923,26 @@ export default function PetaJabatan() {
         sortedDepts.forEach((dept, idx) => {
           const emps = deptEmpMap.get(dept) || [];
           
-          // Hitung ASN (PNS + CPNS + PPPK)
-          const asnCount = emps.filter(e => {
+          // Hitung PNS
+          const pnsCount = emps.filter(e => {
             const status = normalizeAsnStatus(e.asn_status);
-            return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+            return status === 'PNS';
           }).length;
+          
+          // Hitung CPNS
+          const cpnsCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'CPNS';
+          }).length;
+          
+          // Hitung PPPK
+          const pppkCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'PPPK';
+          }).length;
+          
+          // Total ASN (PNS + CPNS + PPPK)
+          const asnCount = pnsCount + cpnsCount + pppkCount;
           
           // Hitung Non ASN / Outsourcing
           const nonAsnCount = emps.filter(e => {
@@ -2937,11 +2955,17 @@ export default function PetaJabatan() {
           asnRows.push({
             'No': idx + 1,
             'Nama Unit kerja': dept,
+            'Jumlah PNS': pnsCount,
+            'Jumlah CPNS': cpnsCount,
+            'Jumlah PPPK': pppkCount,
             'JUMLAH ASN (PNS + CPNS + PPPK)': asnCount,
             'Jumlah Tenaga Non ASN / Outsourcing': nonAsnCount,
-            'Jumlah ASN dan Tenaga Non ASN': total,
+            'Jumlah Keseluruhan Pegawai': total,
           });
 
+          totalPns += pnsCount;
+          totalCpns += cpnsCount;
+          totalPppk += pppkCount;
           totalAsn += asnCount;
           totalNonAsn += nonAsnCount;
           totalAll += total;
@@ -2951,18 +2975,24 @@ export default function PetaJabatan() {
         asnRows.push({
           'No': '',
           'Nama Unit kerja': 'JUMLAH',
+          'Jumlah PNS': totalPns,
+          'Jumlah CPNS': totalCpns,
+          'Jumlah PPPK': totalPppk,
           'JUMLAH ASN (PNS + CPNS + PPPK)': totalAsn,
           'Jumlah Tenaga Non ASN / Outsourcing': totalNonAsn,
-          'Jumlah ASN dan Tenaga Non ASN': totalAll,
+          'Jumlah Keseluruhan Pegawai': totalAll,
         });
 
         const wsAsnSummary = XLSX.utils.json_to_sheet(asnRows);
         wsAsnSummary['!cols'] = [
           { wch: 5 },  // No
           { wch: 32 }, // Nama Unit kerja
+          { wch: 15 }, // Jumlah PNS
+          { wch: 15 }, // Jumlah CPNS
+          { wch: 15 }, // Jumlah PPPK
           { wch: 28 }, // JUMLAH ASN (PNS + CPNS + PPPK)
           { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
-          { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
+          { wch: 30 }, // Jumlah Keseluruhan Pegawai
         ];
         
         // ═══════════════════════════════════════════════════════════════════════

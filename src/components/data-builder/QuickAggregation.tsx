@@ -679,7 +679,7 @@ export function QuickAggregation() {
       }
 
       // Sheet 12: Tabel Jumlah ASN dan Non ASN per Unit Kerja (BULANAN)
-      // Format: No | Nama Unit kerja | JUMLAH ASN (PNS + CPNS + PPPK) | Jumlah Tenaga Non ASN / Outsourcing | Jumlah ASN dan Tenaga Non ASN
+      // Format: No | Nama Unit kerja | Jumlah PNS | Jumlah CPNS | Jumlah PPPK | JUMLAH ASN (PNS + CPNS + PPPK) | Jumlah Tenaga Non ASN / Outsourcing | Jumlah Keseluruhan Pegawai
       if (selectedDepartment === 'all' && aggregations.department.length > 1) {
         // Kelompokkan pegawai ke unit pembina (Satpel → pembina)
         const deptAsnMap = new Map<string, typeof data>();
@@ -696,6 +696,9 @@ export function QuickAggregation() {
         ];
 
         const asnRows: Record<string, string | number>[] = [];
+        let totalPns = 0;
+        let totalCpns = 0;
+        let totalPppk = 0;
         let totalAsn = 0;
         let totalNonAsn = 0;
         let totalAll = 0;
@@ -703,11 +706,26 @@ export function QuickAggregation() {
         sortedAsnDepts.forEach((dept, idx) => {
           const emps = deptAsnMap.get(dept) || [];
           
-          // Hitung ASN (PNS + CPNS + PPPK)
-          const asnCount = emps.filter(e => {
+          // Hitung PNS
+          const pnsCount = emps.filter(e => {
             const status = normalizeAsnStatus(e.asn_status);
-            return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+            return status === 'PNS';
           }).length;
+          
+          // Hitung CPNS
+          const cpnsCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'CPNS';
+          }).length;
+          
+          // Hitung PPPK
+          const pppkCount = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'PPPK';
+          }).length;
+          
+          // Total ASN (PNS + CPNS + PPPK)
+          const asnCount = pnsCount + cpnsCount + pppkCount;
           
           // Hitung Non ASN / Outsourcing
           const nonAsnCount = emps.filter(e => {
@@ -720,11 +738,17 @@ export function QuickAggregation() {
           asnRows.push({
             'No': idx + 1,
             'Nama Unit kerja': dept,
+            'Jumlah PNS': pnsCount,
+            'Jumlah CPNS': cpnsCount,
+            'Jumlah PPPK': pppkCount,
             'JUMLAH ASN (PNS + CPNS + PPPK)': asnCount,
             'Jumlah Tenaga Non ASN / Outsourcing': nonAsnCount,
-            'Jumlah ASN dan Tenaga Non ASN': total,
+            'Jumlah Keseluruhan Pegawai': total,
           });
 
+          totalPns += pnsCount;
+          totalCpns += cpnsCount;
+          totalPppk += pppkCount;
           totalAsn += asnCount;
           totalNonAsn += nonAsnCount;
           totalAll += total;
@@ -734,18 +758,24 @@ export function QuickAggregation() {
         asnRows.push({
           'No': '',
           'Nama Unit kerja': 'JUMLAH',
+          'Jumlah PNS': totalPns,
+          'Jumlah CPNS': totalCpns,
+          'Jumlah PPPK': totalPppk,
           'JUMLAH ASN (PNS + CPNS + PPPK)': totalAsn,
           'Jumlah Tenaga Non ASN / Outsourcing': totalNonAsn,
-          'Jumlah ASN dan Tenaga Non ASN': totalAll,
+          'Jumlah Keseluruhan Pegawai': totalAll,
         });
 
         const wsAsnSummary = XLSX.utils.json_to_sheet(asnRows);
         wsAsnSummary['!cols'] = [
           { wch: 5 },  // No
           { wch: 32 }, // Nama Unit kerja
+          { wch: 15 }, // Jumlah PNS
+          { wch: 15 }, // Jumlah CPNS
+          { wch: 15 }, // Jumlah PPPK
           { wch: 28 }, // JUMLAH ASN (PNS + CPNS + PPPK)
           { wch: 35 }, // Jumlah Tenaga Non ASN / Outsourcing
-          { wch: 30 }, // Jumlah ASN dan Tenaga Non ASN
+          { wch: 30 }, // Jumlah Keseluruhan Pegawai
         ];
         // Apply styling with last row as total row
         applyWorksheetStyling(wsAsnSummary, {
