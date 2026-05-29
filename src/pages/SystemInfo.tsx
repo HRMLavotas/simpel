@@ -23,9 +23,20 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
+    version: '2.25.0',
+    date: '29 Mei 2026',
+    label: 'Terbaru',
+    changes: [
+      { type: 'improvement', text: 'Export Excel Peta Jabatan: nama worksheet "Jumlah ASN per Unit" diubah menjadi "Jumlah Seluruh Pegawai" — berlaku untuk export Peta Jabatan Semua Unit maupun export Agregasi Cepat di Data Builder.' },
+      { type: 'improvement', text: 'Data Kepegawaian: seluruh pegawai CPNS (321 orang) resmi dikonversi ke status PNS dengan TMT PNS 1 Mei 2026 — sesuai pelantikan serentak pada tanggal tersebut.' },
+      { type: 'improvement', text: 'Data Kepegawaian: pengisian jenis jabatan (position_type) untuk 55 ASN aktif yang belum terisi — Penata Layanan Operasional, Pengadministrasi Perkantoran, Pengelola Layanan Operasional, Penelaah Teknis Kebijakan, dan Konselor SDM dikategorikan sebagai Pelaksana; Instruktur, Pengantar Kerja, Arsiparis, Pranata Komputer, Analis Kebijakan, Analis SDM, dan Pengembang Teknologi Pembelajaran dikategorikan sebagai Fungsional.' },
+      { type: 'fix', text: 'Peta Jabatan: pencarian nama jabatan kini menampilkan seluruh pegawai pemangku jabatan tersebut — sebelumnya saat mengetik nama jabatan (misal "Arsiparis"), hanya baris jabatan kosong yang muncul tanpa nama pemangkunya.' },
+      { type: 'fix', text: 'Peta Jabatan: hasil pencarian tidak lagi tersembunyi oleh kategori yang sedang dilipat (collapsed) — saat search aktif, semua hasil dari semua kategori otomatis ditampilkan.' },
+    ],
+  },
+  {
     version: '2.24.0',
     date: '20 Mei 2026',
-    label: 'Terbaru',
     changes: [
       { type: 'improvement', text: 'Dropdown Unit Kerja: urutan unit kerja di menu Data Pegawai diperbarui mengikuti struktur organisasi resmi — dimulai dari Setditjen Binalavotas, 5 Direktorat, Sekretariat BNSP, 6 BBPVP, hingga 20 BPVP (sebelumnya urutan alfabetis dimulai dari BBPVP Bandung).' },
       { type: 'improvement', text: 'Export Excel Data Pegawai: urutan unit kerja dalam file export kini konsisten dengan dropdown — data terurut sesuai hierarki organisasi untuk kemudahan analisis dan pelaporan.' },
