@@ -3240,20 +3240,27 @@ export default function PetaJabatan() {
       const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
         const matched = getMatchingEmployees(pos.position_name);
+
+        // Check if search matches the position name itself
+        const positionNameMatch = searchQuery
+          ? pos.position_name.toLowerCase().includes(searchQuery.toLowerCase())
+          : false;
         
         // Filter employees by search query if search is active
+        // If position name matches, show ALL employees in that position (no employee filter needed)
         const filteredEmployees = searchQuery 
-          ? matched.filter(emp => {
-              const query = searchQuery.toLowerCase();
-              const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
-              return fullName.includes(query) || emp.nip?.includes(query);
-            })
+          ? positionNameMatch
+            ? matched // position name matched → show all employees
+            : matched.filter(emp => {
+                const query = searchQuery.toLowerCase();
+                const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+                return fullName.includes(query) || emp.nip?.includes(query);
+              })
           : matched;
         
         if (filteredEmployees.length === 0) {
-          // Only show empty row if no search query (to show all positions)
-          // Or if search matches position name but no employees match
-          if (!searchQuery) {
+          // Show empty row if: no search, OR search matches position name (but no employee match)
+          if (!searchQuery || positionNameMatch) {
             result.push({ type: 'position', position: pos, isFirst: true, existing: matched.length, rowSpan: 1 });
           }
         } else {
@@ -3508,8 +3515,8 @@ export default function PetaJabatan() {
                         );
                       }
 
-                      // Skip position rows if category is collapsed
-                      if (collapsedCategories[row.position!.position_category]) {
+                      // Skip position rows if category is collapsed AND no active search
+                      if (!searchQuery && collapsedCategories[row.position!.position_category]) {
                         return null;
                       }
 
