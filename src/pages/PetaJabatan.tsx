@@ -3240,23 +3240,20 @@ export default function PetaJabatan() {
       const catPositions = groupsData[category] || [];
       catPositions.forEach(pos => {
         const matched = getMatchingEmployees(pos.position_name);
+        
+        // Filter employees by search query if search is active
+        const filteredEmployees = searchQuery 
+          ? matched.filter(emp => {
+              const query = searchQuery.toLowerCase();
+              const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
+              return fullName.includes(query) || emp.nip?.includes(query);
+            })
+          : matched;
 
         // Check if search matches the position name itself
         const positionNameMatch = searchQuery
           ? pos.position_name.toLowerCase().includes(searchQuery.toLowerCase())
           : false;
-        
-        // Filter employees by search query if search is active
-        // If position name matches, show ALL employees in that position (no employee filter needed)
-        const filteredEmployees = searchQuery 
-          ? positionNameMatch
-            ? matched // position name matched → show all employees
-            : matched.filter(emp => {
-                const query = searchQuery.toLowerCase();
-                const fullName = [emp.front_title, emp.name, emp.back_title].filter(Boolean).join(' ').toLowerCase();
-                return fullName.includes(query) || emp.nip?.includes(query);
-              })
-          : matched;
         
         if (filteredEmployees.length === 0) {
           // Show empty row if: no search, OR search matches position name (but no employee match)
