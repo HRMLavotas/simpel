@@ -782,7 +782,7 @@ export function QuickAggregation() {
           headerRow: 0,
           totalRows: [asnRows.length], // Last row is JUMLAH
         });
-        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
+        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah Seluruh Pegawai');
       }
 
       // Sheet 13: Tabel Golongan per Unit Kerja (format resmi)

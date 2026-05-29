@@ -2909,7 +2909,7 @@ export default function PetaJabatan() {
       }
 
       // ═══════════════════════════════════════════════════════════════════════
-      // SHEET 3: Jumlah ASN per Unit Kerja
+      // SHEET 3: Jumlah Seluruh Pegawai
       // ═══════════════════════════════════════════════════════════════════════
       if (sortedDepts.length > 0) {
         const asnRows: Record<string, string | number>[] = [];
@@ -2996,7 +2996,7 @@ export default function PetaJabatan() {
         ];
         
         // ═══════════════════════════════════════════════════════════════════════
-        // STYLING: Jumlah ASN per Unit
+        // STYLING: Jumlah Seluruh Pegawai
         // ═══════════════════════════════════════════════════════════════════════
         const asnBorderStyle = {
           top: { style: 'thin', color: { rgb: '000000' } },
@@ -3050,10 +3050,10 @@ export default function PetaJabatan() {
           }
         }
         
-        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah ASN per Unit');
+        XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah Seluruh Pegawai');
         
         // Pindahkan sheet ini ke posisi setelah Tabel Pendidikan (posisi index 3)
-        const asnSheetName = 'Jumlah ASN per Unit';
+        const asnSheetName = 'Jumlah Seluruh Pegawai';
         const asnIndex = wb.SheetNames.indexOf(asnSheetName);
         if (asnIndex > -1) {
           wb.SheetNames.splice(asnIndex, 1);
