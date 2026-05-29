@@ -1764,7 +1764,7 @@ export default function PetaJabatan() {
         fetchAllPages((from, to) =>
           supabase
             .from('employees')
-            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, additional_position, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
+            .select('id, name, front_title, back_title, nip, asn_status, rank_group, gender, position_name, position_type, additional_position, department, religion, birth_date, tmt_cpns, keterangan_formasi, keterangan_penempatan, keterangan_penugasan, keterangan_perubahan')
             .eq('is_active', true)
             .range(from, to)
         ),
@@ -3024,7 +3024,7 @@ export default function PetaJabatan() {
           border: asnBorderStyle,
         };
 
-        // Apply styling
+        // Apply styling to main table
         const asnRange = XLSX.utils.decode_range(wsAsnSummary['!ref'] || 'A1');
         const lastAsnRow = asnRange.e.r;
         
@@ -3049,6 +3049,185 @@ export default function PetaJabatan() {
             }
           }
         }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // TABEL 2: Distribusi Jabatan per Unit Kerja (Struktural, Fungsional, Pelaksana)
+        // Data diambil dari deptEmpMap yang sama dengan tabel 1 untuk konsistensi
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Hitung distribusi jabatan per unit kerja dari field position_type pegawai
+        // Gunakan deptEmpMap yang sama dengan tabel 1 agar angka konsisten
+        const jabatanByDept = new Map<string, { struktural: number; fungsional: number; pelaksana: number }>();
+        sortedDepts.forEach(dept => {
+          const emps = deptEmpMap.get(dept) || [];
+          // Hanya hitung ASN (PNS, CPNS, PPPK) — konsisten dengan tabel 1
+          const asnEmps = emps.filter(e => {
+            const status = normalizeAsnStatus(e.asn_status);
+            return status === 'PNS' || status === 'CPNS' || status === 'PPPK';
+          });
+          const struktural = asnEmps.filter(e => e.position_type === 'Struktural').length;
+          const fungsional = asnEmps.filter(e => e.position_type === 'Fungsional').length;
+          const pelaksana = asnEmps.filter(e => e.position_type === 'Pelaksana').length;
+          jabatanByDept.set(dept, { struktural, fungsional, pelaksana });
+        });
+
+        // Kelompokkan unit kerja sesuai kategori resmi (nama sesuai database)
+        const SEKRETARIAT_DIREKTORAT = [
+          'Setditjen Binalavotas',
+          'Direktorat Bina Stankomproglat',
+          'Direktorat Bina Intala',
+          'Direktorat Bina Lemlatvok',
+          'Direktorat Bina Penyelenggaraan Latvogan',
+          'Direktorat Bina Peningkatan Produktivitas',
+          'Sekretariat BNSP',
+        ];
+        const BALAI_BESAR = ['BBPVP Bandung', 'BBPVP Bekasi', 'BBPVP Makassar', 'BBPVP Medan', 'BBPVP Semarang', 'BBPVP Serang'];
+        const BPVP_KELAS_I = ['BPVP Banda Aceh', 'BPVP Surakarta', 'BPVP Samarinda', 'BPVP Ternate', 'BPVP Sorong', 'BPVP Padang', 'BPVP Kendari', 'BPVP Ambon'];
+        const BPVP_KELAS_II = ['BPVP Bandung Barat', 'BPVP Lombok Timur', 'BPVP Bantaeng', 'BPVP Sidoarjo', 'BPVP Banyuwangi', 'BPVP Pangkep', 'BPVP Belitung'];
+
+        // Helper: hitung total jabatan untuk grup
+        const sumGroup = (depts: string[]) => {
+          let s = 0, f = 0, p = 0;
+          depts.forEach(d => {
+            const j = jabatanByDept.get(d) || { struktural: 0, fungsional: 0, pelaksana: 0 };
+            s += j.struktural; f += j.fungsional; p += j.pelaksana;
+          });
+          return { struktural: s, fungsional: f, pelaksana: p, total: s + f + p };
+        };
+
+        // Baris kosong pemisah antara tabel 1 dan tabel 2
+        const startRow = lastAsnRow + 3; // 2 baris kosong setelah tabel utama
+
+        // Bangun data tabel 2
+        const jabatanTableData: (string | number)[][] = [];
+
+        // Header tabel 2
+        jabatanTableData.push(['', 'NO', 'UNIT KERJA', 'JUMLAH', 'JABATAN', '', '']);
+        jabatanTableData.push(['', '', '', '', 'STRUKTURAL', 'FUNGSIONAL', 'PELAKSANA']);
+
+        // Grup I: Sekretariat dan Direktorat
+        const grp1 = sumGroup(SEKRETARIAT_DIREKTORAT);
+        jabatanTableData.push(['', 'I.', 'SEKRETARIAT DITJEN DAN DIREKTORAT', grp1.total, grp1.struktural, grp1.fungsional, grp1.pelaksana]);
+        SEKRETARIAT_DIREKTORAT.forEach((dept, i) => {
+          const j = jabatanByDept.get(dept) || { struktural: 0, fungsional: 0, pelaksana: 0 };
+          jabatanTableData.push(['', i + 1, dept, j.struktural + j.fungsional + j.pelaksana, j.struktural, j.fungsional, j.pelaksana]);
+        });
+
+        // Grup II: Balai Besar
+        const grp2 = sumGroup(BALAI_BESAR);
+        jabatanTableData.push(['', 'II.', 'BALAI BESAR PELATIHAN VOKASI DAN PRODUKTIVITAS', grp2.total, grp2.struktural, grp2.fungsional, grp2.pelaksana]);
+        BALAI_BESAR.forEach((dept, i) => {
+          const j = jabatanByDept.get(dept) || { struktural: 0, fungsional: 0, pelaksana: 0 };
+          jabatanTableData.push(['', i + 1, dept, j.struktural + j.fungsional + j.pelaksana, j.struktural, j.fungsional, j.pelaksana]);
+        });
+
+        // Grup III: BPVP Kelas I
+        const grp3 = sumGroup(BPVP_KELAS_I);
+        jabatanTableData.push(['', 'III.', 'BALAI PELATIHAN VOKASI DAN PRODUKTIVITAS KELAS I', grp3.total, grp3.struktural, grp3.fungsional, grp3.pelaksana]);
+        BPVP_KELAS_I.forEach((dept, i) => {
+          const j = jabatanByDept.get(dept) || { struktural: 0, fungsional: 0, pelaksana: 0 };
+          jabatanTableData.push(['', i + 7, dept, j.struktural + j.fungsional + j.pelaksana, j.struktural, j.fungsional, j.pelaksana]);
+        });
+
+        // Grup IV: BPVP Kelas II
+        const grp4 = sumGroup(BPVP_KELAS_II);
+        jabatanTableData.push(['', 'IV.', 'BALAI PELATIHAN VOKASI DAN PRODUKTIVITAS KELAS II', grp4.total, grp4.struktural, grp4.fungsional, grp4.pelaksana]);
+        BPVP_KELAS_II.forEach((dept, i) => {
+          const j = jabatanByDept.get(dept) || { struktural: 0, fungsional: 0, pelaksana: 0 };
+          jabatanTableData.push(['', i + 15, dept, j.struktural + j.fungsional + j.pelaksana, j.struktural, j.fungsional, j.pelaksana]);
+        });
+
+        // Baris TOTAL
+        const grandTotal = sumGroup([...SEKRETARIAT_DIREKTORAT, ...BALAI_BESAR, ...BPVP_KELAS_I, ...BPVP_KELAS_II]);
+        jabatanTableData.push(['', '', 'TOTAL', grandTotal.total, grandTotal.struktural, grandTotal.fungsional, grandTotal.pelaksana]);
+
+        // Tambahkan tabel 2 ke worksheet mulai dari startRow
+        XLSX.utils.sheet_add_aoa(wsAsnSummary, jabatanTableData, { origin: { r: startRow, c: 0 } });
+
+        // Update !ref agar mencakup seluruh data termasuk tabel 2
+        const newLastRow = startRow + jabatanTableData.length - 1;
+        wsAsnSummary['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: newLastRow, c: 7 } });
+
+        // Styling tabel 2
+        const jab2HeaderStyle = {
+          fill: { fgColor: { rgb: '375623' } }, // Dark green
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: asnBorderStyle,
+        };
+        const jab2GroupStyle = {
+          fill: { fgColor: { rgb: 'E2EFDA' } }, // Light green
+          font: { bold: true },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: asnBorderStyle,
+        };
+        const jab2GroupNumStyle = {
+          fill: { fgColor: { rgb: 'E2EFDA' } },
+          font: { bold: true },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: asnBorderStyle,
+        };
+        const jab2DataStyle = {
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: asnBorderStyle,
+        };
+        const jab2DataNumStyle = {
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: asnBorderStyle,
+        };
+        const jab2TotalStyle = {
+          fill: { fgColor: { rgb: 'FFF2CC' } },
+          font: { bold: true },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: asnBorderStyle,
+        };
+
+        // Tentukan baris mana yang merupakan header, grup, data, atau total
+        const groupRows = new Set<number>();
+        const headerRows = new Set<number>([startRow, startRow + 1]);
+        let currentRow = startRow + 2;
+
+        const allGroups = [SEKRETARIAT_DIREKTORAT, BALAI_BESAR, BPVP_KELAS_I, BPVP_KELAS_II];
+        allGroups.forEach(grp => {
+          groupRows.add(currentRow); // baris header grup (I., II., dst)
+          currentRow += 1 + grp.length; // skip data rows
+        });
+        const totalRow = startRow + jabatanTableData.length - 1;
+
+        jabatanTableData.forEach((_, rowIdx) => {
+          const R = startRow + rowIdx;
+          for (let C = 1; C <= 6; C++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            if (!wsAsnSummary[cellAddress]) wsAsnSummary[cellAddress] = { t: 'z', v: '' };
+            const isHeader = headerRows.has(R);
+            const isGroup = groupRows.has(R);
+            const isTotal = R === totalRow;
+            const isNameCol = C === 2;
+
+            if (isHeader) {
+              wsAsnSummary[cellAddress].s = jab2HeaderStyle;
+            } else if (isTotal) {
+              wsAsnSummary[cellAddress].s = jab2TotalStyle;
+            } else if (isGroup) {
+              wsAsnSummary[cellAddress].s = isNameCol ? jab2GroupStyle : jab2GroupNumStyle;
+            } else {
+              wsAsnSummary[cellAddress].s = isNameCol ? jab2DataStyle : jab2DataNumStyle;
+            }
+          }
+        });
+
+        // Merge cells header tabel 2: "JABATAN" span 3 kolom (D-F)
+        if (!wsAsnSummary['!merges']) wsAsnSummary['!merges'] = [];
+        wsAsnSummary['!merges'].push(
+          // Header row 1: merge "JABATAN" (col D-F = index 4-6)
+          { s: { r: startRow, c: 4 }, e: { r: startRow, c: 6 } },
+          // Header row 1: merge "UNIT KERJA" (col C = index 2, single)
+          // Header row 1: merge "JUMLAH" (col D = index 3, single)
+          // Merge header row 1 & 2 untuk kolom NO, UNIT KERJA, JUMLAH
+          { s: { r: startRow, c: 1 }, e: { r: startRow + 1, c: 1 } }, // NO
+          { s: { r: startRow, c: 2 }, e: { r: startRow + 1, c: 2 } }, // UNIT KERJA
+          { s: { r: startRow, c: 3 }, e: { r: startRow + 1, c: 3 } }, // JUMLAH
+        );
         
         XLSX.utils.book_append_sheet(wb, wsAsnSummary, 'Jumlah Seluruh Pegawai');
         
