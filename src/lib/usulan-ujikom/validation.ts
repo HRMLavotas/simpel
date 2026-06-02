@@ -110,13 +110,14 @@ const statusSchema = z.enum([
 /**
  * Schema for creating new usulan
  * Used in UsulanForm component
+ * File and link are optional for draft, but required for submission
  */
 export const usulanFormSchema = z.object({
   employee_id: uuidSchema,
   position_reference_id: uuidSchema,
   department_id: z.string().min(1, 'Unit kerja wajib dipilih'),
-  surat_pengantar_file: fileSchema,
-  link_dokumen_persyaratan: urlSchema,
+  surat_pengantar_file: optionalFileSchema,
+  link_dokumen_persyaratan: z.string().url('Link harus berupa URL yang valid').optional().or(z.literal('')),
   admin_notes: z.string().optional(),
 });
 

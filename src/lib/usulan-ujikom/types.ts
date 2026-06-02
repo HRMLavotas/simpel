@@ -157,7 +157,7 @@ export interface UsulanFormData {
   position_reference_id: string;
   department_id: string;
   surat_pengantar_file: File | null;
-  link_dokumen_persyaratan: string;
+  link_dokumen_persyaratan?: string;
   admin_notes?: string;
 }
 

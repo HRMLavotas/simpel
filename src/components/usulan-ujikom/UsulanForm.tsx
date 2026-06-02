@@ -48,6 +48,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
       link_dokumen_persyaratan: '',
       admin_notes: '',
     },
+    mode: 'onChange', // Validate on change untuk feedback langsung
   });
 
   // Populate form when editing
@@ -75,6 +76,15 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
 
   const onSubmit = async (data: UsulanFormValues) => {
     try {
+      console.log('Form data to submit:', {
+        employee_id: data.employee_id,
+        position_reference_id: data.position_reference_id,
+        department_id: data.department_id,
+        has_file: !!data.surat_pengantar_file,
+        link_dokumen_persyaratan: data.link_dokumen_persyaratan,
+        admin_notes: data.admin_notes,
+      });
+      
       if (mode === 'create') {
         await createUsulan.mutateAsync(data);
       } else if (usulan) {

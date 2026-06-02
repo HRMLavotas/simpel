@@ -159,6 +159,7 @@ export function PetaJabatanSelector({
   }, [positions, searchText]);
 
   const handleSelectPosition = (position: PositionReference) => {
+    console.log('Selected position:', position.id, position.position_name);
     onChange(position.id);
     setSelectedPosition(position);
     setSearchText(position.position_name);

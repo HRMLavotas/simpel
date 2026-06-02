@@ -406,6 +406,14 @@ export async function createUsulan(
     const employeeName = String(employee.name ?? '').trim();
     const employeeNip = employee.nip ? String(employee.nip).trim() : null;
 
+    // Validate required denormalized fields
+    if (!jabatanTarget) {
+      throw new Error('Nama jabatan target tidak valid');
+    }
+    if (!employeeName) {
+      throw new Error('Nama pegawai tidak valid');
+    }
+
     // Calculate formasi to determine initial status
     const formasiInfo = await calculateFormasi(
       formData.position_reference_id,
@@ -414,25 +422,33 @@ export async function createUsulan(
 
     const initialStatus: UsulanStatus = formasiInfo.is_available ? 'Draft' : 'Draft';
 
+    // Prepare insert data
+    const insertData = {
+      employee_id: formData.employee_id,
+      position_reference_id: formData.position_reference_id,
+      department: formData.department_id,
+      jabatan_target: jabatanTarget,
+      employee_name: employeeName,
+      employee_nip: employeeNip,
+      status: initialStatus,
+      link_dokumen_persyaratan: formData.link_dokumen_persyaratan || null,
+      admin_notes: formData.admin_notes || null,
+      creator_id: createdBy,
+    };
+
+    console.log('Inserting usulan with data:', insertData);
+
     // Create usulan record
     const { data: usulan, error: usulanError } = await supabase
       .from('usulan_ujikom')
-      .insert({
-        employee_id: formData.employee_id,
-        position_reference_id: formData.position_reference_id,
-        department: formData.department_id,
-        jabatan_target: jabatanTarget,
-        employee_name: employeeName,
-        employee_nip: employeeNip,
-        status: initialStatus,
-        link_dokumen_persyaratan: formData.link_dokumen_persyaratan,
-        admin_notes: formData.admin_notes || null,
-        creator_id: createdBy,
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (usulanError) throw usulanError;
+    if (usulanError) {
+      console.error('Error creating usulan:', usulanError);
+      throw usulanError;
+    }
 
     // Upload surat pengantar if provided
     let suratPengantarUrl: string | undefined;
