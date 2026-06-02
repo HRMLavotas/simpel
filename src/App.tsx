@@ -34,6 +34,8 @@ const CaseConnectionValidator = lazy(() => import("./pages/CaseConnectionValidat
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AnalisisKebutuhanSdm = lazy(() => import("./pages/AnalisisKebutuhanSdm"));
+const UsulanUjikom = lazy(() => import("./pages/UsulanUjikom"));
+const UsulanUjikomPusat = lazy(() => import("./pages/UsulanUjikomPusat"));
 
 // Loading component
 const PageLoader = () => (
@@ -119,6 +121,8 @@ const App = () => (
               <Route path="/admin/kasus-pegawai/:caseId" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><EmployeeCaseDetail /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/admin/kasus-pegawai-validator" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><CaseConnectionValidator /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/analisis-sdm" element={<ProtectedRoute allowedRoles={['admin_pusat', 'admin_pimpinan', 'admin_unit']}><ErrorBoundary><AnalisisKebutuhanSdm /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/usulan-ujikom" element={<ProtectedRoute allowedRoles={['admin_unit']}><ErrorBoundary><UsulanUjikom /></ErrorBoundary></ProtectedRoute>} />
+              <Route path="/usulan-ujikom-pusat" element={<ProtectedRoute allowedRoles={['admin_pusat']}><ErrorBoundary><UsulanUjikomPusat /></ErrorBoundary></ProtectedRoute>} />
               <Route path="/system-info" element={<ProtectedRoute><ErrorBoundary><SystemInfo /></ErrorBoundary></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>

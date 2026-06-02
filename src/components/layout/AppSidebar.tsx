@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck, Info, Megaphone, FileText, BrainCircuit } from 'lucide-react';
+import { LayoutDashboard, Users, Upload, UserCog, User, LogOut, Building2, ChevronLeft, FileSpreadsheet, LayoutList, X, Building, Activity, ClipboardCheck, Info, Megaphone, FileText, BrainCircuit, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useCaseMenuAccess } from '@/hooks/useCaseMenuAccess';
@@ -29,6 +29,8 @@ const navItems: NavItem[] = [
   { label: 'Data Builder', href: '/data-builder', icon: FileSpreadsheet },
   { label: 'Monitoring Unit', href: '/monitoring', icon: Activity, adminPusatOrPimpinan: true },
   { label: 'Analisis SDM UPT', href: '/analisis-sdm', icon: BrainCircuit },
+  { label: 'Usulan Ujikom', href: '/usulan-ujikom', icon: Award, hideForPimpinan: true, adminPusatOrUnit: true },
+  { label: 'Menu Usulan Ujikom', href: '/usulan-ujikom-pusat', icon: Award, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Kasus Pegawai', href: '/admin/kasus-pegawai', icon: FileText, adminPusatOnly: true, hideForPimpinan: true, requiresCaseAccess: true },
   { label: 'Pengumuman', href: '/announcements', icon: Megaphone, adminPusatOnly: true, hideForPimpinan: true },
   { label: 'Kelola Admin', href: '/admins', icon: UserCog, adminPusatOnly: true, hideForPimpinan: true },
