@@ -33,6 +33,7 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  tmt_gol: string | null;
   phone: string | null;
   mobile_phone: string | null;
   address: string | null;
@@ -546,6 +547,7 @@ export function EmployeeDetailsModal({
                   <ReadOnlyField label="Tanggal Masuk" value={formatDate(employee.join_date)} />
                   <ReadOnlyField label="TMT CPNS" value={formatDate(employee.tmt_cpns)} />
                   <ReadOnlyField label="TMT PNS" value={formatDate(employee.tmt_pns)} />
+                  <ReadOnlyField label="TMT Golongan/Pangkat" value={formatDate(employee.tmt_gol)} />
                   <ReadOnlyField label="TMT Pensiun" value={formatDate(employee.tmt_pensiun)} />
                 </div>
               </div>

@@ -48,6 +48,7 @@ import { QuickActionForm } from './QuickActionForm';
 import { PositionAutocomplete } from '@/components/ui/position-autocomplete';
 import { usePositionOptions } from '@/hooks/usePositionOptions';
 import { logger } from '@/lib/logger';
+import { toDateInputValue } from '@/lib/date-utils';
 
 const employeeSchema = z.object({
   nip: z.string().max(18, 'NIP maksimal 18 digit').optional().or(z.literal('')),
@@ -69,6 +70,7 @@ const employeeSchema = z.object({
   tmt_cpns: z.string().optional().or(z.literal('')),
   tmt_pns: z.string().optional().or(z.literal('')),
   tmt_pensiun: z.string().optional().or(z.literal('')),
+  tmt_gol: z.string().optional().or(z.literal('')),
   phone: z.string().max(50).optional().or(z.literal('')),
   mobile_phone: z.string().max(50).optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
@@ -110,6 +112,7 @@ interface Employee {
   tmt_cpns: string | null;
   tmt_pns: string | null;
   tmt_pensiun: string | null;
+  tmt_gol: string | null;
   phone: string | null;
   mobile_phone: string | null;
   address: string | null;
@@ -134,6 +137,7 @@ export function EmployeeFormModal({
   const { profile, isAdminPusat } = useAuth();
   const { toast } = useToast();
   const { departments: dynamicDepartments } = useDepartments();
+  const { departments: allDepartmentsForMutasi } = useDepartments({ allUnits: true });
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const [isFormReady, setIsFormReady] = useState(false);
   const isEditing = !!employee;
@@ -176,7 +180,7 @@ export function EmployeeFormModal({
       birth_place: '', birth_date: '', gender: '', religion: '',
       position_type: '', position_name: '', additional_position: '', kejuruan: '',
       asn_status: '', rank_group: '', department: profile?.department || '',
-      join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+      join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '', tmt_gol: '',
       phone: '', mobile_phone: '', address: '',
     },
   });
@@ -617,7 +621,7 @@ export function EmployeeFormModal({
         front_title: employee.front_title || '',
         back_title: employee.back_title || '',
         birth_place: employee.birth_place || '',
-        birth_date: employee.birth_date || '',
+        birth_date: toDateInputValue(employee.birth_date),
         gender: normalizedGender,
         religion: normalizedReligion,
         position_type: employee.position_type || '',
@@ -627,10 +631,11 @@ export function EmployeeFormModal({
         asn_status: employee.asn_status || '',
         rank_group: employee.rank_group || '',
         department: employee.department,
-        join_date: employee.join_date || '',
-        tmt_cpns: employee.tmt_cpns || '',
-        tmt_pns: employee.tmt_pns || '',
-        tmt_pensiun: employee.tmt_pensiun || '',
+        join_date: toDateInputValue(employee.join_date),
+        tmt_cpns: toDateInputValue(employee.tmt_cpns),
+        tmt_pns: toDateInputValue(employee.tmt_pns),
+        tmt_pensiun: toDateInputValue(employee.tmt_pensiun),
+        tmt_gol: toDateInputValue(employee.tmt_gol),
         phone: employee.phone || '',
         mobile_phone: employee.mobile_phone || '',
         address: employee.address || '',
@@ -660,7 +665,7 @@ export function EmployeeFormModal({
         birth_place: '', birth_date: '', gender: '', religion: '',
         position_type: '', position_name: '', additional_position: '', kejuruan: '',
         asn_status: '', rank_group: '', department: profile?.department || '',
-        join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '',
+        join_date: '', tmt_cpns: '', tmt_pns: '', tmt_pensiun: '', tmt_gol: '',
         phone: '', mobile_phone: '', address: '', satuan_kerja_penugasan: '',
       });
       setEducationEntries([]);
@@ -679,10 +684,26 @@ export function EmployeeFormModal({
     }
   }, [employee, open, profile, form]);
 
-  // Fetch history dari DB setiap kali modal dibuka - useEffect terpisah di level komponen
+  const clearHistoryState = () => {
+    setEducationEntries([]);
+    setMutationEntries([]);
+    setPositionHistoryEntries([]);
+    setRankHistoryEntries([]);
+    setCompetencyEntries([]);
+    setTrainingEntries([]);
+    setPlacementNotes([]);
+    setAssignmentNotes([]);
+    setChangeNotes([]);
+    setAdditionalPositionHistoryEntries([]);
+  };
+
+  // Fetch history dari DB setiap kali modal dibuka
   useEffect(() => {
-    if (!open || !employee?.id) return;
-    if (formModifiedRef.current && initialLoadCompleteRef.current) return;
+    if (!open) {
+      clearHistoryState();
+      return;
+    }
+    if (!employee?.id) return;
 
     const loadHistory = async () => {
       setIsFetchingHistory(true);
@@ -693,10 +714,17 @@ export function EmployeeFormModal({
         [key: string]: unknown;
       }
 
+      const DATE_HISTORY_FIELDS = new Set([
+        'tanggal', 'tanggal_mulai', 'tanggal_selesai', 'tmt',
+      ]);
+
       const mapRows = (data: RawHistoryData[], fields: string[]) =>
         (data || []).map((d: RawHistoryData) => {
           const entry: HistoryEntry = { id: d.id };
-          fields.forEach(f => { entry[f] = d[f]?.toString() || ''; });
+          fields.forEach((f) => {
+            const raw = d[f]?.toString() || '';
+            entry[f] = DATE_HISTORY_FIELDS.has(f) ? toDateInputValue(raw) : raw;
+          });
           return entry;
         });
 
@@ -771,7 +799,12 @@ export function EmployeeFormModal({
         const rankWithOld = inferOldValues(rankRows, 'pangkat_baru', 'pangkat_lama');
         // Jika belum ada riwayat pangkat, inject pangkat saat ini sebagai entry awal
         if (rankWithOld.length === 0 && employee.rank_group) {
-          rankWithOld.push({ id: '__current__', pangkat_baru: employee.rank_group, keterangan: 'Data saat ini' });
+          rankWithOld.push({
+            id: '__current__',
+            pangkat_baru: employee.rank_group,
+            tmt: toDateInputValue(employee.tmt_gol),
+            keterangan: 'Data saat ini',
+          });
         }
         setRankHistoryEntries(rankWithOld);
 
@@ -830,7 +863,7 @@ export function EmployeeFormModal({
 
     loadHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, employee?.id]);
+  }, [open, employee?.id, employee?.department, employee?.position_name, employee?.rank_group, employee?.additional_position, employee?.tmt_gol]);
 
   const handleAdditionalPositionsChange = (newPositions: AdditionalPositionItem[]) => {
     setAdditionalPositions(newPositions);
@@ -1179,7 +1212,7 @@ export function EmployeeFormModal({
                       currentDepartment={employee?.department || ''}
                       asnStatus={form.watch('asn_status') || ''}
                       departments={isAdminPusat ? dynamicDepartments.filter(Boolean) : [profile?.department].filter((dept): dept is string => Boolean(dept))}
-                      allDepartments={dynamicDepartments.filter(Boolean)}
+                      allDepartments={allDepartmentsForMutasi.filter(Boolean)}
                       positionOptions={positionNames}
                       onRankChange={handleQuickRankChange}
                       onPositionChange={handleQuickPositionChange}
@@ -1447,12 +1480,20 @@ export function EmployeeFormModal({
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tanggal Penting</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
+                <Label htmlFor="join_date">Tanggal Masuk</Label>
+                <Input id="join_date" type="date" {...form.register('join_date')} />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="tmt_cpns">TMT CPNS</Label>
                 <Input id="tmt_cpns" type="date" {...form.register('tmt_cpns')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tmt_pns">TMT PNS</Label>
                 <Input id="tmt_pns" type="date" {...form.register('tmt_pns')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tmt_gol">TMT Golongan/Pangkat</Label>
+                <Input id="tmt_gol" type="date" {...form.register('tmt_gol')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tmt_pensiun">TMT Pensiun</Label>

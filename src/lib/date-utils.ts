@@ -59,6 +59,18 @@ export function formatDateShortID(dateString: string | Date): string {
 }
 
 /**
+ * Normalize any date value to YYYY-MM-DD for HTML &lt;input type="date"&gt;.
+ * Avoids timezone shifts when the DB stores a date-only value.
+ */
+export function toDateInputValue(value: string | null | undefined): string {
+  if (value == null || value === '') return '';
+  const trimmed = String(value).trim();
+  const dateOnly = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (dateOnly) return dateOnly[1];
+  return '';
+}
+
+/**
  * Format date to ISO format (YYYY-MM-DD) for input fields
  * @param dateString - ISO date string or Date object
  * @returns Formatted date string in YYYY-MM-DD format

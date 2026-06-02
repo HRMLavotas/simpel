@@ -4,13 +4,22 @@ import { DEPARTMENTS, getAccessibleDepartments } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { useAuth } from './useAuth';
 
+export interface UseDepartmentsOptions {
+  /**
+   * Jika true, admin_unit melihat semua unit kerja (untuk mutasi ke unit lain).
+   * Default false: hanya unit yang dapat diakses (pembina + satpel binaan).
+   */
+  allUnits?: boolean;
+}
+
 /**
  * Hook to fetch departments from the database.
  * Falls back to the static DEPARTMENTS constant if the DB query fails.
  * Filters departments based on user's role and unit pembina access.
  */
-export function useDepartments() {
+export function useDepartments(options?: UseDepartmentsOptions) {
   const { profile } = useAuth();
+  const allUnits = options?.allUnits ?? false;
   const [departments, setDepartments] = useState<string[]>([...DEPARTMENTS]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,31 +45,31 @@ export function useDepartments() {
 
       // Filter based on user's accessible departments
       // Admin pusat and admin pimpinan can see all departments (no filter)
-      if (profile && profile.app_role === 'admin_unit') {
+      // allUnits: tampilkan semua unit (dropdown mutasi lintas unit)
+      if (profile && profile.app_role === 'admin_unit' && !allUnits) {
         const accessible = getAccessibleDepartments(profile.department, profile.app_role);
         // Maintain order from DEPARTMENTS constant
         const filtered = allDepts.filter(dept => accessible.includes(dept));
         setDepartments(filtered);
       } else {
-        // Admin pusat, admin pimpinan, or no profile: show all
+        // Admin pusat, admin pimpinan, mutasi lintas unit, or no profile: show all
         setDepartments(allDepts);
       }
     } catch (err) {
       logger.warn('Failed to fetch departments from DB, using static list:', err);
       
       // Apply filter even on fallback
-      if (profile && profile.app_role === 'admin_unit') {
+      if (profile && profile.app_role === 'admin_unit' && !allUnits) {
         const accessible = getAccessibleDepartments(profile.department, profile.app_role);
         const filtered = [...DEPARTMENTS].filter(dept => accessible.includes(dept));
         setDepartments(filtered);
       } else {
-        // Admin pusat, admin pimpinan, or no profile: show all
         setDepartments([...DEPARTMENTS]);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [profile]);
+  }, [profile, allUnits]);
 
   useEffect(() => {
     fetchDepartments();

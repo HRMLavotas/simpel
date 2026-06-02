@@ -15,9 +15,12 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmployeeFormModal } from '@/components/employees/EmployeeFormModal';
+import { EmployeeFormModal, type EmployeeFormData } from '@/components/employees/EmployeeFormModal';
 import { DepartmentFormModal } from '@/components/departments/DepartmentFormModal';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchEmployeeById } from '@/lib/fetchEmployeeById';
+import { saveEmployeeHistoryEntries } from '@/lib/saveEmployeeHistoryEntries';
+import type { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,7 +44,8 @@ export default function DataAudit() {
   const itemsPerPage = 10;
 
   // Modals state
-  const [selectedEmployee, setSelectedEmployee] = useState<AuditEmployee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [loadingEmployeeId, setLoadingEmployeeId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState<AuditDepartment | null>(null);
   const [isDeptEditModalOpen, setIsDeptEditModalOpen] = useState(false);
@@ -165,9 +169,22 @@ export default function DataAudit() {
     return labelMap[type] || type;
   };
 
-  const handleEditEmployee = (employee: AuditEmployee) => {
-    setSelectedEmployee(employee);
-    setIsEditModalOpen(true);
+  const handleEditEmployee = async (employee: AuditEmployee) => {
+    setLoadingEmployeeId(employee.id);
+    try {
+      const fullEmployee = await fetchEmployeeById(employee.id);
+      setSelectedEmployee(fullEmployee);
+      setIsEditModalOpen(true);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Gagal memuat data pegawai';
+      toast({
+        title: 'Gagal',
+        description: errMsg,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingEmployeeId(null);
+    }
   };
 
   const handleEditDept = (dept: AuditDepartment) => {
@@ -175,38 +192,133 @@ export default function DataAudit() {
     setIsDeptEditModalOpen(true);
   };
 
-  const handleSubmitEdit = async (data: Record<string, unknown>) => {
+  const handleSubmitEdit = async (data: EmployeeFormData) => {
     if (!selectedEmployee) return;
-    
+
     setIsSubmitting(true);
     try {
+      const employeeId = selectedEmployee.id;
+
       const { error } = await supabase
         .from('employees')
         .update({
-          nip: (data.nip as string) || null,
-          name: data.name as string,
-          front_title: (data.front_title as string) || null,
-          back_title: (data.back_title as string) || null,
-          birth_place: (data.birth_place as string) || null,
-          birth_date: (data.birth_date as string) || null,
-          gender: (data.gender as string) || null,
-          religion: (data.religion as string) || null,
-          position_type: (data.position_type as string) || null,
-          position_name: (data.position_name as string) || null,
-          additional_position: (data.additional_position as string) || null,
-          kejuruan: (data.kejuruan as string) || null,
-          asn_status: data.asn_status as string,
-          rank_group: (data.rank_group as string) || null,
-          department: data.department as string,
-          join_date: (data.join_date as string) || null,
-          tmt_cpns: (data.tmt_cpns as string) || null,
-          tmt_pns: (data.tmt_pns as string) || null,
-          tmt_pensiun: (data.tmt_pensiun as string) || null,
+          nip: data.nip || null,
+          name: data.name,
+          front_title: data.front_title || null,
+          back_title: data.back_title || null,
+          birth_place: data.birth_place || null,
+          birth_date: data.birth_date || null,
+          gender: data.gender || null,
+          religion: data.religion || null,
+          position_type: data.position_type || null,
+          position_name: data.position_name || null,
+          additional_position: data.additional_position || null,
+          kejuruan: data.kejuruan || null,
+          asn_status: data.asn_status,
+          rank_group: data.rank_group || null,
+          department: data.department,
+          join_date: data.join_date || null,
+          tmt_cpns: data.tmt_cpns || null,
+          tmt_pns: data.tmt_pns || null,
+          tmt_pensiun: data.tmt_pensiun || null,
+          tmt_gol: data.tmt_gol || null,
+          phone: data.phone || null,
+          mobile_phone: data.mobile_phone || null,
+          address: data.address || null,
+          satuan_kerja_penugasan: data.satuan_kerja_penugasan || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', selectedEmployee.id);
+        .eq('id', employeeId);
 
       if (error) throw error;
+
+      if (data.education_history) {
+        await supabase.from('education_history').delete().eq('employee_id', employeeId);
+        const eduRows = data.education_history
+          .filter((e) => e.level)
+          .map((e) => ({
+            employee_id: employeeId,
+            level: e.level,
+            institution_name: e.institution_name || null,
+            major: e.major || null,
+            graduation_year: e.graduation_year ? parseInt(e.graduation_year, 10) : null,
+            front_title: e.front_title || null,
+            back_title: e.back_title || null,
+          }));
+        if (eduRows.length > 0) {
+          const { error: eduError } = await supabase.from('education_history').insert(eduRows);
+          if (eduError) throw eduError;
+        }
+
+        const latestEdu = [...data.education_history]
+          .filter((e) => e.level)
+          .sort((a, b) => {
+            const yearA = a.graduation_year ? parseInt(a.graduation_year, 10) : 0;
+            const yearB = b.graduation_year ? parseInt(b.graduation_year, 10) : 0;
+            return yearB - yearA;
+          })[0];
+
+        if (latestEdu) {
+          await supabase
+            .from('employees')
+            .update({
+              education_level: latestEdu.level || null,
+              education_major: latestEdu.major || null,
+            })
+            .eq('id', employeeId);
+        }
+      }
+
+      await Promise.all([
+        saveEmployeeHistoryEntries('mutation_history', employeeId, data.mutation_history, [
+          'tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('position_history', employeeId, data.position_history, [
+          'tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('rank_history', employeeId, data.rank_history, [
+          'tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('competency_test_history', employeeId, data.competency_test_history, [
+          'tanggal', 'jenis_uji', 'hasil', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('training_history', employeeId, data.training_history, [
+          'tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('additional_position_history', employeeId, data.additional_position_history, [
+          'tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan',
+        ]),
+      ]);
+
+      if (data.placement_notes) {
+        await supabase.from('placement_notes').delete().eq('employee_id', employeeId);
+        const rows = data.placement_notes
+          .filter((n) => n.note?.trim())
+          .map((n) => ({ employee_id: employeeId, note: n.note }));
+        if (rows.length > 0) {
+          await supabase.from('placement_notes').insert(rows);
+        }
+      }
+
+      if (data.assignment_notes) {
+        await supabase.from('assignment_notes').delete().eq('employee_id', employeeId);
+        const rows = data.assignment_notes
+          .filter((n) => n.note?.trim())
+          .map((n) => ({ employee_id: employeeId, note: n.note }));
+        if (rows.length > 0) {
+          await supabase.from('assignment_notes').insert(rows);
+        }
+      }
+
+      if (data.change_notes) {
+        await supabase.from('change_notes').delete().eq('employee_id', employeeId);
+        const rows = data.change_notes
+          .filter((n) => n.note?.trim())
+          .map((n) => ({ employee_id: employeeId, note: n.note }));
+        if (rows.length > 0) {
+          await supabase.from('change_notes').insert(rows);
+        }
+      }
 
       toast({
         title: 'Berhasil',
@@ -413,9 +525,10 @@ export default function DataAudit() {
                           size="sm"
                           onClick={() => handleEditEmployee(employee)}
                           className="ml-4"
+                          disabled={loadingEmployeeId === employee.id}
                         >
                           <Edit className="h-4 w-4 mr-2" />
-                          Perbaiki
+                          {loadingEmployeeId === employee.id ? 'Memuat...' : 'Perbaiki'}
                         </Button>
                       </div>
                     ))}
@@ -616,7 +729,10 @@ export default function DataAudit() {
       {selectedEmployee && (
         <EmployeeFormModal
           open={isEditModalOpen}
-          onOpenChange={setIsEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) setSelectedEmployee(null);
+          }}
           employee={selectedEmployee}
           onSubmit={handleSubmitEdit}
           isLoading={isSubmitting}

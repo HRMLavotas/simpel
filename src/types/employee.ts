@@ -104,6 +104,7 @@ export interface EmployeeFormData {
   tmt_cpns?: string;
   tmt_pns?: string;
   tmt_pensiun?: string;
+  tmt_gol?: string;
   kejuruan?: string; // Kejuruan instruktur (hanya untuk jabatan Instruktur)
 }
 

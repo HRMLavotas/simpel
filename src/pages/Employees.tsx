@@ -53,6 +53,7 @@ import { type AdditionalPositionHistoryEntry } from '@/components/employees/Addi
 import { type NoteEntry } from '@/components/employees/NotesForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { fetchEmployeeById } from '@/lib/fetchEmployeeById';
 import { supabase } from '@/integrations/supabase/client';
 import { ASN_STATUS_OPTIONS, getSatpelsByPembina } from '@/lib/constants';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -556,20 +557,6 @@ export default function Employees() {
       // Don't show error toast, this is not critical
     }
   };
-
-  const fetchEmployeeById = useCallback(async (employeeId: string): Promise<Employee> => {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('id', employeeId)
-      .single();
-
-    if (error || !data) {
-      throw error ?? new Error('Data pegawai tidak ditemukan');
-    }
-
-    return data as Employee;
-  }, []);
 
   // Helper function to check if employee matches department filter
   // Checks both department AND satuan_kerja_penugasan with normalization
@@ -1192,6 +1179,7 @@ export default function Employees() {
         tmt_cpns: data.tmt_cpns || null,
         tmt_pns: data.tmt_pns || null,
         tmt_pensiun: data.tmt_pensiun || null,
+        tmt_gol: data.tmt_gol || null,
         phone: data.phone || null,
         mobile_phone: data.mobile_phone || null,
         address: data.address || null,
