@@ -100,7 +100,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Buat Usulan Ujikom Baru' : 'Edit Usulan Ujikom'}
@@ -113,7 +113,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
             {/* Employee Selector */}
             <FormField
               control={form.control}
@@ -124,7 +124,14 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
                   <FormControl>
                     <EmployeeSelector
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(employeeId, employeeDept) => {
+                        field.onChange(employeeId);
+                        if (employeeDept) {
+                          form.setValue('department_id', employeeDept, { shouldValidate: true });
+                          // Reset selected position reference id since department changed
+                          form.setValue('position_reference_id', '', { shouldValidate: false });
+                        }
+                      }}
                       departmentId={form.watch('department_id')}
                       positionReferenceId={form.watch('position_reference_id')}
                       disabled={isLoading || mode === 'edit'}
@@ -140,24 +147,32 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
             <FormField
               control={form.control}
               name="position_reference_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jabatan Target (dari Peta Jabatan)</FormLabel>
-                  <FormControl>
-                    <PetaJabatanSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                      departmentId={form.watch('department_id')}
-                      disabled={isLoading || !canEdit}
-                      error={form.formState.errors.position_reference_id?.message}
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    Pilih jabatan fungsional target dari Peta Jabatan unit kerja Anda
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedEmployeeId = form.watch('employee_id');
+                const isPositionDisabled = isLoading || !canEdit || !selectedEmployeeId;
+                
+                return (
+                  <FormItem>
+                    <FormLabel>Jabatan Target (dari Peta Jabatan)</FormLabel>
+                    <FormControl>
+                      <PetaJabatanSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                        departmentId={form.watch('department_id')}
+                        disabled={isPositionDisabled}
+                        error={form.formState.errors.position_reference_id?.message}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      {!selectedEmployeeId 
+                        ? 'Pilih pegawai terlebih dahulu untuk melihat peta jabatan'
+                        : 'Pilih jabatan fungsional target dari Peta Jabatan unit kerja pegawai'
+                      }
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Document Upload */}
@@ -211,10 +226,11 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
+                className="w-full sm:w-auto"
               >
                 Batal
               </Button>
-              <Button type="submit" disabled={isLoading || !canEdit}>
+              <Button type="submit" disabled={isLoading || !canEdit} className="w-full sm:w-auto">
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {mode === 'create' ? 'Simpan Draft' : 'Simpan Perubahan'}
               </Button>

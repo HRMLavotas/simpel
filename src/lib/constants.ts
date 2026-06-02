@@ -182,6 +182,11 @@ export const POSITION_TYPE_ALIASES: Record<string, PositionType> = {
   'Jabatan Pelaksana': 'Pelaksana',
 };
 
+// Functional position category values that may exist in the database.
+// We accept both the normalized value used by Peta Jabatan and the legacy label.
+export const FUNCTIONAL_POSITION_CATEGORIES = ['Fungsional', 'Jabatan Fungsional'] as const;
+export type FunctionalPositionCategory = typeof FUNCTIONAL_POSITION_CATEGORIES[number];
+
 // Complete rank/group with full name format
 export const RANK_GROUPS_PNS = [
   'Juru Muda (I/a)',

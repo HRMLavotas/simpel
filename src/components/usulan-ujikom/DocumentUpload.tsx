@@ -91,7 +91,7 @@ export function DocumentUpload({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Surat Pengantar Upload */}
       <div className="space-y-2">
         <Label htmlFor="surat-pengantar">
@@ -103,7 +103,7 @@ export function DocumentUpload({
 
         {!suratPengantarFile && !suratPengantarUrl ? (
           <div
-            className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+            className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 transition-colors ${
               dragActive ? 'border-primary bg-primary/5' : 'border-border'
             } ${fileError ? 'border-red-500' : ''}`}
             onDragEnter={handleDrag}
@@ -121,9 +121,9 @@ export function DocumentUpload({
             />
             <label
               htmlFor="surat-pengantar"
-              className="flex flex-col items-center cursor-pointer"
+              className="flex flex-col items-center text-center cursor-pointer"
             >
-              <Upload className="h-10 w-10 text-muted-foreground mb-3" />
+              <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground mb-3" />
               <p className="text-sm font-medium">
                 Klik untuk upload atau drag and drop
               </p>
@@ -133,7 +133,7 @@ export function DocumentUpload({
             </label>
           </div>
         ) : (
-          <div className="flex items-center gap-3 p-4 border rounded-lg">
+          <div className="flex items-start gap-3 p-3 sm:p-4 border rounded-lg">
             <FileText className="h-8 w-8 text-blue-500" />
             <div className="flex-1 min-w-0">
               {suratPengantarFile ? (
@@ -161,6 +161,7 @@ export function DocumentUpload({
                 type="button"
                 variant="ghost"
                 size="sm"
+                className="shrink-0"
                 onClick={handleRemoveFile}
               >
                 <X className="h-4 w-4" />

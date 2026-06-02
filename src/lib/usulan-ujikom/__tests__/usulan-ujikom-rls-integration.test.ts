@@ -82,7 +82,7 @@ describe('Usulan Ujikom RLS Integration Tests', () => {
     const { data: position } = await adminClient
       .from('position_references')
       .select('id')
-      .eq('position_category', 'Jabatan Fungsional')
+      .in('position_category', ['Fungsional', 'Jabatan Fungsional'])
       .limit(1)
       .maybeSingle();
     

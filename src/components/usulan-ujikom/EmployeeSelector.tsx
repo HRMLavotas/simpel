@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getAccessibleDepartments } from '@/lib/constants';
 import {
   Command,
   CommandEmpty,
@@ -36,11 +37,12 @@ interface Employee {
   rank_group: string | null;
   asn_status: string | null;
   is_active: boolean;
+  department: string | null;
 }
 
 interface EmployeeSelectorProps {
   value?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, department?: string) => void;
   departmentId?: string;
   positionReferenceId?: string;
   disabled?: boolean;
@@ -55,32 +57,34 @@ export function EmployeeSelector({
   disabled,
   error,
 }: EmployeeSelectorProps) {
-  const { profile } = useAuth();
+  const { profile, role } = useAuth();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const effectiveDepartmentId = departmentId || profile?.department;
-
   // Fetch eligible employees
   const { data: employees, isLoading } = useQuery<Employee[]>({
-    queryKey: ['employees', 'eligible', effectiveDepartmentId],
+    queryKey: ['employees', 'eligible', profile?.department, role],
     queryFn: async () => {
       let query = supabase
         .from('employees')
-        .select('id, nip, name, position_name, rank, rank_group, asn_status, is_active')
+        .select('id, nip, name, position_name, rank, rank_group, asn_status, is_active, department')
         .eq('is_active', true)
         .not('asn_status', 'is', null)
         .order('name');
 
-      if (effectiveDepartmentId) {
-        query = query.eq('department', effectiveDepartmentId);
+      // Filter berdasarkan unit yang bisa diakses user
+      if (role !== 'admin_pusat' && profile?.department) {
+        const accessible = getAccessibleDepartments(profile.department, role);
+        if (accessible && accessible.length > 0) {
+          query = query.in('department', accessible);
+        }
       }
 
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
       return data || [];
     },
-    enabled: !!effectiveDepartmentId,
+    enabled: !!profile,
   });
 
   // Check if employee has active usulan for the same position
@@ -139,7 +143,7 @@ export function EmployeeSelector({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0">
+        <PopoverContent className="w-[calc(100vw-1rem)] max-w-[400px] p-0 sm:w-[400px]">
           <Command>
             <CommandInput placeholder="Cari nama atau NIP..." />
             <CommandList>
@@ -150,7 +154,7 @@ export function EmployeeSelector({
                     key={employee.id}
                     value={`${employee.name} ${employee.nip || ''}`}
                     onSelect={() => {
-                      onChange(employee.id);
+                      onChange(employee.id, employee.department || undefined);
                       setOpen(false);
                     }}
                   >
@@ -205,7 +209,7 @@ export function EmployeeSelector({
       {/* Show selected employee details */}
       {selectedEmployee && (
         <div className="rounded-md border p-3 text-sm">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
               <span className="text-muted-foreground">Nama:</span>
               <span className="ml-2 font-medium">{selectedEmployee.name}</span>

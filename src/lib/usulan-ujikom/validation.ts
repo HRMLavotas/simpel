@@ -114,7 +114,7 @@ const statusSchema = z.enum([
 export const usulanFormSchema = z.object({
   employee_id: uuidSchema,
   position_reference_id: uuidSchema,
-  department_id: uuidSchema,
+  department_id: z.string().min(1, 'Unit kerja wajib dipilih'),
   surat_pengantar_file: fileSchema,
   link_dokumen_persyaratan: urlSchema,
   admin_notes: z.string().optional(),
@@ -142,7 +142,7 @@ export type UsulanUpdateValues = z.infer<typeof usulanUpdateSchema>;
 export const usulanDraftSchema = z.object({
   employee_id: uuidSchema.optional(),
   position_reference_id: uuidSchema.optional(),
-  department_id: uuidSchema,
+  department_id: z.string().min(1, 'Unit kerja wajib dipilih'),
   surat_pengantar_file: optionalFileSchema,
   link_dokumen_persyaratan: z.string().url().optional().or(z.literal('')),
   admin_notes: z.string().optional(),
@@ -245,7 +245,7 @@ export type FeedbackValues = z.infer<typeof feedbackSchema>;
  */
 export const usulanFilterSchema = z.object({
   status: z.union([statusSchema, z.array(statusSchema)]).optional(),
-  department_id: uuidSchema.optional(),
+  department_id: z.string().optional(),
   position_reference_id: uuidSchema.optional(),
   employee_name: z.string().optional(),
   employee_nip: z.string().optional(),

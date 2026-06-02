@@ -5,6 +5,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { FUNCTIONAL_POSITION_CATEGORIES } from '@/lib/constants';
 import type {
   UsulanUjikom,
   UsulanUjikomWithDetails,
@@ -382,6 +383,29 @@ export async function createUsulan(
   createdBy: string
 ): Promise<UsulanUjikomWithDetails> {
   try {
+    // Load source data used by the denormalized columns on usulan_ujikom
+    const [{ data: employee, error: employeeError }, { data: positionRef, error: positionError }] = await Promise.all([
+      supabase
+        .from('employees')
+        .select('id, name, nip, department')
+        .eq('id', formData.employee_id)
+        .single(),
+      supabase
+        .from('position_references')
+        .select('id, position_name, department')
+        .eq('id', formData.position_reference_id)
+        .single(),
+    ]);
+
+    if (employeeError) throw employeeError;
+    if (positionError) throw positionError;
+    if (!employee) throw new Error('Data pegawai tidak ditemukan');
+    if (!positionRef) throw new Error('Data jabatan target tidak ditemukan');
+
+    const jabatanTarget = String(positionRef.position_name ?? '').trim();
+    const employeeName = String(employee.name ?? '').trim();
+    const employeeNip = employee.nip ? String(employee.nip).trim() : null;
+
     // Calculate formasi to determine initial status
     const formasiInfo = await calculateFormasi(
       formData.position_reference_id,
@@ -397,6 +421,9 @@ export async function createUsulan(
         employee_id: formData.employee_id,
         position_reference_id: formData.position_reference_id,
         department: formData.department_id,
+        jabatan_target: jabatanTarget,
+        employee_name: employeeName,
+        employee_nip: employeeNip,
         status: initialStatus,
         link_dokumen_persyaratan: formData.link_dokumen_persyaratan,
         admin_notes: formData.admin_notes || null,
@@ -955,7 +982,7 @@ export async function getUsulanStatistics(departmentId: string) {
       .from('position_references')
       .select('id, position_name, abk_count')
       .eq('department', departmentId)
-      .eq('position_category', 'Jabatan Fungsional');
+      .in('position_category', [...FUNCTIONAL_POSITION_CATEGORIES]);
 
     if (posError) throw posError;
 
