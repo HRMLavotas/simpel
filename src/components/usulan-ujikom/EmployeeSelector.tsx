@@ -31,7 +31,7 @@ interface Employee {
   id: string;
   nip: string | null;
   name: string;
-  current_position: string | null;
+  position_name: string | null;
   rank: string | null;
   asn_status: string | null;
   is_active: boolean;
@@ -58,7 +58,7 @@ export function EmployeeSelector({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const effectiveDepartmentId = departmentId || profile?.department_id;
+  const effectiveDepartmentId = departmentId || profile?.department;
 
   // Fetch eligible employees
   const { data: employees, isLoading } = useQuery<Employee[]>({
@@ -66,13 +66,13 @@ export function EmployeeSelector({
     queryFn: async () => {
       let query = supabase
         .from('employees')
-        .select('id, nip, name, current_position, rank, asn_status, is_active')
+        .select('id, nip, name, position_name, rank, asn_status, is_active')
         .eq('is_active', true)
         .not('asn_status', 'is', null)
         .order('name');
 
       if (effectiveDepartmentId) {
-        query = query.eq('department_id', effectiveDepartmentId);
+        query = query.eq('department', effectiveDepartmentId);
       }
 
       const { data, error: fetchError } = await query;
@@ -163,7 +163,7 @@ export function EmployeeSelector({
                       <div className="font-medium">{employee.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {employee.nip && <span>NIP: {employee.nip} • </span>}
-                        {employee.current_position && <span>{employee.current_position} • </span>}
+                        {employee.position_name && <span>{employee.position_name} • </span>}
                         {employee.rank && <span>{employee.rank}</span>}
                       </div>
                     </div>
@@ -203,7 +203,7 @@ export function EmployeeSelector({
             </div>
             <div>
               <span className="text-muted-foreground">Jabatan Saat Ini:</span>
-              <span className="ml-2">{selectedEmployee.current_position || '-'}</span>
+              <span className="ml-2">{selectedEmployee.position_name || '-'}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Pangkat:</span>

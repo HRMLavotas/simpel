@@ -48,7 +48,7 @@ export function PetaJabatanSelector({
   const [selectedPosition, setSelectedPosition] = useState<PositionReference | null>(null);
 
   // Use department from props or user profile
-  const effectiveDepartmentId = departmentId || profile?.department_id;
+  const effectiveDepartmentId = departmentId || profile?.department;
 
   // Fetch position references (Peta Jabatan)
   const { data: positions, isLoading } = useQuery<PositionReference[]>({

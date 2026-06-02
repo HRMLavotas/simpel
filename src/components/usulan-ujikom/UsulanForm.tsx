@@ -43,7 +43,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
     defaultValues: {
       employee_id: '',
       position_reference_id: '',
-      department_id: profile?.department_id || '',
+      department_id: profile?.department || '',
       surat_pengantar_file: null,
       link_dokumen_persyaratan: '',
       admin_notes: '',
@@ -56,7 +56,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
       form.reset({
         employee_id: usulan.employee_id,
         position_reference_id: usulan.position_reference_id,
-        department_id: usulan.department_id,
+        department_id: usulan.department.id,
         surat_pengantar_file: null, // Keep existing file
         link_dokumen_persyaratan: usulan.link_dokumen_persyaratan || '',
         admin_notes: usulan.admin_notes || '',
@@ -65,7 +65,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
       form.reset({
         employee_id: '',
         position_reference_id: '',
-        department_id: profile?.department_id || '',
+        department_id: profile?.department || '',
         surat_pengantar_file: null,
         link_dokumen_persyaratan: '',
         admin_notes: '',

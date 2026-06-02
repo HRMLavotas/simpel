@@ -110,11 +110,11 @@ export function useUsulanStatistics() {
   const { profile, role } = useAuth();
 
   return useQuery({
-    queryKey: ['usulan-ujikom', 'statistics', profile?.department_id],
+    queryKey: ['usulan-ujikom', 'statistics', profile?.department],
     queryFn: async () => {
-      if (!profile?.department_id) return null;
-      return await getUsulanStatistics(profile.department_id);
+      if (!profile?.department) return null;
+      return await getUsulanStatistics(profile.department);
     },
-    enabled: !!profile?.department_id && role === 'admin_unit',
+    enabled: !!profile?.department && role === 'admin_unit',
   });
 }

@@ -593,7 +593,7 @@ export async function submitUsulan(
     // Calculate formasi availability
     const formasiInfo = await calculateFormasi(
       current.position_reference_id,
-      current.department_id
+      current.department.id
     );
 
     const newStatus: UsulanStatus = formasiInfo.is_available ? 'Diajukan' : 'Waiting_List';
@@ -605,7 +605,7 @@ export async function submitUsulan(
         .from('usulan_ujikom')
         .select('*', { count: 'exact', head: true })
         .eq('position_reference_id', current.position_reference_id)
-        .eq('department_id', current.department_id)
+        .eq('department', current.department.id)
         .eq('status', 'Waiting_List');
 
       queuePosition = (count || 0) + 1;
@@ -952,7 +952,7 @@ export async function getUsulanStatistics(departmentId: string) {
     const { data: positions, error: posError } = await supabase
       .from('position_references')
       .select('id, position_name, abk_count')
-      .eq('department_id', departmentId)
+      .eq('department', departmentId)
       .eq('position_category', 'Jabatan Fungsional');
 
     if (posError) throw posError;
