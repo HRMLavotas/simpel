@@ -67,6 +67,7 @@ export interface UsulanUjikomWithDetails extends UsulanUjikom {
     name: string;
     position_name: string | null;
     rank: string | null;
+    rank_group: string | null;
     asn_status: string | null;
     is_active: boolean;
   };

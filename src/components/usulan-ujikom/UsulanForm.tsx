@@ -142,7 +142,7 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
               name="position_reference_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Jabatan Target</FormLabel>
+                  <FormLabel>Jabatan Target (dari Peta Jabatan)</FormLabel>
                   <FormControl>
                     <PetaJabatanSelector
                       value={field.value}
@@ -152,6 +152,9 @@ export function UsulanForm({ open, onOpenChange, usulan, mode }: UsulanFormProps
                       error={form.formState.errors.position_reference_id?.message}
                     />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Pilih jabatan fungsional target dari Peta Jabatan unit kerja Anda
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

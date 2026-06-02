@@ -115,6 +115,7 @@ export async function fetchUsulanList(
           name,
           position_name,
           rank,
+          rank_group,
           asn_status,
           is_active
         ),
@@ -207,6 +208,7 @@ export async function fetchUsulanById(id: string): Promise<UsulanUjikomWithDetai
           name,
           position_name,
           rank,
+          rank_group,
           asn_status,
           is_active
         ),

@@ -139,11 +139,13 @@ export function UsulanDetail({ usulanId, onEdit, onClose }: UsulanDetailProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Jabatan Saat Ini</p>
-                <p className="font-medium">{usulan.employee.current_position || '-'}</p>
+                <p className="font-medium">{usulan.employee.position_name || '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pangkat</p>
-                <p className="font-medium">{usulan.employee.rank || '-'}</p>
+                <p className="text-sm text-muted-foreground">Pangkat/Golongan</p>
+                <p className="font-medium">
+                  {usulan.employee.rank_group || usulan.employee.rank || '-'}
+                </p>
               </div>
             </div>
           </div>

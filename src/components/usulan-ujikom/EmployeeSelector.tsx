@@ -33,6 +33,7 @@ interface Employee {
   name: string;
   position_name: string | null;
   rank: string | null;
+  rank_group: string | null;
   asn_status: string | null;
   is_active: boolean;
 }
@@ -66,7 +67,7 @@ export function EmployeeSelector({
     queryFn: async () => {
       let query = supabase
         .from('employees')
-        .select('id, nip, name, position_name, rank, asn_status, is_active')
+        .select('id, nip, name, position_name, rank, rank_group, asn_status, is_active')
         .eq('is_active', true)
         .not('asn_status', 'is', null)
         .order('name');
@@ -162,9 +163,21 @@ export function EmployeeSelector({
                     <div className="flex-1">
                       <div className="font-medium">{employee.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {employee.nip && <span>NIP: {employee.nip} • </span>}
-                        {employee.position_name && <span>{employee.position_name} • </span>}
-                        {employee.rank && <span>{employee.rank}</span>}
+                        {employee.nip && <span>NIP: {employee.nip}</span>}
+                        {employee.position_name && (
+                          <>
+                            {employee.nip && <span> • </span>}
+                            <span>{employee.position_name}</span>
+                          </>
+                        )}
+                        {(employee.rank_group || employee.rank) && (
+                          <>
+                            {(employee.nip || employee.position_name) && <span> • </span>}
+                            <span className="font-medium">
+                              {employee.rank_group || employee.rank}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </CommandItem>
@@ -206,8 +219,10 @@ export function EmployeeSelector({
               <span className="ml-2">{selectedEmployee.position_name || '-'}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Pangkat:</span>
-              <span className="ml-2">{selectedEmployee.rank || '-'}</span>
+              <span className="text-muted-foreground">Pangkat/Golongan:</span>
+              <span className="ml-2 font-medium">
+                {selectedEmployee.rank_group || selectedEmployee.rank || '-'}
+              </span>
             </div>
           </div>
         </div>
