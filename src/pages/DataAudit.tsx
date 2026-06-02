@@ -199,6 +199,28 @@ export default function DataAudit() {
     try {
       const employeeId = selectedEmployee.id;
 
+      // Simpan riwayat sebelum update pegawai (RLS mutation_history membutuhkan unit asal masih terlihat)
+      await Promise.all([
+        saveEmployeeHistoryEntries('mutation_history', employeeId, data.mutation_history, [
+          'tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('position_history', employeeId, data.position_history, [
+          'tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('rank_history', employeeId, data.rank_history, [
+          'tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('competency_test_history', employeeId, data.competency_test_history, [
+          'tanggal', 'jenis_uji', 'hasil', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('training_history', employeeId, data.training_history, [
+          'tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan',
+        ]),
+        saveEmployeeHistoryEntries('additional_position_history', employeeId, data.additional_position_history, [
+          'tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan',
+        ]),
+      ]);
+
       const { error } = await supabase
         .from('employees')
         .update({
@@ -268,27 +290,6 @@ export default function DataAudit() {
             .eq('id', employeeId);
         }
       }
-
-      await Promise.all([
-        saveEmployeeHistoryEntries('mutation_history', employeeId, data.mutation_history, [
-          'tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan',
-        ]),
-        saveEmployeeHistoryEntries('position_history', employeeId, data.position_history, [
-          'tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan',
-        ]),
-        saveEmployeeHistoryEntries('rank_history', employeeId, data.rank_history, [
-          'tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan',
-        ]),
-        saveEmployeeHistoryEntries('competency_test_history', employeeId, data.competency_test_history, [
-          'tanggal', 'jenis_uji', 'hasil', 'keterangan',
-        ]),
-        saveEmployeeHistoryEntries('training_history', employeeId, data.training_history, [
-          'tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan',
-        ]),
-        saveEmployeeHistoryEntries('additional_position_history', employeeId, data.additional_position_history, [
-          'tanggal', 'jabatan_tambahan_lama', 'jabatan_tambahan_baru', 'nomor_sk', 'tmt', 'keterangan',
-        ]),
-      ]);
 
       if (data.placement_notes) {
         await supabase.from('placement_notes').delete().eq('employee_id', employeeId);

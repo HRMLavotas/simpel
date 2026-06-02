@@ -1,4 +1,12 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { getAccessibleDepartments } from '@/lib/constants';
+import {
+  RANK_GROUP_FILTER_OPTIONS,
+  applyDataBuilderClientFilters,
+  applyDataBuilderServerFilters,
+  isFilterRuleActive,
+  type FilterableQuery,
+} from '@/lib/dataBuilderFilters';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -182,13 +190,6 @@ function formatFullName(row: Record<string, unknown>): string {
   return parts.length > 0 ? parts.join(' ') : '-';
 }
 
-type FilterableQuery = {
-  eq: (field: string, value: string) => FilterableQuery;
-  ilike: (field: string, value: string) => FilterableQuery;
-  in: (field: string, values: string[]) => FilterableQuery;
-  or: (filters: string) => FilterableQuery;
-};
-
 const PAGE_SIZE = 50;
 const DEFAULT_SELECTED_COLUMNS: string[] = [];
 const FILTER_OPTIONS: Record<string, string[]> = {
@@ -196,33 +197,7 @@ const FILTER_OPTIONS: Record<string, string[]> = {
   position_type: ['Struktural', 'Fungsional', 'Pelaksana'],
   gender: ['Laki-laki', 'Perempuan'],
   religion: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'],
-  rank_group: [
-    // Golongan I
-    'Juru (I/a)',
-    'Juru Muda (I/b)',
-    'Juru Muda Tk I (I/c)',
-    'Juru Tk I (I/d)',
-    // Golongan II
-    'Pengatur Muda (II/a)',
-    'Pengatur Muda Tk I (II/b)',
-    'Pengatur (II/c)',
-    'Pengatur Tk I (II/d)',
-    // Golongan III
-    'Penata Muda (III/a)',
-    'Penata Muda Tk I (III/b)',
-    'Penata (III/c)',
-    'Penata Tk I (III/d)',
-    // Golongan IV
-    'Pembina (IV/a)',
-    'Pembina Tk I (IV/b)',
-    'Pembina Muda (IV/c)',
-    'Pembina Madya (IV/d)',
-    'Pembina Utama (IV/e)',
-    // PPPK
-    'III', 'V', 'VII', 'IX',
-    // Non ASN atau kosong
-    '(Tidak Ada)',
-  ],
+  rank_group: [...RANK_GROUP_FILTER_OPTIONS],
   kejuruan: [
     'Bahasa', 'Bahasa Asing', 'Bahasa Jepang', 'Bangunan', 'Bisnis dan Manajemen',
     'Bisnis Manajemen', 'Elektronika', 'Fashion Technology', 'Garmen', 'Garmen Apparel',
@@ -241,16 +216,6 @@ const FILTER_OPTIONS: Record<string, string[]> = {
 const getDefaultFilterOperator = (field: string): FilterRule['operator'] => {
   return (FILTER_OPTIONS[field] || field === 'department') ? 'in' : 'ilike';
 };
-
-const isFilterRuleActive = (filter: FilterRule) => {
-  if (filter.operator === 'in') {
-    return (filter.values?.length || 0) > 0;
-  }
-
-  return filter.value.trim().length > 0;
-};
-
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const buildFiltersForSelectedColumns = (selectedColumns: string[], existingFilters: FilterRule[] = []) => {
   const selectedDbFields = selectedColumns
@@ -279,8 +244,12 @@ export default function DataBuilder() {
   const { toast } = useToast();
   const { profile, role, canViewAll } = useAuth();
   const isAdminUnit = role === 'admin_unit';
-  // Restrict data to own department if not allowed to view all
-  const shouldFilterByDepartment = !canViewAll && profile?.department;
+
+  /** Unit yang boleh di-query (pembina + satpel binaan), bukan hanya nama unit profil */
+  const accessibleDepartments = useMemo(() => {
+    if (canViewAll || !profile?.department) return null;
+    return getAccessibleDepartments(profile.department, profile.app_role ?? 'admin_unit');
+  }, [canViewAll, profile?.department, profile?.app_role]);
   const [selectedColumns, setSelectedColumns] = useState<string[]>(DEFAULT_SELECTED_COLUMNS);
   const [selectedRelatedTables, setSelectedRelatedTables] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterRule[]>(() => buildFiltersForSelectedColumns(DEFAULT_SELECTED_COLUMNS));
@@ -326,202 +295,6 @@ export default function DataBuilder() {
     return { selectStr, dbFields: merged };
   }, [selectedColumns, filters]);
 
-  const applyFilters = (query: FilterableQuery) => {
-    let q = query;
-
-    const activeFilters = filters.filter(isFilterRuleActive);
-
-    // Pisahkan filter virtual (position_name_or_plt) dari filter biasa
-    // Field virtual ini mencari di position_name OR additional_position sekaligus
-    const virtualFilters = activeFilters.filter(f => f.field === 'position_name_or_plt');
-    const regularFilters = activeFilters.filter(f => f.field !== 'position_name_or_plt');
-
-    // Terapkan filter virtual: setiap kondisi jadi OR antara position_name dan additional_position
-    for (const filter of virtualFilters) {
-      const value = filter.value.trim();
-      if (!value) continue;
-      const escaped = value.replace(/"/g, '\\"');
-
-      if (filter.operator === 'ilike' || filter.operator === 'exact_word') {
-        q = q.or(`position_name.ilike."%${escaped}%",additional_position.ilike."%${escaped}%"`);
-      } else if (filter.operator === 'exact_match') {
-        q = q.or(`position_name.ilike."${escaped}",additional_position.ilike."${escaped}"`);
-      } else if (filter.operator === 'eq') {
-        q = q.or(`position_name.eq."${escaped}",additional_position.eq."${escaped}"`);
-      }
-    }
-
-    // Kumpulkan semua nilai 'in' per field — gabungkan jadi satu .in() call
-    const inValuesByField = new Map<string, string[]>();
-    for (const filter of regularFilters) {
-      if (filter.operator !== 'in') continue;
-      const vals = filter.values?.filter(Boolean) ?? [];
-      if (vals.length === 0) continue;
-      const existing = inValuesByField.get(filter.field) ?? [];
-      inValuesByField.set(filter.field, [...new Set([...existing, ...vals])]);
-    }
-
-    // Kumpulkan filter text per field
-    const textFiltersByField = new Map<string, Array<{ operator: string; value: string }>>();
-    for (const filter of regularFilters) {
-      if (filter.operator === 'in') continue;
-      const value = filter.value.trim();
-      if (!value) continue;
-      const existing = textFiltersByField.get(filter.field) ?? [];
-      textFiltersByField.set(filter.field, [...existing, { operator: filter.operator, value }]);
-    }
-
-    // Helper: konversi satu kondisi text ke OR-part string untuk PostgREST
-    const textConditionToOrPart = (field: string, operator: string, value: string): string => {
-      const escaped = value.replace(/"/g, '\\"');
-      if (operator === 'exact_word' || operator === 'ilike') return `${field}.ilike."%${escaped}%"`;
-      if (operator === 'exact_match') return `${field}.ilike."${escaped}"`;
-      return `${field}.eq."${escaped}"`;
-    };
-
-    // Deteksi apakah position_name dan additional_position keduanya aktif (in atau text).
-    // Jika ya, gabungkan SEMUA kondisi keduanya dalam satu OR besar agar tidak saling memotong.
-    // Tanpa ini, dua .or() terpisah di-AND oleh Supabase sehingga pegawai yang hanya cocok
-    // di salah satu field (misal: punya jabatan kepmen tapi tidak punya jabatan tambahan) hilang.
-    const posInVals = inValuesByField.get('position_name');
-    const addInVals = inValuesByField.get('additional_position');
-    const posTextConds = textFiltersByField.get('position_name') ?? [];
-    const addTextConds = textFiltersByField.get('additional_position') ?? [];
-
-    const hasPositionNameActive = (posInVals?.length ?? 0) > 0 || posTextConds.length > 0;
-    const hasAdditionalPositionActive = (addInVals?.length ?? 0) > 0 || addTextConds.length > 0;
-
-    if (hasPositionNameActive && hasAdditionalPositionActive) {
-      const mergedOrParts: string[] = [];
-
-      if (posInVals?.length) {
-        mergedOrParts.push(`position_name.in.(${posInVals.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')})`);
-        inValuesByField.delete('position_name');
-      }
-      if (addInVals?.length) {
-        mergedOrParts.push(`additional_position.in.(${addInVals.map(v => `"${v.replace(/"/g, '\\"')}"`).join(',')})`);
-        inValuesByField.delete('additional_position');
-      }
-      for (const { operator, value } of posTextConds) {
-        mergedOrParts.push(textConditionToOrPart('position_name', operator, value));
-      }
-      for (const { operator, value } of addTextConds) {
-        mergedOrParts.push(textConditionToOrPart('additional_position', operator, value));
-      }
-
-      if (mergedOrParts.length > 0) q = q.or(mergedOrParts.join(','));
-
-      // Hapus dari map agar tidak diproses ulang di loop di bawah
-      textFiltersByField.delete('position_name');
-      textFiltersByField.delete('additional_position');
-    }
-
-    // Proses filter 'in' yang tersisa (bukan position_name/additional_position yang sudah digabung)
-    for (const [field, vals] of inValuesByField) {
-      // Special handling for rank_group: if "(Tidak Ada)" is selected, include null values AND "Tenaga Alih Daya" and "Tidak Ada" strings
-      if (field === 'rank_group' && vals.includes('(Tidak Ada)')) {
-        const actualVals = vals.filter(v => v !== '(Tidak Ada)');
-        if (actualVals.length > 0) {
-          q = q.or(`${field}.in.(${actualVals.map(v => `"${v}"`).join(',')},"Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
-        } else {
-          q = q.or(`${field}.in.("Tenaga Alih Daya","Tidak Ada"),${field}.is.null`);
-        }
-      } else {
-        q = q.in(field, vals);
-      }
-    }
-
-    // Proses filter text yang tersisa
-    for (const [field, conditions] of textFiltersByField) {
-      // Filter pada position_name (tanpa additional_position aktif) otomatis mencari juga
-      // di additional_position (OR) agar pegawai PLT muncul tanpa perlu memilih kolom PLT
-      const includeAdditional = field === 'position_name';
-
-      if (conditions.length === 1 && !includeAdditional) {
-        const { operator, value } = conditions[0];
-        if (operator === 'exact_word' || operator === 'ilike') {
-          q = q.ilike(field, `%${value}%`);
-        } else if (operator === 'exact_match') {
-          q = q.ilike(field, value);
-        } else if (operator === 'eq') {
-          q = q.eq(field, value);
-        }
-      } else {
-        const orParts: string[] = [];
-        for (const { operator, value } of conditions) {
-          const escaped = value.replace(/"/g, '\\"');
-          if (operator === 'exact_word' || operator === 'ilike') {
-            orParts.push(`${field}.ilike."%${escaped}%"`);
-            if (includeAdditional) orParts.push(`additional_position.ilike."%${escaped}%"`);
-          } else if (operator === 'exact_match') {
-            orParts.push(`${field}.ilike."${escaped}"`);
-            if (includeAdditional) orParts.push(`additional_position.ilike."${escaped}"`);
-          } else {
-            orParts.push(`${field}.eq."${escaped}"`);
-            if (includeAdditional) orParts.push(`additional_position.eq."${escaped}"`);
-          }
-        }
-        q = q.or(orParts.join(','));
-      }
-    }
-
-    return q;
-  };
-
-  const applyClientSideFilters = (rows: Record<string, unknown>[]) => {
-    let filtered = rows;
-
-    // Field virtual position_name_or_plt sudah ditangani di server-side, skip di client
-    const exactWordFilters = filters.filter(
-      filter => filter.operator === 'exact_word' &&
-                filter.field !== 'position_name_or_plt' &&
-                isFilterRuleActive(filter)
-    );
-    if (exactWordFilters.length === 0) return filtered;
-
-    // Kelompokkan exact_word filters per field — antar field = AND, dalam field = OR
-    const byField = new Map<string, string[]>();
-    for (const filter of exactWordFilters) {
-      const existing = byField.get(filter.field) ?? [];
-      byField.set(filter.field, [...existing, filter.value.trim()]);
-    }
-
-    // Jika position_name dan additional_position keduanya punya exact_word filter,
-    // gabungkan dengan OR agar tidak saling memotong data
-    const hasPositionNameExact = byField.has('position_name');
-    const hasAdditionalPositionExact = byField.has('additional_position');
-
-    if (hasPositionNameExact && hasAdditionalPositionExact) {
-      const posRegexes = (byField.get('position_name') ?? []).map(
-        v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i')
-      );
-      const addRegexes = (byField.get('additional_position') ?? []).map(
-        v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i')
-      );
-      filtered = filtered.filter(row => {
-        const posValue = String(row['position_name'] || '').toLowerCase();
-        const addValue = String(row['additional_position'] || '').toLowerCase();
-        return (
-          posRegexes.some(r => r.test(posValue)) ||
-          addRegexes.some(r => r.test(addValue))
-        );
-      });
-      byField.delete('position_name');
-      byField.delete('additional_position');
-    }
-
-    for (const [field, values] of byField) {
-      const regexes = values.map(v => new RegExp(`\\b${escapeRegExp(v.toLowerCase())}\\b`, 'i'));
-      filtered = filtered.filter(row => {
-        const fieldValue = String(row[field] || '').toLowerCase();
-        // Dalam satu field: OR — cocok jika salah satu regex match
-        return regexes.some(regex => regex.test(fieldValue));
-      });
-    }
-
-    return filtered;
-  };
-
   const fetchData = async () => {
     if (selectedColumns.length === 0) {
       toast({ title: 'Pilih minimal satu kolom', variant: 'destructive' });
@@ -543,10 +316,9 @@ export default function DataBuilder() {
         let q: any = supabase.from('employees').select(selectStr);
         // Exclude pegawai non-aktif (is_active = FALSE) dari hasil query
         q = q.eq('is_active', true);
-        q = applyFilters(q as FilterableQuery);
-        // Batasi data ke unit kerja sendiri jika bukan admin yang bisa lihat semua
-        if (shouldFilterByDepartment) {
-          q = q.eq('department', profile!.department);
+        q = applyDataBuilderServerFilters(q as FilterableQuery, filters);
+        if (accessibleDepartments?.length) {
+          q = q.in('department', accessibleDepartments);
         }
         q = q.range(offset, offset + batchSize - 1).order('department').order('name');
         const { data: batch, error } = await q;
@@ -557,7 +329,7 @@ export default function DataBuilder() {
         offset += batchSize;
       }
 
-      const filtered = applyClientSideFilters(all);
+      const filtered = applyDataBuilderClientFilters(all, filters);
       
       // Ambil referensi jabatan untuk urutan yang sama persis dengan Peta Jabatan
       const departments = [...new Set(filtered.map(r => r.department as string).filter(Boolean))];
@@ -585,11 +357,24 @@ export default function DataBuilder() {
       setAllData(sorted);
       setTotalCount(sorted.length);
       setData(sorted.slice(0, PAGE_SIZE));
+
+      if (sorted.length === 0 && filters.some(isFilterRuleActive)) {
+        toast({
+          title: 'Tidak ada data',
+          description:
+            'Filter aktif tidak menghasilkan pegawai. Periksa kombinasi filter (gunakan OR antar kondisi advanced pada kolom yang sama).',
+          variant: 'default',
+        });
+      }
     } catch (error) {
       logger.error('[DataBuilder] Gagal mengambil data:', error);
+      const message =
+        error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil data.';
       toast({
         title: 'Gagal mengambil data',
-        description: error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil data.',
+        description: message.includes('failed to parse')
+          ? `${message} — Periksa filter pangkat/golongan atau kombinasi filter yang terlalu ketat.`
+          : message,
         variant: 'destructive',
       });
     } finally {
@@ -614,11 +399,17 @@ export default function DataBuilder() {
       return;
     }
 
-    // Batasi export ke unit kerja sendiri jika bukan admin yang bisa lihat semua
-    if (shouldFilterByDepartment) {
-      const hasOtherDept = allData.some(row => row.department && row.department !== profile!.department);
+    if (accessibleDepartments?.length) {
+      const allowed = new Set(accessibleDepartments);
+      const hasOtherDept = allData.some(
+        (row) => row.department && !allowed.has(String(row.department))
+      );
       if (hasOtherDept) {
-        toast({ title: 'Akses ditolak', description: 'Anda hanya dapat mengexport data unit kerja Anda sendiri.', variant: 'destructive' });
+        toast({
+          title: 'Akses ditolak',
+          description: 'Anda hanya dapat mengexport data unit kerja yang dapat Anda akses.',
+          variant: 'destructive',
+        });
         return;
       }
     }

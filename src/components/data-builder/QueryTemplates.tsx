@@ -64,7 +64,7 @@ export const SYSTEM_TEMPLATES: QueryTemplate[] = [
     name: 'Jabatan Struktural',
     description: 'Pegawai dengan jabatan struktural beserta riwayat jabatan',
     type: 'system',
-    columns: ['name', 'nip', 'department', 'position_name', 'rank_group', 'grade'],
+    columns: ['name', 'nip', 'department', 'position_name', 'position_type', 'rank_group'],
     filters: [
       {
         id: 'position-filter',
@@ -82,7 +82,7 @@ export const SYSTEM_TEMPLATES: QueryTemplate[] = [
     name: 'Jabatan Fungsional',
     description: 'Pegawai dengan jabatan fungsional dan kompetensi',
     type: 'system',
-    columns: ['name', 'nip', 'department', 'position_name', 'rank_group', 'education_level'],
+    columns: ['name', 'nip', 'department', 'position_name', 'position_type', 'rank_group', 'kejuruan'],
     filters: [
       {
         id: 'position-filter',
@@ -100,7 +100,7 @@ export const SYSTEM_TEMPLATES: QueryTemplate[] = [
     name: 'Golongan IV',
     description: 'Pegawai dengan golongan IV (semua tingkat)',
     type: 'system',
-    columns: ['name', 'nip', 'department', 'position_name', 'rank_group', 'tmt_rank'],
+    columns: ['name', 'nip', 'department', 'position_name', 'rank_group', 'tmt_cpns', 'tmt_pns'],
     filters: [
       {
         id: 'rank-filter',
@@ -108,7 +108,13 @@ export const SYSTEM_TEMPLATES: QueryTemplate[] = [
         field: 'rank_group',
         operator: 'in',
         value: '',
-        values: ['IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e'],
+        values: [
+          'Pembina (IV/a)',
+          'Pembina Tk I (IV/b)',
+          'Pembina Muda (IV/c)',
+          'Pembina Madya (IV/d)',
+          'Pembina Utama (IV/e)',
+        ],
       },
     ],
     relatedTables: ['rank_history'],

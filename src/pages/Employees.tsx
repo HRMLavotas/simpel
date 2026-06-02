@@ -1194,13 +1194,64 @@ export default function Employees() {
 
       let employeeId: string;
 
+      /** Simpan riwayat SEBELUM update pegawai agar RLS mutation_history tidak gagal setelah unit berubah */
+      const persistEmployeeHistories = async (empId: string) => {
+        if (data.education_history) {
+          await supabase.from('education_history').delete().eq('employee_id', empId);
+          const eduRows = data.education_history
+            .filter(e => e.level)
+            .map(e => ({
+              employee_id: empId,
+              level: e.level,
+              institution_name: e.institution_name || null,
+              major: e.major || null,
+              graduation_year: e.graduation_year ? parseInt(e.graduation_year) : null,
+              front_title: e.front_title || null,
+              back_title: e.back_title || null,
+            }));
+          if (eduRows.length > 0) {
+            await supabase.from('education_history').insert(eduRows);
+          }
+        }
+
+        logger.debug('=== SAVING ALL HISTORY DATA ===');
+        logger.debug('Mutation history:', data.mutation_history);
+        await Promise.all([
+          saveHistoryEntries('mutation_history', empId, data.mutation_history, ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']),
+          saveHistoryEntries('position_history', empId, data.position_history, ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
+          saveHistoryEntries('rank_history', empId, data.rank_history, ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
+          saveHistoryEntries('competency_test_history', empId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
+          saveHistoryEntries('training_history', empId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
+        ]);
+
+        if (data.additional_position_history) {
+          await supabase.from('additional_position_history').delete().eq('employee_id', empId);
+          const additionalPosRows = data.additional_position_history
+            .filter(h => h.jabatan_tambahan_baru || h.jabatan_tambahan_lama)
+            .map(h => ({
+              employee_id: empId,
+              tanggal: h.tanggal || null,
+              jabatan_tambahan_lama: h.jabatan_tambahan_lama || null,
+              jabatan_tambahan_baru: h.jabatan_tambahan_baru || null,
+              nomor_sk: h.nomor_sk || null,
+              tmt: h.tmt || null,
+              keterangan: h.keterangan || null,
+            }));
+          if (additionalPosRows.length > 0) {
+            await supabase.from('additional_position_history').insert(additionalPosRows);
+          }
+        }
+      };
+
       if (selectedEmployee) {
+        employeeId = selectedEmployee.id;
+        await persistEmployeeHistories(employeeId);
+
         const { error } = await supabase
           .from('employees')
           .update(employeeData)
           .eq('id', selectedEmployee.id);
         if (error) throw error;
-        employeeId = selectedEmployee.id;
 
         // Build notification message based on changes
         const changeLabels: string[] = [];
@@ -1283,41 +1334,8 @@ export default function Employees() {
             actor_department: profile.department,
           });
         }
+        await persistEmployeeHistories(employeeId);
       }
-
-      // Handle education history
-      if (data.education_history) {
-        await supabase.from('education_history').delete().eq('employee_id', employeeId);
-        const eduRows = data.education_history
-          .filter(e => e.level)
-          .map(e => ({
-            employee_id: employeeId,
-            level: e.level,
-            institution_name: e.institution_name || null,
-            major: e.major || null,
-            graduation_year: e.graduation_year ? parseInt(e.graduation_year) : null,
-            front_title: e.front_title || null,
-            back_title: e.back_title || null,
-          }));
-        if (eduRows.length > 0) {
-          await supabase.from('education_history').insert(eduRows);
-        }
-      }
-
-      // Save all other history types (manual entries from form)
-      logger.debug('=== SAVING ALL HISTORY DATA ===');
-      logger.debug('Mutation history:', data.mutation_history);
-      logger.debug('Position history:', data.position_history);
-      
-      await Promise.all([
-        saveHistoryEntries('mutation_history', employeeId, data.mutation_history, ['tanggal', 'dari_unit', 'ke_unit', 'jabatan', 'nomor_sk', 'keterangan']),
-        saveHistoryEntries('position_history', employeeId, data.position_history, ['tanggal', 'jabatan_lama', 'jabatan_baru', 'unit_kerja', 'nomor_sk', 'keterangan']),
-        saveHistoryEntries('rank_history', employeeId, data.rank_history, ['tanggal', 'pangkat_lama', 'pangkat_baru', 'nomor_sk', 'tmt', 'keterangan']),
-        saveHistoryEntries('competency_test_history', employeeId, data.competency_test_history, ['tanggal', 'jenis_uji', 'hasil', 'keterangan']),
-        saveHistoryEntries('training_history', employeeId, data.training_history, ['tanggal_mulai', 'tanggal_selesai', 'nama_diklat', 'penyelenggara', 'sertifikat', 'keterangan']),
-      ]);
-      
-      logger.debug('=== ALL HISTORY DATA SAVED ===');
 
       // Save notes data
       if (data.placement_notes) {
@@ -1347,25 +1365,6 @@ export default function Employees() {
           .map(n => ({ employee_id: employeeId, note: n.note }));
         if (changeRows.length > 0) {
           await supabase.from('change_notes').insert(changeRows);
-        }
-      }
-
-      // Save additional position history
-      if (data.additional_position_history) {
-        await supabase.from('additional_position_history').delete().eq('employee_id', employeeId);
-        const additionalPosRows = data.additional_position_history
-          .filter(h => h.jabatan_tambahan_baru || h.jabatan_tambahan_lama)
-          .map(h => ({
-            employee_id: employeeId,
-            tanggal: h.tanggal || null,
-            jabatan_tambahan_lama: h.jabatan_tambahan_lama || null,
-            jabatan_tambahan_baru: h.jabatan_tambahan_baru || null,
-            nomor_sk: h.nomor_sk || null,
-            tmt: h.tmt || null,
-            keterangan: h.keterangan || null,
-          }));
-        if (additionalPosRows.length > 0) {
-          await supabase.from('additional_position_history').insert(additionalPosRows);
         }
       }
 

@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/lib/logger';
-import { UNIT_PEMBINA_MAPPING, isSatpelOrWorkshop } from '@/lib/constants';
+import { UNIT_PEMBINA_MAPPING, getAccessibleDepartments, isSatpelOrWorkshop } from '@/lib/constants';
 
 // Helper: resolve effective department for aggregation.
 // Pegawai di Satpel/Workshop dihitung ke unit pembinanya.
@@ -263,7 +263,11 @@ const OFFICIAL_DEPT_ORDER: string[] = [
 export function QuickAggregation() {
   const { toast } = useToast();
   const { profile, canViewAll } = useAuth();
-  const shouldFilterByDepartment = !canViewAll && profile?.department;
+
+  const accessibleDepartments = useMemo(() => {
+    if (canViewAll || !profile?.department) return null;
+    return getAccessibleDepartments(profile.department, profile.app_role ?? 'admin_unit');
+  }, [canViewAll, profile?.department, profile?.app_role]);
   
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -296,9 +300,16 @@ export function QuickAggregation() {
           .range(offset, offset + batchSize - 1)
           .order('name');
 
-        // Filter by department if needed
-        if (shouldFilterByDepartment) {
-          query = query.eq('department', profile!.department);
+        if (accessibleDepartments?.length) {
+          if (departmentFilter && departmentFilter !== 'all') {
+            if (accessibleDepartments.includes(departmentFilter)) {
+              query = query.eq('department', departmentFilter);
+            } else {
+              query = query.in('department', accessibleDepartments);
+            }
+          } else {
+            query = query.in('department', accessibleDepartments);
+          }
         } else if (departmentFilter && departmentFilter !== 'all') {
           query = query.eq('department', departmentFilter);
         }
@@ -356,8 +367,9 @@ export function QuickAggregation() {
 
       setData(mergedData);
       
-      // Extract unique departments for filter
-      if (!shouldFilterByDepartment) {
+      if (accessibleDepartments?.length) {
+        setDepartments([...accessibleDepartments].sort());
+      } else {
         const uniqueDepts = [...new Set(allEmployees.map(e => e.department).filter(Boolean))].sort();
         setDepartments(uniqueDepts as string[]);
       }
@@ -1192,7 +1204,7 @@ export function QuickAggregation() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {!shouldFilterByDepartment && departments.length > 0 && (
+          {departments.length > 0 && (
             <Select value={selectedDepartment} onValueChange={handleDepartmentChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Pilih Unit Kerja" />
